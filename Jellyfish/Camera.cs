@@ -62,7 +62,7 @@ namespace Jellyfish
 
         public static Matrix4 GetViewMatrix() => Matrix4.LookAt(Position, Position + front, up);
 
-        public static Matrix4 GetProjectionMatrix() => Matrix4.CreatePerspectiveFieldOfView(fov, AspectRatio, 0.01f, 100f);
+        public static Matrix4 GetProjectionMatrix() => Matrix4.CreatePerspectiveFieldOfView(fov, AspectRatio, 0.05f, 1000f);
 
         private void UpdateVectors()
         {

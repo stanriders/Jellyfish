@@ -37,7 +37,7 @@ namespace Jellyfish.Render.Buffers
                 }
 
                 // normal
-                if (uvs != null && normals.Length > 0 && i < normals.Length)
+                if (normals != null && normals.Length > 0 && i < normals.Length)
                 {
                     coords.Add(normals[i].X);
                     coords.Add(normals[i].Y);
