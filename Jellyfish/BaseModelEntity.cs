@@ -19,8 +19,12 @@ namespace Jellyfish
 
         public override void Think()
         {
-            model.Position = Position;
-            model.Rotation = Rotation;
+            if (model != null)
+            {
+                model.Position = Position;
+                model.Rotation = Rotation;
+            }
+
             base.Think();
         }
     }

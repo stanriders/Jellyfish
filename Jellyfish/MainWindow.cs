@@ -31,28 +31,7 @@ namespace Jellyfish
             render = new OpenGLRender();
             inputHandler = new InputHandler();
 
-            if (EntityManager.CreateEntity("npc_gman") is Gman gman)
-            {
-                gman.Rotation = new Vector3(-1.5f, 0, 0);
-            }
-
-            EntityManager.CreateEntity("bezierplane");
-
-            if (EntityManager.CreateEntity("model_dynamic") is DynamicModel elite)
-            {
-                elite.Model = "Elite_reference.smd";
-                elite.Position = new Vector3(50, 0, 0);
-                elite.Rotation = new Vector3(-1.5f, 0, 0);
-                elite.Load();
-            }
-
-            if (EntityManager.CreateEntity("model_dynamic") is DynamicModel police)
-            {
-                police.Model = "Police_reference.smd";
-                police.Position = new Vector3(0, 0, 50);
-                police.Rotation = new Vector3(-1.5f, 0, 0);
-                police.Load();
-            }
+            MapParser.Parse("maps/test.yml");
 
             base.OnLoad(e);
         }

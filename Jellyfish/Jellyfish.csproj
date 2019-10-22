@@ -5,14 +5,20 @@
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <FragShaders Include="Render\Shaders\*.frag" />
+    <VertShaders Include="Render\Shaders\*.vert" />
+  </ItemGroup>
+
   <Target Name="CopyShaders" AfterTargets="Build">
-    <Copy SourceFiles="Render\Shaders\SimpleOut.frag" DestinationFolder="$(OutDir)\shaders" />
-    <Copy SourceFiles="Render\Shaders\SimpleOut.vert" DestinationFolder="$(OutDir)\shaders" />
+    <Copy SourceFiles="@(FragShaders)" DestinationFolder="$(OutDir)\shaders" />
+    <Copy SourceFiles="@(VertShaders)" DestinationFolder="$(OutDir)\shaders" />
   </Target>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
     <PackageReference Include="OpenTK" Version="3.1.0" />
+    <PackageReference Include="YamlDotNet" Version="8.0.0" />
   </ItemGroup>
 
 </Project>

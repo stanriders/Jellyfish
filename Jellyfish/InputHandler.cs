@@ -16,12 +16,12 @@ namespace Jellyfish
         private bool wireframe;
         private bool wireframeLock;
 
-        private const float camera_speed = 15.5f;
+        private const float camera_speed = 16.0f;
         private const float sensitivity = 0.2f;
 
         public InputHandler()
         {
-            Camera = new Camera(Vector3.UnitZ * 3, 1280 / (float)720);
+            Camera = new Camera(Vector3.UnitZ * 3, MainWindow.WindowWidth / (float)MainWindow.WindowHeight);
         }
 
         public void Frame(float frameTime)
