@@ -1,0 +1,32 @@
+Entities:
+- ClassName: "npc_gman"
+  Position:
+    X: 0
+    Y: 0
+    Z: 0
+  Rotation:
+    X: -1.5
+    Y: 0
+    Z: 0
+
+- ClassName: "model_dynamic"
+  Position:
+    X: 50
+    Y: 0
+    Z: 0
+  Rotation:
+    X: -1.5
+    Y: 0
+    Z: 0
+  Model: "Elite_reference.smd"
+
+- ClassName: "model_dynamic"
+  Position:
+    X: -50
+    Y: 0
+    Z: 0
+  Rotation:
+    X: -1.5
+    Y: 0
+    Z: 0
+  Model: "Police_reference.smd"
