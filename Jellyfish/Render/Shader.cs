@@ -13,25 +13,116 @@ namespace Jellyfish.Render
 
         private readonly Dictionary<string, int> uniformLocations = new Dictionary<string, int>();
 
-        protected Shader(string vertPath, string fragPath)
+        protected Shader(string vertPath, string geomPath, string fragPath, string tessControlPath = null, string tessEvalPath = null, string compPath = null)
         {
-            var vertexShader = GL.CreateShader(ShaderType.VertexShader);
-            GL.ShaderSource(vertexShader, LoadSource(vertPath));
-            CompileShader(vertexShader);
+            // compile shaders
+            int vertexShader = 0;
+            if (!string.IsNullOrEmpty(vertPath))
+            {
+                vertexShader = GL.CreateShader(ShaderType.VertexShader);
+                GL.ShaderSource(vertexShader, LoadSource(vertPath));
+                CompileShader(vertexShader);
+            }
 
-            var fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
-            GL.ShaderSource(fragmentShader, LoadSource(fragPath));
-            CompileShader(fragmentShader);
+            int geometryShader = 0;
+            if (!string.IsNullOrEmpty(geomPath))
+            {
+                geometryShader = GL.CreateShader(ShaderType.GeometryShader);
+                GL.ShaderSource(geometryShader, LoadSource(geomPath));
+                CompileShader(geometryShader);
+            }
 
+            int fragmentShader = 0;
+            if (!string.IsNullOrEmpty(fragPath))
+            {
+                fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
+                GL.ShaderSource(fragmentShader, LoadSource(fragPath));
+                CompileShader(fragmentShader);
+            }
+
+            int tesselationControlShader = 0;
+            if (!string.IsNullOrEmpty(tessControlPath))
+            {
+                tesselationControlShader = GL.CreateShader(ShaderType.TessControlShader);
+                GL.ShaderSource(tesselationControlShader, LoadSource(tessControlPath));
+                CompileShader(tesselationControlShader);
+            }
+
+            int tesselationEvaluationShader = 0;
+            if (!string.IsNullOrEmpty(tessEvalPath))
+            {
+                tesselationEvaluationShader = GL.CreateShader(ShaderType.TessEvaluationShader);
+                GL.ShaderSource(tesselationEvaluationShader, LoadSource(tessEvalPath));
+                CompileShader(tesselationEvaluationShader);
+            }
+
+            int computeShader = 0;
+            if (!string.IsNullOrEmpty(compPath))
+            {
+                computeShader = GL.CreateShader(ShaderType.ComputeShader);
+                GL.ShaderSource(computeShader, LoadSource(compPath));
+                CompileShader(computeShader);
+            }
+
+            // create shader program
             shaderHandle = GL.CreateProgram();
-            GL.AttachShader(shaderHandle, vertexShader);
-            GL.AttachShader(shaderHandle, fragmentShader);
+
+            if (!string.IsNullOrEmpty(vertPath))
+                GL.AttachShader(shaderHandle, vertexShader);
+
+            if (!string.IsNullOrEmpty(geomPath))
+                GL.AttachShader(shaderHandle, geometryShader);
+
+            if (!string.IsNullOrEmpty(fragPath))
+                GL.AttachShader(shaderHandle, fragmentShader);
+
+            if (!string.IsNullOrEmpty(tessControlPath))
+                GL.AttachShader(shaderHandle, tesselationControlShader);
+
+            if (!string.IsNullOrEmpty(tessEvalPath))
+                GL.AttachShader(shaderHandle, tesselationEvaluationShader);
+
+            if (!string.IsNullOrEmpty(compPath))
+                GL.AttachShader(shaderHandle, computeShader);
+
             LinkProgram(shaderHandle);
 
-            GL.DetachShader(shaderHandle, vertexShader);
-            GL.DetachShader(shaderHandle, fragmentShader);
-            GL.DeleteShader(fragmentShader);
-            GL.DeleteShader(vertexShader);
+            // remove singular shaders
+            if (!string.IsNullOrEmpty(vertPath))
+            {
+                GL.DetachShader(shaderHandle, vertexShader);
+                GL.DeleteShader(vertexShader);
+            }
+
+            if (!string.IsNullOrEmpty(geomPath))
+            {
+                GL.DetachShader(shaderHandle, geometryShader);
+                GL.DeleteShader(geometryShader);
+            }
+
+            if (!string.IsNullOrEmpty(fragPath))
+            {
+                GL.DetachShader(shaderHandle, fragmentShader);
+                GL.DeleteShader(fragmentShader);
+            }
+
+            if (!string.IsNullOrEmpty(tessControlPath))
+            {
+                GL.DetachShader(shaderHandle, tesselationControlShader);
+                GL.DeleteShader(tesselationControlShader);
+            }
+
+            if (!string.IsNullOrEmpty(tessEvalPath))
+            {
+                GL.DetachShader(shaderHandle, tesselationEvaluationShader);
+                GL.DeleteShader(tesselationEvaluationShader);
+            }
+
+            if (!string.IsNullOrEmpty(compPath))
+            {
+                GL.DetachShader(shaderHandle, computeShader);
+                GL.DeleteShader(computeShader);
+            }
 
             GL.GetProgram(shaderHandle, GetProgramParameterName.ActiveUniforms, out var numberOfUniforms);
             for (var i = 0; i < numberOfUniforms; i++)
@@ -132,6 +223,17 @@ namespace Jellyfish.Render
         {
             GL.UseProgram(shaderHandle);
             GL.UniformMatrix4(uniformLocations[name], true, ref data);
+        }
+
+        /// <summary>
+        /// Set a uniform Vector3 on this shader.
+        /// </summary>
+        /// <param name="name">The name of the uniform</param>
+        /// <param name="data">The data to set</param>
+        public void SetVector2(string name, Vector2 data)
+        {
+            GL.UseProgram(shaderHandle);
+            GL.Uniform2(uniformLocations[name], data);
         }
 
         /// <summary>
