@@ -7,7 +7,7 @@ namespace Jellyfish.Render.Shaders
     {
         private readonly Texture texture;
 
-        public SimpleOut(string diffusePath) : base("shaders/SimpleOut.vert", "shaders/SimpleOut.frag")
+        public SimpleOut(string diffusePath) : base("shaders/SimpleOut.vert", null, "shaders/SimpleOut.frag")
         {
             texture = new Texture(diffusePath);
             texture.Draw();
