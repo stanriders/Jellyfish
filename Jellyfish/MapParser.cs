@@ -45,7 +45,6 @@ namespace Jellyfish
             public Entity[] Entities { get; set; }
         }
 
-
         public static void Parse(string path)
         {
             var mapString = File.ReadAllText(path);

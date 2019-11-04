@@ -30,3 +30,14 @@ Entities:
     Y: 0
     Z: 0
   Model: "Police_reference.smd"
+
+- ClassName: "model_dynamic"
+  Position:
+    X: 0
+    Y: 0
+    Z: -50
+  Rotation:
+    X: -1.5
+    Y: 0
+    Z: 0
+  Model: "witch.gltf"

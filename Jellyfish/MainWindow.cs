@@ -1,6 +1,5 @@
 ﻿
 using System;
-using Jellyfish.Entities;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;

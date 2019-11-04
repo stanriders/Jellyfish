@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Jellyfish.Render.Shaders;
 using OpenTK;
@@ -52,7 +53,11 @@ namespace Jellyfish.Render
             foreach (var meshInfo in meshInfos)
             {
                 var mesh = new Mesh(meshInfo);
-                mesh.AddShader(new SimpleOut(meshInfo.Texture.Insert(0, "materials/models/")));
+                if (meshInfo.Texture != null)
+                    mesh.AddShader(new SimpleOut($"materials/models/{Path.GetFileNameWithoutExtension(path)}/{meshInfo.Texture}"));
+                else
+                    mesh.AddShader(new SimpleOut("materials/error.png"));
+
                 meshes.Add(mesh);
             }
 

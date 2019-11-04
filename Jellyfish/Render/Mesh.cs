@@ -43,9 +43,8 @@ namespace Jellyfish.Render
                 ibo = new IndexBuffer(mesh.Indices.ToArray());
 
             vao = new VertexArray();
-
-            ibo?.Bind();
             vbo.Bind();
+            ibo?.Bind();
         }
 
         public void Draw()

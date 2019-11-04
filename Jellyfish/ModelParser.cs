@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using OpenTK;
+using SharpGLTF.Schema2;
 
 namespace Jellyfish
 {
@@ -22,11 +23,14 @@ namespace Jellyfish
         {
             switch (Path.GetExtension(path))
             {
-                case ".smd": 
+                case ".smd":
                     return ParseSMD(path);
                 case ".obj":
                     return ParseOBJ(path);
-                default: 
+                case ".gltf":
+                case ".glb":
+                    return ParseGLTF(path);
+                default:
                     return null;
             }
         }
@@ -58,7 +62,7 @@ namespace Jellyfish
 
                         if (shouldParse)
                         {
-                            var split = line.Trim().Split(' ').Where(x=> !string.IsNullOrEmpty(x)).ToArray();
+                            var split = line.Trim().Split(' ').Where(x => !string.IsNullOrEmpty(x)).ToArray();
                             if (int.TryParse(split[0], out _))
                             {
                                 //<int|Parent bone> <float|PosX PosY PosZ> <normal|NormX NormY NormZ> <normal|U V> <int|links> <int|Bone ID> <normal|Weight> [...]
@@ -82,7 +86,7 @@ namespace Jellyfish
                             {
                                 // we split model by textures 
                                 if (!meshes.ContainsKey(line))
-                                    meshes.Add(line, new MeshInfo() { Texture = line });
+                                    meshes.Add(line, new MeshInfo() {Texture = line});
 
                                 currentTexture = line;
                             }
@@ -93,7 +97,7 @@ namespace Jellyfish
 
             return meshes.Values.ToArray();
         }
-        
+
         private static MeshInfo[] ParseOBJ(string path)
         {
             var meshes = new Dictionary<string, MeshInfo>();
@@ -118,6 +122,7 @@ namespace Jellyfish
 
                             meshes["a"].Vertices.Add(vertex);
                         }
+
                         if (split[0] == "vt")
                         {
                             //vt <float|PosX PosY PosZ>
@@ -135,7 +140,7 @@ namespace Jellyfish
 
                             meshes["a"].Normals.Add(normal);
                         }
-                        else if(split[0] == "f")
+                        else if (split[0] == "f")
                         {
                             if (meshes["a"].Indices == null)
                                 meshes["a"].Indices = new List<uint>();
@@ -157,6 +162,51 @@ namespace Jellyfish
 
             return meshes.Values.ToArray();
         }
-        
+
+        private static MeshInfo[] ParseGLTF(string path)
+        {
+            var gltf = ModelRoot.ParseGLTF(File.ReadAllText(path), new ReadSettings()
+            {
+                FileReader = (assetFileName => new ArraySegment<byte>(File.ReadAllBytes(Path.Combine(Path.GetDirectoryName(path), assetFileName)))),
+                SkipValidation = true
+            });
+            var meshes = new List<MeshInfo>();
+
+            //foreach (var mesh in gltf.LogicalMeshes)
+            for(int i = 0; i < gltf.LogicalMeshes.Count; i++)
+            {
+                var mesh = gltf.LogicalMeshes[i];
+                var meshInfo = new MeshInfo();
+                foreach (var primitive in mesh.Primitives)
+                {
+                    meshInfo.Vertices = primitive.GetVertices("POSITION")
+                        .AsVector3Array()
+                        .Select(x => new Vector3(x.X, x.Y + i*2, x.Z))
+                        .ToList();
+
+                    if (primitive.VertexAccessors.ContainsKey("NORMAL"))
+                        meshInfo.Normals = primitive.GetVertices("NORMAL")
+                            .AsVector3Array()
+                            .Select(x => new Vector3(x.X, x.Y, x.Z))
+                            .ToList();
+
+                    if (primitive.VertexAccessors.ContainsKey("TEXCOORD_0"))
+                        meshInfo.UVs = primitive.GetVertices("TEXCOORD_0")
+                            .AsVector2Array()
+                            .Select(x => new Vector2(x.X, x.Y))
+                            .ToList();
+
+                    if (meshInfo.Texture == null)
+                        meshInfo.Texture = primitive.Material.Name + "_baseColor.png";
+
+                    meshInfo.Indices = primitive.GetIndices().ToList();
+                }
+
+
+                meshes.Add(meshInfo);
+            }
+
+            return meshes.ToArray();
+        }
     }
 }
