@@ -28,8 +28,9 @@ namespace Jellyfish
                 case ".obj":
                     return ParseOBJ(path);
                 case ".gltf":
-                case ".glb":
                     return ParseGLTF(path);
+                case ".glb":
+                    return ParseGLB(path);
                 default:
                     return null;
             }
@@ -163,17 +164,29 @@ namespace Jellyfish
             return meshes.Values.ToArray();
         }
 
+        private static MeshInfo[] ParseGLB(string path)
+        {
+            return ConvertGLTF(ModelRoot.ReadGLB(File.OpenRead(path), new ReadSettings()
+            {
+                SkipValidation = true
+            }));
+        }
+
         private static MeshInfo[] ParseGLTF(string path)
         {
-            var gltf = ModelRoot.ParseGLTF(File.ReadAllText(path), new ReadSettings()
+            return ConvertGLTF(ModelRoot.ParseGLTF(File.ReadAllText(path), new ReadSettings()
             {
                 FileReader = (assetFileName => new ArraySegment<byte>(File.ReadAllBytes(Path.Combine(Path.GetDirectoryName(path), assetFileName)))),
                 SkipValidation = true
-            });
+            }));
+        }
+
+        private static MeshInfo[] ConvertGLTF(ModelRoot gltf)
+        {
             var meshes = new List<MeshInfo>();
 
             //foreach (var mesh in gltf.LogicalMeshes)
-            for(int i = 0; i < gltf.LogicalMeshes.Count; i++)
+            for (int i = 0; i < gltf.LogicalMeshes.Count; i++)
             {
                 var mesh = gltf.LogicalMeshes[i];
                 var meshInfo = new MeshInfo();
@@ -181,7 +194,7 @@ namespace Jellyfish
                 {
                     meshInfo.Vertices = primitive.GetVertices("POSITION")
                         .AsVector3Array()
-                        .Select(x => new Vector3(x.X, x.Y + i*2, x.Z))
+                        .Select(x => new Vector3(x.X, x.Y + i * 2, x.Z))
                         .ToList();
 
                     if (primitive.VertexAccessors.ContainsKey("NORMAL"))
