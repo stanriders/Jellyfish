@@ -5,6 +5,7 @@ using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Input;
 using Jellyfish.Render;
+using Jellyfish.Render.Lighting;
 
 namespace Jellyfish
 {
@@ -17,6 +18,7 @@ namespace Jellyfish
 
         private InputHandler inputHandler;
         private OpenGLRender render;
+        private PointLight playerLight;
 
         public MainWindow(int width, int height, string title) : base(width, height,
             new GraphicsMode(ColorFormat.Empty, 16), title)
@@ -31,6 +33,16 @@ namespace Jellyfish
             inputHandler = new InputHandler();
 
             MapParser.Parse("maps/test.yml");
+
+            playerLight = new PointLight()
+            {
+                Color = new Color4(0,255,128, 255),
+                Enabled = true,
+                Quadratic = 0.9f,
+                Linear = 0.1f,
+                Constant = 0.0f
+            };
+            LightManager.AddLight(playerLight);
 
             base.OnLoad(e);
         }
@@ -56,6 +68,8 @@ namespace Jellyfish
 
             inputHandler.Frame((float)e.Time);
             CursorVisible = !inputHandler.IsControllingCursor;
+
+            playerLight.Position = Camera.Position;
 
             base.OnUpdateFrame(e);
         }

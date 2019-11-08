@@ -54,9 +54,22 @@ namespace Jellyfish.Render
             {
                 var mesh = new Mesh(meshInfo);
                 if (meshInfo.Texture != null)
-                    mesh.AddShader(new SimpleOut($"materials/models/{Path.GetFileNameWithoutExtension(path)}/{meshInfo.Texture}"));
+                {
+                    var matPath = $"materials/models/{Path.GetFileNameWithoutExtension(meshInfo.Texture)}.mat";
+
+                    if (File.Exists(matPath))
+                    {
+                        var deserializer = new YamlDotNet.Serialization.Deserializer();
+                        var material = deserializer.Deserialize<Material>(File.ReadAllText(matPath));
+
+                        mesh.AddShader(
+                            new Main($"materials/models/{material.Diffuse}", $"materials/models/{material.Normal}"));
+                    }
+                    else
+                        mesh.AddShader(new Main("materials/error.png"));
+                }
                 else
-                    mesh.AddShader(new SimpleOut("materials/error.png"));
+                    mesh.AddShader(new Main("materials/error.png"));
 
                 meshes.Add(mesh);
             }

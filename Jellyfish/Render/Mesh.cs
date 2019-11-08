@@ -1,10 +1,20 @@
 ﻿
+using System.Collections.Generic;
 using Jellyfish.Render.Buffers;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.Render
 {
+    public class MeshInfo
+    {
+        public string Texture { get; set; }
+        public List<Vector3> Vertices { get; set; } = new List<Vector3>();
+        public List<Vector2> UVs { get; set; } = new List<Vector2>();
+        public List<Vector3> Normals { get; set; } = new List<Vector3>();
+        public List<uint> Indices { get; set; } // can be null
+    }
+
     public class Mesh
     {
         protected VertexBuffer vbo;
@@ -50,23 +60,21 @@ namespace Jellyfish.Render
         public void Draw()
         {
             shader.Draw();
+
             vao.Bind();
+
 
             var transform = Matrix4.Identity * Matrix4.CreateTranslation(Position);
 
             shader.SetMatrix4("transform", transform);
 
             var rotation = Matrix4.Identity *
-                            Matrix4.CreateRotationX(Rotation.X) *
-                            Matrix4.CreateRotationY(Rotation.Y) *
-                            Matrix4.CreateRotationZ(Rotation.Z);
+                           Matrix4.CreateRotationX(Rotation.X) *
+                           Matrix4.CreateRotationY(Rotation.Y) *
+                           Matrix4.CreateRotationZ(Rotation.Z);
 
             shader.SetMatrix4("rotation", rotation);
 
-            // fixme: move to shader or some kind of shared thing
-            shader.SetVector3("cameraPos", Camera.Position);
-            shader.SetMatrix4("view", Camera.GetViewMatrix());
-            shader.SetMatrix4("projection", Camera.GetProjectionMatrix());
 
             if (ibo != null)
                 GL.DrawElements(PrimitiveType, mesh.Indices.Count, DrawElementsType.UnsignedInt, 0);

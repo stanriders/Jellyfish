@@ -17,7 +17,7 @@ namespace Jellyfish.Render
 
             GeneratePlane();
             CreateBuffers();
-            AddShader(new SimpleOut("test.png"));
+            AddShader(new Main("test.png"));
         }
 
         public void GenerateBezierPlane()

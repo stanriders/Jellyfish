@@ -150,7 +150,6 @@ namespace Jellyfish.Render
             GL.GetShader(shader, ShaderParameter.CompileStatus, out var code);
             if (code != (int)All.True)
             {
-
                 throw new Exception($"Cant compile shader, {GL.GetShaderInfoLog(shader)}");
             }
         }

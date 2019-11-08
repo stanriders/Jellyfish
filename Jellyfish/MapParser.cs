@@ -2,6 +2,7 @@
 using System.IO;
 using Jellyfish.Entities;
 using OpenTK;
+using OpenTK.Graphics;
 
 namespace Jellyfish
 {
@@ -32,6 +33,31 @@ namespace Jellyfish
                 }
             }
 
+            public class MapColor4
+            {
+                public byte R { get; set; }
+                public byte G { get; set; }
+                public byte B { get; set; }
+                public byte A { get; set; }
+
+                public MapColor4()
+                {
+                }
+
+                public MapColor4(Color4 vec)
+                {
+                    R = (byte) (vec.R * 255);
+                    G = (byte) (vec.G * 255);
+                    B = (byte) (vec.B * 255);
+                    A = (byte) (vec.A * 255);
+                }
+
+                public Color4 ToColor4()
+                {
+                    return new Color4(R, G, B, A);
+                }
+            }
+
             public class Entity
             {
                 public string ClassName { get; set; }
@@ -40,6 +66,10 @@ namespace Jellyfish
                 public MapVector3 Rotation { get; set; }
 
                 public string Model { get; set; }
+
+                public MapColor4 Color { get; set; }
+
+                public bool Enabled { get; set; }
             }
 
             public Entity[] Entities { get; set; }
@@ -53,14 +83,21 @@ namespace Jellyfish
             foreach (var ent in map.Entities)
             {
                 var entity = EntityManager.CreateEntity(ent.ClassName);
-                entity.Position = ent.Position.ToVector3();
-                entity.Rotation = ent.Rotation.ToVector3();
+                entity.Position = ent.Position?.ToVector3() ?? new Vector3(0, 0, 0);
+                entity.Rotation = ent.Rotation?.ToVector3() ?? new Vector3(0,0,0);
 
                 if (entity is DynamicModel model)
                 {
                     model.Model = ent.Model;
-                    model.Load();
                 }
+
+                if (entity is PointLight light)
+                {
+                    light.Color = ent.Color.ToColor4();
+                    light.Enabled = ent.Enabled;
+                }
+
+                entity.Load();
             }
         }
     }

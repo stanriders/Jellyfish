@@ -3,7 +3,6 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using OpenTK.Graphics.OpenGL;
-using PixelFormat = OpenTK.Graphics.OpenGL.PixelFormat;
 
 namespace Jellyfish.Render
 {
@@ -18,9 +17,6 @@ namespace Jellyfish.Render
 
             handle = GL.GenTexture();
             Draw();
-
-            if (Path.GetExtension(path) == ".tga")
-                path = Path.ChangeExtension(path, ".png");
 
             if (!File.Exists(path))
                 path = "materials/error.png";
@@ -38,7 +34,7 @@ namespace Jellyfish.Render
                     image.Width,
                     image.Height,
                     0,
-                    PixelFormat.Bgra,
+                    OpenTK.Graphics.OpenGL.PixelFormat.Bgra,
                     PixelType.UnsignedByte,
                     data.Scan0);
             }
@@ -49,6 +45,8 @@ namespace Jellyfish.Render
             GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
 
             GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+
+            GL.BindTexture(TextureTarget.Texture2D, 0);
         }
 
         public void Draw(TextureUnit unit = TextureUnit.Texture0)

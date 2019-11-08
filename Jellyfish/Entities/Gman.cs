@@ -6,7 +6,6 @@ namespace Jellyfish.Entities
         public Gman()
         {
             ModelPath = "models/Gman_high_reference.smd";
-            Load();
         }
     }
 }

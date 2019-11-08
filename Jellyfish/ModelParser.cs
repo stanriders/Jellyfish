@@ -3,20 +3,12 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using Jellyfish.Render;
 using OpenTK;
 using SharpGLTF.Schema2;
 
 namespace Jellyfish
 {
-    public class MeshInfo
-    {
-        public string Texture { get; set; }
-        public List<Vector3> Vertices { get; set; } = new List<Vector3>();
-        public List<Vector2> UVs { get; set; } = new List<Vector2>();
-        public List<Vector3> Normals { get; set; } = new List<Vector3>();
-        public List<uint> Indices { get; set; } // can be null
-    }
-
     public static class ModelParser
     {
         public static MeshInfo[] Parse(string path)
@@ -101,9 +93,8 @@ namespace Jellyfish
 
         private static MeshInfo[] ParseOBJ(string path)
         {
-            var meshes = new Dictionary<string, MeshInfo>();
-            meshes.Add("a", new MeshInfo());
-            meshes["a"].Texture = "eye.jpg";
+            var mesh = new MeshInfo();
+            mesh.Texture = "eye.jpg";
 
             var file = File.ReadAllText(path);
             using (var reader = new StringReader(file))
@@ -121,7 +112,7 @@ namespace Jellyfish
                                 Convert.ToSingle(split[2], CultureInfo.InvariantCulture),
                                 Convert.ToSingle(split[3], CultureInfo.InvariantCulture));
 
-                            meshes["a"].Vertices.Add(vertex);
+                            mesh.Vertices.Add(vertex);
                         }
 
                         if (split[0] == "vt")
@@ -130,7 +121,7 @@ namespace Jellyfish
                             var uv = new Vector2(Convert.ToSingle(split[1], CultureInfo.InvariantCulture),
                                 Convert.ToSingle(split[2], CultureInfo.InvariantCulture));
 
-                            meshes["a"].UVs.Add(uv);
+                            mesh.UVs.Add(uv);
                         }
                         else if (split[0] == "vn")
                         {
@@ -139,29 +130,29 @@ namespace Jellyfish
                                 Convert.ToSingle(split[2], CultureInfo.InvariantCulture),
                                 Convert.ToSingle(split[3], CultureInfo.InvariantCulture));
 
-                            meshes["a"].Normals.Add(normal);
+                            mesh.Normals.Add(normal);
                         }
                         else if (split[0] == "f")
                         {
-                            if (meshes["a"].Indices == null)
-                                meshes["a"].Indices = new List<uint>();
+                            if (mesh.Indices == null)
+                                mesh.Indices = new List<uint>();
 
                             //f <int|vertex/uv/normal vertex/uv/normal vertex/uv/normal>
                             var x = Convert.ToUInt32(split[1].Split('/')[0]);
-                            meshes["a"].Indices.Add(x);
+                            mesh.Indices.Add(x);
                             var y = Convert.ToUInt32(split[2].Split('/')[0]);
-                            meshes["a"].Indices.Add(y);
+                            mesh.Indices.Add(y);
                             if (split.Length > 2)
                             {
                                 var z = Convert.ToUInt32(split[3].Split('/')[0]);
-                                meshes["a"].Indices.Add(z);
+                                mesh.Indices.Add(z);
                             }
                         }
                     }
                 }
             }
 
-            return meshes.Values.ToArray();
+            return new []{ mesh };
         }
 
         private static MeshInfo[] ParseGLB(string path)

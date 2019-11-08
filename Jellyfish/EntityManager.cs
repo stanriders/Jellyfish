@@ -14,6 +14,7 @@ namespace Jellyfish
             AddClassName("npc_gman", typeof(Entities.Gman)); 
             AddClassName("bezierplane", typeof(Entities.BezierPlaneEntity));
             AddClassName("model_dynamic", typeof(Entities.DynamicModel));
+            AddClassName("light_point", typeof(Entities.PointLight));
         }
 
         public static void AddClassName(string className, Type type)
