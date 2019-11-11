@@ -5,10 +5,12 @@ namespace Jellyfish
     {
         static void Main(string[] args)
         {
-            using (var window = new MainWindow(1280, 720, "hi"))
+            using (var game = new Game())
             {
-                window.Run();
+                game.GameLoop();
             }
         }
+
+
     }
 }

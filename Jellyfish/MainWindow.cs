@@ -18,7 +18,6 @@ namespace Jellyfish
 
         private InputHandler inputHandler;
         private OpenGLRender render;
-        private PointLight playerLight;
 
         public MainWindow(int width, int height, string title) : base(width, height,
             new GraphicsMode(ColorFormat.Empty, 16), title)
@@ -31,18 +30,6 @@ namespace Jellyfish
         {
             render = new OpenGLRender();
             inputHandler = new InputHandler();
-
-            MapParser.Parse("maps/test.yml");
-
-            playerLight = new PointLight()
-            {
-                Color = new Color4(255,240,200, 100),
-                Enabled = true,
-                Quadratic = 0.8f,
-                Linear = 0.2f,
-                Constant = 0.0f
-            };
-            LightManager.AddLight(playerLight);
 
             base.OnLoad(e);
         }
@@ -68,13 +55,6 @@ namespace Jellyfish
 
             inputHandler.Frame((float)e.Time);
             CursorVisible = !inputHandler.IsControllingCursor;
-
-            if (Keyboard.GetState().IsKeyDown(Key.E))
-            {
-                playerLight.Enabled = !playerLight.Enabled;
-            }
-
-            playerLight.Position = Camera.Position;
 
             base.OnUpdateFrame(e);
         }

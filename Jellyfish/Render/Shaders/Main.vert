@@ -15,13 +15,13 @@ out vec3 frag_position;
 
 void main(void)
 {
-	frag_texCoord = aTexCoord;
+    frag_texCoord = aTexCoord;
 
-	vec4 transformedNormal = vec4(aNormal, 1.0) * rotation;
-	frag_normal = transformedNormal.xyz;
+    vec4 transformedNormal = vec4(aNormal, 1.0) * rotation;
+    frag_normal = transformedNormal.xyz;
 
-	vec4 transformedPosition = vec4(aPosition, 1.0) * rotation * transform;
-	frag_position = transformedPosition.xyz;
+    vec4 transformedPosition = vec4(aPosition, 1.0) * rotation * transform;
+    frag_position = transformedPosition.xyz;
 
-	gl_Position = transformedPosition * view * projection;
+    gl_Position = transformedPosition * view * projection;
 }
