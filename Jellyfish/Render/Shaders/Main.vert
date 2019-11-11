@@ -16,6 +16,7 @@ out vec3 frag_position;
 void main(void)
 {
 	frag_texCoord = aTexCoord;
+
 	vec4 transformedNormal = vec4(aNormal, 1.0) * rotation;
 	frag_normal = transformedNormal.xyz;
 

@@ -36,10 +36,10 @@ namespace Jellyfish
 
             playerLight = new PointLight()
             {
-                Color = new Color4(0,255,128, 255),
+                Color = new Color4(255,240,200, 100),
                 Enabled = true,
-                Quadratic = 0.9f,
-                Linear = 0.1f,
+                Quadratic = 0.8f,
+                Linear = 0.2f,
                 Constant = 0.0f
             };
             LightManager.AddLight(playerLight);
@@ -68,6 +68,11 @@ namespace Jellyfish
 
             inputHandler.Frame((float)e.Time);
             CursorVisible = !inputHandler.IsControllingCursor;
+
+            if (Keyboard.GetState().IsKeyDown(Key.E))
+            {
+                playerLight.Enabled = !playerLight.Enabled;
+            }
 
             playerLight.Position = Camera.Position;
 
