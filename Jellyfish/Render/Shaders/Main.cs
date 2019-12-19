@@ -42,6 +42,7 @@ namespace Jellyfish.Render.Shaders
             SetMatrix4("projection", Camera.GetProjectionMatrix());
 
             var lights = LightManager.GetLightSources();
+            SetInt("lightSourcesCount", lights.Length);
             for (int i = 0; i < lights.Length; i++)
             {
                 SetVector3($"lightSources[{i}].position", lights[i].Position);
@@ -54,7 +55,6 @@ namespace Jellyfish.Render.Shaders
                     SetFloat($"lightSources[{i}].quadratic", point.Quadratic);
                 }
             }
-            SetInt($"lightSourcesCount", lights.Length);
 
             diffuse.Draw(TextureUnit.Texture0);
             normal?.Draw(TextureUnit.Texture1);

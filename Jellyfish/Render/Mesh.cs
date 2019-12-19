@@ -69,9 +69,9 @@ namespace Jellyfish.Render
             shader.SetMatrix4("transform", transform);
 
             var rotation = Matrix4.Identity *
-                           Matrix4.CreateRotationX(Rotation.X) *
-                           Matrix4.CreateRotationY(Rotation.Y) *
-                           Matrix4.CreateRotationZ(Rotation.Z);
+                           Matrix4.CreateRotationX(MathHelper.DegreesToRadians(Rotation.X)) *
+                           Matrix4.CreateRotationY(MathHelper.DegreesToRadians(Rotation.Y)) *
+                           Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(Rotation.Z));
 
             shader.SetMatrix4("rotation", rotation);
 
