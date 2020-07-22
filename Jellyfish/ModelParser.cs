@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using Jellyfish.FileFormats;
 using Jellyfish.Render;
 using OpenTK;
 using SharpGLTF.Schema2;
@@ -23,6 +24,8 @@ namespace Jellyfish
                     return ParseGLTF(path);
                 case ".glb":
                     return ParseGLB(path);
+                case ".mdl":
+                    return MDL.Load(path.Substring(0, path.Length - 4)).Vtx.MeshInfos.ToArray();
                 default:
                     return null;
             }

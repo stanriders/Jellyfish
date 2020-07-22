@@ -88,9 +88,9 @@ namespace Jellyfish.Render
                 }
             }
             
-            mesh.Vertices = vertices;
-            mesh.Indices = indices;
-            mesh.Normals = normals;
+            MeshInfo.Vertices = vertices;
+            MeshInfo.Indices = indices;
+            MeshInfo.Normals = normals;
         }
     }
 }

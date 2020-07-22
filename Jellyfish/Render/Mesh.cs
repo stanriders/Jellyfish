@@ -22,7 +22,7 @@ namespace Jellyfish.Render
         protected VertexArray vao;
 
         protected Shader shader;
-        protected MeshInfo mesh = new MeshInfo();
+        public MeshInfo MeshInfo { get; } = new MeshInfo();
 
         public Vector3 Position = Vector3.Zero;
         public Vector3 Rotation = Vector3.Zero;
@@ -35,7 +35,7 @@ namespace Jellyfish.Render
 
         public Mesh(MeshInfo mesh)
         {
-            this.mesh = mesh;
+            this.MeshInfo = mesh;
             CreateBuffers();
         }
 
@@ -47,10 +47,10 @@ namespace Jellyfish.Render
 
         public void CreateBuffers()
         {
-            vbo = new VertexBuffer(mesh.Vertices.ToArray(), mesh.UVs.ToArray(), mesh.Normals.ToArray());
+            vbo = new VertexBuffer(MeshInfo.Vertices.ToArray(), MeshInfo.UVs.ToArray(), MeshInfo.Normals.ToArray());
 
-            if (mesh.Indices != null && mesh.Indices.Count > 0)
-                ibo = new IndexBuffer(mesh.Indices.ToArray());
+            if (MeshInfo.Indices != null && MeshInfo.Indices.Count > 0)
+                ibo = new IndexBuffer(MeshInfo.Indices.ToArray());
 
             vao = new VertexArray();
             vbo.Bind();
@@ -77,7 +77,7 @@ namespace Jellyfish.Render
 
 
             if (ibo != null)
-                GL.DrawElements(PrimitiveType, mesh.Indices.Count, DrawElementsType.UnsignedInt, 0);
+                GL.DrawElements(PrimitiveType, MeshInfo.Indices.Count, DrawElementsType.UnsignedInt, 0);
             else
                 GL.DrawArrays(PrimitiveType, 0, vbo.Length);
         }
