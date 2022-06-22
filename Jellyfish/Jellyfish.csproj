@@ -16,7 +16,7 @@
   </Target>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="OpenTK" Version="3.1.0" />
     <PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0013" />
     <PackageReference Include="YamlDotNet" Version="8.0.0" />
