@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Jellyfish.Render.Shaders;
 using OpenTK.Mathematics;
 
@@ -6,83 +7,144 @@ namespace Jellyfish.Render;
 
 public class BezierPlane : Mesh
 {
-    private const int size_x = 6;
-    private const int size_y = 3;
-    private readonly List<BezierCurve> curves = new(4);
+    public Vector2 Size { get; set; }
+    public int Resolution { get; set; }
 
-    public BezierPlane()
+    public BezierPlane(Vector2 size, int resolution)
     {
-        Position = new Vector3(10, 10, 0);
+        Size = size;
+        Resolution = resolution;
 
-        GeneratePlane();
+        MeshInfo = GenerateRandom();
         CreateBuffers();
         AddShader(new Main("test.png"));
     }
 
-    public void GenerateBezierPlane()
+    /// <summary>
+    /// https://github.com/tugbadogan/opengl-bezier-surface/tree/master
+    /// </summary>
+    private MeshInfo GenerateRandom()
     {
-        const int step = 1;
+        List<Vector3> points = new();
+        List<Vector3> normals = new();
 
-        curves.Add(new BezierCurve(new Vector2(0, 0), new Vector2(size_x, 0)));
-        curves.Add(new BezierCurve(new Vector2(0, 0), new Vector2(size_y, 0)));
+        var sizeX = (int)Size.X;
+        var sizeY = (int)Size.Y;
+
+        var resolutionX = Resolution * sizeX;
+        var resolutionY = Resolution * sizeY;
+
+        var inPoints = new double[sizeX + 1, sizeY + 1, 3];
+        var outPoints = new double[resolutionX, resolutionY, 3];
+
+        for (var x = 0; x <= sizeX; x++)
+        {
+            for (var y = 0; y <= sizeY; y++)
+            {
+                inPoints[x, y, 0] = x / 5.0 - 0.5;
+                inPoints[x, y, 1] = y / 5.0 - 0.5;
+                inPoints[x, y, 2] = Random.Shared.Next(5);
+            }
+        }
+
+        for (var i = 0; i < resolutionX; i++)
+        {
+            var mui = i / (float)(resolutionX - 1);
+            for (var j = 0; j < resolutionY; j++)
+            {
+                var muj = j / (float)(resolutionY - 1);
+                outPoints[i, j, 0] = 0;
+                outPoints[i, j, 1] = 0;
+                outPoints[i, j, 2] = 0;
+                for (var ki = 0; ki <= sizeX; ki++)
+                {
+                    var bi = BezierBlend(ki, mui, sizeX);
+                    for (var kj = 0; kj <= sizeY; kj++)
+                    {
+                        var bj = BezierBlend(kj, muj, sizeY);
+                        outPoints[i, j, 0] += inPoints[ki, kj, 0] * bi * bj;
+                        outPoints[i, j, 1] += inPoints[ki, kj, 1] * bi * bj;
+                        outPoints[i, j, 2] += inPoints[ki, kj, 2] * bi * bj;
+                    }
+                }
+            }
+        }
+
+        /* Display the surface, in this case in OOGL format for GeomView */
+        for (var i = 0; i < resolutionX - 1; i++)
+        {
+            for (var j = 0; j < resolutionY - 1; j++)
+            {
+                var a = new Vector3((float)outPoints[i, j, 0], (float)outPoints[i, j, 1], (float)outPoints[i, j, 2]);
+                var b = new Vector3((float)outPoints[i, j + 1, 0], (float)outPoints[i, j + 1, 1], (float)outPoints[i, j + 1, 2]);
+                var c = new Vector3((float)outPoints[i + 1, j, 0], (float)outPoints[i + 1, j, 1], (float)outPoints[i + 1, j, 2]);
+                var d = new Vector3((float)outPoints[i + 1, j + 1, 0], (float)outPoints[i + 1, j + 1, 1],
+                    (float)outPoints[i + 1, j + 1, 2]);
+
+                Vector3 u = b - a;
+                Vector3 v = c - b;
+
+                Vector3 normal = Vector3.Cross(u, v).Normalized();
+
+                normals.Add(normal);
+                points.Add(a);
+
+                normals.Add(normal);
+                points.Add(b);
+
+                normals.Add(normal);
+                points.Add(c);
+
+                normals.Add(normal);
+                points.Add(a);
+
+                normals.Add(normal);
+                points.Add(c);
+
+                normals.Add(normal);
+                points.Add(d);
+            }
+        }
+
+        return new MeshInfo
+        {
+            Name = "randombezierplane",
+            Vertices = points,
+            Normals = normals
+        };
     }
 
-    public void GeneratePlane()
+    private float BezierBlend(int k, float mu, int n)
     {
-        var vertices = new List<Vector3>();
-        var normals = new List<Vector3>();
+        int nn, kn, nkn;
+        float blend = 1;
 
-        // First, build the data for the vertex buffer
-        for (var y = 0; y < size_x; y++)
-        for (var x = 0; x < size_y; x++)
+        nn = n;
+        kn = k;
+        nkn = n - k;
+
+        while (nn >= 1)
         {
-            // Position
-            vertices.Add(new Vector3(x, y, 0));
-
-            // Cheap normal using a derivative of the function.
-            // The slope for X will be 2X, for Y will be 2Y.
-            float xSlope = 2 * x;
-            float ySlope = 2 * y;
-
-            // Calculate the normal using the cross product of the slopes.
-            float[] planeVectorX = { 1f, 0f, xSlope };
-            float[] planeVectorY = { 0f, 1f, ySlope };
-            float[] normalVector =
+            blend *= nn;
+            nn--;
+            if (kn > 1)
             {
-                planeVectorX[1] * planeVectorY[2] - planeVectorX[2] * planeVectorY[1],
-                planeVectorX[2] * planeVectorY[0] - planeVectorX[0] * planeVectorY[2],
-                planeVectorX[0] * planeVectorY[1] - planeVectorX[1] * planeVectorY[0]
-            };
-
-            // Normalize the normal
-            var length = new Vector3(normalVector[0], normalVector[1], normalVector[2]).Length;
-
-            normals.Add(new Vector3(normalVector[0] / length, normalVector[1] / length,
-                normalVector[2] / length));
-        }
-
-        // Now build the index data
-        var indices = new List<uint>();
-        for (var y = 0; y < size_y - 1; y++)
-        {
-            if (y > 0)
-                // Degenerate begin: repeat first vertex
-                indices.Add((uint)(y * size_y));
-
-            for (var x = 0; x < size_x; x++)
-            {
-                // One part of the strip
-                indices.Add((uint)(y * size_y + x));
-                indices.Add((uint)((y + 1) * size_y + x));
+                blend /= kn;
+                kn--;
             }
 
-            if (y < size_y - 2)
-                // Degenerate end: repeat last vertex
-                indices.Add((uint)((y + 1) * size_y + (size_x - 1)));
+            if (nkn > 1)
+            {
+                blend /= nkn;
+                nkn--;
+            }
         }
 
-        MeshInfo.Vertices = vertices;
-        MeshInfo.Indices = indices;
-        MeshInfo.Normals = normals;
+        if (k > 0)
+            blend *= (float)Math.Pow(mu, k);
+        if (n - k > 0)
+            blend *= (float)Math.Pow(1 - mu, n - k);
+
+        return blend;
     }
 }

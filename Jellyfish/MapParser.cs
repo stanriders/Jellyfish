@@ -7,14 +7,20 @@ namespace Jellyfish;
 
 public static class MapParser
 {
+    private static readonly Deserializer deserializer = new();
+
     public static void Parse(string path)
     {
         var mapString = File.ReadAllText(path);
-        var deserializer = new Deserializer();
         var map = deserializer.Deserialize<Map>(mapString);
         foreach (var ent in map.Entities)
         {
             var entity = EntityManager.CreateEntity(ent.ClassName);
+            if (entity == null)
+            {
+                //TODO: log?
+                continue;
+            }
             entity.Position = ent.Position;
             entity.Rotation = ent.Rotation;
 
@@ -25,6 +31,12 @@ public static class MapParser
             {
                 light.Color = ent.Color.ToColor4();
                 light.Enabled = ent.Enabled;
+            }
+
+            if (entity is BezierPlaneEntity bezier)
+            {
+                bezier.Size = ent.Size;
+                bezier.Resolution = ent.Resolution;
             }
 
             entity.Load();
@@ -61,6 +73,9 @@ public static class MapParser
             public MapColor4 Color { get; set; }
 
             public bool Enabled { get; set; }
+
+            public int Resolution { get; set; }
+            public Vector2 Size { get; set; }
         }
     }
 }

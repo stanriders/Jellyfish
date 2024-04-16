@@ -8,16 +8,16 @@ namespace Jellyfish.Render;
 public class MeshInfo
 {
     public required string Name { get; set; }
-    public string Texture { get; set; }
+    public string? Texture { get; set; }
     public List<Vector3> Vertices { get; set; } = new();
     public List<Vector2> UVs { get; set; } = new();
     public List<Vector3> Normals { get; set; } = new();
-    public List<uint> Indices { get; set; } // can be null
+    public List<uint>? Indices { get; set; } // can be null
 }
 
 public class Mesh
 {
-    protected IndexBuffer ibo;
+    protected IndexBuffer? ibo;
 
     public Vector3 Position = Vector3.Zero;
     public Vector3 Rotation = Vector3.Zero;
@@ -36,7 +36,7 @@ public class Mesh
         CreateBuffers();
     }
 
-    public MeshInfo MeshInfo { get; }
+    public MeshInfo MeshInfo { get; set; }
 
     public virtual PrimitiveType PrimitiveType { get; set; } = PrimitiveType.Triangles;
 
@@ -78,7 +78,7 @@ public class Mesh
 
 
         if (ibo != null)
-            GL.DrawElements(PrimitiveType, MeshInfo.Indices.Count, DrawElementsType.UnsignedInt, 0);
+            GL.DrawElements(PrimitiveType, MeshInfo.Indices!.Count, DrawElementsType.UnsignedInt, 0);
         else
             GL.DrawArrays(PrimitiveType, 0, vbo.Length);
     }
