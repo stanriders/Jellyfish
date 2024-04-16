@@ -1,4 +1,5 @@
 ﻿using System;
+using Serilog;
 
 namespace Jellyfish;
 
@@ -8,6 +9,7 @@ public sealed class Game : IDisposable
 
     public Game()
     {
+        Log.Information("Loading...");
         EntityManager.Load();
 
         _mainWindow = new MainWindow(1920, 1080, "Game");
@@ -21,6 +23,7 @@ public sealed class Game : IDisposable
 
     private void OnWindowLoad()
     {
+        Log.Information("Finished main window loading");
         MapParser.Parse("maps/test.yml");
     }
 

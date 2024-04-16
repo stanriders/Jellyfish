@@ -1,6 +1,8 @@
 ﻿using System.IO;
 using Jellyfish.Entities;
+using Jellyfish.Render;
 using OpenTK.Mathematics;
+using Serilog;
 using YamlDotNet.Serialization;
 
 namespace Jellyfish;
@@ -11,6 +13,8 @@ public static class MapParser
 
     public static void Parse(string path)
     {
+        Log.Information("Parsing map {Path}...", path);
+
         var mapString = File.ReadAllText(path);
         var map = Deserializer.Deserialize<Map>(mapString);
         foreach (var ent in map.Entities)
@@ -18,9 +22,10 @@ public static class MapParser
             var entity = EntityManager.CreateEntity(ent.ClassName);
             if (entity == null)
             {
-                //TODO: log?
+                Log.Warning("Couldn't create entity {Entity}", ent.ClassName);
                 continue;
             }
+
             if (ent.Position != null)
                 entity.Position = ent.Position.Value;
 
@@ -50,6 +55,8 @@ public static class MapParser
 
             entity.Load();
         }
+
+        Log.Information("Finished parsing map");
     }
 
     private class Map

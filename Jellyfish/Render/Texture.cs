@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using ImageMagick;
 using OpenTK.Graphics.OpenGL;
+using Serilog;
 
 namespace Jellyfish.Render;
 
@@ -17,7 +18,10 @@ public class Texture
         Draw();
 
         if (!File.Exists(path))
+        {
+            Log.Warning("Texture {Path} doesn't exist!", path);
             path = "materials/error.png";
+        }
 
         using var image = new MagickImage(path);
         using var data = image.GetPixelsUnsafe(); // feels scary

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Serilog;
 
 namespace Jellyfish;
 
@@ -14,30 +15,33 @@ public static class EntityManager
     {
         var entities = Assembly.GetExecutingAssembly()
             .GetTypes()
-            .Where(x => x.IsPublic && x.IsSubclassOf(typeof(BaseEntity)));
+            .Where(x => x is { IsPublic: true, IsAbstract: false } && x.IsSubclassOf(typeof(BaseEntity)));
 
         foreach (var entityType in entities)
         {
             var entityAttribute = entityType.GetCustomAttribute<EntityAttribute>();
             if (entityAttribute == null)
             {
-                // TODO: log?
+                Log.Error("Invalid entity declaration for type {Type}", entityType.FullName);
                 continue;
             }
 
-            if (!EntityClassDictionary.ContainsKey(entityType.Name))
+            if (EntityClassDictionary.ContainsKey(entityType.Name))
             {
-                // TODO: log?
-                EntityClassDictionary.Add(entityAttribute.ClassName, entityType);
+                Log.Error("Duplicate class name {Name} for type {Type}", entityAttribute.ClassName, entityType.FullName);
+                continue;
             }
+
+            Log.Information("Registering class name {Name} for type {Type}...", entityAttribute.ClassName, entityType.FullName);
+            EntityClassDictionary.Add(entityAttribute.ClassName, entityType);
         }
     }
 
     public static BaseEntity? CreateEntity(string className)
     {
-        if (EntityClassDictionary.ContainsKey(className))
+        if (EntityClassDictionary.TryGetValue(className, out var type))
         {
-            var type = EntityClassDictionary[className];
+            Log.Information("Creating entity {Name}...", className);
             if (Activator.CreateInstance(type) is BaseEntity entity)
             {
                 EntityList.Add(entity);
@@ -45,6 +49,7 @@ public static class EntityManager
             }
         }
 
+        Log.Error("Tried to create unknown entity {Name}!", className);
         return null;
     }
 

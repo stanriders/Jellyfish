@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using Jellyfish.Render.Shaders;
 using OpenTK.Mathematics;
+using Serilog;
 using YamlDotNet.Serialization;
 
 namespace Jellyfish.Render;
@@ -16,7 +17,7 @@ public class Model
         var meshInfos = ModelParser.Parse(path);
         if (meshInfos == null)
         {
-            //TODO: log?
+            Log.Error("Failed to create Model!");
             return;
         }
 
@@ -38,11 +39,13 @@ public class Model
                 }
                 else
                 {
+                    Log.Warning("Material {Path} doesn't exist!", matPath);
                     mesh.AddShader(new Main("materials/error.png"));
                 }
             }
             else
             {
+                Log.Warning("Mesh {Name} has no texture data!!", meshInfo.Name);
                 mesh.AddShader(new Main("materials/error.png"));
             }
 
