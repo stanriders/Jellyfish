@@ -1,30 +1,29 @@
 ﻿using System;
 
-namespace Jellyfish
+namespace Jellyfish;
+
+public class Game : IDisposable
 {
-    class Game : IDisposable
+    private readonly MainWindow _mainWindow;
+
+    public Game()
     {
-        private readonly MainWindow mainWindow;
+        _mainWindow = new MainWindow(1280, 720, "Game");
+        _mainWindow.Load += OnWindowLoad;
+    }
 
-        public Game()
-        {
-            mainWindow = new MainWindow(1280,720, "Game");
-            mainWindow.Load += OnWindowLoad;
-        }
+    public void Dispose()
+    {
+        _mainWindow?.Dispose();
+    }
 
-        private void OnWindowLoad(object sender, EventArgs eventArgs)
-        {
-            MapParser.Parse("maps/test.yml");
-        }
+    private void OnWindowLoad()
+    {
+        MapParser.Parse("maps/test.yml");
+    }
 
-        public void GameLoop()
-        {
-            mainWindow.Run();
-        }
-
-        public void Dispose()
-        {
-            mainWindow?.Dispose();
-        }
+    public void GameLoop()
+    {
+        _mainWindow.Run();
     }
 }

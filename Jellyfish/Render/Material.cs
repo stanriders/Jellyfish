@@ -1,10 +1,8 @@
-﻿
-namespace Jellyfish.Render
+﻿namespace Jellyfish.Render;
+
+public class Material
 {
-    class Material
-    {
-        public string Diffuse { get; set; }
-        public string Normal { get; set; }
-        public string Phong { get; set; }
-    }
+    public string Diffuse { get; set; }
+    public string Normal { get; set; }
+    public string Phong { get; set; }
 }

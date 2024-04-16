@@ -6,9 +6,9 @@ in vec2 frag_texCoord;
 in vec3 frag_normal;
 in vec3 frag_position;
 
+uniform vec3 cameraPos;
 uniform sampler2D diffuseSampler;
 uniform sampler2D normalSampler;
-uniform vec3 cameraPos;
 
 struct Light {
     vec3 position;
@@ -19,7 +19,7 @@ struct Light {
 
     vec3 ambient;
     vec3 diffuse;
-};  
+};
 uniform Light lightSources[4];
 uniform int lightSourcesCount;
 

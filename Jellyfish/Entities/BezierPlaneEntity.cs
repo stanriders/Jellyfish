@@ -1,21 +1,20 @@
-﻿
-using Jellyfish.Render;
+﻿using Jellyfish.Render;
 
-namespace Jellyfish.Entities
+namespace Jellyfish.Entities;
+
+public class BezierPlaneEntity : BaseEntity
 {
-    public class BezierPlaneEntity : BaseEntity
-    {
-        private BezierPlane plane;
+    private readonly BezierPlane _plane;
 
-        public BezierPlaneEntity()
-        {
-            plane = new BezierPlane();
-            Load();
-        }
-        public override void Load()
-        {
-            MeshManager.AddMesh(plane);
-            base.Load();
-        }
+    public BezierPlaneEntity()
+    {
+        _plane = new BezierPlane();
+        Load();
+    }
+
+    public override void Load()
+    {
+        MeshManager.AddMesh(_plane);
+        base.Load();
     }
 }

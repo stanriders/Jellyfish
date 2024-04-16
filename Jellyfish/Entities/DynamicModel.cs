@@ -1,11 +1,10 @@
-﻿
-namespace Jellyfish.Entities
+﻿namespace Jellyfish.Entities;
+
+public class DynamicModel : BaseModelEntity
 {
-    class DynamicModel : BaseModelEntity
+    public string Model
     {
-        public string Model {
-            get => ModelPath;
-            set => ModelPath = "models/" + value;
-        }
+        get => ModelPath;
+        set => ModelPath = "models/" + value;
     }
 }

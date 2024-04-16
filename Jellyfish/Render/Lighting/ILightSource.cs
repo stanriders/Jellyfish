@@ -1,15 +1,12 @@
-﻿
-using OpenTK;
-using OpenTK.Graphics;
+﻿using OpenTK.Mathematics;
 
-namespace Jellyfish.Render.Lighting
+namespace Jellyfish.Render.Lighting;
+
+public interface ILightSource
 {
-    public interface ILightSource
-    {
-        Vector3 Position { get; set; }
+    Vector3 Position { get; set; }
 
-        Color4 Color { get; set; }
+    Color4 Color { get; set; }
 
-        bool Enabled { get; set; }
-    }
+    bool Enabled { get; set; }
 }

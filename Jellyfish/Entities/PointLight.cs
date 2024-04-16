@@ -1,31 +1,33 @@
-﻿
-using Jellyfish.Render.Lighting;
-using OpenTK.Graphics;
+﻿using Jellyfish.Render.Lighting;
+using OpenTK.Mathematics;
 
-namespace Jellyfish.Entities
+namespace Jellyfish.Entities;
+
+public class PointLight : BaseEntity
 {
-    public class PointLight : BaseEntity
+    private Render.Lighting.PointLight _light;
+    public Color4 Color { get; set; }
+    public bool Enabled { get; set; }
+    public float Quadratic { get; set; } = 0.8f;
+    public float Linear { get; set; } = 0.19f;
+    public float Constant { get; set; } = 0.01f;
+
+    public override void Load()
     {
-        public Color4 Color { get; set; }
-        public bool Enabled { get; set; }
-        public float Quadratic { get; set; } = 0.8f;
-        public float Linear { get; set; } = 0.19f;
-        public float Constant { get; set; } = 0.01f;
-
-        private Render.Lighting.PointLight light;
-
-        public override void Load()
+        _light = new Render.Lighting.PointLight
         {
-            light = new Render.Lighting.PointLight()
-            {
-                Color = Color,
-                Enabled = Enabled,
-                Position = Position,
-                Quadratic = Quadratic,
-                Linear = Linear,
-                Constant = Constant
-            };
-            LightManager.AddLight(light);
-        }
+            Color = Color,
+            Enabled = Enabled,
+            Position = Position,
+            Quadratic = Quadratic,
+            Linear = Linear,
+            Constant = Constant
+        };
+        LightManager.AddLight(_light);
+    }
+
+    public override void Think()
+    {
+        _light.Position = Position;
     }
 }

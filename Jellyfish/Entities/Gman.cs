@@ -1,11 +1,9 @@
-﻿
-namespace Jellyfish.Entities
+﻿namespace Jellyfish.Entities;
+
+public class Gman : BaseModelEntity
 {
-    public class Gman : BaseModelEntity
+    public Gman()
     {
-        public Gman()
-        {
-            ModelPath = "models/Gman_high_reference.smd";
-        }
+        ModelPath = "models/Gman_high_reference.smd";
     }
 }

@@ -1,16 +1,10 @@
-﻿
-namespace Jellyfish
+﻿namespace Jellyfish;
+
+public class Program
 {
-    class Program
+    private static void Main(string[] args)
     {
-        static void Main(string[] args)
-        {
-            using (var game = new Game())
-            {
-                game.GameLoop();
-            }
-        }
-
-
+        using var game = new Game();
+        game.GameLoop();
     }
 }

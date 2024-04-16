@@ -1,31 +1,29 @@
-﻿
-using Jellyfish.Render;
+﻿using Jellyfish.Render;
 
-namespace Jellyfish
+namespace Jellyfish;
+
+public abstract class BaseModelEntity : BaseEntity
 {
-    public abstract class BaseModelEntity : BaseEntity
+    private Model _model;
+
+    protected string ModelPath { get; set; }
+
+    public override void Load()
     {
-        private Model model;
+        if (!string.IsNullOrEmpty(ModelPath))
+            _model = new Model(ModelPath);
 
-        protected string ModelPath { get; set; }
+        base.Load();
+    }
 
-        public override void Load()
+    public override void Think()
+    {
+        if (_model != null)
         {
-            if (!string.IsNullOrEmpty(ModelPath))
-                model = new Model(ModelPath);
-
-            base.Load();
+            _model.Position = Position;
+            _model.Rotation = Rotation;
         }
 
-        public override void Think()
-        {
-            if (model != null)
-            {
-                model.Position = Position;
-                model.Rotation = Rotation;
-            }
-
-            base.Think();
-        }
+        base.Think();
     }
 }

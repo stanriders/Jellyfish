@@ -2,82 +2,80 @@
 using System.IO;
 using System.Linq;
 using Jellyfish.Render.Shaders;
-using OpenTK;
+using OpenTK.Mathematics;
+using YamlDotNet.Serialization;
 
-namespace Jellyfish.Render
+namespace Jellyfish.Render;
+
+public class Model
 {
-    class Model
+    private readonly List<Mesh> _meshes = new();
+
+    public Model(string path)
     {
-        private readonly List<Mesh> meshes = new List<Mesh>();
+        var meshInfos = ModelParser.Parse(path);
 
-        public Vector3 Position
+        foreach (var meshInfo in meshInfos)
         {
-            get
+            var mesh = new Mesh(meshInfo);
+            if (meshInfo.Texture != null)
             {
-                if (meshes.Any())
-                    return meshes[0].Position;
+                var matPath = $"materials/models/{Path.GetFileNameWithoutExtension(meshInfo.Texture)}.mat";
 
-                return Vector3.Zero;
-            }
-            set
-            {
-                foreach (var mesh in meshes)
+                if (File.Exists(matPath))
                 {
-                    mesh.Position = value;
-                }
-            }
-        }
+                    var deserializer = new Deserializer();
+                    var material = deserializer.Deserialize<Material>(File.ReadAllText(matPath));
 
-        public Vector3 Rotation
-        {
-            get
-            {
-                if (meshes.Any())
-                    return meshes[0].Rotation;
-
-                return Vector3.Zero;
-            }
-            set
-            {
-                foreach (var mesh in meshes)
-                {
-                    mesh.Rotation = value;
-                }
-            }
-        }
-
-        public Model(string path)
-        {
-            var meshInfos = ModelParser.Parse(path);
-
-            foreach (var meshInfo in meshInfos)
-            {
-                var mesh = new Mesh(meshInfo);
-                if (meshInfo.Texture != null)
-                {
-                    var matPath = $"materials/models/{Path.GetFileNameWithoutExtension(meshInfo.Texture)}.mat";
-
-                    if (File.Exists(matPath))
-                    {
-                        var deserializer = new YamlDotNet.Serialization.Deserializer();
-                        var material = deserializer.Deserialize<Material>(File.ReadAllText(matPath));
-
-                        mesh.AddShader(
-                            new Main($"materials/models/{material.Diffuse}", $"materials/models/{material.Normal}"));
-                    }
-                    else
-                        mesh.AddShader(new Main("materials/error.png"));
+                    mesh.AddShader(
+                        new Main($"materials/models/{material.Diffuse}", $"materials/models/{material.Normal}"));
                 }
                 else
+                {
                     mesh.AddShader(new Main("materials/error.png"));
-
-                meshes.Add(mesh);
+                }
             }
-
-            foreach (var mesh in meshes)
+            else
             {
-                MeshManager.AddMesh(mesh);
+                mesh.AddShader(new Main("materials/error.png"));
             }
+
+            _meshes.Add(mesh);
+        }
+
+        foreach (var mesh in _meshes)
+            MeshManager.AddMesh(mesh);
+    }
+
+    public Vector3 Position
+    {
+        get
+        {
+            if (_meshes.Any())
+                return _meshes[0].Position;
+
+            return Vector3.Zero;
+        }
+        set
+        {
+            foreach (var mesh in _meshes)
+                mesh.Position = value;
+        }
+    }
+
+    public Vector3 Rotation
+    {
+        get
+        {
+            if (_meshes.Any())
+                return _meshes[0].Rotation;
+
+            return Vector3.Zero;
+        }
+        set
+        {
+            foreach (var mesh in _meshes)
+                mesh.Rotation = value;
         }
     }
 }

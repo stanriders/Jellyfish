@@ -1,90 +1,86 @@
-﻿
-using System;
-using OpenTK;
-using OpenTK.Graphics;
+﻿using Jellyfish.Render;
 using OpenTK.Graphics.OpenGL4;
-using OpenTK.Input;
-using Jellyfish.Render;
-using Jellyfish.Render.Lighting;
+using OpenTK.Windowing.Common;
+using OpenTK.Windowing.Desktop;
 
-namespace Jellyfish
+namespace Jellyfish;
+
+public class MainWindow : GameWindow
 {
-    public class MainWindow : GameWindow
+    private InputHandler _inputHandler;
+    private OpenGLRender _render;
+
+    public MainWindow(int width, int height, string title) : base(
+        new GameWindowSettings { UpdateFrequency = 144.0 }, NativeWindowSettings.Default)
     {
-        public static int WindowX { get; set; }
-        public static int WindowY { get; set; }
-        public static int WindowWidth { get; set; }
-        public static int WindowHeight { get; set; }
+        WindowHeight = height;
+        WindowWidth = width;
+        Title = title;
+    }
 
-        private InputHandler inputHandler;
-        private OpenGLRender render;
+    public static int WindowX { get; set; }
+    public static int WindowY { get; set; }
+    public static int WindowWidth { get; set; }
+    public static int WindowHeight { get; set; }
 
-        public MainWindow(int width, int height, string title) : base(width, height,
-            new GraphicsMode(ColorFormat.Empty, 16), title)
-        {
-            WindowHeight = height;
-            WindowWidth = width;
-        }
+    protected override void OnLoad()
+    {
+        _render = new OpenGLRender();
+        _inputHandler = new InputHandler();
 
-        protected override void OnLoad(EventArgs e)
-        {
-            render = new OpenGLRender();
-            inputHandler = new InputHandler();
+        base.OnLoad();
+    }
 
-            base.OnLoad(e);
-        }
+    protected override void OnRenderFrame(FrameEventArgs e)
+    {
+        _render.Frame();
 
-        protected override void OnRenderFrame(FrameEventArgs e)
-        {
-            render.Frame();
-            
-            SwapBuffers();
+        SwapBuffers();
 
-            base.OnRenderFrame(e);
-        }
+        base.OnRenderFrame(e);
+    }
 
-        protected override void OnUpdateFrame(FrameEventArgs e)
-        {
-            if (!Focused)
-                return;
+    protected override void OnUpdateFrame(FrameEventArgs e)
+    {
+        if (!IsFocused)
+            return;
 
-            EntityManager.Frame();
+        EntityManager.Frame();
 
-            WindowX = X;
-            WindowY = Y;
+        WindowX = ClientSize.X;
+        WindowY = ClientSize.Y;
 
-            inputHandler.Frame((float)e.Time);
-            CursorVisible = !inputHandler.IsControllingCursor;
+        _inputHandler.Frame(KeyboardState, MouseState, (float)e.Time);
+        CursorState = !_inputHandler.IsControllingCursor ? CursorState.Normal : CursorState.Grabbed;
 
-            base.OnUpdateFrame(e);
-        }
+        base.OnUpdateFrame(e);
+    }
 
-        protected override void OnMouseMove(MouseMoveEventArgs e)
-        {
-            if (!Focused)
-                return;
+    protected override void OnMouseMove(MouseMoveEventArgs e)
+    {
+        if (!IsFocused)
+            return;
 
-            inputHandler.OnMouseMove(e);
+        _inputHandler.OnMouseMove(e);
 
-            base.OnMouseMove(e);
-        }
+        base.OnMouseMove(e);
+    }
 
-        protected override void OnResize(EventArgs e)
-        {
-            GL.Viewport(0, 0, Width, Height);
+    protected override void OnResize(ResizeEventArgs e)
+    {
+        GL.Viewport(0, 0, e.Width, e.Height);
 
-            WindowHeight = Height;
-            WindowWidth = Width;
+        WindowHeight = e.Height;
+        WindowWidth = e.Width;
 
-            base.OnResize(e);
-        }
+        base.OnResize(e);
+    }
 
-        protected override void OnUnload(EventArgs e)
-        {
-            EntityManager.Unload();
-            render.Unload();
+    protected override void OnUnload()
+    {
+        EntityManager.Unload();
+        _render.Unload();
 
-            base.OnUnload(e);
-        }
+        base.OnUnload();
     }
 }

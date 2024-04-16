@@ -1,30 +1,25 @@
 ﻿using System.Collections.Generic;
 
-namespace Jellyfish.Render
+namespace Jellyfish.Render;
+
+public static class MeshManager
 {
-    static class MeshManager
+    private static readonly List<Mesh> meshes = new();
+
+    public static void AddMesh(Mesh mesh)
     {
-        private static readonly List<Mesh> meshes = new List<Mesh>();
+        meshes.Add(mesh);
+    }
 
-        public static void AddMesh(Mesh mesh)
-        {
-            meshes.Add(mesh);
-        }
+    public static void Draw()
+    {
+        foreach (var mesh in meshes)
+            mesh.Draw();
+    }
 
-        public static void Draw()
-        {
-            foreach (var mesh in meshes)
-            {
-                mesh.Draw();
-            }
-        }
-
-        public static void Unload()
-        {
-            foreach (var mesh in meshes)
-            {
-                mesh.Unload();
-            }
-        }
+    public static void Unload()
+    {
+        foreach (var mesh in meshes)
+            mesh.Unload();
     }
 }

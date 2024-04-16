@@ -1,26 +1,25 @@
-﻿
-using OpenTK.Graphics.OpenGL;
+﻿using OpenTK.Graphics.OpenGL;
 
-namespace Jellyfish.Render.Buffers
+namespace Jellyfish.Render.Buffers;
+
+public class VertexArray
 {
-    public class VertexArray
+    private readonly int _vaoHandler;
+
+    public VertexArray()
     {
-        private readonly int vaoHandler;
+        _vaoHandler = GL.GenVertexArray();
+        GL.BindVertexArray(_vaoHandler);
+    }
 
-        public VertexArray()
-        {
-            vaoHandler = GL.GenVertexArray();
-            GL.BindVertexArray(vaoHandler);
-        }
+    public void Bind()
+    {
+        GL.BindVertexArray(_vaoHandler);
+    }
 
-        public void Bind()
-        {
-            GL.BindVertexArray(vaoHandler);
-        }
-        public void Unload()
-        {
-            GL.BindVertexArray(0);
-            GL.DeleteVertexArray(vaoHandler);
-        }
+    public void Unload()
+    {
+        GL.BindVertexArray(0);
+        GL.DeleteVertexArray(_vaoHandler);
     }
 }

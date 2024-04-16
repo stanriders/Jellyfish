@@ -1,10 +1,7 @@
-﻿using System;
+﻿namespace Jellyfish.Render;
 
-namespace Jellyfish.Render
+public interface IRender
 {
-    interface IRender
-    {
-        void Frame();
-        void Unload();
-    }
+    void Frame();
+    void Unload();
 }

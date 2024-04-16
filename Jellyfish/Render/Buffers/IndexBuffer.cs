@@ -1,27 +1,27 @@
 ﻿using OpenTK.Graphics.OpenGL;
 
-namespace Jellyfish.Render.Buffers
+namespace Jellyfish.Render.Buffers;
+
+public class IndexBuffer
 {
-    public class IndexBuffer
+    private readonly int _handler;
+
+    public IndexBuffer(uint[] indices)
     {
-        private readonly int handler;
+        _handler = GL.GenBuffer();
+        GL.BindBuffer(BufferTarget.ElementArrayBuffer, _handler);
+        GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Length * sizeof(uint), indices,
+            BufferUsageHint.StaticDraw);
+    }
 
-        public IndexBuffer(uint[] indices)
-        {
-            handler = GL.GenBuffer();
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, handler);
-            GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Length * sizeof(uint), indices, BufferUsageHint.StaticDraw);
-        }
+    public void Bind()
+    {
+        GL.BindBuffer(BufferTarget.ElementArrayBuffer, _handler);
+    }
 
-        public void Bind()
-        {
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, handler);
-        }
-
-        public void Unload()
-        {
-            GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
-            GL.DeleteBuffer(handler);
-        }
+    public void Unload()
+    {
+        GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+        GL.DeleteBuffer(_handler);
     }
 }
