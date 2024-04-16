@@ -1,5 +1,6 @@
 ﻿using Jellyfish.Render;
 using OpenTK.Graphics.OpenGL4;
+using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 
@@ -15,6 +16,8 @@ public class MainWindow : GameWindow
     {
         WindowHeight = height;
         WindowWidth = width;
+
+        ClientSize = new Vector2i(width, height);
         Title = title;
     }
 

@@ -21,7 +21,16 @@ public class Camera
     }
 
     // The position of the camera
-    public static Vector3 Position { get; set; }
+    private static Vector3 position;
+    public Vector3 Position
+    {
+        get => position;
+        set
+        {
+            position = value;
+            UpdateVectors();
+        }
+    }
 
     public static float AspectRatio { private get; set; }
 
@@ -64,7 +73,7 @@ public class Camera
 
     public static Matrix4 GetViewMatrix()
     {
-        return Matrix4.LookAt(Position, Position + front, Up);
+        return Matrix4.LookAt(position, position + front, Up);
     }
 
     public static Matrix4 GetProjectionMatrix()
@@ -88,7 +97,10 @@ public class Camera
             if (_camLight != null)
             {
                 _camLight.Enabled = true;
-                _camLight.Color = new Color4(200, 220, 255, 100);
+                _camLight.Quadratic = 0.0f;
+                _camLight.Linear = 0.8f;
+                _camLight.Constant = 0.2f;
+                _camLight.Color = new Color4(200, 220, 255, 10);
                 _camLight.Load();
             }
         }

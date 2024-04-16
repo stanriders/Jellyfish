@@ -17,6 +17,8 @@ struct Light {
     float linear;
     float quadratic;
 
+    float brightness;
+
     vec3 ambient;
     vec3 diffuse;
 };
@@ -33,7 +35,6 @@ vec3 CalcPointLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir)
     vec3 ambient = light.ambient;
     vec3 outdiffuse = light.diffuse * diff;
 
-    //attenuation
     float distanceToLight = length(light.position - fragPos);
     float attenuation = 255.0 / (light.constant + 
                         light.linear * distanceToLight + 
@@ -42,7 +43,7 @@ vec3 CalcPointLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir)
     ambient  *= attenuation;
     outdiffuse  *= attenuation;
 
-    return (ambient + outdiffuse);
+    return (ambient + outdiffuse) * light.brightness;
 }
 
 vec3 CalcLighting(vec3 normal, vec3 fragPos, vec3 viewDir)

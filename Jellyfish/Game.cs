@@ -10,7 +10,7 @@ public sealed class Game : IDisposable
     {
         EntityManager.Load();
 
-        _mainWindow = new MainWindow(1280, 720, "Game");
+        _mainWindow = new MainWindow(1920, 1080, "Game");
         _mainWindow.Load += OnWindowLoad;
     }
 

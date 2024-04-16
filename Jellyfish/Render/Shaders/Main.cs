@@ -47,10 +47,11 @@ public class Main : Shader
         for (var i = 0; i < lights.Length; i++)
         {
             SetVector3($"lightSources[{i}].position", lights[i].Position);
-            SetVector3($"lightSources[{i}].diffuse",
-                new Vector3(lights[i].Color.R * lights[i].Color.A, lights[i].Color.G * lights[i].Color.A,
-                    lights[i].Color.B * lights[i].Color.A));
+            
+            SetVector3($"lightSources[{i}].diffuse", new Vector3(lights[i].Color.R, lights[i].Color.G, lights[i].Color.B));
             SetVector3($"lightSources[{i}].ambient", new Vector3(0.1f, 0.1f, 0.1f));
+            SetFloat($"lightSources[{i}].brightness", lights[i].Color.A);
+
             if (lights[i] is PointLight point)
             {
                 SetFloat($"lightSources[{i}].constant", point.Constant);
