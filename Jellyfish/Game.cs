@@ -2,12 +2,14 @@
 
 namespace Jellyfish;
 
-public class Game : IDisposable
+public sealed class Game : IDisposable
 {
     private readonly MainWindow _mainWindow;
 
     public Game()
     {
+        EntityManager.Load();
+
         _mainWindow = new MainWindow(1280, 720, "Game");
         _mainWindow.Load += OnWindowLoad;
     }

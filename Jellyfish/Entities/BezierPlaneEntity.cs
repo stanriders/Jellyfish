@@ -2,6 +2,7 @@
 
 namespace Jellyfish.Entities;
 
+[Entity("plane_bezier")]
 public class BezierPlaneEntity : BaseEntity
 {
     private readonly BezierPlane _plane;
@@ -9,7 +10,6 @@ public class BezierPlaneEntity : BaseEntity
     public BezierPlaneEntity()
     {
         _plane = new BezierPlane();
-        Load();
     }
 
     public override void Load()

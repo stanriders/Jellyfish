@@ -1,36 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
-using Jellyfish.Entities;
+using System.Linq;
+using System.Reflection;
 
 namespace Jellyfish;
 
 public static class EntityManager
 {
-    private static readonly Dictionary<string, Type> entityClassDictionary = new();
-    private static readonly List<BaseEntity> entityList = new();
+    private static readonly Dictionary<string, Type> EntityClassDictionary = new();
+    private static readonly List<BaseEntity> EntityList = new();
 
-    static EntityManager()
+    public static void Load()
     {
-        // TEMP
-        AddClassName("npc_gman", typeof(Gman));
-        AddClassName("bezierplane", typeof(BezierPlaneEntity));
-        AddClassName("model_dynamic", typeof(DynamicModel));
-        AddClassName("light_point", typeof(PointLight));
-    }
+        var entities = Assembly.GetExecutingAssembly()
+            .GetTypes()
+            .Where(x => x.IsPublic && x.IsSubclassOf(typeof(BaseEntity)));
 
-    public static void AddClassName(string className, Type type)
-    {
-        entityClassDictionary.Add(className, type);
+        foreach (var entityType in entities)
+        {
+            var entityAttribute = entityType.GetCustomAttribute<EntityAttribute>();
+            if (entityAttribute == null)
+            {
+                // TODO: log?
+                continue;
+            }
+
+            if (!EntityClassDictionary.ContainsKey(entityType.Name))
+            {
+                // TODO: log?
+                EntityClassDictionary.Add(entityAttribute.ClassName, entityType);
+            }
+        }
     }
 
     public static BaseEntity CreateEntity(string className)
     {
-        if (entityClassDictionary.ContainsKey(className))
+        if (EntityClassDictionary.ContainsKey(className))
         {
-            var type = entityClassDictionary[className];
+            var type = EntityClassDictionary[className];
             if (Activator.CreateInstance(type) is BaseEntity entity)
             {
-                entityList.Add(entity);
+                EntityList.Add(entity);
                 return entity;
             }
         }
@@ -40,13 +50,13 @@ public static class EntityManager
 
     public static void Unload()
     {
-        foreach (var entity in entityList)
+        foreach (var entity in EntityList)
             entity.Unload();
     }
 
     public static void Frame()
     {
-        foreach (var entity in entityList)
+        foreach (var entity in EntityList)
             entity.Think();
     }
 }

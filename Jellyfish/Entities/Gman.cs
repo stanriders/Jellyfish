@@ -1,5 +1,6 @@
 ﻿namespace Jellyfish.Entities;
 
+[Entity("npc_gman")]
 public class Gman : BaseModelEntity
 {
     public Gman()

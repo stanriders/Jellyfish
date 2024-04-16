@@ -4,6 +4,7 @@ using OpenTK.Mathematics;
 
 namespace Jellyfish.Entities;
 
+[Entity("plane_flat")]
 public class Plane : BaseEntity
 {
     private readonly Mesh _plane;
@@ -14,7 +15,6 @@ public class Plane : BaseEntity
         {
             Vertices = new List<Vector3> { c1, c2, c3, c1, c4, c3 }
         });
-        Load();
     }
 
     public override void Load()

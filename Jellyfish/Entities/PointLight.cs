@@ -3,6 +3,7 @@ using OpenTK.Mathematics;
 
 namespace Jellyfish.Entities;
 
+[Entity("light_point")]
 public class PointLight : BaseEntity
 {
     private Render.Lighting.PointLight _light;
@@ -11,7 +12,7 @@ public class PointLight : BaseEntity
     public float Quadratic { get; set; } = 0.8f;
     public float Linear { get; set; } = 0.19f;
     public float Constant { get; set; } = 0.01f;
-
+    
     public override void Load()
     {
         _light = new Render.Lighting.PointLight
