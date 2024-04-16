@@ -33,7 +33,7 @@ public static class EntityManager
         }
     }
 
-    public static BaseEntity CreateEntity(string className)
+    public static BaseEntity? CreateEntity(string className)
     {
         if (EntityClassDictionary.ContainsKey(className))
         {

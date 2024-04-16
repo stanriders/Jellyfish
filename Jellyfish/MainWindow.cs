@@ -8,8 +8,8 @@ namespace Jellyfish;
 
 public class MainWindow : GameWindow
 {
-    private InputHandler _inputHandler;
-    private OpenGLRender _render;
+    private InputHandler _inputHandler = null!;
+    private OpenGLRender _render = null!;
 
     public MainWindow(int width, int height, string title) : base(
         new GameWindowSettings { UpdateFrequency = 144.0 }, NativeWindowSettings.Default)

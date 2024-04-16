@@ -7,12 +7,12 @@ namespace Jellyfish;
 
 public static class MapParser
 {
-    private static readonly Deserializer deserializer = new();
+    private static readonly Deserializer Deserializer = new();
 
     public static void Parse(string path)
     {
         var mapString = File.ReadAllText(path);
-        var map = deserializer.Deserialize<Map>(mapString);
+        var map = Deserializer.Deserialize<Map>(mapString);
         foreach (var ent in map.Entities)
         {
             var entity = EntityManager.CreateEntity(ent.ClassName);
@@ -21,22 +21,31 @@ public static class MapParser
                 //TODO: log?
                 continue;
             }
-            entity.Position = ent.Position;
-            entity.Rotation = ent.Rotation;
+            if (ent.Position != null)
+                entity.Position = ent.Position.Value;
+
+            if (ent.Rotation != null)
+                entity.Rotation = ent.Rotation.Value;
 
             if (entity is DynamicModel model) 
                 model.Model = ent.Model;
 
             if (entity is PointLight light)
             {
-                light.Color = ent.Color.ToColor4();
-                light.Enabled = ent.Enabled;
+                if (ent.Color != null)
+                    light.Color = ent.Color.ToColor4();
+
+                if (ent.Enabled != null)
+                    light.Enabled = ent.Enabled.Value;
             }
 
             if (entity is BezierPlaneEntity bezier)
             {
-                bezier.Size = ent.Size;
-                bezier.Resolution = ent.Resolution;
+                if (ent.Size != null)
+                    bezier.Size = ent.Size.Value;
+
+                if (ent.Resolution != null)
+                    bezier.Resolution = ent.Resolution.Value;
             }
 
             entity.Load();
@@ -45,7 +54,7 @@ public static class MapParser
 
     private class Map
     {
-        public Entity[] Entities { get; set; }
+        public Entity[] Entities { get; set; } = null!;
         
         // FIXME: replace with some kind of a deserialization extension?
         public class MapColor4
@@ -63,19 +72,19 @@ public static class MapParser
 
         public class Entity
         {
-            public string ClassName { get; set; }
-            public Vector3 Position { get; set; }
+            public required string ClassName { get; set; }
+            public Vector3? Position { get; set; }
 
-            public Vector3 Rotation { get; set; }
+            public Vector3? Rotation { get; set; }
 
-            public string Model { get; set; }
+            public string? Model { get; set; }
 
-            public MapColor4 Color { get; set; }
+            public MapColor4? Color { get; set; }
 
-            public bool Enabled { get; set; }
+            public bool? Enabled { get; set; }
 
-            public int Resolution { get; set; }
-            public Vector2 Size { get; set; }
+            public int? Resolution { get; set; }
+            public Vector2? Size { get; set; }
         }
     }
 }

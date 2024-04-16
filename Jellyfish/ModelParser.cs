@@ -12,7 +12,7 @@ namespace Jellyfish;
 
 public static class ModelParser
 {
-    public static MeshInfo[] Parse(string path)
+    public static MeshInfo[]? Parse(string path)
     {
         switch (Path.GetExtension(path))
         {
@@ -179,7 +179,7 @@ public static class ModelParser
         return ConvertGLTF(ModelRoot.ParseGLTF(File.ReadAllText(path), new ReadSettings
         {
             FileReader = assetFileName =>
-                new ArraySegment<byte>(File.ReadAllBytes(Path.Combine(Path.GetDirectoryName(path), assetFileName))),
+                new ArraySegment<byte>(File.ReadAllBytes(Path.Combine(Path.GetDirectoryName(path)!, assetFileName))),
             SkipValidation = true
         }));
     }

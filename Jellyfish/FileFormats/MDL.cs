@@ -13,7 +13,7 @@ public class MDL
 {
     public studiohdr_t Header { get; set; }
 
-    public VTX Vtx { get; set; }
+    public VTX Vtx { get; set; } = null!;
 
     public static MDL Load(string path)
     {
@@ -635,7 +635,7 @@ public class VTX
 public class VVD
 {
     public vertexFileHeader_t Header { get; set; }
-    public List<mstudiovertex_t> Vertices { get; set; }
+    public List<mstudiovertex_t> Vertices { get; set; } = null!;
 
     public static VVD Load(string path, int vertNum)
     {

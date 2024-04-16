@@ -14,6 +14,11 @@ public class Model
     public Model(string path)
     {
         var meshInfos = ModelParser.Parse(path);
+        if (meshInfos == null)
+        {
+            //TODO: log?
+            return;
+        }
 
         foreach (var meshInfo in meshInfos)
         {

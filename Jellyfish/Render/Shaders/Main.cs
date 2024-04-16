@@ -7,9 +7,9 @@ namespace Jellyfish.Render.Shaders;
 public class Main : Shader
 {
     private readonly Texture _diffuse;
-    private readonly Texture _normal;
+    private readonly Texture? _normal;
 
-    public Main(string diffusePath, string normalPath = null) : base("shaders/Main.vert", null, "shaders/Main.frag")
+    public Main(string diffusePath, string? normalPath = null) : base("shaders/Main.vert", null, "shaders/Main.frag")
     {
         _diffuse = new Texture(diffusePath);
         _diffuse.Draw();

@@ -12,7 +12,7 @@ public class Camera
     private static float yaw = -MathHelper.PiOver2; // Without this you would be started rotated 90 degrees right
     private static float fov = MathHelper.PiOver2;
 
-    private PointLight _camLight;
+    private PointLight? _camLight;
 
     public Camera(Vector3 position, float aspectRatio)
     {

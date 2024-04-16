@@ -4,9 +4,9 @@ namespace Jellyfish;
 
 public abstract class BaseModelEntity : BaseEntity
 {
-    private Model _model;
+    private Model? _model;
 
-    protected string ModelPath { get; set; }
+    protected string? ModelPath { get; set; }
 
     public override void Load()
     {

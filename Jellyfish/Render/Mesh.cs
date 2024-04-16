@@ -22,9 +22,9 @@ public class Mesh
     public Vector3 Position = Vector3.Zero;
     public Vector3 Rotation = Vector3.Zero;
 
-    protected Shader shader;
-    protected VertexArray vao;
-    protected VertexBuffer vbo;
+    protected Shader shader = null!;
+    protected VertexArray vao = null!;
+    protected VertexBuffer vbo = null!;
 
     public Mesh()
     {
@@ -36,7 +36,7 @@ public class Mesh
         CreateBuffers();
     }
 
-    public MeshInfo MeshInfo { get; set; }
+    public MeshInfo MeshInfo { get; set; } = null!;
 
     public virtual PrimitiveType PrimitiveType { get; set; } = PrimitiveType.Triangles;
 

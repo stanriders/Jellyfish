@@ -3,7 +3,7 @@
 [Entity("model_dynamic")]
 public class DynamicModel : BaseModelEntity
 {
-    public string Model
+    public string? Model
     {
         get => ModelPath;
         set => ModelPath = "models/" + value;

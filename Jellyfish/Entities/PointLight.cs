@@ -6,7 +6,7 @@ namespace Jellyfish.Entities;
 [Entity("light_point")]
 public class PointLight : BaseEntity
 {
-    private Render.Lighting.PointLight _light;
+    private Render.Lighting.PointLight _light = null!;
     public Color4 Color { get; set; }
     public bool Enabled { get; set; }
     public float Quadratic { get; set; } = 0.8f;

@@ -13,8 +13,8 @@ public abstract class Shader
 
     private readonly Dictionary<string, int> _uniformLocations = new();
 
-    protected Shader(string vertPath, string geomPath, string fragPath, string tessControlPath = null,
-        string tessEvalPath = null, string compPath = null)
+    protected Shader(string vertPath, string? geomPath, string fragPath, string? tessControlPath = null,
+        string? tessEvalPath = null, string? compPath = null)
     {
         // compile shaders
         var vertexShader = 0;
