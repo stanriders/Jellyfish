@@ -20,7 +20,8 @@ public class Model
             var mesh = new Mesh(meshInfo);
             if (meshInfo.Texture != null)
             {
-                var matPath = $"materials/models/{Path.GetFileNameWithoutExtension(meshInfo.Texture)}.mat";
+                var modelFolder = $"materials/models/{meshInfo.Name}";
+                var matPath = $"{modelFolder}/{Path.GetFileNameWithoutExtension(meshInfo.Texture)}.mat";
 
                 if (File.Exists(matPath))
                 {
@@ -28,7 +29,7 @@ public class Model
                     var material = deserializer.Deserialize<Material>(File.ReadAllText(matPath));
 
                     mesh.AddShader(
-                        new Main($"materials/models/{material.Diffuse}", $"materials/models/{material.Normal}"));
+                        new Main($"{modelFolder}/{material.Diffuse}", material.Normal != null ? $"{modelFolder}/{material.Normal}" : null));
                 }
                 else
                 {

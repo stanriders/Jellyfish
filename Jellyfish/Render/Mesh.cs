@@ -7,6 +7,7 @@ namespace Jellyfish.Render;
 
 public class MeshInfo
 {
+    public required string Name { get; set; }
     public string Texture { get; set; }
     public List<Vector3> Vertices { get; set; } = new();
     public List<Vector2> UVs { get; set; } = new();
@@ -35,7 +36,7 @@ public class Mesh
         CreateBuffers();
     }
 
-    public MeshInfo MeshInfo { get; } = new();
+    public MeshInfo MeshInfo { get; }
 
     public virtual PrimitiveType PrimitiveType { get; set; } = PrimitiveType.Triangles;
 

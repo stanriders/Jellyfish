@@ -83,7 +83,11 @@ public static class ModelParser
                         {
                             // we split model by textures 
                             if (!meshes.ContainsKey(line))
-                                meshes.Add(line, new MeshInfo { Texture = line });
+                                meshes.Add(line, new MeshInfo
+                                {
+                                    Name = Path.GetFileNameWithoutExtension(path),
+                                    Texture = line
+                                });
 
                             currentTexture = line;
                         }
@@ -97,8 +101,11 @@ public static class ModelParser
 
     private static MeshInfo[] ParseOBJ(string path)
     {
-        var mesh = new MeshInfo();
-        mesh.Texture = "eye.jpg";
+        var mesh = new MeshInfo
+        {
+            Name = Path.GetFileNameWithoutExtension(path),
+            Texture = "eye.jpg"
+        };
 
         var file = File.ReadAllText(path);
         using (var reader = new StringReader(file))
@@ -185,7 +192,10 @@ public static class ModelParser
         for (var i = 0; i < gltf.LogicalMeshes.Count; i++)
         {
             var mesh = gltf.LogicalMeshes[i];
-            var meshInfo = new MeshInfo();
+            var meshInfo = new MeshInfo()
+            {
+                Name = "gltf" // FIXME!
+            };
             foreach (var primitive in mesh.Primitives)
             {
                 meshInfo.Vertices = primitive.GetVertices("POSITION")

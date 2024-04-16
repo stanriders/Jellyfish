@@ -382,6 +382,7 @@ public class VTX
 
                             res.MeshInfos.Add(new MeshInfo
                             {
+                                Name = Path.GetFileNameWithoutExtension(path),
                                 Vertices = vertices,
                                 Normals = normals,
                                 UVs = texcoords,

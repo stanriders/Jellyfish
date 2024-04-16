@@ -13,6 +13,7 @@ public class Plane : BaseEntity
     {
         _plane = new Mesh(new MeshInfo
         {
+            Name = "plane_flat",
             Vertices = new List<Vector3> { c1, c2, c3, c1, c4, c3 }
         });
     }

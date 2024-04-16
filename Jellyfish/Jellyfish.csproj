@@ -19,7 +19,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="OpenTK" Version="4.8.2" />
     <PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0013" />
-    <PackageReference Include="System.Drawing.Common" Version="8.0.4" />
+    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="13.6.0"/>
     <PackageReference Include="YamlDotNet" Version="15.1.2" />
   </ItemGroup>
 

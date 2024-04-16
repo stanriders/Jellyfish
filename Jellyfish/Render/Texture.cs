@@ -1,8 +1,6 @@
-﻿using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
+﻿using System.IO;
+using ImageMagick;
 using OpenTK.Graphics.OpenGL;
-using PixelFormat = System.Drawing.Imaging.PixelFormat;
 
 namespace Jellyfish.Render;
 
@@ -21,23 +19,18 @@ public class Texture
         if (!File.Exists(path))
             path = "materials/error.png";
 
-        using (var image = new Bitmap(path))
-        {
-            var data = image.LockBits(
-                new Rectangle(0, 0, image.Width, image.Height),
-                ImageLockMode.ReadOnly,
-                PixelFormat.Format32bppArgb);
+        using var image = new MagickImage(path);
+        using var data = image.GetPixelsUnsafe(); // feels scary
 
-            GL.TexImage2D(TextureTarget.Texture2D,
-                0,
-                PixelInternalFormat.Rgba,
-                image.Width,
-                image.Height,
-                0,
-                OpenTK.Graphics.OpenGL.PixelFormat.Bgra,
-                PixelType.UnsignedByte,
-                data.Scan0);
-        }
+        GL.TexImage2D(TextureTarget.Texture2D,
+            0,
+            PixelInternalFormat.Rgba,
+            image.Width,
+            image.Height,
+            0,
+            PixelFormat.Rgba,
+            PixelType.UnsignedByte,
+            data.GetAreaPointer(0, 0, image.Width, image.Height));
 
         //GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
         //GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
