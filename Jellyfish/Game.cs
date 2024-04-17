@@ -1,4 +1,5 @@
 ﻿using System;
+using Jellyfish.UI;
 using Serilog;
 
 namespace Jellyfish;
@@ -11,6 +12,7 @@ public sealed class Game : IDisposable
     {
         Log.Information("Loading...");
         EntityManager.Load();
+        UiManager.Load();
 
         _mainWindow = new MainWindow(1920, 1080, "Game");
         _mainWindow.Load += OnWindowLoad;

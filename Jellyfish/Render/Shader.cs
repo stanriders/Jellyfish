@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
+using Serilog;
 
 namespace Jellyfish.Render;
 
@@ -16,6 +17,9 @@ public abstract class Shader
     protected Shader(string vertPath, string? geomPath, string fragPath, string? tessControlPath = null,
         string? tessEvalPath = null, string? compPath = null)
     {
+        // create shader program
+        _shaderHandle = GL.CreateProgram();
+
         // compile shaders
         var vertexShader = 0;
         if (!string.IsNullOrEmpty(vertPath))
@@ -65,61 +69,58 @@ public abstract class Shader
             CompileShader(computeShader);
         }
 
-        // create shader program
-        _shaderHandle = GL.CreateProgram();
-
-        if (!string.IsNullOrEmpty(vertPath))
+        if (vertexShader != 0)
             GL.AttachShader(_shaderHandle, vertexShader);
 
-        if (!string.IsNullOrEmpty(geomPath))
+        if (geometryShader != 0)
             GL.AttachShader(_shaderHandle, geometryShader);
 
-        if (!string.IsNullOrEmpty(fragPath))
+        if (fragmentShader != 0)
             GL.AttachShader(_shaderHandle, fragmentShader);
 
-        if (!string.IsNullOrEmpty(tessControlPath))
+        if (tesselationControlShader != 0)
             GL.AttachShader(_shaderHandle, tesselationControlShader);
 
-        if (!string.IsNullOrEmpty(tessEvalPath))
+        if (tesselationEvaluationShader != 0)
             GL.AttachShader(_shaderHandle, tesselationEvaluationShader);
 
-        if (!string.IsNullOrEmpty(compPath))
+        if (computeShader != 0)
             GL.AttachShader(_shaderHandle, computeShader);
 
         LinkProgram(_shaderHandle);
 
         // remove singular shaders
-        if (!string.IsNullOrEmpty(vertPath))
+        if (vertexShader != 0)
         {
             GL.DetachShader(_shaderHandle, vertexShader);
             GL.DeleteShader(vertexShader);
         }
 
-        if (!string.IsNullOrEmpty(geomPath))
+        if (geometryShader != 0)
         {
             GL.DetachShader(_shaderHandle, geometryShader);
             GL.DeleteShader(geometryShader);
         }
 
-        if (!string.IsNullOrEmpty(fragPath))
+        if (fragmentShader != 0)
         {
             GL.DetachShader(_shaderHandle, fragmentShader);
             GL.DeleteShader(fragmentShader);
         }
 
-        if (!string.IsNullOrEmpty(tessControlPath))
+        if (tesselationControlShader != 0)
         {
             GL.DetachShader(_shaderHandle, tesselationControlShader);
             GL.DeleteShader(tesselationControlShader);
         }
 
-        if (!string.IsNullOrEmpty(tessEvalPath))
+        if (tesselationEvaluationShader != 0)
         {
             GL.DetachShader(_shaderHandle, tesselationEvaluationShader);
             GL.DeleteShader(tesselationEvaluationShader);
         }
 
-        if (!string.IsNullOrEmpty(compPath))
+        if (computeShader != 0)
         {
             GL.DetachShader(_shaderHandle, computeShader);
             GL.DeleteShader(computeShader);
@@ -149,7 +150,8 @@ public abstract class Shader
         GL.CompileShader(shader);
 
         GL.GetShader(shader, ShaderParameter.CompileStatus, out var code);
-        if (code != (int)All.True) throw new Exception($"Cant compile shader, {GL.GetShaderInfoLog(shader)}");
+        if (code != (int)All.True) 
+            throw new Exception($"Cant compile shader, {GL.GetShaderInfoLog(shader)}");
     }
 
     private static void LinkProgram(int program)
@@ -157,13 +159,20 @@ public abstract class Shader
         GL.LinkProgram(program);
 
         GL.GetProgram(program, GetProgramParameterName.LinkStatus, out var code);
-        if (code != (int)All.True) throw new Exception($"Cant link shader, {GL.GetProgramInfoLog(program)}");
+        if (code != (int)All.True) 
+            throw new Exception($"Cant link shader, {GL.GetProgramInfoLog(program)}");
     }
 
     public virtual void Draw()
     {
         if (_shaderHandle != 0)
+        {
             GL.UseProgram(_shaderHandle);
+        }
+        else
+        {
+            Log.Error("Tried drawing shader with no handle!");
+        }
     }
 
     public int GetAttribLocation(string attribName)
@@ -173,10 +182,8 @@ public abstract class Shader
 
     private static string LoadSource(string path)
     {
-        using (var sr = new StreamReader(path, Encoding.UTF8))
-        {
-            return sr.ReadToEnd();
-        }
+        using var sr = new StreamReader(path, Encoding.UTF8);
+        return sr.ReadToEnd();
     }
 
     /// <summary>
@@ -184,9 +191,20 @@ public abstract class Shader
     /// </summary>
     /// <param name="name">The name of the uniform</param>
     /// <param name="data">The data to set</param>
-    public void SetInt(string name, int data)
+    /// <param name="setProgram"></param>
+    public void SetInt(string name, int data, bool setProgram = true)
     {
-        GL.UseProgram(_shaderHandle);
+        if (!_uniformLocations.ContainsKey(name))
+        {
+            Log.Error("Uniform {Name} isn't found!", name);
+            return;
+        }
+
+        if (setProgram)
+        {
+            GL.UseProgram(_shaderHandle);
+        }
+
         GL.Uniform1(_uniformLocations[name], data);
     }
 
@@ -197,6 +215,12 @@ public abstract class Shader
     /// <param name="data">The data to set</param>
     public void SetFloat(string name, float data)
     {
+        if (!_uniformLocations.ContainsKey(name))
+        {
+            Log.Error("Uniform {Name} isn't found!", name);
+            return;
+        }
+
         GL.UseProgram(_shaderHandle);
         GL.Uniform1(_uniformLocations[name], data);
     }
@@ -206,15 +230,22 @@ public abstract class Shader
     /// </summary>
     /// <param name="name">The name of the uniform</param>
     /// <param name="data">The data to set</param>
-    /// <remarks>
-    ///     <para>
-    ///         The matrix is transposed before being sent to the shader.
-    ///     </para>
-    /// </remarks>
-    public void SetMatrix4(string name, Matrix4 data)
+    /// <param name="transpose"></param>
+    /// <param name="setProgram"></param>
+    public void SetMatrix4(string name, Matrix4 data, bool transpose = true, bool setProgram = true)
     {
-        GL.UseProgram(_shaderHandle);
-        GL.UniformMatrix4(_uniformLocations[name], true, ref data);
+        if (!_uniformLocations.ContainsKey(name))
+        {
+            Log.Error("Uniform {Name} isn't found!", name);
+            return;
+        }
+
+        if (setProgram)
+        {
+            GL.UseProgram(_shaderHandle);
+        }
+
+        GL.UniformMatrix4(_uniformLocations[name], transpose, ref data);
     }
 
     /// <summary>
@@ -224,6 +255,12 @@ public abstract class Shader
     /// <param name="data">The data to set</param>
     public void SetVector2(string name, Vector2 data)
     {
+        if (!_uniformLocations.ContainsKey(name))
+        {
+            Log.Error("Uniform {Name} isn't found!", name);
+            return;
+        }
+
         GL.UseProgram(_shaderHandle);
         GL.Uniform2(_uniformLocations[name], data);
     }
@@ -235,6 +272,12 @@ public abstract class Shader
     /// <param name="data">The data to set</param>
     public void SetVector3(string name, Vector3 data)
     {
+        if (!_uniformLocations.ContainsKey(name))
+        {
+            Log.Error("Uniform {Name} isn't found!", name);
+            return;
+        }
+
         GL.UseProgram(_shaderHandle);
         GL.Uniform3(_uniformLocations[name], data);
     }

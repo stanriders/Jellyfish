@@ -11,6 +11,8 @@ public static class EntityManager
     private static readonly Dictionary<string, Type> EntityClassDictionary = new();
     private static readonly List<BaseEntity> EntityList = new();
 
+    public static IReadOnlyList<BaseEntity> Entities => EntityList.AsReadOnly();
+
     public static void Load()
     {
         var entities = Assembly.GetExecutingAssembly()
@@ -63,5 +65,23 @@ public static class EntityManager
     {
         foreach (var entity in EntityList)
             entity.Think();
+    }
+
+    public static BaseEntity? FindEntity(string className)
+    {
+        if (!EntityClassDictionary.TryGetValue(className, out var entityType))
+        {
+            Log.Error("Class name {Name} doesn't exist!", className);
+            return null;
+        }
+
+        var entity = EntityList.FirstOrDefault(x => x.GetType() == entityType);
+        if (entity != null)
+        {
+            return entity;
+        }
+
+        Log.Error("Entity {Name} wasn't found", className);
+        return null;
     }
 }

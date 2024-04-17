@@ -1,6 +1,7 @@
 ﻿using Jellyfish.Render.Lighting;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
+using Serilog;
 
 namespace Jellyfish.Render.Shaders;
 
@@ -38,9 +39,16 @@ public class Main : Shader
 
     public override void Draw()
     {
+        var camera = EntityManager.FindEntity("camera") as Camera;
+        if (camera == null)
+        {
+            Log.Error("Camera doesn't exist!");
+            return;
+        }
+
         //SetVector3("cameraPos", Camera.Position);
-        SetMatrix4("view", Camera.GetViewMatrix());
-        SetMatrix4("projection", Camera.GetProjectionMatrix());
+        SetMatrix4("view", camera.GetViewMatrix());
+        SetMatrix4("projection", camera.GetProjectionMatrix());
 
         var lights = LightManager.GetLightSources();
         SetInt("lightSourcesCount", lights.Length);

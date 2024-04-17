@@ -1,4 +1,5 @@
 ﻿using Jellyfish.Render;
+using Jellyfish.UI;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
@@ -10,6 +11,7 @@ public class MainWindow : GameWindow
 {
     private InputHandler _inputHandler = null!;
     private OpenGLRender _render = null!;
+    private ImguiController _imguiController = null!;
 
     public MainWindow(int width, int height, string title) : base(
         new GameWindowSettings { UpdateFrequency = 144.0 }, NativeWindowSettings.Default)
@@ -30,6 +32,7 @@ public class MainWindow : GameWindow
     {
         _render = new OpenGLRender();
         _inputHandler = new InputHandler();
+        _imguiController = new ImguiController();
 
         base.OnLoad();
     }
@@ -37,6 +40,7 @@ public class MainWindow : GameWindow
     protected override void OnRenderFrame(FrameEventArgs e)
     {
         _render.Frame();
+        _imguiController.Render();
 
         SwapBuffers();
 
@@ -45,6 +49,10 @@ public class MainWindow : GameWindow
 
     protected override void OnUpdateFrame(FrameEventArgs e)
     {
+        // we want to update ui regardless of focus otherwise it disappears
+        _imguiController.Update(WindowWidth, WindowHeight);
+        UiManager.Frame();
+
         if (!IsFocused)
             return;
 
