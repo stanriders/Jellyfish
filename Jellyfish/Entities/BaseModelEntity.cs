@@ -1,6 +1,6 @@
 ﻿using Jellyfish.Render;
 
-namespace Jellyfish;
+namespace Jellyfish.Entities;
 
 public abstract class BaseModelEntity : BaseEntity
 {

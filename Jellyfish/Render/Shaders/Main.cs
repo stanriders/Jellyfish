@@ -1,4 +1,5 @@
-﻿using Jellyfish.Render.Lighting;
+﻿using Jellyfish.Entities;
+using Jellyfish.Render.Lighting;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using Serilog;
@@ -60,7 +61,7 @@ public class Main : Shader
             SetVector3($"lightSources[{i}].ambient", new Vector3(0.1f, 0.1f, 0.1f));
             SetFloat($"lightSources[{i}].brightness", lights[i].Color.A);
 
-            if (lights[i] is PointLight point)
+            if (lights[i] is Lighting.PointLight point)
             {
                 SetFloat($"lightSources[{i}].constant", point.Constant);
                 SetFloat($"lightSources[{i}].linear", point.Linear);

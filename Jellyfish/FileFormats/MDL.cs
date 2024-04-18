@@ -5,6 +5,8 @@ using System.Runtime.InteropServices;
 using Jellyfish.Render;
 using OpenTK.Mathematics;
 
+#pragma warning disable CS0169 // The field '...' is never used
+
 namespace Jellyfish.FileFormats;
 
 #region MDL

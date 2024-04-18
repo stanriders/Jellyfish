@@ -1,17 +1,23 @@
-﻿using Jellyfish.Render;
+﻿using Jellyfish.Entities;
+using Jellyfish.Input;
+using Jellyfish.Render;
 using Jellyfish.UI;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
+using Serilog;
 
 namespace Jellyfish;
 
 public class MainWindow : GameWindow
 {
-    private InputHandler _inputHandler = null!;
+    private InputManager _inputHandler = null!;
     private OpenGLRender _render = null!;
     private ImguiController _imguiController = null!;
+    private EntityManager _entityManager = null!;
+    private UiManager _uiManager = null!;
+    private Camera? _camera;
 
     public MainWindow(int width, int height, string title) : base(
         new GameWindowSettings { UpdateFrequency = 144.0 }, NativeWindowSettings.Default)
@@ -21,6 +27,8 @@ public class MainWindow : GameWindow
 
         ClientSize = new Vector2i(width, height);
         Title = title;
+
+        Load += OnFinishedLoading;
     }
 
     public static int WindowX { get; set; }
@@ -30,11 +38,28 @@ public class MainWindow : GameWindow
 
     protected override void OnLoad()
     {
-        _render = new OpenGLRender();
-        _inputHandler = new InputHandler();
+        Log.Information("Loading..."); 
+
+        _inputHandler = new InputManager();
         _imguiController = new ImguiController();
+        _uiManager = new UiManager();
+        _entityManager = new EntityManager();
+        
+        _camera = EntityManager.CreateEntity("camera") as Camera;
+        if (_camera != null)
+        {
+            _camera.AspectRatio = WindowWidth / (float)WindowHeight;
+        }
 
         base.OnLoad();
+    }
+    
+    private void OnFinishedLoading()
+    {
+        Log.Information("Finished loading!");
+
+        MapParser.Parse("maps/test.yml");
+        _render = new OpenGLRender();
     }
 
     protected override void OnRenderFrame(FrameEventArgs e)
@@ -51,30 +76,20 @@ public class MainWindow : GameWindow
     {
         // we want to update ui regardless of focus otherwise it disappears
         _imguiController.Update(WindowWidth, WindowHeight);
-        UiManager.Frame();
+        _uiManager.Frame();
 
         if (!IsFocused)
             return;
 
-        EntityManager.Frame();
+        _entityManager.Frame();
 
         WindowX = ClientSize.X;
         WindowY = ClientSize.Y;
 
         _inputHandler.Frame(KeyboardState, MouseState, (float)e.Time);
-        CursorState = !_inputHandler.IsControllingCursor ? CursorState.Normal : CursorState.Grabbed;
+        CursorState = !_camera?.IsControllingCursor ?? false ? CursorState.Normal : CursorState.Grabbed;
 
         base.OnUpdateFrame(e);
-    }
-
-    protected override void OnMouseMove(MouseMoveEventArgs e)
-    {
-        if (!IsFocused)
-            return;
-
-        _inputHandler.OnMouseMove(e);
-
-        base.OnMouseMove(e);
     }
 
     protected override void OnResize(ResizeEventArgs e)
@@ -89,8 +104,9 @@ public class MainWindow : GameWindow
 
     protected override void OnUnload()
     {
-        EntityManager.Unload();
+        _entityManager.Unload();
         _render.Unload();
+        _imguiController.Dispose();
 
         base.OnUnload();
     }

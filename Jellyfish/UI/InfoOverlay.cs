@@ -1,5 +1,5 @@
 ﻿using ImGuiNET;
-using Serilog;
+using Jellyfish.Entities;
 using System.Numerics;
 
 namespace Jellyfish.UI;
@@ -9,8 +9,6 @@ public class InfoOverlay : IUiPanel
 
     public void Frame()
     {
-        var io = ImGui.GetIO();
-
         var windowFlags = ImGuiWindowFlags.NoDecoration |
                           ImGuiWindowFlags.AlwaysAutoResize |
                           ImGuiWindowFlags.NoSavedSettings |

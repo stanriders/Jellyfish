@@ -1,4 +1,5 @@
-﻿using Serilog;
+﻿using Jellyfish.Input;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,11 +7,16 @@ using System.Reflection;
 
 namespace Jellyfish.UI;
 
-public static class UiManager
+public class UiManager
 {
-    private static readonly List<IUiPanel> Panels = new();
+    private readonly List<IUiPanel> _panels = new();
 
-    public static void Load()
+    public UiManager()
+    {
+        Load();
+    }
+
+    public void Load()
     {
         var panels = Assembly.GetExecutingAssembly()
             .GetTypes()
@@ -20,7 +26,7 @@ public static class UiManager
         {
             if (Activator.CreateInstance(panelType) is IUiPanel panel)
             {
-                Panels.Add(panel);
+                _panels.Add(panel);
             }
             else
             {
@@ -29,9 +35,9 @@ public static class UiManager
         }
     }
 
-    public static void Frame()
+    public void Frame()
     {
-        foreach (var panel in Panels)
+        foreach (var panel in _panels)
         {
             panel.Frame();
         }

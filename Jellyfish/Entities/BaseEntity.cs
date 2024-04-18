@@ -1,6 +1,6 @@
 ﻿using OpenTK.Mathematics;
 
-namespace Jellyfish;
+namespace Jellyfish.Entities;
 
 public abstract class BaseEntity
 {

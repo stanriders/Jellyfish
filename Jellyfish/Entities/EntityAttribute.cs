@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Jellyfish;
+namespace Jellyfish.Entities;
 
 public class EntityAttribute : Attribute
 {

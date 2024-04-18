@@ -4,16 +4,23 @@ using System.Linq;
 using System.Reflection;
 using Serilog;
 
-namespace Jellyfish;
+namespace Jellyfish.Entities;
 
-public static class EntityManager
+public class EntityManager
 {
-    private static readonly Dictionary<string, Type> EntityClassDictionary = new();
-    private static readonly List<BaseEntity> EntityList = new();
+    private readonly Dictionary<string, Type> _entityClassDictionary = new();
+    private readonly List<BaseEntity> _entityList = new();
 
-    public static IReadOnlyList<BaseEntity> Entities => EntityList.AsReadOnly();
+    public static IReadOnlyList<BaseEntity>? Entities => instance?._entityList.AsReadOnly();
+    private static EntityManager? instance;
 
-    public static void Load()
+    public EntityManager()
+    {
+        instance = this;
+        Load();
+    }
+
+    public void Load()
     {
         var entities = Assembly.GetExecutingAssembly()
             .GetTypes()
@@ -28,25 +35,43 @@ public static class EntityManager
                 continue;
             }
 
-            if (EntityClassDictionary.ContainsKey(entityType.Name))
+            if (_entityClassDictionary.ContainsKey(entityType.Name))
             {
                 Log.Error("Duplicate class name {Name} for type {Type}", entityAttribute.ClassName, entityType.FullName);
                 continue;
             }
 
             Log.Information("Registering class name {Name} for type {Type}...", entityAttribute.ClassName, entityType.FullName);
-            EntityClassDictionary.Add(entityAttribute.ClassName, entityType);
+            _entityClassDictionary.Add(entityAttribute.ClassName, entityType);
         }
+    }
+
+    public void Unload()
+    {
+        foreach (var entity in _entityList)
+            entity.Unload();
+    }
+
+    public void Frame()
+    {
+        foreach (var entity in _entityList)
+            entity.Think();
     }
 
     public static BaseEntity? CreateEntity(string className)
     {
-        if (EntityClassDictionary.TryGetValue(className, out var type))
+        if (instance == null)
+        {
+            Log.Information("Entity manager doesn't exist");
+            return null;
+        }
+
+        if (instance._entityClassDictionary.TryGetValue(className, out var type))
         {
             Log.Information("Creating entity {Name}...", className);
             if (Activator.CreateInstance(type) is BaseEntity entity)
             {
-                EntityList.Add(entity);
+                instance._entityList.Add(entity);
                 return entity;
             }
         }
@@ -55,27 +80,21 @@ public static class EntityManager
         return null;
     }
 
-    public static void Unload()
-    {
-        foreach (var entity in EntityList)
-            entity.Unload();
-    }
-
-    public static void Frame()
-    {
-        foreach (var entity in EntityList)
-            entity.Think();
-    }
-
     public static BaseEntity? FindEntity(string className)
     {
-        if (!EntityClassDictionary.TryGetValue(className, out var entityType))
+        if (instance == null)
+        {
+            Log.Information("Entity manager doesn't exist");
+            return null;
+        }
+
+        if (!instance._entityClassDictionary.TryGetValue(className, out var entityType))
         {
             Log.Error("Class name {Name} doesn't exist!", className);
             return null;
         }
 
-        var entity = EntityList.FirstOrDefault(x => x.GetType() == entityType);
+        var entity = instance._entityList.FirstOrDefault(x => x.GetType() == entityType);
         if (entity != null)
         {
             return entity;

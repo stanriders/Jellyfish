@@ -1,4 +1,5 @@
 ﻿using ImGuiNET;
+using Jellyfish.Entities;
 
 namespace Jellyfish.UI;
 
@@ -6,6 +7,9 @@ public class EntityListPanel : IUiPanel
 {
     public void Frame()
     {
+        if (EntityManager.Entities == null)
+            return;
+
         ImGui.Begin("Entity list");
         ImGui.BeginTable("entitiesTable", 2);
         ImGui.TableSetupColumn("Class name");
