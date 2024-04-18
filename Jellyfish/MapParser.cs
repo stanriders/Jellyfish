@@ -44,6 +44,12 @@ public static class MapParser
                     light.Enabled = ent.Enabled.Value;
             }
 
+            if (entity is Plane plane)
+            {
+                if (ent.Size != null)
+                    plane.Size = ent.Size.Value;
+            }
+
             if (entity is BezierPlaneEntity bezier)
             {
                 if (ent.Size != null)
