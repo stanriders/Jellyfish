@@ -1,30 +1,30 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <FragShaders Include="Render\Shaders\*.frag" />
-    <VertShaders Include="Render\Shaders\*.vert" />
-  </ItemGroup>
-
-  <Target Name="CopyShaders" AfterTargets="Build">
-    <Copy SourceFiles="@(FragShaders)" DestinationFolder="$(OutDir)\shaders" />
-    <Copy SourceFiles="@(VertShaders)" DestinationFolder="$(OutDir)\shaders" />
-  </Target>
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
 
 	<ItemGroup>
-    <PackageReference Include="ImGui.NET" Version="1.90.1.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="OpenTK" Version="4.8.2" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
-    <PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0013" />
-    <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="13.6.0" />
-    <PackageReference Include="YamlDotNet" Version="15.1.2" />
-  </ItemGroup>
+		<FragShaders Include="Render\Shaders\*.frag" />
+		<VertShaders Include="Render\Shaders\*.vert" />
+	</ItemGroup>
+
+	<Target Name="CopyShaders" AfterTargets="Build">
+		<Copy SourceFiles="@(FragShaders)" DestinationFolder="$(OutDir)\shaders" />
+		<Copy SourceFiles="@(VertShaders)" DestinationFolder="$(OutDir)\shaders" />
+	</Target>
+	
+	<ItemGroup>
+		<PackageReference Include="ImGui.NET" Version="1.90.1.1" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="OpenTK" Version="4.8.2" />
+		<PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
+		<PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0013" />
+		<PackageReference Include="Magick.NET-Q8-AnyCPU" Version="13.6.0" />
+		<PackageReference Include="YamlDotNet" Version="15.1.2" />
+	</ItemGroup>
 
 </Project>
