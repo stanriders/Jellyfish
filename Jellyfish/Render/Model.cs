@@ -17,7 +17,7 @@ public class Model
         var meshInfos = ModelParser.Parse(path);
         if (meshInfos == null)
         {
-            Log.Error("Failed to create Model!");
+            Log.Error("[Model] Failed to create Model!");
             return;
         }
 
@@ -39,13 +39,13 @@ public class Model
                 }
                 else
                 {
-                    Log.Warning("Material {Path} doesn't exist!", matPath);
+                    Log.Warning("[Model] Material {Path} doesn't exist!", matPath);
                     mesh.AddShader(new Main("materials/error.png"));
                 }
             }
             else
             {
-                Log.Warning("Mesh {Name} has no texture data!!", meshInfo.Name);
+                Log.Warning("[Model] Mesh {Name} has no texture data!!", meshInfo.Name);
                 mesh.AddShader(new Main("materials/error.png"));
             }
 

@@ -171,7 +171,7 @@ public abstract class Shader
         }
         else
         {
-            Log.Error("Tried drawing shader with no handle!");
+            Log.Error("[Shader] Tried drawing shader with no handle!");
         }
     }
 
@@ -196,7 +196,7 @@ public abstract class Shader
     {
         if (!_uniformLocations.ContainsKey(name))
         {
-            Log.Error("Uniform {Name} isn't found!", name);
+            Log.Error("[Shader] Uniform {Name} isn't found!", name);
             return;
         }
 
@@ -217,7 +217,7 @@ public abstract class Shader
     {
         if (!_uniformLocations.ContainsKey(name))
         {
-            Log.Error("Uniform {Name} isn't found!", name);
+            Log.Error("[Shader] Uniform {Name} isn't found!", name);
             return;
         }
 
@@ -236,7 +236,7 @@ public abstract class Shader
     {
         if (!_uniformLocations.ContainsKey(name))
         {
-            Log.Error("Uniform {Name} isn't found!", name);
+            Log.Error("[Shader] Uniform {Name} isn't found!", name);
             return;
         }
 
@@ -257,7 +257,7 @@ public abstract class Shader
     {
         if (!_uniformLocations.ContainsKey(name))
         {
-            Log.Error("Uniform {Name} isn't found!", name);
+            Log.Error("[Shader] Uniform {Name} isn't found!", name);
             return;
         }
 
@@ -274,7 +274,7 @@ public abstract class Shader
     {
         if (!_uniformLocations.ContainsKey(name))
         {
-            Log.Error("Uniform {Name} isn't found!", name);
+            Log.Error("[Shader] Uniform {Name} isn't found!", name);
             return;
         }
 

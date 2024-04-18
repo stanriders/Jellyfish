@@ -38,7 +38,7 @@ public class MainWindow : GameWindow
 
     protected override void OnLoad()
     {
-        Log.Information("Loading..."); 
+        Log.Information("[MainWindow] Loading..."); 
 
         _inputHandler = new InputManager();
         _imguiController = new ImguiController();
@@ -56,7 +56,7 @@ public class MainWindow : GameWindow
     
     private void OnFinishedLoading()
     {
-        Log.Information("Finished loading!");
+        Log.Information("[MainWindow] Finished loading!");
 
         MapParser.Parse("maps/test.yml");
         _render = new OpenGLRender();

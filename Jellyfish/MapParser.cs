@@ -13,7 +13,7 @@ public static class MapParser
 
     public static void Parse(string path)
     {
-        Log.Information("Parsing map {Path}...", path);
+        Log.Information("[MapParser] Parsing map {Path}...", path);
 
         var mapString = File.ReadAllText(path);
         var map = Deserializer.Deserialize<Map>(mapString);
@@ -22,7 +22,7 @@ public static class MapParser
             var entity = EntityManager.CreateEntity(ent.ClassName);
             if (entity == null)
             {
-                Log.Warning("Couldn't create entity {Entity}", ent.ClassName);
+                Log.Warning("[MapParser] Couldn't create entity {Entity}", ent.ClassName);
                 continue;
             }
 
@@ -56,7 +56,7 @@ public static class MapParser
             entity.Load();
         }
 
-        Log.Information("Finished parsing map");
+        Log.Information("[MapParser] Finished parsing map");
     }
 
     private class Map

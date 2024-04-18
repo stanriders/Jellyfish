@@ -19,7 +19,7 @@ public class Texture
 
         if (!File.Exists(path))
         {
-            Log.Warning("Texture {Path} doesn't exist!", path);
+            Log.Warning("[Texture] Texture {Path} doesn't exist!", path);
             path = "materials/error.png";
         }
 
