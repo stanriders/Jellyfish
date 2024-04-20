@@ -1,5 +1,6 @@
 ﻿using Jellyfish.Render.Lighting;
 using OpenTK.Mathematics;
+using System.Collections.Generic;
 
 namespace Jellyfish.Entities;
 
@@ -7,22 +8,26 @@ namespace Jellyfish.Entities;
 public class PointLight : BaseEntity
 {
     private Render.Lighting.PointLight _light = null!;
-    public Color4 Color { get; set; }
-    public bool Enabled { get; set; }
-    public float Quadratic { get; set; } = 0.8f;
-    public float Linear { get; set; } = 0.19f;
-    public float Constant { get; set; } = 0.01f;
-    
+
+    public override IReadOnlyList<EntityProperty> EntityProperties { get; } = new List<EntityProperty>
+    {
+        new EntityProperty<Color4>("Color", new Color4(255,255,255,255)),
+        new EntityProperty<bool>("Enabled", true),
+        new EntityProperty<float>("Quadratic", 0.8f),
+        new EntityProperty<float>("Linear", 0.15f),
+        new EntityProperty<float>("Constant", 0.05f)
+    };
+
     public override void Load()
     {
         _light = new Render.Lighting.PointLight
         {
-            Color = Color,
-            Enabled = Enabled,
             Position = Position,
-            Quadratic = Quadratic,
-            Linear = Linear,
-            Constant = Constant
+            Color = GetPropertyValue<Color4>("Color"),
+            Enabled = GetPropertyValue<bool>("Enabled"),
+            Quadratic = GetPropertyValue<float>("Quadratic"),
+            Linear = GetPropertyValue<float>("Linear"),
+            Constant = GetPropertyValue<float>("Constant")
         };
         LightManager.AddLight(_light);
     }

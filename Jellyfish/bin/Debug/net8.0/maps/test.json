@@ -1,0 +1,111 @@
+{
+  "Entities": [
+    {
+      "ClassName": "npc_gman",
+      "Position": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Rotation": {
+        "X": -90,
+        "Y": 0,
+        "Z": 0
+      }
+    },
+    {
+      "ClassName": "model_dynamic",
+      "Position": {
+        "X": -50,
+        "Y": 0,
+        "Z": 0
+      },
+      "Rotation": {
+        "X": -90,
+        "Y": 0,
+        "Z": 0
+      },
+      "Properties": 
+      [
+        {
+          "Name": "Model",
+          "Value": "Police_reference.smd"
+        }
+      ]
+    },
+    {
+      "ClassName": "light_point",
+      "Position": {
+        "X": 0,
+        "Y": 45,
+        "Z": 30
+      },
+      "Properties": 
+      [
+        {
+          "Name": "Color",
+          "Value": {
+            "R": 255,
+            "G": 128,
+            "B": 0,
+            "A": 255
+          }
+        },
+        {
+          "Name": "Enabled",
+          "Value": true
+        }
+      ]
+    },
+    {
+      "ClassName": "plane_bezier",
+      "Position": {
+        "X": 10,
+        "Y": 25,
+        "Z": 30
+      },
+      "Rotation": {
+        "X": 90,
+        "Y": 0,
+        "Z": 0
+      },
+      "Properties": 
+      [
+        {
+          "Name": "Size",
+          "Value": {
+            "X": 50,
+            "Y": 40
+          }
+        },
+        {
+          "Name": "Resolution",
+          "Value": 1
+        }
+      ]
+    },
+    {
+      "ClassName": "plane_flat",
+      "Position": {
+        "X": 0,
+        "Y": 0,
+        "Z": 0
+      },
+      "Rotation": {
+        "X": 90,
+        "Y": 0,
+        "Z": 0
+      },
+      "Properties": 
+      [
+        {
+          "Name": "Size",
+          "Value": {
+            "X": 180,
+            "Y": 180
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,21 +1,30 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Linq;
 using Jellyfish.Entities;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using OpenTK.Mathematics;
 using Serilog;
-using YamlDotNet.Serialization;
 
 namespace Jellyfish;
 
 public static class MapLoader
 {
-    private static readonly Deserializer Deserializer = new();
-
     public static void Load(string path)
     {
         Log.Information("[MapLoader] Parsing map {Path}...", path);
 
         var mapString = File.ReadAllText(path);
-        var map = Deserializer.Deserialize<Map>(mapString);
+        var deserializer = JsonSerializer.CreateDefault();
+        deserializer.Converters.Add(new ColorConverter());
+
+        var map = JsonConvert.DeserializeObject<Map>(mapString, new ColorConverter());
+        if (map == null)
+        {
+            Log.Error("[MapLoader] Couldn't parse map {Path}!", path);
+            return;
+        }
         foreach (var ent in map.Entities)
         {
             var entity = EntityManager.CreateEntity(ent.ClassName);
@@ -31,31 +40,17 @@ public static class MapLoader
             if (ent.Rotation != null)
                 entity.Rotation = ent.Rotation.Value;
 
-            if (entity is DynamicModel model) 
-                model.Model = ent.Model;
-
-            if (entity is PointLight light)
+            if (ent.Properties != null)
             {
-                if (ent.Color != null)
-                    light.Color = ent.Color.ToColor4();
-
-                if (ent.Enabled != null)
-                    light.Enabled = ent.Enabled.Value;
-            }
-
-            if (entity is Plane plane)
-            {
-                if (ent.Size != null)
-                    plane.Size = ent.Size.Value;
-            }
-
-            if (entity is BezierPlaneEntity bezier)
-            {
-                if (ent.Size != null)
-                    bezier.Size = ent.Size.Value;
-
-                if (ent.Resolution != null)
-                    bezier.Resolution = ent.Resolution.Value;
+                foreach (var entityProperty in entity.EntityProperties)
+                {
+                    var propertyToken = ent.Properties.FirstOrDefault(x=> x.Name == entityProperty.Name);
+                    if (propertyToken != null)
+                    {
+                        var propertyValue = propertyToken.Value.ToObject(entityProperty.Type, deserializer);
+                        entityProperty.Value = propertyValue;
+                    }
+                }
             }
 
             entity.Load();
@@ -63,40 +58,77 @@ public static class MapLoader
 
         Log.Information("[MapLoader] Finished parsing map");
     }
+    public class ColorConverter : JsonConverter
+    {
+        public override bool CanConvert(Type objectType)
+        {
+            return objectType == typeof(Color4);
+        }
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+        {
+            throw new NotImplementedException();
+        }
+        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue,
+            JsonSerializer serializer)
+        {
+            byte r = 0, g = 0, b = 0, a = 0;
+
+            while (reader.Read())
+            {
+                var token = reader.Path;
+                switch (token)
+                {
+                    case "R":
+                    {
+                        reader.Read();
+                        r = Convert.ToByte(reader.Value);
+                        break;
+                    }
+                    case "G":
+                    {
+                        reader.Read();
+                        g = Convert.ToByte(reader.Value);
+                        break;
+                    }
+                    case "B":
+                    {
+                        reader.Read();
+                        b = Convert.ToByte(reader.Value);
+                        break;
+                    }
+                    case "A":
+                    {
+                        reader.Read();
+                        a = Convert.ToByte(reader.Value);
+                        break;
+                    }
+                }
+            }
+
+            return new Color4(r, g, b, a);
+        }
+
+        public override bool CanRead => true;
+        public override bool CanWrite => false;
+    }
 
     private class Map
     {
         public Entity[] Entities { get; set; } = null!;
-        
-        // FIXME: replace with some kind of a deserialization extension?
-        public class MapColor4
-        {
-            public byte R { get; set; }
-            public byte G { get; set; }
-            public byte B { get; set; }
-            public byte A { get; set; }
 
-            public Color4 ToColor4()
-            {
-                return new Color4(R, G, B, A);
-            }
+        public class Property
+        {
+            public string Name { get; set; } = null!;
+            public JToken Value { get; set; } = null!;
         }
 
         public class Entity
         {
             public required string ClassName { get; set; }
             public Vector3? Position { get; set; }
-
             public Vector3? Rotation { get; set; }
 
-            public string? Model { get; set; }
-
-            public MapColor4? Color { get; set; }
-
-            public bool? Enabled { get; set; }
-
-            public int? Resolution { get; set; }
-            public Vector2? Size { get; set; }
+            public Property[]? Properties { get; set; }
         }
     }
 }

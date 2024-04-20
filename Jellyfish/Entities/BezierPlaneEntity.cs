@@ -1,5 +1,6 @@
 ﻿using Jellyfish.Render;
 using OpenTK.Mathematics;
+using System.Collections.Generic;
 
 namespace Jellyfish.Entities;
 
@@ -8,12 +9,15 @@ public class BezierPlaneEntity : BaseEntity
 {
     private BezierPlane? _plane;
 
-    public Vector2 Size { get; set; } = new(40, 20);
-    public int Resolution { get; set; } = 2;
+    public override IReadOnlyList<EntityProperty> EntityProperties { get; } = new List<EntityProperty>
+    {
+        new EntityProperty<Vector2>("Size", new Vector2(20,20)),
+        new EntityProperty<int>("Resolution", 2)
+    };
 
     public override void Load()
     {
-        _plane = new BezierPlane(Size, Resolution);
+        _plane = new BezierPlane(GetPropertyValue<Vector2>("Size"), GetPropertyValue<int>("Resolution"));
         MeshManager.AddMesh(_plane);
         base.Load();
     }

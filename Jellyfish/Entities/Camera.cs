@@ -27,11 +27,11 @@ public class Camera : BaseEntity, IInputHandler
             _camLight = EntityManager.CreateEntity("light_point") as PointLight;
             if (_camLight != null)
             {
-                _camLight.Enabled = true;
-                _camLight.Quadratic = 0.0f;
-                _camLight.Linear = 0.8f;
-                _camLight.Constant = 0.2f;
-                _camLight.Color = new Color4(200, 220, 255, 10);
+                _camLight.SetPropertyValue("Enabled", true);
+                _camLight.SetPropertyValue("Quadratic", 0.0f);
+                _camLight.SetPropertyValue("Linear", 0.8f);
+                _camLight.SetPropertyValue("Constant", 0.2f);
+                _camLight.SetPropertyValue("Color", new Color4(200, 220, 255, 10));
                 _camLight.Load();
             }
         }

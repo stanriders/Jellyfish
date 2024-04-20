@@ -1,11 +1,18 @@
-﻿namespace Jellyfish.Entities;
+﻿using System.Collections.Generic;
+
+namespace Jellyfish.Entities;
 
 [Entity("model_dynamic")]
 public class DynamicModel : BaseModelEntity
 {
-    public string? Model
+    public override IReadOnlyList<EntityProperty> EntityProperties { get; } = new List<EntityProperty>
     {
-        get => ModelPath;
-        set => ModelPath = "models/" + value;
+        new EntityProperty<string>("Model"),
+    };
+
+    public override void Load()
+    {
+        ModelPath = $"models/{GetPropertyValue<string>("Model")}";
+        base.Load();
     }
 }

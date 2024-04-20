@@ -1,2 +1,4 @@
-Diffuse: "gman_facehirez.png"
-Normal: "gmanhirez_normal.png"
+{
+  "Diffuse": "gman_facehirez.png",
+  "Normal": "gmanhirez_normal.png"
+}

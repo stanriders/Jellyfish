@@ -2,9 +2,9 @@
 using System.IO;
 using System.Linq;
 using Jellyfish.Render.Shaders;
+using Newtonsoft.Json;
 using OpenTK.Mathematics;
 using Serilog;
-using YamlDotNet.Serialization;
 
 namespace Jellyfish.Render;
 
@@ -31,11 +31,18 @@ public class Model
 
                 if (File.Exists(matPath))
                 {
-                    var deserializer = new Deserializer();
-                    var material = deserializer.Deserialize<Material>(File.ReadAllText(matPath));
-
-                    mesh.AddShader(
-                        new Main($"{modelFolder}/{material.Diffuse}", material.Normal != null ? $"{modelFolder}/{material.Normal}" : null));
+                    
+                    var material = JsonConvert.DeserializeObject<Material>(File.ReadAllText(matPath));
+                    if (material != null)
+                    {
+                        mesh.AddShader(
+                            new Main($"{modelFolder}/{material.Diffuse}", material.Normal != null ? $"{modelFolder}/{material.Normal}" : null));
+                    }
+                    else
+                    {
+                        Log.Warning("[Model] Material {Path} couldn''t be parsed!!", matPath);
+                        mesh.AddShader(new Main("materials/error.png"));
+                    }
                 }
                 else
                 {
