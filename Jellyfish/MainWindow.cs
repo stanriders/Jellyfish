@@ -58,7 +58,7 @@ public class MainWindow : GameWindow
     {
         Log.Information("[MainWindow] Finished loading!");
 
-        MapParser.Parse("maps/test.yml");
+        MapLoader.Load("maps/test.yml");
         _render = new OpenGLRender();
     }
 
