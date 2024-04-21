@@ -36,7 +36,7 @@
     {
       "ClassName": "light_point",
       "Position": {
-        "X": 0,
+        "X": 10,
         "Y": 45,
         "Z": 30
       },
@@ -45,9 +45,9 @@
         {
           "Name": "Color",
           "Value": {
-            "R": 255,
+            "R": 0,
             "G": 128,
-            "B": 0,
+            "B": 255,
             "A": 255
           }
         },
@@ -81,6 +81,10 @@
         {
           "Name": "Resolution",
           "Value": 1
+        },
+        {
+          "Name": "Texture",
+          "Value": "tile.png"
         }
       ]
     },
@@ -104,6 +108,37 @@
             "X": 180,
             "Y": 180
           }
+        },
+        {
+          "Name": "Texture",
+          "Value": "tile.png"
+        }
+      ]
+    },
+    {
+      "ClassName": "light_sun",
+      "Properties": 
+      [ 
+        {
+          "Name": "Position",
+          "Value": {
+            "X": 0,
+            "Y": 1,
+            "Z": 0
+          }
+        },
+        {
+          "Name": "Color",
+          "Value": {
+            "R": 255,
+            "G": 220,
+            "B": 150,
+            "A": 255
+          }
+        },
+        {
+          "Name": "Enabled",
+          "Value": true
         }
       ]
     }

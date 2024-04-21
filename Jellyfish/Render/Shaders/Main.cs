@@ -38,7 +38,7 @@ public class Main : Shader
             5 * sizeof(float));
     }
 
-    public override void Draw()
+    public override void Bind()
     {
         var camera = EntityManager.FindEntity("camera") as Camera;
         if (camera == null)
@@ -77,6 +77,6 @@ public class Main : Shader
 
         _diffuse.Draw();
         _normal?.Draw(TextureUnit.Texture1);
-        base.Draw();
+        base.Bind();
     }
 }

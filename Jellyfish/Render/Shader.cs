@@ -163,7 +163,7 @@ public abstract class Shader
             throw new Exception($"Cant link shader, {GL.GetProgramInfoLog(program)}");
     }
 
-    public virtual void Draw()
+    public virtual void Bind()
     {
         if (_shaderHandle != 0)
         {

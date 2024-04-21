@@ -43,7 +43,7 @@ public class Mesh
     public void AddShader(Shader shader)
     {
         this.shader = shader;
-        shader.Draw();
+        shader.Bind();
     }
 
     public void CreateBuffers()
@@ -60,7 +60,7 @@ public class Mesh
 
     public void Draw()
     {
-        shader.Draw();
+        shader.Bind();
 
         vao.Bind();
 

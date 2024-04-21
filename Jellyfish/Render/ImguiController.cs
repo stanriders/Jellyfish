@@ -200,7 +200,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
             -1.0f,
             1.0f);
 
-        _shader.Draw();
+        _shader.Bind();
         _shader.SetMatrix4("projection_matrix", mvp, false, false);
         _shader.SetInt("in_fontTexture", 0, false);
         CheckGlError("Projection");

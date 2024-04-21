@@ -9,6 +9,8 @@ public class Texture
 {
     private readonly int _handle;
 
+    public const string error_texture = "materials/error.png";
+
     public Texture(string path)
     {
         if (string.IsNullOrEmpty(path))
@@ -20,7 +22,7 @@ public class Texture
         if (!File.Exists(path))
         {
             Log.Warning("[Texture] Texture {Path} doesn't exist!", path);
-            path = "materials/error.png";
+            path = error_texture;
         }
 
         using var image = new MagickImage(path);
@@ -40,7 +42,7 @@ public class Texture
         //GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
         GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
-
+        
         GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
 
         GL.BindTexture(TextureTarget.Texture2D, 0);
