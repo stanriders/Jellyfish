@@ -24,7 +24,7 @@ public abstract class BaseEntity
     {
     }
 
-    protected EntityProperty<T>? GetProperty<T>(string name)
+    public EntityProperty<T>? GetProperty<T>(string name)
     {
         if (EntityProperties.FirstOrDefault(x => x.Name == name) is EntityProperty<T> property) 
             return property;
@@ -33,7 +33,7 @@ public abstract class BaseEntity
         return null;
     }
 
-    protected T? GetPropertyValue<T>(string name)
+    public T? GetPropertyValue<T>(string name)
     {
         var property = GetProperty<T>(name);
         if (property != null)

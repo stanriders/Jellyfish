@@ -12,6 +12,7 @@ uniform sampler2D normalSampler;
 
 struct Light {
     vec3 position;
+    vec3 direction;
 
     float constant;
     float linear;
@@ -21,6 +22,8 @@ struct Light {
 
     vec3 ambient;
     vec3 diffuse;
+
+    bool isSun;
 };
 uniform Light lightSources[4];
 uniform int lightSourcesCount;
@@ -46,12 +49,30 @@ vec3 CalcPointLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir)
     return (ambient + outdiffuse) * light.brightness;
 }
 
+vec3 CalcSun(Light light, vec3 normal, vec3 fragPos, vec3 viewDir)
+{
+    vec3 lightDir = light.direction;
+
+    //diffuse shading
+    float diff = max(dot(normal, lightDir), 0.0);
+
+    vec3 ambient = light.ambient;
+    vec3 outdiffuse = light.diffuse * diff;
+
+    return (ambient + outdiffuse) * light.brightness;
+}
+
 vec3 CalcLighting(vec3 normal, vec3 fragPos, vec3 viewDir)
 {
     vec3 result = vec3(0.0, 0.0, 0.0);
 
     for(int i = 0; i < lightSourcesCount; i++)
-        result += CalcPointLight(lightSources[i], normal, fragPos, viewDir);
+    {
+        if (lightSources[i].isSun)
+            result += CalcSun(lightSources[i], normal, fragPos, viewDir);
+        else
+            result += CalcPointLight(lightSources[i], normal, fragPos, viewDir);
+    }
 
     return result;
 }

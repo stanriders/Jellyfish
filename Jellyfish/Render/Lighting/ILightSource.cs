@@ -4,9 +4,10 @@ namespace Jellyfish.Render.Lighting;
 
 public interface ILightSource
 {
-    Vector3 Position { get; set; }
+    Vector3 Position { get; }
 
-    Color4 Color { get; set; }
+    Color4 Color { get; }
+    Color4 Ambient { get; }
 
-    bool Enabled { get; set; }
+    bool Enabled { get; }
 }

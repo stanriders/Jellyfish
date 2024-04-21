@@ -60,12 +60,18 @@ public class Main : Shader
             SetVector3($"lightSources[{i}].diffuse", new Vector3(lights[i].Color.R, lights[i].Color.G, lights[i].Color.B));
             SetVector3($"lightSources[{i}].ambient", new Vector3(0.1f, 0.1f, 0.1f));
             SetFloat($"lightSources[{i}].brightness", lights[i].Color.A);
+            SetInt($"lightSources[{i}].isSun", lights[i] is Sun ? 1 : 0);
 
-            if (lights[i] is Lighting.PointLight point)
+            if (lights[i] is PointLight point)
             {
-                SetFloat($"lightSources[{i}].constant", point.Constant);
-                SetFloat($"lightSources[{i}].linear", point.Linear);
-                SetFloat($"lightSources[{i}].quadratic", point.Quadratic);
+                SetFloat($"lightSources[{i}].constant", point.GetPropertyValue<float>("Constant"));
+                SetFloat($"lightSources[{i}].linear", point.GetPropertyValue<float>("Linear"));
+                SetFloat($"lightSources[{i}].quadratic", point.GetPropertyValue<float>("Quadratic"));
+            }
+
+            if (lights[i] is Sun sun)
+            {
+                SetVector3($"lightSources[{i}].direction", sun.GetPropertyValue<Vector3>("Direction"));
             }
         }
 
