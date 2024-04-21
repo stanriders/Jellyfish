@@ -40,9 +40,10 @@ public class Mesh
 
     public virtual PrimitiveType PrimitiveType { get; set; } = PrimitiveType.Triangles;
 
-    public void AddShader(Shader shader)
+    public void AddMaterial(string path)
     {
-        this.shader = shader;
+        var material = new Material(path);
+        shader = material.GetShaderInstance();
         shader.Bind();
     }
 

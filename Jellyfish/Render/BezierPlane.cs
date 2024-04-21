@@ -17,7 +17,7 @@ public class BezierPlane : Mesh
 
         MeshInfo = GenerateRandom();
         CreateBuffers();
-        AddShader(new Main($"materials/{texture}"));
+        AddMaterial($"materials/{texture}");
     }
 
     /// <summary>

@@ -84,7 +84,7 @@
         },
         {
           "Name": "Texture",
-          "Value": "tile.png"
+          "Value": "tile.mat"
         }
       ]
     },
@@ -111,7 +111,7 @@
         },
         {
           "Name": "Texture",
-          "Value": "tile.png"
+          "Value": "tile.mat"
         }
       ]
     },

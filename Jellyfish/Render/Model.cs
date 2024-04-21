@@ -5,6 +5,7 @@ using Jellyfish.Render.Shaders;
 using Newtonsoft.Json;
 using OpenTK.Mathematics;
 using Serilog;
+using SharpGLTF.Schema2;
 
 namespace Jellyfish.Render;
 
@@ -29,31 +30,12 @@ public class Model
                 var modelFolder = $"materials/models/{meshInfo.Name}";
                 var matPath = $"{modelFolder}/{Path.GetFileNameWithoutExtension(meshInfo.Texture)}.mat";
 
-                if (File.Exists(matPath))
-                {
-                    
-                    var material = JsonConvert.DeserializeObject<Material>(File.ReadAllText(matPath));
-                    if (material != null)
-                    {
-                        mesh.AddShader(
-                            new Main($"{modelFolder}/{material.Diffuse}", material.Normal != null ? $"{modelFolder}/{material.Normal}" : null));
-                    }
-                    else
-                    {
-                        Log.Warning("[Model] Material {Path} couldn''t be parsed!!", matPath);
-                        mesh.AddShader(new Main("materials/error.png"));
-                    }
-                }
-                else
-                {
-                    Log.Warning("[Model] Material {Path} doesn't exist!", matPath);
-                    mesh.AddShader(new Main("materials/error.png"));
-                }
+                mesh.AddMaterial(matPath);
             }
             else
             {
                 Log.Warning("[Model] Mesh {Name} has no texture data!!", meshInfo.Name);
-                mesh.AddShader(new Main("materials/error.png"));
+                mesh.AddMaterial("materials/error.mat");
             }
 
             _meshes.Add(mesh);

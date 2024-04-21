@@ -46,7 +46,7 @@ public class Plane : BaseEntity
             UVs = new List<Vector2> { new(0, 0), new(1, 0), new(1, 1), new(0, 1), new(0, 0), new(1, 1) },
             Texture = texture
         });
-        _plane.AddShader(new Main(texture));
+        _plane.AddMaterial(texture);
 
         MeshManager.AddMesh(_plane);
         base.Load();
