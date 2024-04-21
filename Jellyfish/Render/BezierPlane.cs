@@ -10,14 +10,14 @@ public class BezierPlane : Mesh
     public Vector2 Size { get; set; }
     public int Resolution { get; set; }
 
-    public BezierPlane(Vector2 size, int resolution)
+    public BezierPlane(Vector2 size, int resolution, string texture)
     {
         Size = size;
         Resolution = resolution;
 
         MeshInfo = GenerateRandom();
         CreateBuffers();
-        AddShader(new Main("test.png"));
+        AddShader(new Main($"materials/{texture}"));
     }
 
     /// <summary>
