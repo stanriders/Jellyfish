@@ -14,6 +14,7 @@ public class Plane : BaseEntity
     {
         AddProperty("Size", new Vector2(20, 20));
         AddProperty("Texture", "test.png");
+        AddProperty("TextureScale", 1.0f);
     }
 
     public override void Load()
@@ -36,13 +37,14 @@ public class Plane : BaseEntity
         Vector3 normal = Vector3.Cross(u, v).Normalized();
 
         var texture = $"materials/{textureProperty}";
+        var textureScale = GetPropertyValue<float>("TextureScale");
 
         _plane = new Mesh(new MeshInfo
         {
             Name = "plane_flat",
             Vertices = new List<Vector3> { a, b, c, d, a, c },
             Normals = new List<Vector3> { normal, normal, normal, normal, normal, normal },
-            UVs = new List<Vector2> { new(0, 0), new(2f, 0), new(2f, 2f), new(0, 2f), new(0, 0), new(2f, 2f) },
+            UVs = new List<Vector2> { new(0, 0), new(textureScale, 0), new(textureScale, textureScale), new(0, textureScale), new(0, 0), new(textureScale, textureScale) },
             Texture = texture
         });
         _plane.AddMaterial(texture);

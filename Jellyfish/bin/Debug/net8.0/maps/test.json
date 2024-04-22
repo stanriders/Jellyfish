@@ -157,6 +157,10 @@
         {
           "Name": "Texture",
           "Value": "tile.mat"
+        },
+        {
+          "Name": "TextureScale",
+          "Value": 4
         }
       ]
     },
