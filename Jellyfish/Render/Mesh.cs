@@ -72,9 +72,7 @@ public class Mesh
     public void Draw()
     {
         shader.Bind();
-
         vao.Bind();
-
 
         var transform = Matrix4.Identity * Matrix4.CreateTranslation(Position);
 

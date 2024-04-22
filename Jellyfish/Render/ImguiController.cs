@@ -9,6 +9,8 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using Serilog;
 using ErrorCode = OpenTK.Graphics.OpenGL.ErrorCode;
 using Jellyfish.Input;
+using OpenTK.Windowing.Common;
+using System.Collections.Generic;
 
 namespace Jellyfish.Render;
 
@@ -24,6 +26,8 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
     private int _windowWidth;
     private int _windowHeight;
+
+    private readonly List<char> _pressedChars = new();
 
     public ImguiController()
     {
@@ -115,6 +119,12 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
         var io = ImGui.GetIO();
         io.DisplaySize = new System.Numerics.Vector2(_windowWidth, _windowHeight);
+        io.DeltaTime = (float)MainWindow.Frametime;
+
+        if (_frameBegun)
+        {
+            ImGui.Render();
+        }
 
         ImGui.NewFrame();
         _frameBegun = true;
@@ -329,12 +339,11 @@ public sealed class ImguiController : IDisposable, IInputHandler
     {
         var io = ImGui.GetIO();
 
-        io.MouseDown[0] = mouseState[MouseButton.Left];
-        io.MouseDown[1] = mouseState[MouseButton.Right];
-        io.MouseDown[2] = mouseState[MouseButton.Middle];
-
-        io.MousePos = new System.Numerics.Vector2(mouseState.X, mouseState.Y);
-
+        io.AddMousePosEvent(mouseState.X, mouseState.Y);
+        io.AddMouseButtonEvent(0, mouseState[MouseButton.Left]);
+        io.AddMouseButtonEvent(1, mouseState[MouseButton.Right]);
+        io.AddMouseButtonEvent(2, mouseState[MouseButton.Middle]);
+        
         foreach (Keys key in Enum.GetValues(typeof(Keys)))
         {
             if (key == Keys.Unknown)
@@ -344,12 +353,23 @@ public sealed class ImguiController : IDisposable, IInputHandler
             io.AddKeyEvent(TranslateKeyToImgui(key), keyboardState.IsKeyDown(key));
         }
 
+        foreach (var c in _pressedChars)
+        {
+            io.AddInputCharacter(c);
+        }
+        _pressedChars.Clear();
+
         io.KeyCtrl = keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl);
         io.KeyAlt = keyboardState.IsKeyDown(Keys.LeftAlt) || keyboardState.IsKeyDown(Keys.RightAlt);
         io.KeyShift = keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift);
         io.KeySuper = keyboardState.IsKeyDown(Keys.LeftSuper) || keyboardState.IsKeyDown(Keys.RightSuper);
 
-        return io.WantCaptureMouse || io.WantCaptureKeyboard;
+        return io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput;
+    }
+
+    public void PressChar(char keyChar)
+    {
+        _pressedChars.Add(keyChar);
     }
 
     private static ImGuiKey TranslateKeyToImgui(Keys key)

@@ -113,4 +113,12 @@ public class MainWindow : GameWindow
 
         base.OnUnload();
     }
+
+    protected override void OnTextInput(TextInputEventArgs e)
+    {
+        base.OnTextInput(e);
+
+        // todo: refactor through inputmanager
+        _imguiController.PressChar((char)e.Unicode);
+    }
 }
