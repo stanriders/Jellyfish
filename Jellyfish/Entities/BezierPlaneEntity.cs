@@ -12,20 +12,20 @@ public class BezierPlaneEntity : BaseEntity
     public BezierPlaneEntity()
     {
         AddProperty("Size", new Vector2(20, 20));
-        AddProperty("Resolution", 2);
+        AddProperty("QuadSize", 2);
         AddProperty("Texture", "test.png");
     }
 
     public override void Load()
     {
-        var textureProperty = GetPropertyValue<string>("Texture");
-        if (textureProperty == null)
+        var texture = GetPropertyValue<string>("Texture");
+        if (texture == null)
         {
             Log.Error("[BezierPlaneEntity] Texture not set!");
             return;
         }
 
-        _plane = new BezierPlane(GetPropertyValue<Vector2>("Size"), GetPropertyValue<int>("Resolution"), textureProperty);
+        _plane = new BezierPlane(GetPropertyValue<Vector2>("Size"), texture, GetPropertyValue<int>("QuadSize"));
         MeshManager.AddMesh(_plane);
         base.Load();
     }

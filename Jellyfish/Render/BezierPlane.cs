@@ -1,19 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using Jellyfish.Render.Shaders;
+using System.Diagnostics;
 using OpenTK.Mathematics;
+using Serilog;
 
 namespace Jellyfish.Render;
 
 public class BezierPlane : Mesh
 {
     public Vector2 Size { get; set; }
-    public int Resolution { get; set; }
+    public int QuadSize { get; set; }
 
-    public BezierPlane(Vector2 size, int resolution, string texture)
+    public BezierPlane(Vector2 size, string texture, int quadSize)
     {
         Size = size;
-        Resolution = resolution;
+        QuadSize = quadSize;
 
         MeshInfo = GenerateRandom();
         CreateBuffers();
@@ -27,44 +28,45 @@ public class BezierPlane : Mesh
     {
         List<Vector3> points = new();
         List<Vector3> normals = new();
+        List<Vector2> uvs = new();
+
+        var watch = Stopwatch.StartNew();
 
         var sizeX = (int)Size.X;
         var sizeY = (int)Size.Y;
 
-        var resolutionX = Resolution * sizeX;
-        var resolutionY = Resolution * sizeY;
+        var resolutionX = sizeX;
+        var resolutionY = sizeY;
 
-        var inPoints = new double[sizeX + 1, sizeY + 1, 3];
-        var outPoints = new double[resolutionX, resolutionY, 3];
-
+        var inPoints = new double[sizeX + 1, sizeY + 1][];
+        var outPoints = new double[resolutionX, resolutionY][];
+        
         for (var x = 0; x <= sizeX; x++)
         {
             for (var y = 0; y <= sizeY; y++)
             {
-                inPoints[x, y, 0] = x / 5.0 - 0.5;
-                inPoints[x, y, 1] = y / 5.0 - 0.5;
-                inPoints[x, y, 2] = Random.Shared.Next(5);
+                inPoints[x, y] = [x * QuadSize - 0.5, y * QuadSize - 0.5, (Random.Shared.Next() % 10000) / 5000.0 - 1];
             }
         }
 
         for (var i = 0; i < resolutionX; i++)
         {
-            var mui = i / (float)(resolutionX - 1);
+            var muX = i / (float)(resolutionX - 1);
             for (var j = 0; j < resolutionY; j++)
             {
-                var muj = j / (float)(resolutionY - 1);
-                outPoints[i, j, 0] = 0;
-                outPoints[i, j, 1] = 0;
-                outPoints[i, j, 2] = 0;
-                for (var ki = 0; ki <= sizeX; ki++)
+                var muY = j / (float)(resolutionY - 1);
+
+                outPoints[i, j] = [0, 0, 0];
+                
+                for (var kX = 0; kX <= sizeX; kX++)
                 {
-                    var bi = BezierBlend(ki, mui, sizeX);
-                    for (var kj = 0; kj <= sizeY; kj++)
+                    var bi = BezierBlend(kX, muX, sizeX);
+                    for (var kY = 0; kY <= sizeY; kY++)
                     {
-                        var bj = BezierBlend(kj, muj, sizeY);
-                        outPoints[i, j, 0] += inPoints[ki, kj, 0] * bi * bj;
-                        outPoints[i, j, 1] += inPoints[ki, kj, 1] * bi * bj;
-                        outPoints[i, j, 2] += inPoints[ki, kj, 2] * bi * bj;
+                        var bj = BezierBlend(kY, muY, sizeY);
+                        outPoints[i, j][0] += inPoints[kX, kY][0] * bi * bj;
+                        outPoints[i, j][1] += inPoints[kX, kY][1] * bi * bj;
+                        outPoints[i, j][2] += inPoints[kX, kY][2] * bi * bj;
                     }
                 }
             }
@@ -75,53 +77,61 @@ public class BezierPlane : Mesh
         {
             for (var j = 0; j < resolutionY - 1; j++)
             {
-                var a = new Vector3((float)outPoints[i, j, 0], (float)outPoints[i, j, 1], (float)outPoints[i, j, 2]);
-                var b = new Vector3((float)outPoints[i, j + 1, 0], (float)outPoints[i, j + 1, 1], (float)outPoints[i, j + 1, 2]);
-                var c = new Vector3((float)outPoints[i + 1, j, 0], (float)outPoints[i + 1, j, 1], (float)outPoints[i + 1, j, 2]);
-                var d = new Vector3((float)outPoints[i + 1, j + 1, 0], (float)outPoints[i + 1, j + 1, 1],
-                    (float)outPoints[i + 1, j + 1, 2]);
+                var a = new Vector3((float)outPoints[i, j][0],          (float)outPoints[i, j][1],         (float)outPoints[i, j][2]);
+                var d = new Vector3((float)outPoints[i, j + 1][0],      (float)outPoints[i, j + 1][1],     (float)outPoints[i, j + 1][2]);
+                var b = new Vector3((float)outPoints[i + 1, j][0],      (float)outPoints[i + 1, j][1],     (float)outPoints[i + 1, j][2]);
+                var c = new Vector3((float)outPoints[i + 1, j + 1][0],  (float)outPoints[i + 1, j + 1][1], (float)outPoints[i + 1, j + 1][2]);
 
                 Vector3 u = b - a;
                 Vector3 v = c - b;
 
                 Vector3 normal = Vector3.Cross(u, v).Normalized();
 
+                uvs.Add(new(1f, 1f));
                 normals.Add(normal);
                 points.Add(a);
 
+                uvs.Add(new(-1f, 1f));
                 normals.Add(normal);
                 points.Add(b);
 
+                uvs.Add(new(-1f, -1f));
                 normals.Add(normal);
                 points.Add(c);
 
+                uvs.Add(new(1f, 1f));
                 normals.Add(normal);
                 points.Add(a);
 
+                uvs.Add(new(-1f, -1f));
                 normals.Add(normal);
                 points.Add(c);
 
+                uvs.Add(new(1f, -1f));
                 normals.Add(normal);
                 points.Add(d);
             }
         }
 
+        watch.Stop();
+        Log.Information("[BezierPlane] Took {Elapsed} time to create a plane", watch.Elapsed);
+
         return new MeshInfo
         {
             Name = "randombezierplane",
             Vertices = points,
-            Normals = normals
+            Normals = normals,
+            UVs = uvs
         };
     }
 
     private float BezierBlend(int k, float mu, int n)
     {
-        int nn, kn, nkn;
         float blend = 1;
 
-        nn = n;
-        kn = k;
-        nkn = n - k;
+        var nn = n;
+        var kn = k;
+        var nkn = n - k;
 
         while (nn >= 1)
         {

@@ -96,7 +96,7 @@
           "Value": {
             "X": 10,
             "Y": 25,
-            "Z": 30
+            "Z": 0
           }
         },
         {
@@ -110,13 +110,13 @@
         {
           "Name": "Size",
           "Value": {
-            "X": 50,
-            "Y": 40
+            "X": 20,
+            "Y": 20
           }
         },
         {
-          "Name": "Resolution",
-          "Value": 1
+          "Name": "QuadSize",
+          "Value": 8
         },
         {
           "Name": "Texture",
