@@ -1,5 +1,7 @@
 {
   "Shader": "Main",
   "Diffuse": "gman_facehirez.png",
-  "Normal": "gmanhirez_normal.png"
+  "Normal": "gmanhirez_normal.png",
+  "Phong": true,
+  "PhongExponent": "10"
 }

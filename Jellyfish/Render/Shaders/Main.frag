@@ -28,6 +28,9 @@ struct Light {
 uniform Light lightSources[4];
 uniform int lightSourcesCount;
 
+uniform bool usePhong;
+uniform int phongExponent;
+
 vec3 CalcPointLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir)
 {
     vec3 lightDir = normalize(light.position - fragPos);
@@ -46,7 +49,18 @@ vec3 CalcPointLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir)
     ambient  *= attenuation;
     outdiffuse  *= attenuation;
 
-    return (ambient + outdiffuse) * light.brightness;
+    // specular
+    vec3 specular = vec3(0,0,0);
+    if (usePhong)
+    {
+        float specularStrength = texture(normalSampler, frag_texCoord * vec2(1.0, -1.0)).a;
+
+        vec3 reflectDir = reflect(-lightDir, normal);  
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), phongExponent);
+        specular = specularStrength * spec * light.diffuse; 
+    }
+
+    return (ambient + outdiffuse + specular) * light.brightness;
 }
 
 vec3 CalcSun(Light light, vec3 normal, vec3 fragPos, vec3 viewDir)
@@ -58,8 +72,18 @@ vec3 CalcSun(Light light, vec3 normal, vec3 fragPos, vec3 viewDir)
 
     vec3 ambient = light.ambient;
     vec3 outdiffuse = light.diffuse * diff;
+        
+    vec3 specular = vec3(0,0,0);
+    if (usePhong)
+    {
+        float specularStrength = texture(normalSampler, frag_texCoord * vec2(1.0, -1.0)).a;
 
-    return (ambient + outdiffuse) * light.brightness;
+        vec3 reflectDir = reflect(-lightDir, normal);  
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), phongExponent);
+        specular = specularStrength * spec * light.diffuse; 
+    }
+
+    return (ambient + outdiffuse + specular) * light.brightness;
 }
 
 vec3 CalcLighting(vec3 normal, vec3 fragPos, vec3 viewDir)

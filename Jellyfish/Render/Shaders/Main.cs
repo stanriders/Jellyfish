@@ -8,11 +8,16 @@ namespace Jellyfish.Render.Shaders;
 
 public class Main : Shader
 {
+    private readonly bool _usePhong;
+    private readonly int _phongExponent;
     private readonly Texture _diffuse;
     private readonly Texture? _normal;
 
-    public Main(string diffusePath, string? normalPath = null) : base("shaders/Main.vert", null, "shaders/Main.frag")
+    public Main(string diffusePath, string? normalPath = null, bool usePhong = false, int phongExponent = 16) : 
+        base("shaders/Main.vert", null, "shaders/Main.frag")
     {
+        _usePhong = usePhong;
+        _phongExponent = phongExponent;
         _diffuse = new Texture(diffusePath);
         _diffuse.Draw();
 
@@ -49,7 +54,7 @@ public class Main : Shader
 
         base.Bind();
 
-        //SetVector3("cameraPos", Camera.Position);
+        SetVector3("cameraPos", camera.Position);
         SetMatrix4("view", camera.GetViewMatrix());
         SetMatrix4("projection", camera.GetProjectionMatrix());
 
@@ -76,6 +81,10 @@ public class Main : Shader
                 SetVector3($"lightSources[{i}].direction", sun.GetPropertyValue<Vector3>("Direction"));
             }
         }
+
+
+        SetInt("usePhong", _usePhong ? 1 : 0);
+        SetInt("phongExponent", _phongExponent);
 
         _diffuse.Draw();
         _normal?.Draw(TextureUnit.Texture1);

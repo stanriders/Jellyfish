@@ -10,7 +10,8 @@ public class Material
     public string? Shader { get; set; }
     public string Diffuse { get; set; } = null!;
     public string? Normal { get; set; }
-    public string? Phong { get; set; }
+    public bool Phong { get; set; }
+    public int? PhongExponent { get; set; }
 
     public Material(string path)
     {
@@ -22,25 +23,26 @@ public class Material
         {
             var currentDirectory = Path.GetDirectoryName(path);
 
-            Shader = $"{currentDirectory}/{material.Shader}";
+            Shader = material.Shader;
+
             Diffuse = $"{currentDirectory}/{material.Diffuse}";
             if (material.Normal != null) 
                 Normal = $"{currentDirectory}/{material.Normal}";
-            if (material.Phong != null)
-                Phong = $"{currentDirectory}/{material.Phong}";
+
+            Phong = material.Phong;
+            PhongExponent = material.PhongExponent;
         }
         else
         {
             Log.Warning("[Material] Material {Path} couldn't be parsed!!", path);
         }
-
     }
 
     public Shader GetShaderInstance()
     {
-        if (Shader == null)
-            return new Main("materials/error.png");
+        if (Shader == "Main")
+            return new Main(Diffuse, Normal, Phong, PhongExponent ?? 16);
 
-        return new Main(Diffuse, Normal);
+        return new Main("materials/error.png");
     }
 }

@@ -43,7 +43,7 @@ public class Plane : BaseEntity
             Name = "plane_flat",
             Vertices = new List<Vector3> { a, b, c, d, a, c },
             Normals = new List<Vector3> { normal, normal, normal, normal, normal, normal },
-            UVs = new List<Vector2> { new(0, 0), new(1, 0), new(1, 1), new(0, 1), new(0, 0), new(1, 1) },
+            UVs = new List<Vector2> { new(0, 0), new(2f, 0), new(2f, 2f), new(0, 2f), new(0, 0), new(2f, 2f) },
             Texture = texture
         });
         _plane.AddMaterial(texture);
