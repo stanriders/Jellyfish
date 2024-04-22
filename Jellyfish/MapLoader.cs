@@ -34,12 +34,6 @@ public static class MapLoader
                 continue;
             }
 
-            if (ent.Position != null)
-                entity.Position = ent.Position.Value;
-
-            if (ent.Rotation != null)
-                entity.Rotation = ent.Rotation.Value;
-
             if (ent.Properties != null)
             {
                 foreach (var entityProperty in entity.EntityProperties)
@@ -125,8 +119,6 @@ public static class MapLoader
         public class Entity
         {
             public required string ClassName { get; set; }
-            public Vector3? Position { get; set; }
-            public Vector3? Rotation { get; set; }
 
             public Property[]? Properties { get; set; }
         }

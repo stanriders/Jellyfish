@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Jellyfish.Render;
-using Jellyfish.Render.Shaders;
 using OpenTK.Mathematics;
 using Serilog;
 
@@ -11,11 +10,11 @@ public class Plane : BaseEntity
 {
     private Mesh? _plane;
 
-    public override IReadOnlyList<EntityProperty> EntityProperties { get; } = new List<EntityProperty>
+    public Plane()
     {
-        new EntityProperty<Vector2>("Size",  new Vector2(20, 20)),
-        new EntityProperty<string>("Texture", "test.png")
-    };
+        AddProperty("Size", new Vector2(20, 20));
+        AddProperty("Texture", "test.png");
+    }
 
     public override void Load()
     {
@@ -56,8 +55,8 @@ public class Plane : BaseEntity
     {
         if (_plane != null)
         {
-            _plane.Position = Position;
-            _plane.Rotation = Rotation;
+            _plane.Position = GetPropertyValue<Vector3>("Position");
+            _plane.Rotation = GetPropertyValue<Vector3>("Rotation");
         }
 
         base.Think();

@@ -54,7 +54,7 @@ public class Main : Shader
 
         base.Bind();
 
-        SetVector3("cameraPos", camera.Position);
+        SetVector3("cameraPos", camera.GetPropertyValue<Vector3>("Position"));
         SetMatrix4("view", camera.GetViewMatrix());
         SetMatrix4("projection", camera.GetProjectionMatrix());
 

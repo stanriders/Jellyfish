@@ -1,4 +1,5 @@
 ﻿using Jellyfish.Render;
+using OpenTK.Mathematics;
 
 namespace Jellyfish.Entities;
 
@@ -20,8 +21,8 @@ public abstract class BaseModelEntity : BaseEntity
     {
         if (_model != null)
         {
-            _model.Position = Position;
-            _model.Rotation = Rotation;
+            _model.Position = GetPropertyValue<Vector3>("Position");
+            _model.Rotation = GetPropertyValue<Vector3>("Rotation");
         }
 
         base.Think();

@@ -2,31 +2,52 @@
   "Entities": [
     {
       "ClassName": "npc_gman",
-      "Position": {
-        "X": 0,
-        "Y": 0,
-        "Z": 0
-      },
-      "Rotation": {
-        "X": -90,
-        "Y": 0,
-        "Z": 0
-      }
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "gman"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": 0,
+            "Y": 0,
+            "Z": 0
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "X": -90,
+            "Y": 0,
+            "Z": 0
+          }
+        }
+      ]
     },
     {
       "ClassName": "model_dynamic",
-      "Position": {
-        "X": -50,
-        "Y": 0,
-        "Z": 0
-      },
-      "Rotation": {
-        "X": -90,
-        "Y": 0,
-        "Z": 0
-      },
-      "Properties": 
-      [
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "cop"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": -50,
+            "Y": 0,
+            "Z": 0
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "X": -90,
+            "Y": 0,
+            "Z": 0
+          }
+        },
         {
           "Name": "Model",
           "Value": "Police_reference.smd"
@@ -35,13 +56,19 @@
     },
     {
       "ClassName": "light_point",
-      "Position": {
-        "X": 10,
-        "Y": 45,
-        "Z": 30
-      },
-      "Properties": 
-      [
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "small light"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": 10,
+            "Y": 45,
+            "Z": 30
+          }
+        },
         {
           "Name": "Color",
           "Value": {
@@ -59,18 +86,27 @@
     },
     {
       "ClassName": "plane_bezier",
-      "Position": {
-        "X": 10,
-        "Y": 25,
-        "Z": 30
-      },
-      "Rotation": {
-        "X": 90,
-        "Y": 0,
-        "Z": 0
-      },
-      "Properties": 
-      [
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "bezier"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": 10,
+            "Y": 25,
+            "Z": 30
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "X": 90,
+            "Y": 0,
+            "Z": 0
+          }
+        },
         {
           "Name": "Size",
           "Value": {
@@ -90,18 +126,27 @@
     },
     {
       "ClassName": "plane_flat",
-      "Position": {
-        "X": 0,
-        "Y": 0,
-        "Z": 0
-      },
-      "Rotation": {
-        "X": 90,
-        "Y": 0,
-        "Z": 0
-      },
-      "Properties": 
-      [
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "floor"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": 0,
+            "Y": 0,
+            "Z": 0
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "X": 90,
+            "Y": 0,
+            "Z": 0
+          }
+        },
         {
           "Name": "Size",
           "Value": {
@@ -117,10 +162,13 @@
     },
     {
       "ClassName": "light_sun",
-      "Properties": 
-      [ 
+      "Properties": [
         {
-          "Name": "Position",
+          "Name": "Name",
+          "Value": "sun"
+        },
+        {
+          "Name": "Direction",
           "Value": {
             "X": 0,
             "Y": 1,

@@ -1,4 +1,5 @@
-﻿using ImGuiNET;
+﻿using System.Linq;
+using ImGuiNET;
 using Jellyfish.Entities;
 
 namespace Jellyfish.UI;
@@ -9,25 +10,22 @@ public class EntityListPanel : IUiPanel
     {
         if (EntityManager.Entities == null)
             return;
-
-        ImGui.Begin("Entity list");
-        ImGui.BeginTable("entitiesTable", 2);
-        ImGui.TableSetupColumn("Class name");
-        ImGui.TableSetupColumn("Position");
-        ImGui.TableHeadersRow();
-
-        foreach (var entity in EntityManager.Entities)
+        
+        if (ImGui.Begin("Entity list"))
         {
-            ImGui.TableNextRow(ImGuiTableRowFlags.None);
+            foreach (var entity in EntityManager.Entities)
+            {
+                if (ImGui.CollapsingHeader($"{entity.GetPropertyValue<string>("Name")} ({entity.GetType().Name})"))
+                {
+                    foreach (var entityProperty in entity.EntityProperties.Where(x=> x.Name != "Name"))
+                    {
+                        ImGui.Text($"{entityProperty.Name}: {entityProperty.Value}");
+                    }
+                    ImGui.Spacing();
+                }
+            }
 
-            ImGui.TableNextColumn();
-            ImGui.Text(entity.GetType().Name);
-
-            ImGui.TableNextColumn();
-            ImGui.Text(entity.Position.ToString());
+            ImGui.End();
         }
-
-        ImGui.EndTable();
-        ImGui.End();
     }
 }

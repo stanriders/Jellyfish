@@ -1,14 +1,12 @@
-﻿using System.Collections.Generic;
-
-namespace Jellyfish.Entities;
+﻿namespace Jellyfish.Entities;
 
 [Entity("model_dynamic")]
 public class DynamicModel : BaseModelEntity
 {
-    public override IReadOnlyList<EntityProperty> EntityProperties { get; } = new List<EntityProperty>
+    public DynamicModel()
     {
-        new EntityProperty<string>("Model"),
-    };
+        AddProperty<string>("Model");
+    }
 
     public override void Load()
     {

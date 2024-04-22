@@ -22,11 +22,13 @@ public class Camera : BaseEntity, IInputHandler
 
     public Camera()
     {
+        SetPropertyValue("Name", "cam");
         if (_camLight is null)
         {
             _camLight = EntityManager.CreateEntity("light_point") as PointLight;
             if (_camLight != null)
             {
+                _camLight.SetPropertyValue("Name", "cam light");
                 _camLight.SetPropertyValue("Enabled", true);
                 _camLight.SetPropertyValue("Quadratic", 0.0f);
                 _camLight.SetPropertyValue("Linear", 0.8f);
@@ -79,7 +81,7 @@ public class Camera : BaseEntity, IInputHandler
 
     public Matrix4 GetViewMatrix()
     {
-        return Matrix4.LookAt(Position, Position + _front, Up);
+        return Matrix4.LookAt(GetPropertyValue<Vector3>("Position"), GetPropertyValue<Vector3>("Position") + _front, Up);
     }
 
     public Matrix4 GetProjectionMatrix()
@@ -104,7 +106,7 @@ public class Camera : BaseEntity, IInputHandler
 
         if (_camLight is not null)
         {
-            _camLight.Position = Position;
+            _camLight.SetPropertyValue("Position", GetPropertyValue<Vector3>("Position"));
         }
     }
 
@@ -123,18 +125,22 @@ public class Camera : BaseEntity, IInputHandler
 
         if (mouseState.IsButtonDown(MouseButton.Left))
         {
+            var position = GetPropertyValue<Vector3>("Position");
+
             if (keyboardState.IsKeyDown(Keys.W))
-                Position += Front * cameraSpeed * frameTime; // Forward 
+                position += Front * cameraSpeed * frameTime; // Forward 
             if (keyboardState.IsKeyDown(Keys.S))
-                Position -= Front * cameraSpeed * frameTime; // Backwards
+                position -= Front * cameraSpeed * frameTime; // Backwards
             if (keyboardState.IsKeyDown(Keys.A))
-                Position -= Right * cameraSpeed * frameTime; // Left
+                position -= Right * cameraSpeed * frameTime; // Left
             if (keyboardState.IsKeyDown(Keys.D))
-                Position += Right * cameraSpeed * frameTime; // Right
+                position += Right * cameraSpeed * frameTime; // Right
             if (keyboardState.IsKeyDown(Keys.Space))
-                Position += Up * cameraSpeed * frameTime; // Up 
+                position += Up * cameraSpeed * frameTime; // Up 
             if (keyboardState.IsKeyDown(Keys.LeftControl))
-                Position -= Up * cameraSpeed * frameTime; // Down
+                position -= Up * cameraSpeed * frameTime; // Down
+
+            SetPropertyValue("Position", position);
 
             Yaw += mouseState.Delta.X * sensitivity;
             Pitch -= mouseState.Delta.Y * sensitivity;

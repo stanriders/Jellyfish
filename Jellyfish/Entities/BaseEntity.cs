@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using OpenTK.Mathematics;
 using Serilog;
@@ -7,10 +8,15 @@ namespace Jellyfish.Entities;
 
 public abstract class BaseEntity
 {
-    public Vector3 Position { get; set; }
-    public Vector3 Rotation { get; set; }
+    private readonly Dictionary<string, EntityProperty> _entityProperties = new();
+    public IReadOnlyList<EntityProperty> EntityProperties => _entityProperties.Values.ToList().AsReadOnly();
 
-    public virtual IReadOnlyList<EntityProperty> EntityProperties { get; } = new List<EntityProperty>();
+    protected BaseEntity()
+    {
+        AddProperty("Name", Guid.NewGuid().ToString("n")[..8]);
+        AddProperty<Vector3>("Position");
+        AddProperty<Vector3>("Rotation");
+    }
 
     public virtual void Load()
     {
@@ -24,10 +30,23 @@ public abstract class BaseEntity
     {
     }
 
-    public EntityProperty<T>? GetProperty<T>(string name)
+    protected void AddProperty<T>(string name, T defaultValue = default!)
     {
-        if (EntityProperties.FirstOrDefault(x => x.Name == name) is EntityProperty<T> property) 
-            return property;
+        _entityProperties.Add(name, new EntityProperty<T>(name,defaultValue));
+    }
+
+    protected EntityProperty<T>? GetProperty<T>(string name)
+    {
+        if (_entityProperties.TryGetValue(name, out var property))
+        {
+            if (property is EntityProperty<T> castedProperty)
+            {
+                return castedProperty;
+            }
+
+            Log.Warning("Found property {Name} but it has different type!", name);
+            return null;
+        }
 
         Log.Warning("Unknown property {Name}!", name);
         return null;
