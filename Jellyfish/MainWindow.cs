@@ -20,7 +20,7 @@ public class MainWindow : GameWindow
     private Camera? _camera;
 
     public MainWindow(int width, int height, string title) : base(
-        new GameWindowSettings { UpdateFrequency = 144.0 }, NativeWindowSettings.Default)
+        new GameWindowSettings { UpdateFrequency = 300.0 }, NativeWindowSettings.Default)
     {
         WindowHeight = height;
         WindowWidth = width;
@@ -35,6 +35,7 @@ public class MainWindow : GameWindow
     public static int WindowY { get; set; }
     public static int WindowWidth { get; set; }
     public static int WindowHeight { get; set; }
+    public static double Frametime { get; set; }
 
     protected override void OnLoad()
     {
@@ -74,6 +75,8 @@ public class MainWindow : GameWindow
 
     protected override void OnUpdateFrame(FrameEventArgs e)
     {
+        Frametime = e.Time;
+
         // we want to update ui regardless of focus otherwise it disappears
         _imguiController.Update(WindowWidth, WindowHeight);
         _uiManager.Frame();
