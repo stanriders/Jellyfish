@@ -20,7 +20,7 @@ public class MainWindow : GameWindow
     private Camera? _camera;
 
     public MainWindow(int width, int height, string title) : base(
-        new GameWindowSettings { UpdateFrequency = 300.0 }, NativeWindowSettings.Default)
+        new GameWindowSettings { UpdateFrequency = 0.0 }, NativeWindowSettings.Default)
     {
         WindowHeight = height;
         WindowWidth = width;
