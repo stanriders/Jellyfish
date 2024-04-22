@@ -110,6 +110,15 @@ public class Camera : BaseEntity, IInputHandler
 
     public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
     {
+        if (keyboardState.IsKeyPressed(Keys.L))
+        {
+            if (_camLight is not null)
+            {
+                var isEnabled = _camLight.GetPropertyValue<bool>("Enabled");
+                _camLight.SetPropertyValue("Enabled", !isEnabled);
+            }
+        }
+
         var cameraSpeed = keyboardState.IsKeyDown(Keys.LeftShift) ? camera_speed * 4 : camera_speed;
 
         if (mouseState.IsButtonDown(MouseButton.Left))
