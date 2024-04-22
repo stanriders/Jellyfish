@@ -24,21 +24,18 @@ public class Model
 
         foreach (var meshInfo in meshInfos)
         {
-            var mesh = new Mesh(meshInfo);
             if (meshInfo.Texture != null)
             {
                 var modelFolder = $"materials/models/{meshInfo.Name}";
                 var matPath = $"{modelFolder}/{Path.GetFileNameWithoutExtension(meshInfo.Texture)}.mat";
-
-                mesh.AddMaterial(matPath);
+                meshInfo.Texture = matPath;
             }
             else
             {
                 Log.Warning("[Model] Mesh {Name} has no texture data!!", meshInfo.Name);
-                mesh.AddMaterial("materials/error.mat");
             }
 
-            _meshes.Add(mesh);
+            _meshes.Add(new Mesh(meshInfo));
         }
 
         foreach (var mesh in _meshes)

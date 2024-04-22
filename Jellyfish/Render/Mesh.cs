@@ -2,6 +2,7 @@
 using Jellyfish.Render.Buffers;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
+using Serilog;
 
 namespace Jellyfish.Render;
 
@@ -34,13 +35,22 @@ public class Mesh
     {
         MeshInfo = mesh;
         CreateBuffers();
+        if (mesh.Texture != null)
+        {
+            AddMaterial(mesh.Texture);
+        }
+        else
+        {
+            Log.Warning("Mesh {Name} doesn't have a texture!", mesh.Name);
+            AddMaterial("materials/error.png");
+        }
     }
 
     public MeshInfo MeshInfo { get; set; } = null!;
 
     public virtual PrimitiveType PrimitiveType { get; set; } = PrimitiveType.Triangles;
 
-    public void AddMaterial(string path)
+    protected void AddMaterial(string path)
     {
         var material = new Material(path);
         shader = material.GetShaderInstance();
