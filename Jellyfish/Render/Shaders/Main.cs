@@ -19,7 +19,7 @@ public class Main : Shader
         if (!string.IsNullOrEmpty(normalPath))
         {
             _normal = new Texture(normalPath);
-            _normal.Draw();
+            _normal.Draw(TextureUnit.Texture1);
         }
 
         // move to vertex buffer?
@@ -46,6 +46,8 @@ public class Main : Shader
             Log.Error("Camera doesn't exist!");
             return;
         }
+
+        base.Bind();
 
         //SetVector3("cameraPos", Camera.Position);
         SetMatrix4("view", camera.GetViewMatrix());
@@ -77,6 +79,5 @@ public class Main : Shader
 
         _diffuse.Draw();
         _normal?.Draw(TextureUnit.Texture1);
-        base.Bind();
     }
 }

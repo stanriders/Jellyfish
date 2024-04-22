@@ -7,8 +7,8 @@ in vec3 frag_normal;
 in vec3 frag_position;
 
 uniform vec3 cameraPos;
-uniform sampler2D diffuseSampler;
-uniform sampler2D normalSampler;
+layout(binding=0) uniform sampler2D diffuseSampler;
+layout(binding=1) uniform sampler2D normalSampler;
 
 struct Light {
     vec3 position;
