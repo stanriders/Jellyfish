@@ -71,7 +71,6 @@ public class EntityListPanel : IUiPanel
                             ImGui.Text($"{entityProperty.Name}: {entityProperty.Value}");
                         }
                     }
-                    ImGui.EndGroup();
                     ImGui.Spacing();
                 }
             }

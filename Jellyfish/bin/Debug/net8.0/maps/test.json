@@ -94,15 +94,15 @@
         {
           "Name": "Position",
           "Value": {
-            "X": 10,
-            "Y": 25,
-            "Z": 0
+            "X": 0,
+            "Y": 10,
+            "Z": 100
           }
         },
         {
           "Name": "Rotation",
           "Value": {
-            "X": 90,
+            "X": -90,
             "Y": 0,
             "Z": 0
           }
@@ -116,7 +116,7 @@
         },
         {
           "Name": "QuadSize",
-          "Value": 8
+          "Value": 4
         },
         {
           "Name": "Texture",
