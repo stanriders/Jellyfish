@@ -64,6 +64,11 @@ public class Camera : BaseEntity, IInputHandler
         get => MathHelper.RadiansToDegrees(_yaw);
         set
         {
+            if (value > 180.0f)
+                value = -180.0f;
+            else if (value < -180.0f)
+                value = 180.0f;
+
             _yaw = MathHelper.DegreesToRadians(value);
             UpdateVectors();
         }
@@ -108,6 +113,8 @@ public class Camera : BaseEntity, IInputHandler
         {
             _camLight.SetPropertyValue("Position", GetPropertyValue<Vector3>("Position"));
         }
+
+        SetPropertyValue("Rotation", new Vector3(Pitch, Yaw, 0));
     }
 
     public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
