@@ -7,11 +7,11 @@ namespace Jellyfish.Render;
 public class RenderTarget
 {
     public readonly int TextureHandle;
-    private readonly Vector2 _size;
+    public readonly Vector2 Size;
 
     public RenderTarget(int width, int heigth, PixelFormat format, FramebufferAttachment attachment, PixelType pixelType)
     {
-        _size = new Vector2(width, heigth);
+        Size = new Vector2(width, heigth);
 
         TextureHandle = GL.GenTexture();
         GL.BindTexture(TextureTarget.Texture2D, TextureHandle);

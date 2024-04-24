@@ -1,11 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Jellyfish.Render.Shaders;
-using Newtonsoft.Json;
 using OpenTK.Mathematics;
 using Serilog;
-using SharpGLTF.Schema2;
 
 namespace Jellyfish.Render;
 
