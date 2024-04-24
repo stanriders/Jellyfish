@@ -16,7 +16,7 @@
 		<Copy SourceFiles="@(FragShaders)" DestinationFolder="$(OutDir)\shaders" />
 		<Copy SourceFiles="@(VertShaders)" DestinationFolder="$(OutDir)\shaders" />
 	</Target>
-	
+
 	<ItemGroup>
 		<PackageReference Include="ImGui.NET" Version="1.90.1.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
