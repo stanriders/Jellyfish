@@ -19,12 +19,12 @@ public class Main : Shader
         _usePhong = usePhong;
         _phongExponent = phongExponent;
         _diffuse = new Texture(diffusePath);
-        _diffuse.Draw();
+        _diffuse.Bind();
 
         if (!string.IsNullOrEmpty(normalPath))
         {
             _normal = new Texture(normalPath);
-            _normal.Draw(TextureUnit.Texture1);
+            _normal.Bind(TextureUnit.Texture1);
         }
 
         // move to vertex buffer?
@@ -82,11 +82,10 @@ public class Main : Shader
             }
         }
 
-
         SetInt("usePhong", _usePhong ? 1 : 0);
         SetInt("phongExponent", _phongExponent);
 
-        _diffuse.Draw();
-        _normal?.Draw(TextureUnit.Texture1);
+        _diffuse.Bind();
+        _normal?.Bind(TextureUnit.Texture1);
     }
 }

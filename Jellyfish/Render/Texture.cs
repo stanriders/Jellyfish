@@ -17,7 +17,7 @@ public class Texture
             return;
 
         _handle = GL.GenTexture();
-        Draw();
+        Bind();
 
         if (!File.Exists(path))
         {
@@ -48,7 +48,7 @@ public class Texture
         GL.BindTexture(TextureTarget.Texture2D, 0);
     }
 
-    public void Draw(TextureUnit unit = TextureUnit.Texture0)
+    public void Bind(TextureUnit unit = TextureUnit.Texture0)
     {
         if (_handle != 0)
         {
