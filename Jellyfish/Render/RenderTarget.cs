@@ -9,11 +9,11 @@ public class RenderTarget
     public readonly int TextureHandle;
     public readonly Vector2 Size;
 
-    public RenderTarget(int width, int heigth, PixelFormat format, FramebufferAttachment attachment, PixelType pixelType)
+    public RenderTarget(string name, int width, int heigth, PixelFormat format, FramebufferAttachment attachment, PixelType pixelType)
     {
         Size = new Vector2(width, heigth);
 
-        TextureHandle = GL.GenTexture();
+        TextureHandle = TextureManager.GenerateHandle(name);
         GL.BindTexture(TextureTarget.Texture2D, TextureHandle);
 
         GL.TexImage2D(TextureTarget.Texture2D, 0, (PixelInternalFormat)format, width, heigth, 0, format, pixelType, IntPtr.Zero);

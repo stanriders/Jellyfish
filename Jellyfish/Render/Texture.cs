@@ -16,7 +16,8 @@ public class Texture
         if (string.IsNullOrEmpty(path))
             return;
 
-        _handle = GL.GenTexture();
+        // we get a handle before checking for path existing to be able to see which textures failed to load in the texture list
+        _handle = TextureManager.GenerateHandle(path);
         Bind();
 
         if (!File.Exists(path))
@@ -55,10 +56,5 @@ public class Texture
             GL.ActiveTexture(unit);
             GL.BindTexture(TextureTarget.Texture2D, _handle);
         }
-    }
-
-    public int GetHandle()
-    {
-        return _handle;
     }
 }

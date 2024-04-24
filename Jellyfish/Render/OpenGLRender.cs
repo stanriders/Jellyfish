@@ -20,10 +20,10 @@ public class OpenGLRender : IRender
         RenderBuffer.Create(RenderbufferStorage.StencilIndex8, FramebufferAttachment.Stencil, 
             MainWindow.WindowWidth, MainWindow.WindowHeight);
 
-        _colorRenderTarget = new RenderTarget(MainWindow.WindowWidth, MainWindow.WindowHeight, PixelFormat.Rgb,
+        _colorRenderTarget = new RenderTarget("_rt_Color", MainWindow.WindowWidth, MainWindow.WindowHeight, PixelFormat.Rgb,
             FramebufferAttachment.ColorAttachment0, PixelType.UnsignedByte);
 
-        _depthRenderTarget = new RenderTarget(MainWindow.WindowWidth, MainWindow.WindowHeight, PixelFormat.DepthComponent,
+        _depthRenderTarget = new RenderTarget("_rt_Depth", MainWindow.WindowWidth, MainWindow.WindowHeight, PixelFormat.DepthComponent,
             FramebufferAttachment.DepthAttachment, PixelType.UnsignedShort);
 
         if (!_mainFramebuffer.Check())

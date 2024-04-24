@@ -85,7 +85,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
         GL.ActiveTexture(TextureUnit.Texture0);
         var prevTexture2D = GL.GetInteger(GetPName.TextureBinding2D);
 
-        _fontTexture = GL.GenTexture();
+        _fontTexture = TextureManager.GenerateHandle("_imgui_Fonts");
         GL.BindTexture(TextureTarget.Texture2D, _fontTexture);
         GL.TexStorage2D(TextureTarget2d.Texture2D, mips, SizedInternalFormat.Rgba8, width, height);
         //LabelObject(ObjectLabelIdentifier.Texture, _fontTexture, "ImGui Text Atlas");
