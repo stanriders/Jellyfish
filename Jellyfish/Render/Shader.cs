@@ -191,8 +191,8 @@ public abstract class Shader
     /// </summary>
     /// <param name="name">The name of the uniform</param>
     /// <param name="data">The data to set</param>
-    /// <param name="setProgram"></param>
-    public void SetInt(string name, int data, bool setProgram = true)
+    /// <param name="bind"></param>
+    public void SetInt(string name, int data, bool bind = false)
     {
         if (!_uniformLocations.ContainsKey(name))
         {
@@ -200,10 +200,8 @@ public abstract class Shader
             return;
         }
 
-        if (setProgram)
-        {
-            GL.UseProgram(_shaderHandle);
-        }
+        if (bind)
+            Bind();
 
         GL.Uniform1(_uniformLocations[name], data);
     }
@@ -213,7 +211,8 @@ public abstract class Shader
     /// </summary>
     /// <param name="name">The name of the uniform</param>
     /// <param name="data">The data to set</param>
-    public void SetFloat(string name, float data)
+    /// <param name="bind"></param>
+    public void SetFloat(string name, float data, bool bind = false)
     {
         if (!_uniformLocations.ContainsKey(name))
         {
@@ -221,7 +220,9 @@ public abstract class Shader
             return;
         }
 
-        GL.UseProgram(_shaderHandle);
+        if (bind)
+            Bind();
+
         GL.Uniform1(_uniformLocations[name], data);
     }
 
@@ -231,8 +232,8 @@ public abstract class Shader
     /// <param name="name">The name of the uniform</param>
     /// <param name="data">The data to set</param>
     /// <param name="transpose"></param>
-    /// <param name="setProgram"></param>
-    public void SetMatrix4(string name, Matrix4 data, bool transpose = true, bool setProgram = true)
+    /// <param name="bind"></param>
+    public void SetMatrix4(string name, Matrix4 data, bool transpose = true, bool bind = false)
     {
         if (!_uniformLocations.ContainsKey(name))
         {
@@ -240,10 +241,8 @@ public abstract class Shader
             return;
         }
 
-        if (setProgram)
-        {
-            GL.UseProgram(_shaderHandle);
-        }
+        if (bind)
+            Bind();
 
         GL.UniformMatrix4(_uniformLocations[name], transpose, ref data);
     }
@@ -253,7 +252,8 @@ public abstract class Shader
     /// </summary>
     /// <param name="name">The name of the uniform</param>
     /// <param name="data">The data to set</param>
-    public void SetVector2(string name, Vector2 data)
+    /// <param name="bind"></param>
+    public void SetVector2(string name, Vector2 data, bool bind = false)
     {
         if (!_uniformLocations.ContainsKey(name))
         {
@@ -261,7 +261,9 @@ public abstract class Shader
             return;
         }
 
-        GL.UseProgram(_shaderHandle);
+        if (bind)
+            Bind();
+
         GL.Uniform2(_uniformLocations[name], data);
     }
 
@@ -270,7 +272,8 @@ public abstract class Shader
     /// </summary>
     /// <param name="name">The name of the uniform</param>
     /// <param name="data">The data to set</param>
-    public void SetVector3(string name, Vector3 data)
+    /// <param name="bind"></param>
+    public void SetVector3(string name, Vector3 data, bool bind = false)
     {
         if (!_uniformLocations.ContainsKey(name))
         {
@@ -278,7 +281,9 @@ public abstract class Shader
             return;
         }
 
-        GL.UseProgram(_shaderHandle);
+        if (bind)
+            Bind();
+
         GL.Uniform3(_uniformLocations[name], data);
     }
 }
