@@ -1,23 +1,32 @@
 ﻿using System;
+using ImGuiNET;
 using Jellyfish.Render.Buffers;
 using OpenTK.Graphics.OpenGL;
 namespace Jellyfish.Render;
 
 public class OpenGLRender : IRender
 {
-    private readonly PostProcessing _postProcessing;
-    private readonly FrameBuffer _mainFramebuffer;
-    private readonly RenderTarget _colorRenderTarget;
-    private readonly RenderTarget _depthRenderTarget;
+    private PostProcessing? _postProcessing;
+    private FrameBuffer? _mainFramebuffer;
+    private RenderTarget? _colorRenderTarget;
+    private RenderTarget? _depthRenderTarget;
+
+    public bool IsReady { get; set; }
 
     public OpenGLRender()
+    {
+        GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+    }
+
+    public void CreateBuffers()
     {
         GL.Enable(EnableCap.CullFace);
 
         _mainFramebuffer = new FrameBuffer();
         _mainFramebuffer.Bind();
 
-        RenderBuffer.Create(RenderbufferStorage.StencilIndex8, FramebufferAttachment.Stencil, 
+        RenderBuffer.Create(RenderbufferStorage.StencilIndex8, FramebufferAttachment.Stencil,
             MainWindow.WindowWidth, MainWindow.WindowHeight);
 
         _colorRenderTarget = new RenderTarget("_rt_Color", MainWindow.WindowWidth, MainWindow.WindowHeight, PixelFormat.Rgb,
@@ -38,7 +47,15 @@ public class OpenGLRender : IRender
 
     public void Frame()
     {
-        _mainFramebuffer.Bind();
+        if (!IsReady)
+        {
+            GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+            return;
+        }
+
+        _mainFramebuffer?.Bind();
 
         GL.Enable(EnableCap.DepthTest);
         GL.DepthFunc(DepthFunction.Less);
@@ -49,9 +66,9 @@ public class OpenGLRender : IRender
 
         MeshManager.Draw();
 
-        _mainFramebuffer.Unbind();
+        _mainFramebuffer?.Unbind();
 
-        _postProcessing.Draw();
+        _postProcessing?.Draw();
     }
 
     public void Unload()

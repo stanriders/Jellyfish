@@ -1,4 +1,6 @@
-﻿using Jellyfish.Entities;
+﻿using System;
+using ImGuiNET;
+using Jellyfish.Entities;
 using Jellyfish.Input;
 using Jellyfish.Render;
 using Jellyfish.UI;
@@ -12,9 +14,9 @@ namespace Jellyfish;
 
 public class MainWindow : GameWindow
 {
+    private readonly OpenGLRender _render;
     private InputManager _inputHandler = null!;
-    private OpenGLRender _render = null!;
-    private ImguiController _imguiController = null!;
+    private ImguiController? _imguiController;
     private EntityManager _entityManager = null!;
     private UiManager _uiManager = null!;
     private Camera? _camera;
@@ -27,6 +29,9 @@ public class MainWindow : GameWindow
 
         ClientSize = new Vector2i(width, height);
         Title = title;
+
+        _render = new OpenGLRender();
+        Render();
 
         Load += OnFinishedLoading;
     }
@@ -45,12 +50,14 @@ public class MainWindow : GameWindow
         _imguiController = new ImguiController();
         _uiManager = new UiManager();
         _entityManager = new EntityManager();
-        
+
         _camera = EntityManager.CreateEntity("camera") as Camera;
         if (_camera != null)
         {
             _camera.AspectRatio = WindowWidth / (float)WindowHeight;
         }
+
+        _render.CreateBuffers();
 
         base.OnLoad();
     }
@@ -60,15 +67,12 @@ public class MainWindow : GameWindow
         Log.Information("[MainWindow] Finished loading!");
 
         MapLoader.Load("maps/test.json");
-        _render = new OpenGLRender();
+        _render.IsReady = true;
     }
 
     protected override void OnRenderFrame(FrameEventArgs e)
     {
-        _render.Frame();
-        _imguiController.Render();
-
-        SwapBuffers();
+        Render();
 
         base.OnRenderFrame(e);
     }
@@ -78,7 +82,7 @@ public class MainWindow : GameWindow
         Frametime = e.Time;
 
         // we want to update ui regardless of focus otherwise it disappears
-        _imguiController.Update(WindowWidth, WindowHeight);
+        _imguiController?.Update(WindowWidth, WindowHeight);
         _uiManager.Frame();
 
         if (!IsFocused)
@@ -109,7 +113,7 @@ public class MainWindow : GameWindow
     {
         _entityManager.Unload();
         _render.Unload();
-        _imguiController.Dispose();
+        _imguiController?.Dispose();
 
         base.OnUnload();
     }
@@ -119,6 +123,14 @@ public class MainWindow : GameWindow
         base.OnTextInput(e);
 
         // todo: refactor through inputmanager
-        _imguiController.PressChar((char)e.Unicode);
+        _imguiController?.PressChar((char)e.Unicode);
+    }
+
+    private void Render()
+    {
+        _render.Frame();
+        _imguiController?.Render();
+
+        SwapBuffers();
     }
 }
