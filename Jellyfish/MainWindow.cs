@@ -1,5 +1,6 @@
 ﻿using System;
 using ImGuiNET;
+using Jellyfish.Audio;
 using Jellyfish.Entities;
 using Jellyfish.Input;
 using Jellyfish.Render;
@@ -19,6 +20,7 @@ public class MainWindow : GameWindow
     private ImguiController? _imguiController;
     private EntityManager _entityManager = null!;
     private UiManager _uiManager = null!;
+    private AudioManager _audioManager = null!;
     private Camera? _camera;
 
     public MainWindow(int width, int height, string title) : base(
@@ -50,6 +52,7 @@ public class MainWindow : GameWindow
         _imguiController = new ImguiController();
         _uiManager = new UiManager();
         _entityManager = new EntityManager();
+        _audioManager = new AudioManager();
 
         _camera = EntityManager.CreateEntity("camera") as Camera;
         if (_camera != null)
@@ -84,6 +87,8 @@ public class MainWindow : GameWindow
         // we want to update ui regardless of focus otherwise it disappears
         _imguiController?.Update(WindowWidth, WindowHeight);
         _uiManager.Frame();
+
+        _audioManager.Update();
 
         if (!IsFocused)
             return;

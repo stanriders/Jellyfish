@@ -40,10 +40,10 @@ public class Camera : BaseEntity, IInputHandler
         InputManager.RegisterInputHandler(this);
     }
 
-    public float AspectRatio { private get; set; }
+    public float AspectRatio { get; set; }
 
-    private Vector3 Front => _front;
-    private Vector3 Up { get; set; } = Vector3.UnitY;
+    public Vector3 Front => _front;
+    public Vector3 Up { get; set; } = Vector3.UnitY;
 
     private Vector3 Right { get; set; } = Vector3.UnitX;
 
@@ -74,7 +74,7 @@ public class Camera : BaseEntity, IInputHandler
         }
     }
 
-    private float Fov
+    public float Fov
     {
         get => MathHelper.RadiansToDegrees(_fov);
         set
