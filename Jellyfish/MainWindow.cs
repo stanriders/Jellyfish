@@ -58,6 +58,7 @@ public class MainWindow : GameWindow
         if (_camera != null)
         {
             _camera.AspectRatio = WindowWidth / (float)WindowHeight;
+            _camera.SetPropertyValue("Position", new Vector3(40, 20, 20));
         }
 
         _render.CreateBuffers();
@@ -88,8 +89,6 @@ public class MainWindow : GameWindow
         _imguiController?.Update(WindowWidth, WindowHeight);
         _uiManager.Frame();
 
-        _audioManager.Update();
-
         if (!IsFocused)
             return;
 
@@ -119,6 +118,7 @@ public class MainWindow : GameWindow
         _entityManager.Unload();
         _render.Unload();
         _imguiController?.Dispose();
+        _audioManager.Unload();
 
         base.OnUnload();
     }

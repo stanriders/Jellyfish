@@ -15,7 +15,7 @@ public class Camera : BaseEntity, IInputHandler
     private float _fov = MathHelper.PiOver2;
 
     private readonly PointLight? _camLight;
-    private const float camera_speed = 16.0f;
+    private const float camera_speed = 32.0f;
     private const float sensitivity = 0.2f;
 
     public bool IsControllingCursor { get; set; }
@@ -44,8 +44,7 @@ public class Camera : BaseEntity, IInputHandler
 
     public Vector3 Front => _front;
     public Vector3 Up { get; set; } = Vector3.UnitY;
-
-    private Vector3 Right { get; set; } = Vector3.UnitX;
+    public Vector3 Right { get; set; } = Vector3.UnitX;
 
     private float Pitch
     {

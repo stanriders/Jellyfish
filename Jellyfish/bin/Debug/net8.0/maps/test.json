@@ -164,6 +164,170 @@
         }
       ]
     },
+
+    {
+      "ClassName": "plane_flat",
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "wall1"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": 0,
+            "Y": 90,
+            "Z": -90
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "X": 180,
+            "Y": 0,
+            "Z": 0
+          }
+        },
+        {
+          "Name": "Size",
+          "Value": {
+            "X": 180,
+            "Y": 180
+          }
+        },
+        {
+          "Name": "Texture",
+          "Value": "tile.mat"
+        },
+        {
+          "Name": "TextureScale",
+          "Value": 4
+        }
+      ]
+    },
+
+    {
+      "ClassName": "plane_flat",
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "wall2"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": 90,
+            "Y": 90,
+            "Z": 0
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "X": 90,
+            "Y": 0,
+            "Z": 90
+          }
+        },
+        {
+          "Name": "Size",
+          "Value": {
+            "X": 180,
+            "Y": 180
+          }
+        },
+        {
+          "Name": "Texture",
+          "Value": "tile.mat"
+        },
+        {
+          "Name": "TextureScale",
+          "Value": 4
+        }
+      ]
+    },
+
+    {
+      "ClassName": "plane_flat",
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "wall3"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": -90,
+            "Y": 90,
+            "Z": 0
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "X": 90,
+            "Y": 0,
+            "Z": -90
+          }
+        },
+        {
+          "Name": "Size",
+          "Value": {
+            "X": 180,
+            "Y": 180
+          }
+        },
+        {
+          "Name": "Texture",
+          "Value": "tile.mat"
+        },
+        {
+          "Name": "TextureScale",
+          "Value": 4
+        }
+      ]
+    },
+
+    {
+      "ClassName": "plane_flat",
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "ceil"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": 0,
+            "Y": 180,
+            "Z": 0
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "X": -90,
+            "Y": 0,
+            "Z": 0
+          }
+        },
+        {
+          "Name": "Size",
+          "Value": {
+            "X": 180,
+            "Y": 180
+          }
+        },
+        {
+          "Name": "Texture",
+          "Value": "tile.mat"
+        },
+        {
+          "Name": "TextureScale",
+          "Value": 4
+        }
+      ]
+    },
     {
       "ClassName": "light_sun",
       "Properties": [
@@ -211,13 +375,13 @@
         },
         {
           "Name": "Path",
-          "Value": "sounds/test.wav"
+          "Value": "sounds/test.mp3"
         },
         {
           "Name": "Autoplay",
           "Value": true
         }
-      ],
+      ]
     }
   ]
 }
