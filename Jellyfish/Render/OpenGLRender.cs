@@ -10,6 +10,7 @@ public class OpenGLRender : IRender
     private FrameBuffer? _mainFramebuffer;
     private RenderTarget? _colorRenderTarget;
     private RenderTarget? _depthRenderTarget;
+    private Sky? _sky;
 
     public bool IsReady { get; set; }
 
@@ -42,6 +43,7 @@ public class OpenGLRender : IRender
 
         _mainFramebuffer.Unbind();
 
+        _sky = new Sky();
         _postProcessing = new PostProcessing(_colorRenderTarget.TextureHandle, _depthRenderTarget.TextureHandle);
     }
 
@@ -65,6 +67,7 @@ public class OpenGLRender : IRender
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
         MeshManager.Draw();
+        _sky?.Draw();
 
         _mainFramebuffer?.Unbind();
 

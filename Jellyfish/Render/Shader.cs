@@ -286,4 +286,64 @@ public abstract class Shader
 
         GL.Uniform3(_uniformLocations[name], data);
     }
+
+    /// <summary>
+    ///     Set a uniform Vector3 on this shader.
+    /// </summary>
+    /// <param name="name">The name of the uniform</param>
+    /// <param name="data">The data to set</param>
+    /// <param name="bind"></param>
+    public void SetVector3(string name, float[] data, bool bind = false)
+    {
+        if (!_uniformLocations.ContainsKey(name))
+        {
+            Log.Error("[Shader] Uniform {Name} isn't found!", name);
+            return;
+        }
+
+        if (bind)
+            Bind();
+
+        GL.Uniform3(_uniformLocations[name], data.Length, data);
+    }
+
+    /// <summary>
+    ///     Set a uniform Vector3 on this shader.
+    /// </summary>
+    /// <param name="name">The name of the uniform</param>
+    /// <param name="data">The data to set</param>
+    /// <param name="bind"></param>
+    public void SetVector4(string name, Vector4 data, bool bind = false)
+    {
+        if (!_uniformLocations.ContainsKey(name))
+        {
+            Log.Error("[Shader] Uniform {Name} isn't found!", name);
+            return;
+        }
+
+        if (bind)
+            Bind();
+
+        GL.Uniform4(_uniformLocations[name], data);
+    }
+
+    /// <summary>
+    ///     Set a uniform Vector3 on this shader.
+    /// </summary>
+    /// <param name="name">The name of the uniform</param>
+    /// <param name="data">The data to set</param>
+    /// <param name="bind"></param>
+    public void SetVector4(string name, float[] data, bool bind = false)
+    {
+        if (!_uniformLocations.ContainsKey(name))
+        {
+            Log.Error("[Shader] Uniform {Name} isn't found!", name);
+            return;
+        }
+
+        if (bind)
+            Bind();
+
+        GL.Uniform3(_uniformLocations[name], data.Length, data);
+    }
 }

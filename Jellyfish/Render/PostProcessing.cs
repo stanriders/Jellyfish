@@ -37,6 +37,8 @@ public class PostProcessing : IInputHandler
         _shader.Bind();
 
         InputManager.RegisterInputHandler(this);
+        GL.BindVertexArray(0);
+        GL.UseProgram(0);
     }
 
     public void Draw()
