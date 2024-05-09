@@ -14,7 +14,12 @@
 				X = x;
 				Y = y;
 				Z = z;
-			}
-		}
-	}
+            }
+
+            public static bool Equals(Vector3 v1, Vector3 v2)
+            {
+                return (v1.X == v2.X && v1.Y == v2.Y && v1.Z == v2.Z);
+            }
+        }
+    }
 }

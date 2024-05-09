@@ -3,10 +3,7 @@ using ManagedBass;
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Threading;
 using Jellyfish.Render;
 using IPL = Jellyfish.Audio.SteamAudio.IPL;
@@ -18,33 +15,21 @@ namespace Jellyfish.Audio
     {
         private IPL.Context _iplContext;
         private IPL.Hrtf _iplHrtf;
-        private IPL.BinauralEffect _iplBinauralEffect;
-        private IPL.AudioBuffer _iplInputBuffer;
-        private IPL.AudioBuffer _iplSimulationBuffer;
-        private IPL.AudioBuffer _iplOutputBuffer;
-        private static IPL.Scene _iplScene;
-        private static IPL.Simulator _iplSimulator;
-        private IPL.DirectEffect _iplDirectEffect;
+        private IPL.Scene _iplScene;
+        private IPL.Simulator _iplSimulator;
+        private static AudioManager? instance;
 
-        private readonly IntPtr _inBuffer = Marshal.AllocHGlobal(ipl_buffer_size_bytes);
-        private readonly IntPtr _outBuffer = Marshal.AllocHGlobal(ipl_buffer_size_bytes * output_channels);
+        private readonly List<Sound> _sounds = new();
 
         private bool _shouldStop;
 
-        private const int output_channels = 2;
-        private const int sampling_rate = 44100;
+        public const int output_channels = 2;
+        public const int sampling_rate = 44100;
 
-        private const int ipl_frame_size = 512;
-        private const int ipl_buffer_size_bytes = ipl_frame_size * sizeof(float);
-        private const int update_rate = (int)(ipl_frame_size / (double)sampling_rate * 1000); // it's not just buffer_size because of all the int castings
-
-        // TODO: add mixer and support more than one sound
-        private static Vector3 _soundPosition;
-        private static MemoryStream? _audioStream;
-        private bool _playing;
-        private static int _stream;
-        private static IPL.Source _source;
-
+        public const int ipl_frame_size = 512;
+        public const int ipl_buffer_size_bytes = ipl_frame_size * sizeof(float);
+        public const int update_rate = (int)(ipl_frame_size / (double)sampling_rate * 1000);
+        
         public AudioManager()
         {
             Bass.Init();
@@ -55,73 +40,40 @@ namespace Jellyfish.Audio
 
             var audioThread = new Thread(Run) { Name = "Audio thread" };
             audioThread.Start();
+
+            instance = this;
         }
 
-        public static int Play(string path, Vector3 position)
+        public static Sound? AddSound(string path)
         {
-            var file = File.ReadAllBytes(path);
-
-            var sample = Bass.SampleLoad(file, 0, file.Length, 1, BassFlags.Decode | BassFlags.Float);
-            var sampleData = Bass.SampleGetInfo(sample);
-            var sampleBuffer = new byte[sampleData.Length];
-            Bass.SampleGetData(sample, sampleBuffer);
-            _audioStream = new MemoryStream(sampleBuffer);
-
-            Bass.SampleFree(sample);
-
-            _stream = Bass.CreateStream(sampling_rate, output_channels, BassFlags.Float, StreamProcedureType.Push);
-            _soundPosition = position;
-
-            IPL.SourceCreate(_iplSimulator, new IPL.SourceSettings { Flags = IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections }, out _source);
-            IPL.SourceSetInputs(_source, IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections, new IPL.SimulationInputs
-            {
-                Flags = IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections,
-                DirectFlags = IPL.DirectSimulationFlags.Occlusion | IPL.DirectSimulationFlags.Transmission | IPL.DirectSimulationFlags.DistanceAttenuation | IPL.DirectSimulationFlags.Directivity | IPL.DirectSimulationFlags.AirAbsorption,
-                DistanceAttenuationModel = new IPL.DistanceAttenuationModel { Type = IPL.DistanceAttenuationModelType.InverseDistance, MinDistance = 50 },
-                AirAbsorptionModel = new IPL.AirAbsorptionModel {Type = IPL.AirAbsorptionModelType.Default },
-                Directivity = new IPL.Directivity { DipoleWeight = 0.1f, DipolePower = 1.0f },
-                OcclusionType = IPL.OcclusionType.Raycast,
-                Baked = false,
-                Source = new IPL.CoordinateSpace3
-                {
-                    Ahead = new IPL.Vector3(-Vector3.UnitZ.X, -Vector3.UnitZ.Y, -Vector3.UnitZ.Z), 
-                    Right = new IPL.Vector3(Vector3.UnitX.X, Vector3.UnitX.Y, Vector3.UnitX.Z), 
-                    Up = new IPL.Vector3(Vector3.UnitY.X, Vector3.UnitY.Y, Vector3.UnitY.Z),
-                    Origin = new IPL.Vector3(_soundPosition.X, _soundPosition.Y, _soundPosition.Z)
-                }
-            });
-            IPL.SourceAdd(_source, _iplSimulator);
-
-            IPL.SimulatorCommit(_iplSimulator);
-            return _stream;
+            return instance?.AddSoundInternal(path);
         }
 
-        public static void Update(int channel, Vector3 position)
+        private Sound? AddSoundInternal(string path)
         {
-            _soundPosition = position;
+            IPL.Source source = default;
 
-            // todo: can we update just the pos?
-            IPL.SourceSetInputs(_source, IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections, new IPL.SimulationInputs()
+            IplRun(() => IPL.SourceCreate(_iplSimulator, new IPL.SourceSettings { Flags = IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections }, out source));
+            if (source != default)
             {
-                Flags = IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections,
-                DirectFlags = IPL.DirectSimulationFlags.Occlusion | IPL.DirectSimulationFlags.Transmission | IPL.DirectSimulationFlags.DistanceAttenuation | IPL.DirectSimulationFlags.Directivity | IPL.DirectSimulationFlags.AirAbsorption,
-                DistanceAttenuationModel = new IPL.DistanceAttenuationModel {Type = IPL.DistanceAttenuationModelType.InverseDistance, MinDistance = 50},
-                Directivity = new IPL.Directivity { DipoleWeight = 0.1f, DipolePower = 1.0f},
-                AirAbsorptionModel = new IPL.AirAbsorptionModel { Type = IPL.AirAbsorptionModelType.Default },
-                OcclusionType = IPL.OcclusionType.Raycast,
-                Baked = false,
-                Source = new IPL.CoordinateSpace3
-                {
-                    Ahead = new IPL.Vector3(-Vector3.UnitZ.X, -Vector3.UnitZ.Y, -Vector3.UnitZ.Z),
-                    Right = new IPL.Vector3(Vector3.UnitX.X, Vector3.UnitX.Y, Vector3.UnitX.Z),
-                    Up = new IPL.Vector3(Vector3.UnitY.X, Vector3.UnitY.Y, Vector3.UnitY.Z),
-                    Origin = new IPL.Vector3(_soundPosition.X, _soundPosition.Y, _soundPosition.Z)
-                }
-            });
-            IPL.SimulatorCommit(_iplSimulator);
+                var sound = new Sound(path, source, _iplContext, _iplHrtf);
+                IPL.SourceAdd(source, _iplSimulator);
+                IPL.SimulatorCommit(_iplSimulator);
+
+                _sounds.Add(sound);
+
+                return sound;
+            }
+
+            return null;
         }
 
         public static void AddMesh(MeshInfo mesh)
+        {
+            instance?.AddMeshInternal(mesh);
+        }
+
+        private void AddMeshInternal(MeshInfo mesh)
         {
             var triangles = new List<IPL.Triangle>();
             for (var i = 0; i < mesh.Vertices.Count; i += 3)
@@ -190,13 +142,7 @@ namespace Jellyfish.Audio
             };
 
             IplRun(() => IPL.HrtfCreate(_iplContext, in iplAudioSettings, new IPL.HrtfSettings { Type = IPL.HrtfType.Default }, out _iplHrtf));
-            IplRun(() => IPL.BinauralEffectCreate(_iplContext, in iplAudioSettings, new IPL.BinauralEffectSettings { Hrtf = _iplHrtf }, out _iplBinauralEffect));
-            IplRun(() => IPL.DirectEffectCreate(_iplContext, iplAudioSettings, new IPL.DirectEffectSettings { NumChannels = 1 }, out _iplDirectEffect));
 
-            IplRun(() => IPL.AudioBufferAllocate(_iplContext, 1, iplAudioSettings.FrameSize, ref _iplInputBuffer));
-            IplRun(() => IPL.AudioBufferAllocate(_iplContext, 1, iplAudioSettings.FrameSize, ref _iplSimulationBuffer));
-            IplRun(() => IPL.AudioBufferAllocate(_iplContext, output_channels, iplAudioSettings.FrameSize, ref _iplOutputBuffer));
-            
             IplRun(() => IPL.SimulatorCreate(_iplContext, new IPL.SimulationSettings
             {
                 Flags = IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections, // reflections must be enabled due to a bug in 4.0 version of steamaudio (https://github.com/ValveSoftware/steam-audio/issues/190)
@@ -221,6 +167,7 @@ namespace Jellyfish.Audio
 
             while (!_shouldStop)
             {
+                Thread.Sleep(update_rate);
                 Bass.Update(update_rate);
 
                 var error = Bass.LastError;
@@ -229,7 +176,7 @@ namespace Jellyfish.Audio
                     Log.Warning("[AudioManager] BASS error {Error}", error);
                 }
 
-                if (_stream == 0 || _audioStream == null)
+                if (_sounds.Count(x=> x.Playing) == 0)
                     continue;
 
                 var camera = EntityManager.FindEntity("camera") as Camera;
@@ -248,42 +195,12 @@ namespace Jellyfish.Audio
                     Right = new IPL.Vector3(camera.Right.X, camera.Right.Y, camera.Right.Z),
                     Origin = new IPL.Vector3(cameraPosition.X, cameraPosition.Y, cameraPosition.Z)
                 };
-
-                var direction = IPL.CalculateRelativeDirection(_iplContext,
-                    new IPL.Vector3(_soundPosition.X, _soundPosition.Y, _soundPosition.Z),
-                    new IPL.Vector3(cameraPosition.X, cameraPosition.Y, cameraPosition.Z),
-                    new IPL.Vector3(camera.Front.X, camera.Front.Y, camera.Front.Z),
-                    new IPL.Vector3(camera.Up.X, camera.Up.Y, camera.Up.Z));
-
-                var binauralEffectParams = new IPL.BinauralEffectParams
-                {
-                    Hrtf = _iplHrtf,
-                    Direction = direction,
-                    Interpolation = IPL.HrtfInterpolation.Nearest,
-                    SpatialBlend = 1.0f,
-                };
-
-                var inputBufferByteSpan = new Span<byte>((void*)_inBuffer, ipl_buffer_size_bytes);
-                int bytesRead = _audioStream.Read(inputBufferByteSpan);
-                if (bytesRead == 0)
-                {
-                    if (_playing)
-                    {
-                        //Bass.StreamPutData(_stream, nint.Zero, (int)StreamProcedureType.End);
-                        //_playing = false;
-                        _audioStream.Position = 0;
-                    }
-
-                    continue;
-                }
-
-                IPL.AudioBufferDeinterleave(_iplContext, Unsafe.AsRef<float>((float*)_inBuffer), _iplInputBuffer);
-
+                
                 IPL.SimulatorSetSharedInputs(_iplSimulator, IPL.SimulationFlags.Direct, new IPL.SimulationSharedInputs
                 {
                     Listener = listener,
                     NumRays = 2048,
-                    IrradianceMinDistance = 1.0f,
+                    IrradianceMinDistance = 100.0f,
                     Duration = 2.0f,
                     Order = 1,
                     NumBounces = 1
@@ -291,38 +208,10 @@ namespace Jellyfish.Audio
 
                 IPL.SimulatorRunDirect(_iplSimulator);
 
-                IPL.SourceGetOutputs(_source, IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections, out var iplSourceOutput);
-
-                // todo: can't do occlusion for now because we translate meshes in shaders
-                iplSourceOutput.Direct.Flags = IPL.DirectEffectFlags.ApplyAirAbsorption | IPL.DirectEffectFlags.ApplyDirectivity;
-                
-                IPL.DirectEffectApply(_iplDirectEffect, ref iplSourceOutput.Direct, ref _iplInputBuffer,
-                    ref _iplSimulationBuffer);
-
-                IPL.BinauralEffectApply(_iplBinauralEffect, ref binauralEffectParams, ref _iplSimulationBuffer,
-                    ref _iplOutputBuffer);
-                
-                IPL.AudioBufferInterleave(_iplContext, _iplOutputBuffer, Unsafe.AsRef<float>((float*)_outBuffer));
-
-                var result = Bass.StreamPutData(_stream, _outBuffer, ipl_buffer_size_bytes * output_channels);
-                if (result == -1)
+                foreach (var sound in _sounds)
                 {
-                    Log.Warning("[AudioManager] BASS StreamPutData error {Error}", Bass.LastError);
+                    sound.Update(_iplContext, _iplHrtf);
                 }
-
-                if (!_playing)
-                {
-                    if (!Bass.ChannelPlay(_stream))
-                    {
-                        Log.Warning("[AudioManager] BASS ChannelPlay error {Error}", Bass.LastError);
-                    }
-                    else
-                    {
-                        _playing = true;
-                    }
-                }
-
-                Thread.Sleep(update_rate);
             }
 
             IPL.ContextRelease(ref _iplContext);
@@ -334,7 +223,7 @@ namespace Jellyfish.Audio
             var result = func();
             if (result != IPL.Error.Success)
             {
-                Log.Warning("[AudioManager] BASS IPL error {Error}", result);
+                Log.Warning("[AudioManager] IPL error {Error}", result);
             }
         }
     }

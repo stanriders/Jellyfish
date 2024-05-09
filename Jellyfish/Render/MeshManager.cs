@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Jellyfish.Audio;
 
 namespace Jellyfish.Render;
 
@@ -9,6 +10,7 @@ public static class MeshManager
     public static void AddMesh(Mesh mesh)
     {
         meshes.Add(mesh);
+        AudioManager.AddMesh(mesh.MeshInfo);
     }
 
     public static void Draw()
