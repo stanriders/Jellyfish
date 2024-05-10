@@ -137,7 +137,7 @@ void main()
     vec3 viewDir = normalize(cameraPos - frag_position);
 
     vec3 result = diffuseTex.rgb;
-    vec3 lighting = CalcLighting(frag_normal, frag_position, viewDir);
+    vec3 lighting = CalcLighting(tangentSpaceNormal, frag_position, viewDir);
     result *= lighting;
 
     outputColor = vec4(result, 1.0);
