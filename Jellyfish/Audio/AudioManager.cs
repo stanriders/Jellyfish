@@ -68,12 +68,12 @@ namespace Jellyfish.Audio
             return null;
         }
 
-        public static void AddMesh(MeshInfo mesh)
+        public static void AddMesh(MeshPart mesh)
         {
             instance?.AddMeshInternal(mesh);
         }
 
-        private void AddMeshInternal(MeshInfo mesh)
+        private void AddMeshInternal(MeshPart mesh)
         {
             var triangles = new List<IPL.Triangle>();
             for (var i = 0; i < mesh.Vertices.Count; i += 3)
@@ -99,7 +99,7 @@ namespace Jellyfish.Audio
 
             var materialsList = new[] { material };
 
-            fixed (IPL.Vector3* verts = mesh.Vertices.Select(v => new IPL.Vector3(v.X, v.Y, v.Z)).ToArray())
+            fixed (IPL.Vector3* verts = mesh.Vertices.Select(v => new IPL.Vector3(v.Coordinates.X, v.Coordinates.Y, v.Coordinates.Z)).ToArray())
             fixed (IPL.Triangle* indicies = triangles.ToArray())
             fixed (IPL.Material* materials = materialsList)
             fixed (int* materialIndicies = Enumerable.Repeat(0, triangles.Count).ToArray())

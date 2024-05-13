@@ -16,7 +16,7 @@ public class BezierPlane : Mesh
         Size = size;
         QuadSize = quadSize;
 
-        MeshInfo = GenerateRandom();
+        MeshPart = GenerateRandom();
         CreateBuffers();
         AddMaterial($"materials/{texture}");
     }
@@ -24,11 +24,9 @@ public class BezierPlane : Mesh
     /// <summary>
     /// https://github.com/tugbadogan/opengl-bezier-surface/tree/master
     /// </summary>
-    private MeshInfo GenerateRandom()
+    private MeshPart GenerateRandom()
     {
-        List<Vector3> points = new();
-        List<Vector3> normals = new();
-        List<Vector2> uvs = new();
+        List<Vertex> verticies = new();
 
         var watch = Stopwatch.StartNew();
 
@@ -77,51 +75,68 @@ public class BezierPlane : Mesh
         {
             for (var j = 0; j < resolutionY - 1; j++)
             {
-                var a = new Vector3((float)outPoints[i, j][0],          (float)outPoints[i, j][1],         (float)outPoints[i, j][2]);
-                var d = new Vector3((float)outPoints[i, j + 1][0],      (float)outPoints[i, j + 1][1],     (float)outPoints[i, j + 1][2]);
-                var b = new Vector3((float)outPoints[i + 1, j][0],      (float)outPoints[i + 1, j][1],     (float)outPoints[i + 1, j][2]);
-                var c = new Vector3((float)outPoints[i + 1, j + 1][0],  (float)outPoints[i + 1, j + 1][1], (float)outPoints[i + 1, j + 1][2]);
+                var a = new Vector3((float)outPoints[i, j][0], (float)outPoints[i, j][1], (float)outPoints[i, j][2]);
+                var d = new Vector3((float)outPoints[i, j + 1][0], (float)outPoints[i, j + 1][1],
+                    (float)outPoints[i, j + 1][2]);
+                var b = new Vector3((float)outPoints[i + 1, j][0], (float)outPoints[i + 1, j][1],
+                    (float)outPoints[i + 1, j][2]);
+                var c = new Vector3((float)outPoints[i + 1, j + 1][0], (float)outPoints[i + 1, j + 1][1],
+                    (float)outPoints[i + 1, j + 1][2]);
 
                 Vector3 u = b - a;
                 Vector3 v = c - b;
 
                 Vector3 normal = Vector3.Cross(u, v).Normalized();
 
-                uvs.Add(new(1f, 1f));
-                normals.Add(normal);
-                points.Add(a);
-
-                uvs.Add(new(-1f, 1f));
-                normals.Add(normal);
-                points.Add(b);
-
-                uvs.Add(new(-1f, -1f));
-                normals.Add(normal);
-                points.Add(c);
-
-                uvs.Add(new(1f, 1f));
-                normals.Add(normal);
-                points.Add(a);
-
-                uvs.Add(new(-1f, -1f));
-                normals.Add(normal);
-                points.Add(c);
-
-                uvs.Add(new(1f, -1f));
-                normals.Add(normal);
-                points.Add(d);
+                verticies.AddRange(new Vertex[]
+                {
+                    new()
+                    {
+                        Coordinates = a,
+                        Normal = normal,
+                        UV = new(1f, 1f)
+                    },
+                    new()
+                    {
+                        Coordinates = b,
+                        Normal = normal,
+                        UV = new(-1f, 1f)
+                    },
+                    new()
+                    {
+                        Coordinates = c,
+                        Normal = normal,
+                        UV = new(-1f, -1f)
+                    },
+                    new()
+                    {
+                        Coordinates = a,
+                        Normal = normal,
+                        UV = new(1f, 1f)
+                    },
+                    new()
+                    {
+                        Coordinates = c,
+                        Normal = normal,
+                        UV = new(-1f, -1f)
+                    },
+                    new()
+                    {
+                        Coordinates = d,
+                        Normal = normal,
+                        UV = new(1f, -1f)
+                    },
+                });
             }
         }
 
         watch.Stop();
         Log.Information("[BezierPlane] Took {Elapsed} time to create a plane", watch.Elapsed);
 
-        return new MeshInfo
+        return new MeshPart
         {
             Name = "randombezierplane",
-            Vertices = points,
-            Normals = normals,
-            UVs = uvs
+            Vertices = verticies
         };
     }
 

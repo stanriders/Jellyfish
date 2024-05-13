@@ -34,8 +34,7 @@ public class VertexBuffer
         GL.BufferData(BufferTarget.ArrayBuffer, _size, IntPtr.Zero, _usage);
     }
 
-    public VertexBuffer(Vector3[] vertices, Vector2[] uvs, Vector3[] normals,
-        BufferUsageHint usage = BufferUsageHint.StaticDraw)
+    public VertexBuffer(Vertex[] vertices, BufferUsageHint usage = BufferUsageHint.StaticDraw)
     {
         _usage = usage;
         _handler = GL.GenBuffer();
@@ -47,35 +46,16 @@ public class VertexBuffer
             // THIS IS UGLY
 
             // vertex
-            coords.Add(vertices[i].X);
-            coords.Add(vertices[i].Y);
-            coords.Add(vertices[i].Z);
+            coords.Add(vertices[i].Coordinates.X);
+            coords.Add(vertices[i].Coordinates.Y);
+            coords.Add(vertices[i].Coordinates.Z);
 
-            // uv
-            if (uvs != null && uvs.Length > 0 && i < uvs.Length)
-            {
-                coords.Add(uvs[i].X);
-                coords.Add(uvs[i].Y);
-            }
-            else
-            {
-                coords.Add(0.0f);
-                coords.Add(0.0f);
-            }
+            coords.Add(vertices[i].UV.X);
+            coords.Add(vertices[i].UV.Y);
 
-            // normal
-            if (normals != null && normals.Length > 0 && i < normals.Length)
-            {
-                coords.Add(normals[i].X);
-                coords.Add(normals[i].Y);
-                coords.Add(normals[i].Z);
-            }
-            else
-            {
-                coords.Add(0.0f);
-                coords.Add(0.0f);
-                coords.Add(0.0f);
-            }
+            coords.Add(vertices[i].Normal.X);
+            coords.Add(vertices[i].Normal.Y);
+            coords.Add(vertices[i].Normal.Z);
         }
 
         Size = coords.Count * sizeof(float);

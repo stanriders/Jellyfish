@@ -317,11 +317,15 @@ public class VTX
     public List<MeshHeader_t> Meshes { get; set; } = new();
     public List<StripGroupHeader_t> VertexStrips { get; set; } = new();
 
-    public List<MeshInfo> MeshInfos { get; set; } = new();
+    public List<MeshPart> MeshParts { get; set; } = new();
 
     public static VTX Load(string path)
     {
-        var file = File.ReadAllBytes($"{path}.vtx");
+        var vtxPath = $"{path}.vtx";
+        if (!File.Exists(vtxPath))
+            vtxPath = $"{path}.dx90.vtx";
+
+        var file = File.ReadAllBytes(vtxPath);
 
         var res = new VTX();
         res.Header = DeserializeFileHeader_t(file);
@@ -359,17 +363,31 @@ public class VTX
                             var stripssoffset = mesh.stripGroupHeaderOffset * (m + 1);
                             var strip = res.VertexStrips[ /*i + j + k + l + m*/0];
 
-                            var vertices = new List<Vector3>();
-                            var normals = new List<Vector3>();
-                            var texcoords = new List<Vector2>();
+                            var vertices = new List<Vertex>();
                             var indices = new List<uint>();
 
                             var vvd = VVD.Load(path, strip.numVerts);
                             foreach (var vert in vvd.Vertices)
                             {
-                                vertices.Add(vert.m_vecPosition);
-                                normals.Add(vert.m_vecNormal);
-                                texcoords.Add(vert.m_vecTexCoord);
+                                var vertex = new Vertex
+                                {
+                                    Coordinates = vert.m_vecPosition,
+                                    Normal = vert.m_vecNormal,
+                                    UV = vert.m_vecTexCoord,
+                                };
+
+                                for (var bone = 0; bone < vert.m_BoneWeights.numbones; bone++)
+                                {
+                                    var boneLink = new BoneLink
+                                    {
+                                        Id = vert.m_BoneWeights.bone[bone],
+                                        Weigth = vert.m_BoneWeights.weight[bone],
+                                    };
+
+                                    vertex.BoneLinks.Add(boneLink);
+                                }
+
+                                vertices.Add(vertex);
                             }
 
                             var indOffset = bpoffset + modelsoffset + lodsoffset + meshessoffset + stripssoffset +
@@ -382,12 +400,10 @@ public class VTX
                                 indOffset += sizeof(ushort);
                             }
 
-                            res.MeshInfos.Add(new MeshInfo
+                            res.MeshParts.Add(new MeshPart
                             {
                                 Name = Path.GetFileNameWithoutExtension(path),
                                 Vertices = vertices,
-                                Normals = normals,
-                                UVs = texcoords,
                                 Indices = indices
                             });
                         }

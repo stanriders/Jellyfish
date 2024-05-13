@@ -39,12 +39,48 @@ public class Plane : BaseEntity
         var texture = $"materials/{textureProperty}";
         var textureScale = GetPropertyValue<float>("TextureScale");
 
-        _plane = new Mesh(new MeshInfo
+        _plane = new Mesh(new MeshPart
         {
             Name = "plane_flat",
-            Vertices = new List<Vector3> { a, b, c, d, a, c },
-            Normals = new List<Vector3> { normal, normal, normal, normal, normal, normal },
-            UVs = new List<Vector2> { new(0, 0), new(textureScale, 0), new(textureScale, textureScale), new(0, textureScale), new(0, 0), new(textureScale, textureScale) },
+            Vertices = new List<Vertex>
+            {
+                new()
+                {
+                    Coordinates = a,
+                    Normal = normal,
+                    UV = new(0, 0)
+                },
+                new()
+                {
+                    Coordinates = b,
+                    Normal = normal,
+                    UV = new(textureScale, 0)
+                },
+                new()
+                {
+                    Coordinates = c,
+                    Normal = normal,
+                    UV = new(textureScale, textureScale)
+                },
+                new()
+                {
+                    Coordinates = d,
+                    Normal = normal,
+                    UV = new(0, textureScale)
+                },
+                new()
+                {
+                    Coordinates = a,
+                    Normal = normal,
+                    UV = new(0, 0)
+                },
+                new()
+                {
+                    Coordinates = c,
+                    Normal = normal,
+                    UV = new(textureScale, textureScale)
+                },
+            },
             Texture = texture
         });
 

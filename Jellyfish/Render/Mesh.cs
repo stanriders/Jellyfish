@@ -6,14 +6,58 @@ using Serilog;
 
 namespace Jellyfish.Render;
 
-public class MeshInfo
+public class MeshPart
 {
     public required string Name { get; set; }
     public string? Texture { get; set; }
-    public List<Vector3> Vertices { get; set; } = new();
-    public List<Vector2> UVs { get; set; } = new();
-    public List<Vector3> Normals { get; set; } = new();
+    public List<Vertex> Vertices { get; set; } = new();
+    public List<Bone> Bones { get; set; } = new();
     public List<uint>? Indices { get; set; } // can be null
+
+    public override string ToString()
+    {
+        return Name;
+    }
+}
+
+public struct Bone
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = null!;
+    public int? Parent { get; set; } = null;
+
+    public override string ToString()
+    {
+        return $"{Id} - {Name}";
+    }
+
+    public Bone()
+    {
+    }
+}
+
+public struct BoneLink
+{
+    public int Id {get; set; }
+    public float Weigth { get; set; }
+
+    public override string ToString()
+    {
+        return $"{Id} - {Weigth}";
+    }
+}
+
+public class Vertex
+{
+    public Vector3 Coordinates { get; set; }
+    public Vector2 UV { get; set; }
+    public Vector3 Normal { get; set; }
+    public List<BoneLink> BoneLinks { get; set; } = new();
+
+    public override string ToString()
+    {
+        return Coordinates.ToString();
+    }
 }
 
 public class Mesh
@@ -31,9 +75,9 @@ public class Mesh
     {
     }
 
-    public Mesh(MeshInfo mesh)
+    public Mesh(MeshPart mesh)
     {
-        MeshInfo = mesh;
+        MeshPart = mesh;
         CreateBuffers();
         if (mesh.Texture != null)
         {
@@ -42,11 +86,11 @@ public class Mesh
         else
         {
             Log.Warning("Mesh {Name} doesn't have a texture!", mesh.Name);
-            AddMaterial("materials/error.png");
+            AddMaterial("materials/error.mat");
         }
     }
 
-    public MeshInfo MeshInfo { get; set; } = null!;
+    public MeshPart MeshPart { get; set; } = null!;
 
     public virtual PrimitiveType PrimitiveType { get; set; } = PrimitiveType.Triangles;
 
@@ -59,10 +103,10 @@ public class Mesh
 
     public void CreateBuffers()
     {
-        vbo = new VertexBuffer(MeshInfo.Vertices.ToArray(), MeshInfo.UVs.ToArray(), MeshInfo.Normals.ToArray());
+        vbo = new VertexBuffer(MeshPart.Vertices.ToArray());
 
-        if (MeshInfo.Indices != null && MeshInfo.Indices.Count > 0)
-            ibo = new IndexBuffer(MeshInfo.Indices.ToArray());
+        if (MeshPart.Indices != null && MeshPart.Indices.Count > 0)
+            ibo = new IndexBuffer(MeshPart.Indices.ToArray());
 
         vao = new VertexArray();
         vbo.Bind();
@@ -87,7 +131,7 @@ public class Mesh
 
 
         if (ibo != null)
-            GL.DrawElements(PrimitiveType, MeshInfo.Indices!.Count, DrawElementsType.UnsignedInt, 0);
+            GL.DrawElements(PrimitiveType, MeshPart.Indices!.Count, DrawElementsType.UnsignedInt, 0);
         else
             GL.DrawArrays(PrimitiveType, 0, vbo.Length);
     }

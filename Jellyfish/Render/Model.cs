@@ -12,27 +12,27 @@ public class Model
 
     public Model(string path)
     {
-        var meshInfos = ModelParser.Parse(path);
-        if (meshInfos == null)
+        var meshParts = ModelParser.Parse(path);
+        if (meshParts == null)
         {
             Log.Error("[Model] Failed to create Model!");
             return;
         }
 
-        foreach (var meshInfo in meshInfos)
+        foreach (var meshPart in meshParts)
         {
-            if (meshInfo.Texture != null)
+            if (meshPart.Texture != null)
             {
-                var modelFolder = $"materials/models/{meshInfo.Name}";
-                var matPath = $"{modelFolder}/{Path.GetFileNameWithoutExtension(meshInfo.Texture)}.mat";
-                meshInfo.Texture = matPath;
+                var modelFolder = $"materials/models/{meshPart.Name}";
+                var matPath = $"{modelFolder}/{Path.GetFileNameWithoutExtension(meshPart.Texture)}.mat";
+                meshPart.Texture = matPath;
             }
             else
             {
-                Log.Warning("[Model] Mesh {Name} has no texture data!!", meshInfo.Name);
+                Log.Warning("[Model] Mesh {Name} has no texture data!!", meshPart.Name);
             }
 
-            _meshes.Add(new Mesh(meshInfo));
+            _meshes.Add(new Mesh(meshPart));
         }
 
         foreach (var mesh in _meshes)

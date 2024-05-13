@@ -10,7 +10,7 @@ public static class MeshManager
     public static void AddMesh(Mesh mesh)
     {
         meshes.Add(mesh);
-        AudioManager.AddMesh(mesh.MeshInfo);
+        AudioManager.AddMesh(mesh.MeshPart);
     }
 
     public static void Draw()
