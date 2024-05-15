@@ -88,6 +88,8 @@ public class Mesh
             Log.Warning("Mesh {Name} doesn't have a texture!", mesh.Name);
             AddMaterial("materials/error.mat");
         }
+
+        vao.Unbind();
     }
 
     public MeshPart MeshPart { get; set; } = null!;

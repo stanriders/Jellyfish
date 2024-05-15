@@ -46,9 +46,14 @@ public class IndexBuffer
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, _handler);
     }
 
-    public void Unload()
+    public void Unbind()
     {
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+    }
+
+    public void Unload()
+    {
+        Unbind();
         GL.DeleteBuffer(_handler);
     }
 }

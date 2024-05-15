@@ -68,6 +68,11 @@ public class VertexBuffer
         GL.BindBuffer(BufferTarget.ArrayBuffer, _handler);
     }
 
+    public void Unbind()
+    {
+        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+    }
+
     public void Unload()
     {
         GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
