@@ -219,7 +219,7 @@ public static class ModelParser
         return ConvertGLTF(ModelRoot.ReadGLB(File.OpenRead(path), new ReadSettings
         {
             SkipValidation = true
-        }));
+        }), Path.GetFileNameWithoutExtension(path));
     }
 
     private static MeshPart[] ParseGLTF(string path)
@@ -227,28 +227,34 @@ public static class ModelParser
         return ConvertGLTF(ModelRoot.ParseGLTF(File.ReadAllText(path), new ReadSettings
         {
             FileReader = assetFileName =>
-                new ArraySegment<byte>(File.ReadAllBytes(Path.Combine(Path.GetDirectoryName(path)!, assetFileName))),
+            {
+                var assetPath = Path.Combine(Path.GetDirectoryName(path)!, assetFileName);
+                return File.Exists(assetPath) ? new ArraySegment<byte>(File.ReadAllBytes(assetPath)) : new ArraySegment<byte>();
+            },
             SkipValidation = true
-        }));
+        }), Path.GetFileNameWithoutExtension(path));
     }
 
-    private static MeshPart[] ConvertGLTF(ModelRoot gltf)
+    private static MeshPart[] ConvertGLTF(ModelRoot gltf, string name)
     {
         var meshes = new List<MeshPart>();
         
         for (var i = 0; i < gltf.LogicalMeshes.Count; i++)
         {
             var mesh = gltf.LogicalMeshes[i];
-            var meshPart = new MeshPart
-            {
-                Name = gltf.Asset.Copyright // FIXME!
-            };
 
-            foreach (var primitive in mesh.Primitives)
+            for (var j = 0; j < mesh.Primitives.Count; j++)
             {
+                var primitive = mesh.Primitives[j];
+                var meshPart = new MeshPart
+                {
+                    Name = string.IsNullOrEmpty(gltf.Asset.Copyright) ? name + i + j : gltf.Asset.Copyright, // FIXME!
+                    Indices = new List<uint>()
+                };
+
                 var positions = primitive.GetVertices("POSITION")
                     .AsVector3Array()
-                    .Select(x => new Vector3(x.X, x.Y + i * 2, x.Z))
+                    .Select(x => new Vector3(x.X, x.Y, x.Z))
                     .ToList();
 
                 var normals = new List<Vector3>();
@@ -271,24 +277,22 @@ public static class ModelParser
                         .ToList();
                 }
 
-                for (var j = 0; j < positions.Count; j++)
+                for (var k = 0; k < positions.Count; k++)
                 {
                     meshPart.Vertices.Add(new Vertex
                     {
-                        Coordinates = positions[j],
-                        Normal = normals[j],
-                        UV = uvs[j]
+                        Coordinates = positions[k],
+                        Normal = normals[k],
+                        UV = uvs[k]
                     });
                 }
-
+                
                 if (meshPart.Texture == null)
-                    meshPart.Texture = primitive.Material.Name + "_baseColor.png";
+                    meshPart.Texture = name + "_baseColor.png";
 
                 meshPart.Indices = primitive.GetIndices().ToList();
+                meshes.Add(meshPart);
             }
-
-
-            meshes.Add(meshPart);
         }
 
         return meshes.ToArray();
