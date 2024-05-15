@@ -47,6 +47,8 @@ public class PostProcessing : IInputHandler
         GL.Clear(ClearBufferMask.ColorBufferBit);
         GL.Disable(EnableCap.DepthTest);
 
+        GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+
         _shader.Bind();
         _shader.SetInt("isEnabled", _isEnabled ? 1 : 0);
 
@@ -54,8 +56,8 @@ public class PostProcessing : IInputHandler
 
         GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
 
-        GL.BindVertexArray(0);
-        GL.UseProgram(0);
+        _vertexArray.Unbind();
+        _shader.Unbind();
     }
 
     public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
