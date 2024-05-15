@@ -90,7 +90,7 @@ public class Camera : BaseEntity, IInputHandler
 
     public Matrix4 GetProjectionMatrix()
     {
-        return Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, 0.05f, 1000f);
+        return Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, 0.05f, 10000f);
     }
 
     public override void Think()
