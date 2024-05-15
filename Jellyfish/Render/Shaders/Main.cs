@@ -88,4 +88,15 @@ public class Main : Shader
         _diffuse.Bind();
         _normal?.Bind(TextureUnit.Texture1);
     }
+
+    public override void Unbind()
+    {
+        GL.ActiveTexture(TextureUnit.Texture0);
+        GL.BindTexture(TextureTarget.Texture2D, 0);
+
+        GL.ActiveTexture(TextureUnit.Texture1);
+        GL.BindTexture(TextureTarget.Texture2D, 0);
+
+        base.Bind();
+    }
 }

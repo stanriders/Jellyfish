@@ -134,6 +134,9 @@ public class Mesh
             GL.DrawElements(PrimitiveType, MeshPart.Indices!.Count, DrawElementsType.UnsignedInt, 0);
         else
             GL.DrawArrays(PrimitiveType, 0, vbo.Length);
+
+        shader.Unbind();
+        vao.Unbind();
     }
 
     public void Unload()

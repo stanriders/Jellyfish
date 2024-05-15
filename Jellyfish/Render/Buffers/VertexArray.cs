@@ -17,9 +17,14 @@ public class VertexArray
         GL.BindVertexArray(_vaoHandler);
     }
 
-    public void Unload()
+    public void Unbind()
     {
         GL.BindVertexArray(0);
+    }
+
+    public void Unload()
+    {
+        Unbind();
         GL.DeleteVertexArray(_vaoHandler);
     }
 }

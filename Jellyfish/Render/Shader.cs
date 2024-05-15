@@ -175,6 +175,11 @@ public abstract class Shader
         }
     }
 
+    public virtual void Unbind()
+    {
+        GL.UseProgram(0);
+    }
+
     public int GetAttribLocation(string attribName)
     {
         return GL.GetAttribLocation(_shaderHandle, attribName);
