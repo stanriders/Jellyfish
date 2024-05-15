@@ -8,8 +8,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<FragShaders Include="Render\Shaders\*.frag" />
-		<VertShaders Include="Render\Shaders\*.vert" />
+		<FragShaders Include="Render\Shaders\**\*.frag" />
+		<VertShaders Include="Render\Shaders\**\*.vert" />
 	</ItemGroup>
 
 	<Target Name="CopyShaders" AfterTargets="Build">
@@ -18,14 +18,14 @@
 	</Target>
 
 	<ItemGroup>
-		<PackageReference Include="ImGui.NET" Version="1.90.1.1" />
+		<PackageReference Include="ImGui.NET" Version="1.90.5.1" />
 		<PackageReference Include="ManagedBass" Version="3.1.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="OpenTK" Version="4.8.2" />
 		<PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
 		<PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0013" />
-		<PackageReference Include="Magick.NET-Q8-AnyCPU" Version="13.6.0" />
-		<PackageReference Include="SteamAudio.NET" Version="1.0.0" />
+		<PackageReference Include="Magick.NET-Q8-AnyCPU" Version="13.8.0" />
+		<PackageReference Include="StanR.SteamAudio.NET" Version="4.5.3" />
 	</ItemGroup>
 
 	<ItemGroup>

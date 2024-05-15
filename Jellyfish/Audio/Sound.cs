@@ -2,11 +2,11 @@
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Jellyfish.Audio.SteamAudio;
 using Jellyfish.Entities;
 using ManagedBass;
 using OpenTK.Mathematics;
 using Serilog;
+using SteamAudio;
 
 namespace Jellyfish.Audio
 {
@@ -22,11 +22,10 @@ namespace Jellyfish.Audio
                 _position = value;
                 var iplPos = new IPL.Vector3(value.X, value.Y, value.Z);
 
-                if (!IPL.Vector3.Equals(_iplSimulationInputs.Source.Origin, iplPos))
+                if (!iplPos.Equals(_iplSimulationInputs.Source.Origin))
                 {
                     _iplSimulationInputs.Source.Origin = iplPos;
-                    IPL.SourceSetInputs(Source, IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections,
-                        _iplSimulationInputs);
+                    IPL.SourceSetInputs(Source, IPL.SimulationFlags.Direct, _iplSimulationInputs);
                 }
             }
         }
@@ -45,8 +44,7 @@ namespace Jellyfish.Audio
                     else
                         _iplSimulationInputs.DirectFlags &= ~IPL.DirectSimulationFlags.AirAbsorption;
 
-                    IPL.SourceSetInputs(Source, IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections,
-                        _iplSimulationInputs);
+                    IPL.SourceSetInputs(Source, IPL.SimulationFlags.Direct, _iplSimulationInputs);
                 }
             }
         }
@@ -98,7 +96,7 @@ namespace Jellyfish.Audio
 
             _iplSimulationInputs = new IPL.SimulationInputs
             {
-                Flags = IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections,
+                Flags = IPL.SimulationFlags.Direct,
                 DirectFlags = IPL.DirectSimulationFlags.Directivity,
                 DistanceAttenuationModel = new IPL.DistanceAttenuationModel { Type = IPL.DistanceAttenuationModelType.Default, MinDistance = 100 },
                 AirAbsorptionModel = new IPL.AirAbsorptionModel { Type = IPL.AirAbsorptionModelType.Default },
@@ -114,7 +112,7 @@ namespace Jellyfish.Audio
                 }
             };
 
-            IPL.SourceSetInputs(iplSource, IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections, _iplSimulationInputs);
+            IPL.SourceSetInputs(iplSource, IPL.SimulationFlags.Direct, _iplSimulationInputs);
 
             Source = iplSource;
         }
@@ -167,7 +165,7 @@ namespace Jellyfish.Audio
 
             IPL.AudioBufferDeinterleave(iplContext, Unsafe.AsRef<float>((float*)_inBuffer), _iplInputBuffer);
 
-            IPL.SourceGetOutputs(Source, IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections, out var iplSourceOutput);
+            IPL.SourceGetOutputs(Source, IPL.SimulationFlags.Direct, out var iplSourceOutput);
 
             // todo: can't do occlusion for now because we translate meshes in shaders
             // todo: figure out why distance attenuation makes all sounds very quiet

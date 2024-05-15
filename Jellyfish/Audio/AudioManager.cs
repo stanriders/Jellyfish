@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Jellyfish.Render;
-using IPL = Jellyfish.Audio.SteamAudio.IPL;
+using SteamAudio;
 using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace Jellyfish.Audio
@@ -53,7 +53,7 @@ namespace Jellyfish.Audio
         {
             IPL.Source source = default;
 
-            IplRun(() => IPL.SourceCreate(_iplSimulator, new IPL.SourceSettings { Flags = IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections }, out source));
+            IplRun(() => IPL.SourceCreate(_iplSimulator, new IPL.SourceSettings { Flags = IPL.SimulationFlags.Direct }, out source));
             if (source != default)
             {
                 var sound = new Sound(path, source, _iplContext, _iplHrtf);
@@ -141,11 +141,18 @@ namespace Jellyfish.Audio
                 FrameSize = ipl_frame_size
             };
 
-            IplRun(() => IPL.HrtfCreate(_iplContext, in iplAudioSettings, new IPL.HrtfSettings { Type = IPL.HrtfType.Default }, out _iplHrtf));
+            var hrtfSettings = new IPL.HrtfSettings
+            {
+                Type = IPL.HrtfType.Default,
+                Volume = 1.0f,
+                NormType = IPL.HrtfNormType.None
+            };
+
+            IplRun(() => IPL.HrtfCreate(_iplContext, in iplAudioSettings, hrtfSettings, out _iplHrtf));
 
             IplRun(() => IPL.SimulatorCreate(_iplContext, new IPL.SimulationSettings
             {
-                Flags = IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections, // reflections must be enabled due to a bug in 4.0 version of steamaudio (https://github.com/ValveSoftware/steam-audio/issues/190)
+                Flags = IPL.SimulationFlags.Direct,
                 SceneType = IPL.SceneType.Default,
                 ReflectionType = IPL.ReflectionEffectType.Parametric,
                 FrameSize = ipl_frame_size,
