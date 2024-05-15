@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using Jellyfish.Render.Shaders;
+using Jellyfish.Render.Shaders.Deferred;
 using Newtonsoft.Json;
 using Serilog;
 
@@ -13,9 +14,18 @@ public class Material
     public bool Phong { get; set; }
     public int? PhongExponent { get; set; }
 
+    public Material() { }
+
     public Material(string path)
     {
-        if (!File.Exists(path)) 
+        if (!path.EndsWith(".mat"))
+        {
+            Log.Information("Material {Path} isn't a valid material type, trying to use it as a diffuse texture...", path);
+            LoadTextureWithoutMaterial(path);
+            return;
+        }
+
+        if (!File.Exists(path))
             return;
 
         var material = JsonConvert.DeserializeObject<Material>(File.ReadAllText(path));
@@ -36,6 +46,14 @@ public class Material
         {
             Log.Warning("[Material] Material {Path} couldn't be parsed!!", path);
         }
+    }
+
+    private void LoadTextureWithoutMaterial(string path)
+    {
+        Shader = "Main";
+        Diffuse = path;
+        Phong = true;
+        PhongExponent = 2;
     }
 
     public Shader GetShaderInstance()

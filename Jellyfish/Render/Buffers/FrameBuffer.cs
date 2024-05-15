@@ -15,14 +15,14 @@ public class FrameBuffer
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
     }
 
-    public void Bind()
+    public void Bind(FramebufferTarget target = FramebufferTarget.Framebuffer)
     {
-        GL.BindFramebuffer(FramebufferTarget.Framebuffer, _framebufferHandle);
+        GL.BindFramebuffer(target, _framebufferHandle);
     }
 
-    public void Unbind()
+    public void Unbind(FramebufferTarget target = FramebufferTarget.Framebuffer)
     {
-        GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+        GL.BindFramebuffer(target, 0);
     }
 
     public bool Check()
