@@ -54,6 +54,7 @@ vec3 CalcPointLight(Light light, vec3 normal, vec3 fragPos, vec3 viewDir)
     if (usePhong)
     {
         float specularStrength = texture(normalSampler, frag_texCoord * vec2(1.0, -1.0)).a;
+        specularStrength  *= attenuation;
 
         vec3 reflectDir = reflect(-lightDir, normal);  
         float spec = pow(max(dot(viewDir, reflectDir), 0.0), phongExponent);
