@@ -25,6 +25,9 @@ public class Model
             {
                 var modelFolder = $"materials/models/{meshPart.Name}";
                 var matPath = $"{modelFolder}/{Path.GetFileNameWithoutExtension(meshPart.Texture)}.mat";
+                if (!File.Exists(matPath))
+                    matPath = $"{modelFolder}/{Path.GetFileName(meshPart.Texture)}";
+
                 meshPart.Texture = matPath;
             }
             else
@@ -50,8 +53,11 @@ public class Model
         }
         set
         {
-            foreach (var mesh in _meshes)
-                mesh.Position = value;
+            if (_meshes.Any())
+            {
+                foreach (var mesh in _meshes)
+                    mesh.Position = value;
+            }
         }
     }
 
@@ -66,8 +72,11 @@ public class Model
         }
         set
         {
-            foreach (var mesh in _meshes)
-                mesh.Rotation = value;
+            if (_meshes.Any())
+            {
+                foreach (var mesh in _meshes)
+                    mesh.Rotation = value;
+            }
         }
     }
 }

@@ -63,7 +63,7 @@ public class Vertex
 public class Mesh
 {
     protected IndexBuffer? ibo;
-
+    
     public Vector3 Position = Vector3.Zero;
     public Vector3 Rotation = Vector3.Zero;
 
@@ -103,7 +103,7 @@ public class Mesh
         shader.Bind();
     }
 
-    public void CreateBuffers()
+    protected void CreateBuffers()
     {
         vbo = new VertexBuffer(MeshPart.Vertices.ToArray());
 

@@ -7,6 +7,7 @@ using Jellyfish.FileFormats;
 using Jellyfish.Render;
 using OpenTK.Mathematics;
 using SharpGLTF.Schema2;
+using SharpGLTF.Validation;
 
 namespace Jellyfish;
 
@@ -218,21 +219,28 @@ public static class ModelParser
     {
         return ConvertGLTF(ModelRoot.ReadGLB(File.OpenRead(path), new ReadSettings
         {
-            SkipValidation = true
+            Validation = ValidationMode.TryFix
         }), Path.GetFileNameWithoutExtension(path));
     }
 
     private static MeshPart[] ParseGLTF(string path)
     {
-        return ConvertGLTF(ModelRoot.ParseGLTF(File.ReadAllText(path), new ReadSettings
+        return ConvertGLTF(ModelRoot.Load(path, ReadContext.Create(assetFileName =>
         {
-            FileReader = assetFileName =>
+            var assetPath = File.Exists(assetFileName)
+                ? assetFileName
+                : Path.Combine(Path.GetDirectoryName(path)!, assetFileName);
+
+            // asset isn't found near the gltf file, try looking into materials
+            if (!File.Exists(assetPath))
             {
-                var assetPath = Path.Combine(Path.GetDirectoryName(path)!, assetFileName);
-                return File.Exists(assetPath) ? new ArraySegment<byte>(File.ReadAllBytes(assetPath)) : new ArraySegment<byte>();
-            },
-            SkipValidation = true
-        }), Path.GetFileNameWithoutExtension(path));
+                assetPath = $"materials/models/{Path.GetFileNameWithoutExtension(path)}/{assetFileName}";
+            }
+
+            return File.Exists(assetPath)
+                ? new ArraySegment<byte>(File.ReadAllBytes(assetPath))
+                : new ArraySegment<byte>(Array.Empty<byte>());
+        })), Path.GetFileNameWithoutExtension(path));
     }
 
     private static MeshPart[] ConvertGLTF(ModelRoot gltf, string name)
@@ -248,7 +256,7 @@ public static class ModelParser
                 var primitive = mesh.Primitives[j];
                 var meshPart = new MeshPart
                 {
-                    Name = string.IsNullOrEmpty(gltf.Asset.Copyright) ? name + i + j : gltf.Asset.Copyright, // FIXME!
+                    Name = name, // FIXME?
                     Indices = new List<uint>()
                 };
 
@@ -288,7 +296,7 @@ public static class ModelParser
                 }
                 
                 if (meshPart.Texture == null)
-                    meshPart.Texture = name + "_baseColor.png";
+                    meshPart.Texture = primitive.Material.GetDiffuseTexture().PrimaryImage.Content.SourcePath;
 
                 meshPart.Indices = primitive.GetIndices().ToList();
                 meshes.Add(meshPart);

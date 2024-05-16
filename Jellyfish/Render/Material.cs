@@ -52,8 +52,7 @@ public class Material
     {
         Shader = "Main";
         Diffuse = path;
-        Phong = true;
-        PhongExponent = 2;
+        Phong = false;
     }
 
     public Shader GetShaderInstance()
