@@ -1,7 +1,0 @@
-{
-  "Shader": "Main",
-  "Diffuse": "gman_sheet.tga",
-  "Normal": "gman_sheet_normal.png",
-  "Phong": true,
-  "PhongExponent": "10"
-}

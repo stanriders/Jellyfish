@@ -1,0 +1,6 @@
+{
+  "Shader": "Main",
+  "Diffuse": "tile.png",
+  "Normal": "tile_normal.png",
+  "Phong": true
+}

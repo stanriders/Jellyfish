@@ -10,11 +10,16 @@
 	<ItemGroup>
 		<FragShaders Include="Render\Shaders\**\*.frag" />
 		<VertShaders Include="Render\Shaders\**\*.vert" />
+		<AllFiles Include="$(OutDir)/**/*.*" />
 	</ItemGroup>
 
 	<Target Name="CopyShaders" AfterTargets="Build">
 		<Copy SourceFiles="@(FragShaders)" DestinationFolder="$(OutDir)\shaders" />
 		<Copy SourceFiles="@(VertShaders)" DestinationFolder="$(OutDir)\shaders" />
+	</Target>
+
+	<Target Name="CopyDLLs" AfterTargets="Build">
+		<Copy SourceFiles="@(AllFiles)" DestinationFolder="../game/%(RecursiveDir)" />
 	</Target>
 
 	<ItemGroup>

@@ -328,3 +328,11 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
+
+/game/imgui.ini
+/game/Jellyfish.*.json
+/game/**/*.dll
+/game/**/*.exe
+/game/**/*.pdb
+/game/**/*.so*
+/game/**/*.dylib
