@@ -29,13 +29,17 @@ public class Texture
         using var image = new MagickImage(path);
         using var data = image.GetPixelsUnsafe(); // feels scary
 
+        var pixelFormat = PixelInternalFormat.Rgba;
+        if (image.ChannelCount == 3)
+            pixelFormat = PixelInternalFormat.Rgb;
+
         GL.TexImage2D(TextureTarget.Texture2D,
             0,
-            PixelInternalFormat.Rgba,
+            pixelFormat,
             image.Width,
             image.Height,
             0,
-            PixelFormat.Rgba,
+            (PixelFormat) pixelFormat,
             PixelType.UnsignedByte,
             data.GetAreaPointer(0, 0, image.Width, image.Height));
 
