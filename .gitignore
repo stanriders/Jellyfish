@@ -331,6 +331,7 @@ ASALocalRun/
 
 /game/imgui.ini
 /game/Jellyfish.*.json
+/game/shaders
 /game/**/*.dll
 /game/**/*.exe
 /game/**/*.pdb
