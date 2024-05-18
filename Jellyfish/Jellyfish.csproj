@@ -32,7 +32,8 @@
 		<PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0031" />
 		<PackageReference Include="Magick.NET-Q8-AnyCPU" Version="13.8.0" />
 		<PackageReference Include="SharpGLTF.Toolkit" Version="1.0.0-alpha0031" />
-		<PackageReference Include="StanR.SteamAudio.NET" Version="4.5.3" />
+		<PackageReference Include="SteamAudio.NET" Version="4.5.3" />
+		<PackageReference Include="SteamAudio.NET.Natives" Version="4.5.3" />
 	</ItemGroup>
 
 	<ItemGroup>
