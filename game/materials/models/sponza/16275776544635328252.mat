@@ -1,0 +1,7 @@
+{
+  "Shader": "Main",
+  "Diffuse": "chain.png",
+  "Normal": "chain_normal.jpg",
+  "Phong": true,
+  "PhongExponent": "40"
+}

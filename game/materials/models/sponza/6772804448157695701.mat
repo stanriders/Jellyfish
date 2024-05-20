@@ -1,0 +1,7 @@
+{
+  "Shader": "Main",
+  "Diffuse": "lion.jpg",
+  "Normal": "lion_normal.jpg",
+  "Phong": true,
+  "PhongExponent": "40"
+}

@@ -1,0 +1,6 @@
+{
+  "Shader": "Main",
+  "Diffuse": "curtain4.jpg",
+  "Normal": "curtain4_normal.jpg",
+  "Phong": false,
+}

@@ -1,0 +1,7 @@
+{
+  "Shader": "Main",
+  "Diffuse": "pillar1.jpg",
+  "Normal": "pillar1_normal.jpg",
+  "Phong": true,
+  "PhongExponent": "10"
+}

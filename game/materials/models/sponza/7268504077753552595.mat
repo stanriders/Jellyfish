@@ -1,0 +1,7 @@
+{
+  "Shader": "Main",
+  "Diffuse": "pot3.jpg",
+  "Normal": "pot3_normal.jpg",
+  "Phong": true,
+  "PhongExponent": "10"
+}

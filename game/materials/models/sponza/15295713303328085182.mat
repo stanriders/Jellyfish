@@ -1,0 +1,7 @@
+{
+  "Shader": "Main",
+  "Diffuse": "wall3.jpg",
+  "Normal": "wall3_normal.jpg",
+  "Phong": true,
+  "PhongExponent": "10"
+}

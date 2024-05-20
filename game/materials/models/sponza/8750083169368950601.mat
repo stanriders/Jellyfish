@@ -1,0 +1,7 @@
+{
+  "Shader": "Main",
+  "Diffuse": "shield.jpg",
+  "Normal": "shield_normal.jpg",
+  "Phong": true,
+  "PhongExponent": "50"
+}

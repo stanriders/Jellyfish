@@ -1,0 +1,5 @@
+{
+  "Shader": "Main",
+  "Diffuse": "AnimatedCube_BaseColor.png",
+  "Phong": false,
+}

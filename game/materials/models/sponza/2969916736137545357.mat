@@ -1,0 +1,7 @@
+{
+  "Shader": "Main",
+  "Diffuse": "roof.jpg",
+  "Normal": "roof_normal.jpg",
+  "Phong": true,
+  "PhongExponent": "2"
+}

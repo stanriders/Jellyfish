@@ -1,0 +1,7 @@
+{
+  "Shader": "Main",
+  "Diffuse": "arch2.jpg",
+  "Normal": "arch2_normal.jpg",
+  "Phong": true,
+  "PhongExponent": "10"
+}

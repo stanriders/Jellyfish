@@ -1,0 +1,6 @@
+{
+  "Shader": "Main",
+  "Diffuse": "flowers1.png",
+  "Normal": "flowers1_normal.jpg",
+  "Phong": false,
+}
