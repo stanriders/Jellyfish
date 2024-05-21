@@ -99,7 +99,7 @@ namespace Jellyfish.Audio
 
             var materialsList = new[] { material };
 
-            fixed (IPL.Vector3* verts = mesh.Vertices.Select(v => new IPL.Vector3(v.Coordinates.X, v.Coordinates.Y, v.Coordinates.Z)).ToArray())
+            fixed (IPL.Vector3* verts = mesh.Vertices.Select(v => v.Coordinates.ToIplVector()).ToArray())
             fixed (IPL.Triangle* indicies = triangles.ToArray())
             fixed (IPL.Material* materials = materialsList)
             fixed (int* materialIndicies = Enumerable.Repeat(0, triangles.Count).ToArray())
@@ -194,10 +194,10 @@ namespace Jellyfish.Audio
 
                 var listener = new IPL.CoordinateSpace3
                 {
-                    Ahead = new IPL.Vector3(camera.Front.X, camera.Front.Y, camera.Front.Z),
-                    Up = new IPL.Vector3(camera.Up.X, camera.Up.Y, camera.Up.Z),
-                    Right = new IPL.Vector3(camera.Right.X, camera.Right.Y, camera.Right.Z),
-                    Origin = new IPL.Vector3(cameraPosition.X, cameraPosition.Y, cameraPosition.Z)
+                    Ahead = camera.Front.ToIplVector(),
+                    Up = camera.Up.ToIplVector(),
+                    Right = camera.Right.ToIplVector(),
+                    Origin = cameraPosition.ToIplVector()
                 };
                 
                 IPL.SimulatorSetSharedInputs(_iplSimulator, IPL.SimulationFlags.Direct, new IPL.SimulationSharedInputs

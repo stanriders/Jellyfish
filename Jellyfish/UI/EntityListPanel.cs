@@ -33,10 +33,10 @@ public class EntityListPanel : IUiPanel
                         {
                             var valueCasted = (Vector3)entityProperty.Value!;
 
-                            var val = new System.Numerics.Vector3(valueCasted.X, valueCasted.Y, valueCasted.Z);
+                            var val = valueCasted.ToNumericsVector();
                             ImGui.DragFloat3($"{entityProperty.Name}", ref val);
 
-                            entity.SetPropertyValue(entityProperty.Name, new Vector3(val.X, val.Y, val.Z));
+                            entity.SetPropertyValue(entityProperty.Name, val.ToOpentkVector());
                         }
                         else if (entityProperty.Type == typeof(Color4))
                         {

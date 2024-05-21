@@ -27,6 +27,7 @@ public class BezierPlaneEntity : BaseEntity
 
         _plane = new BezierPlane(GetPropertyValue<Vector2>("Size"), texture, GetPropertyValue<int>("QuadSize"));
         MeshManager.AddMesh(_plane);
+        PhysicsManager.AddStaticObject(new[] { _plane.MeshPart }, this);
         base.Load();
     }
 

@@ -20,7 +20,7 @@ namespace Jellyfish.Audio
             set
             {
                 _position = value;
-                var iplPos = new IPL.Vector3(value.X, value.Y, value.Z);
+                var iplPos = value.ToIplVector();
 
                 if (!iplPos.Equals(_iplSimulationInputs.Source.Origin))
                 {
@@ -105,10 +105,10 @@ namespace Jellyfish.Audio
                 Baked = false,
                 Source = new IPL.CoordinateSpace3
                 {
-                    Ahead = new IPL.Vector3(-Vector3.UnitZ.X, -Vector3.UnitZ.Y, -Vector3.UnitZ.Z),
-                    Right = new IPL.Vector3(Vector3.UnitX.X, Vector3.UnitX.Y, Vector3.UnitX.Z),
-                    Up = new IPL.Vector3(Vector3.UnitY.X, Vector3.UnitY.Y, Vector3.UnitY.Z),
-                    Origin = new IPL.Vector3(Position.X, Position.Y, Position.Z)
+                    Ahead = (-Vector3.UnitZ).ToIplVector(),
+                    Right = Vector3.UnitX.ToIplVector(),
+                    Up = Vector3.UnitY.ToIplVector(),
+                    Origin = Position.ToIplVector()
                 }
             };
 
@@ -147,10 +147,10 @@ namespace Jellyfish.Audio
             var cameraPosition = camera.GetPropertyValue<Vector3>("Position");
 
             var direction = IPL.CalculateRelativeDirection(iplContext,
-                new IPL.Vector3(Position.X, Position.Y, Position.Z),
-                new IPL.Vector3(cameraPosition.X, cameraPosition.Y, cameraPosition.Z),
-                new IPL.Vector3(camera.Front.X, camera.Front.Y, camera.Front.Z),
-                new IPL.Vector3(camera.Up.X, camera.Up.Y, camera.Up.Z));
+                Position.ToIplVector(),
+                cameraPosition.ToIplVector(),
+                camera.Front.ToIplVector(),
+                camera.Up.ToIplVector());
 
             var binauralEffectParams = new IPL.BinauralEffectParams
             {
