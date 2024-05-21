@@ -4,7 +4,6 @@ using Jellyfish.Entities;
 using Jellyfish.Render.Lighting;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
-using Serilog;
 
 namespace Jellyfish.Render.Shaders;
 
@@ -47,12 +46,9 @@ public class Main : Shader
 
     public override void Bind()
     {
-        var camera = EntityManager.FindEntity("camera") as Camera;
+        var camera = Camera.Instance;
         if (camera == null)
-        {
-            Log.Error("Camera doesn't exist!");
             return;
-        }
 
         base.Bind();
 

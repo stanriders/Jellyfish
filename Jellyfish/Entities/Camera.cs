@@ -2,6 +2,7 @@
 using Jellyfish.Input;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using Serilog;
 
 namespace Jellyfish.Entities;
 
@@ -19,6 +20,24 @@ public class Camera : BaseEntity, IInputHandler
     private const float sensitivity = 0.2f;
 
     public bool IsControllingCursor { get; set; }
+
+    private static Camera? camera;
+    public static Camera? Instance
+    {
+        get
+        {
+            if (camera != null) 
+                return camera;
+
+            camera = EntityManager.FindEntity("camera") as Camera;
+            if (camera == null)
+            {
+                Log.Error("Camera doesn't exist!");
+                return null;
+            }
+            return camera;
+        }
+    }
 
     public Camera()
     {

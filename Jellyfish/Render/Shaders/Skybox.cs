@@ -7,6 +7,9 @@ namespace Jellyfish.Render.Shaders;
 
 public class Skybox : Shader
 {
+    private Sun? _sun;
+    private bool _noSun;
+
     public Skybox() :
         base("shaders/Skybox.vert", null, "shaders/Skybox.frag")
     {
@@ -17,23 +20,27 @@ public class Skybox : Shader
 
     public override void Bind()
     {
-        var camera = EntityManager.FindEntity("camera") as Camera;
+        var camera = Camera.Instance;
         if (camera == null)
-        {
-            Log.Error("[Skybox] Camera doesn't exist!");
             return;
+
+        if (_sun == null)
+        {
+            _sun = EntityManager.FindEntity("light_sun") as Sun;
+            if (_sun == null && !_noSun)
+            {
+                Log.Error("[Skybox] No sun, sky won't be rendered!");
+                _noSun = true;
+                return;
+            }
         }
 
-        var sun = EntityManager.FindEntity("light_sun") as Sun;
-        if (sun == null)
-        {
-            Log.Error("[Skybox] No sun!");
+        if (_noSun)
             return;
-        }
 
         base.Bind();
         
-        SetVector3("uSunPos", sun.GetPropertyValue<Vector3>("Rotation"));
+        SetVector3("uSunPos", _sun!.GetPropertyValue<Vector3>("Rotation"));
 
         var proj = camera.GetProjectionMatrix();
         proj.Transpose();

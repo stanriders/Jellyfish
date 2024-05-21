@@ -40,12 +40,12 @@ public class InfoOverlay : IUiPanel
         {
             ImGui.Text("Jellyfish");
 
-            if (EntityManager.FindEntity("camera") is Camera camera)
+            if (Camera.Instance != null)
             {
                 ImGui.Separator();
                 ImGui.Text($"FPS: {1.0 / _lastAverageFrametime:N0} (frametime: {_lastAverageFrametime * 1000.0:N4})");
                 ImGui.Separator();
-                ImGui.Text($"Position: {camera.GetPropertyValue<OpenTK.Mathematics.Vector3>("Position")}");
+                ImGui.Text($"Position: {Camera.Instance.GetPropertyValue<OpenTK.Mathematics.Vector3>("Position")}");
             }
         }
 

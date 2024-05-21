@@ -186,12 +186,9 @@ namespace Jellyfish.Audio
                 if (_sounds.Count(x=> x.Playing) == 0)
                     continue;
 
-                var camera = EntityManager.FindEntity("camera") as Camera;
+                var camera = Camera.Instance;
                 if (camera == null)
-                {
-                    Log.Error("Camera doesn't exist!");
-                    continue;
-                }
+                    return;
 
                 var cameraPosition = camera.GetPropertyValue<Vector3>("Position");
 

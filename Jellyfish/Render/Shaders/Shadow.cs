@@ -1,7 +1,4 @@
-﻿using Jellyfish.Entities;
-using Jellyfish.Render.Lighting;
-using OpenTK.Graphics.OpenGL;
-using Serilog;
+﻿using Jellyfish.Render.Lighting;
 
 namespace Jellyfish.Render.Shaders;
 

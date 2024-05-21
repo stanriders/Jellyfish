@@ -30,9 +30,9 @@ public class Sun : BaseEntity, ILightSource
     {
         var position = new Vector3(0f, 4000f, 0f);
 
-        if (EntityManager.FindEntity("camera") is Camera camera)
+        if (Camera.Instance != null)
         {
-            position = camera.GetPropertyValue<Vector3>("Position") + new Vector3(0f, 4000f, 0f);
+            position = Camera.Instance.GetPropertyValue<Vector3>("Position") + new Vector3(0f, 4000f, 0f);
         }
 
         var lightProjection = Matrix4.CreateOrthographic(10000, 10000, NearPlane, FarPlane);

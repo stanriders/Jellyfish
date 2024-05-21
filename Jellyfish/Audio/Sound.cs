@@ -140,12 +140,9 @@ namespace Jellyfish.Audio
                 Playing = false;
             }
 
-            var camera = EntityManager.FindEntity("camera") as Camera;
+            var camera = Camera.Instance;
             if (camera == null)
-            {
-                Log.Error("Camera doesn't exist!");
                 return;
-            }
 
             var cameraPosition = camera.GetPropertyValue<Vector3>("Position");
 
