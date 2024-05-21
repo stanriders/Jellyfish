@@ -14,19 +14,20 @@
 	</ItemGroup>
 
 	<Target Name="CopyShaders" AfterTargets="Build">
-		<Message Importance="High" Text="Copying shaders..."/>
+		<Message Importance="High" Text="Copying shaders..." />
 		<Copy SourceFiles="@(FragShaders)" DestinationFolder="$(OutDir)\shaders" />
 		<Copy SourceFiles="@(VertShaders)" DestinationFolder="$(OutDir)\shaders" />
 	</Target>
 
 	<Target Name="CopyDLLs" AfterTargets="Build">
-		<Message Importance="High" Text="Copying everything to /game/..."/>
+		<Message Importance="High" Text="Copying everything to /game/..." />
 		<Copy SourceFiles="@(AllFiles)" DestinationFolder="../game/%(RecursiveDir)" />
 	</Target>
 
 	<ItemGroup>
 		<PackageReference Include="AssimpNet" Version="4.1.0" />
 		<PackageReference Include="ImGui.NET" Version="1.90.5.1" />
+		<PackageReference Include="JoltPhysicsSharp" Version="2.5.1" />
 		<PackageReference Include="ManagedBass" Version="3.1.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="OpenTK" Version="4.8.2" />

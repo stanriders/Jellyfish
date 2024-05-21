@@ -85,6 +85,7 @@ public class Plane : BaseEntity
         });
 
         MeshManager.AddMesh(_plane);
+        PhysicsManager.AddStaticObject(new []{ _plane.MeshPart }, this);
         base.Load();
     }
 

@@ -1,6 +1,4 @@
-﻿using System;
-using ImGuiNET;
-using Jellyfish.Audio;
+﻿using Jellyfish.Audio;
 using Jellyfish.Entities;
 using Jellyfish.Input;
 using Jellyfish.Render;
@@ -21,6 +19,7 @@ public class MainWindow : GameWindow
     private EntityManager _entityManager = null!;
     private UiManager _uiManager = null!;
     private AudioManager _audioManager = null!;
+    private PhysicsManager _physicsManager = null!;
     private Camera? _camera;
 
     public MainWindow(int width, int height, string title) : base(
@@ -53,6 +52,7 @@ public class MainWindow : GameWindow
         _uiManager = new UiManager();
         _entityManager = new EntityManager();
         _audioManager = new AudioManager();
+        _physicsManager = new PhysicsManager();
 
         _camera = EntityManager.CreateEntity("camera") as Camera;
         if (_camera != null)
@@ -72,6 +72,7 @@ public class MainWindow : GameWindow
 
         MapLoader.Load("maps/test.json");
         _render.IsReady = true;
+        _physicsManager.ShouldSimulate = true;
     }
 
     protected override void OnRenderFrame(FrameEventArgs e)
@@ -90,8 +91,12 @@ public class MainWindow : GameWindow
         _uiManager.Frame();
 
         if (!IsFocused)
+        {
+            _physicsManager.ShouldSimulate = false;
             return;
+        }
 
+        _physicsManager.ShouldSimulate = true;
         _entityManager.Frame();
 
         WindowX = ClientSize.X;
@@ -119,6 +124,7 @@ public class MainWindow : GameWindow
         _render.Unload();
         _imguiController?.Dispose();
         _audioManager.Unload();
+        _physicsManager.Unload();
 
         base.OnUnload();
     }

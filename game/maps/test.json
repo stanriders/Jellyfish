@@ -55,7 +55,7 @@
       ]
     },
     {
-      "ClassName": "model_dynamic",
+      "ClassName": "model_static",
       "Properties": [
         {
           "Name": "Name",

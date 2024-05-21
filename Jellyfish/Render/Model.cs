@@ -9,6 +9,7 @@ namespace Jellyfish.Render;
 public class Model
 {
     private readonly List<Mesh> _meshes = new();
+    public IReadOnlyList<Mesh> Meshes => _meshes.AsReadOnly();
 
     public Model(string path)
     {
