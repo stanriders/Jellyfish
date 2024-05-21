@@ -3,10 +3,10 @@ using OpenTK.Mathematics;
 
 namespace Jellyfish.Entities;
 
-[Entity("light_point")]
-public class PointLight : BaseEntity, ILightSource
+[Entity("light_spot")]
+public class Spotlight : BaseEntity, ILightSource
 {
-    public PointLight()
+    public Spotlight()
     {
         AddProperty("Color", new Color4(255, 255, 255, 255));
         AddProperty("Ambient", new Color4(0.1f, 0.1f, 0.1f, 0));
@@ -15,6 +15,8 @@ public class PointLight : BaseEntity, ILightSource
         AddProperty("Quadratic", 0.8f);
         AddProperty("Linear", 0.15f);
         AddProperty("Constant", 0.05f);
+        AddProperty("Cone", 12f);
+        AddProperty("OuterCone", 25f);
     }
 
     public override void Load()
@@ -29,12 +31,11 @@ public class PointLight : BaseEntity, ILightSource
     public bool Enabled => GetPropertyValue<bool>("Enabled");
     public bool UseShadows => GetPropertyValue<bool>("Shadows");
     public float NearPlane => 0.1f;
-    public float FarPlane => 500f;
-
+    public float FarPlane => 1000f; 
     public Matrix4 Projection()
     {
-        var lightProjection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(90f), 1.0f, NearPlane, FarPlane);
-        var lightView = Matrix4.LookAt(Position, Position + Rotation, new Vector3(0f, 1f, 0f));
+        var lightProjection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(GetPropertyValue<float>("OuterCone")), 1.0f, NearPlane, FarPlane);
+        var lightView = Matrix4.LookAt(Position, Position + Rotation, Vector3.UnitY);
         return lightView * lightProjection;
     }
 }

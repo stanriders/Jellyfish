@@ -1,16 +1,21 @@
 ﻿using System;
-using ImGuiNET;
+using Jellyfish.Input;
 using Jellyfish.Render.Buffers;
+using Jellyfish.Render.Lighting;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Windowing.GraphicsLibraryFramework;
+
 namespace Jellyfish.Render;
 
-public class OpenGLRender : IRender
+public class OpenGLRender : IRender, IInputHandler
 {
     private PostProcessing? _postProcessing;
     private FrameBuffer? _mainFramebuffer;
     private RenderTarget? _colorRenderTarget;
     private RenderTarget? _depthRenderTarget;
     private Sky? _sky;
+
+    private bool _wireframe;
 
     public bool IsReady { get; set; }
 
@@ -31,10 +36,10 @@ public class OpenGLRender : IRender
             MainWindow.WindowWidth, MainWindow.WindowHeight);
 
         _colorRenderTarget = new RenderTarget("_rt_Color", MainWindow.WindowWidth, MainWindow.WindowHeight, PixelFormat.Rgb,
-            FramebufferAttachment.ColorAttachment0, PixelType.UnsignedByte);
+            FramebufferAttachment.ColorAttachment0, PixelType.UnsignedByte, TextureWrapMode.Clamp);
 
         _depthRenderTarget = new RenderTarget("_rt_Depth", MainWindow.WindowWidth, MainWindow.WindowHeight, PixelFormat.DepthComponent,
-            FramebufferAttachment.DepthAttachment, PixelType.UnsignedShort);
+            FramebufferAttachment.DepthAttachment, PixelType.UnsignedShort, TextureWrapMode.Clamp);
 
         if (!_mainFramebuffer.Check())
         {
@@ -45,6 +50,8 @@ public class OpenGLRender : IRender
 
         _sky = new Sky();
         _postProcessing = new PostProcessing(_colorRenderTarget.TextureHandle, _depthRenderTarget.TextureHandle);
+
+        InputManager.RegisterInputHandler(this);
     }
 
     public void Frame()
@@ -57,14 +64,18 @@ public class OpenGLRender : IRender
             return;
         }
 
-        _mainFramebuffer?.Bind();
-
         GL.Enable(EnableCap.DepthTest);
         GL.DepthFunc(DepthFunction.Less);
+
+        LightManager.DrawShadows();
+
+        _mainFramebuffer?.Bind();
 
         GL.Viewport(0, 0, MainWindow.WindowWidth, MainWindow.WindowHeight);
         GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+        GL.PolygonMode(MaterialFace.FrontAndBack, _wireframe ? PolygonMode.Line : PolygonMode.Fill);
 
         MeshManager.Draw();
         _sky?.Draw();
@@ -77,5 +88,16 @@ public class OpenGLRender : IRender
     public void Unload()
     {
         MeshManager.Unload();
+    }
+
+    public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
+    {
+        if (keyboardState.IsKeyPressed(Keys.Q))
+        {
+            _wireframe = !_wireframe;
+            return true;
+        }
+
+        return false;
     }
 }

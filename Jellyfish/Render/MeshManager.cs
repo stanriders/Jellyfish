@@ -13,10 +13,10 @@ public static class MeshManager
         AudioManager.AddMesh(mesh.MeshPart);
     }
 
-    public static void Draw()
+    public static void Draw(Shader? shaderToUse = null)
     {
         foreach (var mesh in meshes)
-            mesh.Draw();
+            mesh.Draw(shaderToUse);
     }
 
     public static void Unload()

@@ -1,4 +1,6 @@
-﻿using Jellyfish.Entities;
+﻿using System;
+using System.Linq;
+using Jellyfish.Entities;
 using Jellyfish.Render.Lighting;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
@@ -58,27 +60,48 @@ public class Main : Shader
         SetMatrix4("view", camera.GetViewMatrix());
         SetMatrix4("projection", camera.GetProjectionMatrix());
 
-        var lights = LightManager.GetLightSources();
+        var lights = LightManager.Lights.Where(x=> x.Source.Enabled).ToArray();
         SetInt("lightSourcesCount", lights.Length);
         for (var i = 0; i < lights.Length; i++)
         {
-            SetVector3($"lightSources[{i}].position", lights[i].Position);
-            
-            SetVector3($"lightSources[{i}].diffuse", new Vector3(lights[i].Color.R, lights[i].Color.G, lights[i].Color.B));
-            SetVector3($"lightSources[{i}].ambient", new Vector3(0.1f, 0.1f, 0.1f));
-            SetFloat($"lightSources[{i}].brightness", lights[i].Color.A);
-            SetInt($"lightSources[{i}].isSun", lights[i] is Sun ? 1 : 0);
+            var light = lights[i].Source;
+            SetVector3($"lightSources[{i}].position", light.Position);
+            SetVector3($"lightSources[{i}].direction", light.Rotation);
 
-            if (lights[i] is PointLight point)
+            SetVector3($"lightSources[{i}].diffuse", new Vector3(light.Color.R, light.Color.G, light.Color.B));
+            SetVector3($"lightSources[{i}].ambient", new Vector3(light.Ambient.R, light.Ambient.G, light.Ambient.B));
+            SetFloat($"lightSources[{i}].brightness", light.Color.A);
+
+            var lightType = 0; // point
+            if (light is Sun)
+                lightType = 1;
+            else if (light is Spotlight)
+                lightType = 2;
+
+            SetInt($"lightSources[{i}].type", lightType);
+
+            if (light is PointLight point)
             {
                 SetFloat($"lightSources[{i}].constant", point.GetPropertyValue<float>("Constant"));
                 SetFloat($"lightSources[{i}].linear", point.GetPropertyValue<float>("Linear"));
                 SetFloat($"lightSources[{i}].quadratic", point.GetPropertyValue<float>("Quadratic"));
             }
 
-            if (lights[i] is Sun sun)
+            if (light is Spotlight spot)
             {
-                SetVector3($"lightSources[{i}].direction", sun.GetPropertyValue<Vector3>("Direction"));
+                SetFloat($"lightSources[{i}].constant", spot.GetPropertyValue<float>("Constant"));
+                SetFloat($"lightSources[{i}].linear", spot.GetPropertyValue<float>("Linear"));
+                SetFloat($"lightSources[{i}].quadratic", spot.GetPropertyValue<float>("Quadratic"));
+                SetFloat($"lightSources[{i}].cone", (float)Math.Cos(MathHelper.DegreesToRadians(spot.GetPropertyValue<float>("Cone"))));
+                SetFloat($"lightSources[{i}].outcone", (float)Math.Cos(MathHelper.DegreesToRadians(spot.GetPropertyValue<float>("OuterCone"))));
+            }
+
+            SetMatrix4($"lightSources[{i}].lightSpaceMatrix", light.Projection());
+
+            if (light.UseShadows)
+            {
+                GL.ActiveTexture(TextureUnit.Texture2 + i);
+                lights[i].ShadowRt!.Bind();
             }
         }
 
@@ -96,6 +119,14 @@ public class Main : Shader
 
         GL.ActiveTexture(TextureUnit.Texture1);
         GL.BindTexture(TextureTarget.Texture2D, 0);
+
+        var lights = LightManager.Lights.Where(x => x.Source.Enabled).ToArray();
+        SetInt("lightSourcesCount", lights.Length);
+        for (var i = 0; i < lights.Length; i++)
+        {
+            GL.ActiveTexture(TextureUnit.Texture2 + i);
+            GL.BindTexture(TextureTarget.Texture2D, 0);
+        }
 
         base.Bind();
     }

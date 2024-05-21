@@ -1,6 +1,5 @@
 ﻿using Jellyfish.Render.Lighting;
 using OpenTK.Mathematics;
-
 namespace Jellyfish.Entities;
 
 [Entity("light_sun")]
@@ -11,7 +10,7 @@ public class Sun : BaseEntity, ILightSource
         AddProperty("Color", new Color4(255, 255, 255, 255));
         AddProperty("Ambient", new Color4(0.1f, 0.1f, 0.1f, 0));
         AddProperty("Enabled", true);
-        AddProperty("Direction", new Vector3(0f, 1f, 0f));
+        AddProperty("Shadows", true);
     }
 
     public override void Load()
@@ -20,7 +19,24 @@ public class Sun : BaseEntity, ILightSource
     }
 
     public Vector3 Position => GetPropertyValue<Vector3>("Position");
+    public Vector3 Rotation => GetPropertyValue<Vector3>("Rotation");
     public Color4 Color => GetPropertyValue<Color4>("Color");
     public Color4 Ambient => GetPropertyValue<Color4>("Ambient");
     public bool Enabled => GetPropertyValue<bool>("Enabled");
+    public bool UseShadows => GetPropertyValue<bool>("Shadows");
+    public float NearPlane => 0.1f;
+    public float FarPlane => 4100f;
+    public Matrix4 Projection()
+    {
+        var position = new Vector3(0f, 4000f, 0f);
+
+        if (EntityManager.FindEntity("camera") is Camera camera)
+        {
+            position = camera.GetPropertyValue<Vector3>("Position") + new Vector3(0f, 4000f, 0f);
+        }
+
+        var lightProjection = Matrix4.CreateOrthographic(10000, 10000, NearPlane, FarPlane);
+        var lightView = Matrix4.LookAt(position, position + -Rotation, Vector3.UnitY);
+        return lightView * lightProjection;
+    }
 }

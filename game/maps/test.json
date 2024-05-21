@@ -139,6 +139,60 @@
         {
           "Name": "Enabled",
           "Value": true
+        },
+        {
+          "Name": "Shadows",
+          "Value": true
+        }
+      ]
+    },
+    {
+      "ClassName": "light_spot",
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "spotlight"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": -45,
+            "Y": 70,
+            "Z": -25
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "X": 0.5,
+            "Y": -0.5,
+            "Z": 0.3
+          }
+        },
+        {
+          "Name": "Color",
+          "Value": {
+            "R": 100,
+            "G": 255,
+            "B": 100,
+            "A": 200
+          }
+        },
+        {
+          "Name": "Quadratic",
+          "Value": 0.05
+        },
+        {
+          "Name": "Cone",
+          "Value": 25.0
+        },
+        {
+          "Name": "OuterCone",
+          "Value": 40.0
+        },
+        {
+          "Name": "Enabled",
+          "Value": true
         }
       ]
     },
@@ -310,10 +364,10 @@
           "Value": "sun"
         },
         {
-          "Name": "Direction",
+          "Name": "Rotation",
           "Value": {
             "X": 0.5,
-            "Y": 0.8,
+            "Y": 0.95,
             "Z": 0.3
           }
         },

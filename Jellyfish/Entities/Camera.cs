@@ -111,6 +111,7 @@ public class Camera : BaseEntity, IInputHandler
         if (_camLight is not null)
         {
             _camLight.SetPropertyValue("Position", GetPropertyValue<Vector3>("Position"));
+            _camLight.SetPropertyValue("Rotation", _front);
         }
 
         SetPropertyValue("Rotation", new Vector3(Pitch, Yaw, 0));

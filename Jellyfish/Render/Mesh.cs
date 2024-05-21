@@ -115,29 +115,30 @@ public class Mesh
         ibo?.Bind();
     }
 
-    public void Draw()
+    public void Draw(Shader? shaderToUse = null)
     {
-        shader.Bind();
+        var drawShader = shaderToUse ?? shader;
+
+        drawShader.Bind();
         vao.Bind();
 
         var transform = Matrix4.Identity * Matrix4.CreateTranslation(Position);
 
-        shader.SetMatrix4("transform", transform);
+        drawShader.SetMatrix4("transform", transform);
 
         var rotation = Matrix4.Identity *
                        Matrix4.CreateRotationX(MathHelper.DegreesToRadians(Rotation.X)) *
                        Matrix4.CreateRotationY(MathHelper.DegreesToRadians(Rotation.Y)) *
                        Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(Rotation.Z));
 
-        shader.SetMatrix4("rotation", rotation);
-
+        drawShader.SetMatrix4("rotation", rotation);
 
         if (ibo != null)
             GL.DrawElements(PrimitiveType, MeshPart.Indices!.Count, DrawElementsType.UnsignedInt, 0);
         else
             GL.DrawArrays(PrimitiveType, 0, vbo.Length);
 
-        shader.Unbind();
+        drawShader.Unbind();
         vao.Unbind();
     }
 

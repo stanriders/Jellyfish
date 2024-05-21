@@ -14,11 +14,13 @@
 	</ItemGroup>
 
 	<Target Name="CopyShaders" AfterTargets="Build">
+		<Message Importance="High" Text="Copying shaders..."/>
 		<Copy SourceFiles="@(FragShaders)" DestinationFolder="$(OutDir)\shaders" />
 		<Copy SourceFiles="@(VertShaders)" DestinationFolder="$(OutDir)\shaders" />
 	</Target>
 
 	<Target Name="CopyDLLs" AfterTargets="Build">
+		<Message Importance="High" Text="Copying everything to /game/..."/>
 		<Copy SourceFiles="@(AllFiles)" DestinationFolder="../game/%(RecursiveDir)" />
 	</Target>
 

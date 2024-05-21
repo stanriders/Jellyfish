@@ -9,8 +9,6 @@ public class InputManager
 {
     private readonly List<IInputHandler> _inputHandlers = new();
 
-    private bool _wireframe;
-
     private static InputManager? instance;
 
     public InputManager()
@@ -27,12 +25,6 @@ public class InputManager
     {
         if (keyboardState.IsKeyDown(Keys.Escape))
             Environment.Exit(0);
-
-        if (keyboardState.IsKeyPressed(Keys.Q))
-        {
-            _wireframe = !_wireframe;
-            GL.PolygonMode(MaterialFace.FrontAndBack, _wireframe ? PolygonMode.Line : PolygonMode.Fill);
-        }
 
         foreach (var inputHandler in _inputHandlers)
         {
