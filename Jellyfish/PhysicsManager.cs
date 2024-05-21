@@ -27,7 +27,7 @@ public class PhysicsManager
     private PhysicsSystem _physicsSystem = null!;
     private BodyInterface _bodyInterface;
     private bool _shouldStop;
-    private const int update_rate = (int)(1 / 60.0 * 1000);
+    private const int update_rate = (int)(1 / 120.0 * 1000);
 
     private readonly Dictionary<BodyID, BaseEntity> _bodies = new();
 
