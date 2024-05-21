@@ -16,7 +16,7 @@ public static class ModelParser
             return MDL.Load(path[..^4]).Vtx.MeshParts.ToArray();
 
         var importer = new AssimpContext();
-        var scene = importer.ImportFile(path, PostProcessSteps.Triangulate | PostProcessSteps.GenerateUVCoords | PostProcessSteps.JoinIdenticalVertices);
+        var scene = importer.ImportFile(path, PostProcessSteps.Triangulate | PostProcessSteps.GenerateUVCoords | PostProcessSteps.JoinIdenticalVertices | PostProcessSteps.OptimizeMeshes | PostProcessSteps.OptimizeGraph);
 
         var mashParts = new List<MeshPart>();
         foreach (var mesh in scene.Meshes)
