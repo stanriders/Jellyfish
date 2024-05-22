@@ -27,9 +27,10 @@ public class PhysicsManager
     private PhysicsSystem _physicsSystem = null!;
     private BodyInterface _bodyInterface;
     private bool _shouldStop;
-    private const int update_rate = (int)(1 / 120.0 * 1000);
+    private const int update_rate = (int)(1.0 / 120.0 * 1000);
 
     private readonly Dictionary<BodyID, BaseEntity> _bodies = new();
+    private CharacterVirtual? _character;
 
     private static PhysicsManager? instance;
 
@@ -46,9 +47,25 @@ public class PhysicsManager
         instance?.AddStaticObjectInternal(meshes, entity);
     }
 
-    public static BodyID AddDynamicObject(BaseEntity entity)
+    public static BodyID AddDynamicObject(ShapeSettings shape, BaseEntity entity)
     {
-        return instance?.AddDynamicObjectInternal(entity) ?? default;
+        return instance?.AddDynamicObjectInternal(shape, entity) ?? default;
+    }
+
+    public static CharacterVirtual AddPlayerController(BaseEntity entity)
+    {
+        return instance?.AddPlayerControllerInternal(entity)!;
+    }
+
+    private CharacterVirtual AddPlayerControllerInternal(BaseEntity entity)
+    {
+        var initialPosition = entity.GetPropertyValue<Vector3>("Position");
+
+        var charSettings = new CharacterVirtualSettings();
+        charSettings.SetShape(new CapsuleShape(50f, 10f));
+
+        _character = new CharacterVirtual(charSettings, new Double3(initialPosition.ToNumericsVector()), System.Numerics.Quaternion.Identity, 0, _physicsSystem);
+        return _character;
     }
 
     public static void SetPosition(BodyID bodyId, Vector3 newPosition)
@@ -122,16 +139,14 @@ public class PhysicsManager
         _bodies.Add(bodyId, entity);
     }
 
-    private BodyID AddDynamicObjectInternal(BaseEntity entity)
+    private BodyID AddDynamicObjectInternal(ShapeSettings shape, BaseEntity entity)
     {
         var initialPosition = entity.GetPropertyValue<Vector3>("Position");
         var initialRotation = entity.GetPropertyValue<Vector3>("Rotation");
         var quatRotation = Quaternion.FromEulerAngles(float.DegreesToRadians(initialRotation.X),
             float.DegreesToRadians(initialRotation.Y), float.DegreesToRadians(initialRotation.Z));
 
-        var shapeSettings = new SphereShapeSettings(1f);
-
-        var bodySettings = new BodyCreationSettings(shapeSettings,
+        var bodySettings = new BodyCreationSettings(shape,
             initialPosition.ToNumericsVector(),
             quatRotation.ToNumericsQuaternion(),
             MotionType.Dynamic,
@@ -188,6 +203,8 @@ public class PhysicsManager
             if (!ShouldSimulate)
                 continue;
 
+            _character?.ExtendedUpdate(update_rate / 1000f, new ExtendedUpdateSettings(), Layers.Moving, _physicsSystem);
+
             foreach (var (bodyId, entity) in _bodies)
             {
                 if (_bodyInterface.IsActive(bodyId))
@@ -201,7 +218,7 @@ public class PhysicsManager
                 }
             }
 
-            var error = _physicsSystem.Step(update_rate / 1000f, 1);
+            var error = _physicsSystem.Step(update_rate / 1000f, 2);
             if (error != 0)
             {
                 Log.Warning("[PhysicsManager] Physics simulation reported error {Error}!", error);

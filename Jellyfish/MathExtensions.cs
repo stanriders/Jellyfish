@@ -13,6 +13,11 @@ namespace Jellyfish
             return new OpenTK.Mathematics.Vector3(v.X, v.Y, v.Z);
         }
 
+        public static OpenTK.Mathematics.Vector3 ToOpentkVector(this JoltPhysicsSharp.Double3 v)
+        {
+            return new OpenTK.Mathematics.Vector3((float)v.X, (float)v.Y, (float)v.Z);
+        }
+
         public static System.Numerics.Vector3 ToNumericsVector(this OpenTK.Mathematics.Vector3 v)
         {
             return new System.Numerics.Vector3(v.X, v.Y, v.Z);

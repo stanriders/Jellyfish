@@ -54,13 +54,6 @@ public class MainWindow : GameWindow
         _audioManager = new AudioManager();
         _physicsManager = new PhysicsManager();
 
-        _camera = EntityManager.CreateEntity("camera") as Camera;
-        if (_camera != null)
-        {
-            _camera.AspectRatio = WindowWidth / (float)WindowHeight;
-            _camera.SetPropertyValue("Position", new Vector3(40, 20, 20));
-        }
-
         _render.CreateBuffers();
 
         base.OnLoad();
@@ -69,6 +62,13 @@ public class MainWindow : GameWindow
     private void OnFinishedLoading()
     {
         Log.Information("[MainWindow] Finished loading!");
+
+        _camera = EntityManager.CreateEntity("camera") as Camera;
+        if (_camera != null)
+        {
+            _camera.AspectRatio = WindowWidth / (float)WindowHeight;
+            _camera.SetPropertyValue("Position", new Vector3(40, 20, 20));
+        }
 
         MapLoader.Load("maps/test.json");
         _render.IsReady = true;

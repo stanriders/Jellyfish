@@ -1,5 +1,6 @@
 ﻿using System;
 using Jellyfish.Input;
+using JoltPhysicsSharp;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using Serilog;
@@ -16,6 +17,8 @@ public class Camera : BaseEntity, IInputHandler
     private float _fov = MathHelper.PiOver2;
 
     private readonly PointLight? _camLight;
+    private readonly CharacterVirtual? _physCharacter;
+
     private const float camera_speed = 32.0f;
     private const float sensitivity = 0.2f;
 
@@ -56,6 +59,9 @@ public class Camera : BaseEntity, IInputHandler
                 _camLight.Load();
             }
         }
+        
+        // TODO: update to the newest Jolt when `new CharacterVirtual()` is fixed
+        //_physCharacter = PhysicsManager.AddPlayerController(this);
         InputManager.RegisterInputHandler(this);
     }
 
@@ -147,26 +153,53 @@ public class Camera : BaseEntity, IInputHandler
             }
         }
 
+        if (_physCharacter != null)
+        {
+            SetPropertyValue("Position", _physCharacter.GetPosition().ToOpentkVector());
+        }
+
         var cameraSpeed = keyboardState.IsKeyDown(Keys.LeftShift) ? camera_speed * 4 : camera_speed;
 
         if (mouseState.IsButtonDown(MouseButton.Left))
         {
-            var position = GetPropertyValue<Vector3>("Position");
+            if (_physCharacter != null)
+            {
+                var velocity = _physCharacter.GetLinearVelocity();
 
-            if (keyboardState.IsKeyDown(Keys.W))
-                position += Front * cameraSpeed * frameTime; // Forward 
-            if (keyboardState.IsKeyDown(Keys.S))
-                position -= Front * cameraSpeed * frameTime; // Backwards
-            if (keyboardState.IsKeyDown(Keys.A))
-                position -= Right * cameraSpeed * frameTime; // Left
-            if (keyboardState.IsKeyDown(Keys.D))
-                position += Right * cameraSpeed * frameTime; // Right
-            if (keyboardState.IsKeyDown(Keys.Space))
-                position += Up * cameraSpeed * frameTime; // Up 
-            if (keyboardState.IsKeyDown(Keys.LeftControl))
-                position -= Up * cameraSpeed * frameTime; // Down
+                if (keyboardState.IsKeyDown(Keys.W))
+                    velocity += Front.ToNumericsVector() * cameraSpeed * frameTime; // Forward 
+                if (keyboardState.IsKeyDown(Keys.S))
+                    velocity -= Front.ToNumericsVector() * cameraSpeed * frameTime; // Backwards
+                if (keyboardState.IsKeyDown(Keys.A))
+                    velocity -= Right.ToNumericsVector() * cameraSpeed * frameTime; // Left
+                if (keyboardState.IsKeyDown(Keys.D))
+                    velocity += Right.ToNumericsVector() * cameraSpeed * frameTime; // Right
+                if (keyboardState.IsKeyDown(Keys.Space))
+                    velocity += Up.ToNumericsVector() * cameraSpeed * frameTime; // Up 
+                if (keyboardState.IsKeyDown(Keys.LeftControl))
+                    velocity -= Up.ToNumericsVector() * cameraSpeed * frameTime; // Down
 
-            SetPropertyValue("Position", position);
+                _physCharacter.SetLinearVelocity(velocity);
+            }
+            else
+            {
+                var position = GetPropertyValue<Vector3>("Position");
+
+                if (keyboardState.IsKeyDown(Keys.W))
+                    position += Front * cameraSpeed * frameTime; // Forward 
+                if (keyboardState.IsKeyDown(Keys.S))
+                    position -= Front * cameraSpeed * frameTime; // Backwards
+                if (keyboardState.IsKeyDown(Keys.A))
+                    position -= Right * cameraSpeed * frameTime; // Left
+                if (keyboardState.IsKeyDown(Keys.D))
+                    position += Right * cameraSpeed * frameTime; // Right
+                if (keyboardState.IsKeyDown(Keys.Space))
+                    position += Up * cameraSpeed * frameTime; // Up 
+                if (keyboardState.IsKeyDown(Keys.LeftControl))
+                    position -= Up * cameraSpeed * frameTime; // Down
+
+                SetPropertyValue("Position", position);
+            }
 
             Yaw += mouseState.Delta.X * sensitivity;
             Pitch -= mouseState.Delta.Y * sensitivity;

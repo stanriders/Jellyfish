@@ -51,6 +51,10 @@
         {
           "Name": "Model",
           "Value": "Police_reference.smd"
+        },
+        {
+          "Name": "BoundingBox",
+          "Value": "Capsule"
         }
       ]
     },
@@ -109,6 +113,10 @@
         {
           "Name": "Model",
           "Value": "AnimatedCube.gltf"
+        },
+        {
+          "Name": "BoundingBox",
+          "Value": "Box"
         }
       ]
     },
