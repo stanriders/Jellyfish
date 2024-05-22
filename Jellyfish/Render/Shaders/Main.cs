@@ -20,12 +20,10 @@ public class Main : Shader
         _usePhong = usePhong;
         _phongExponent = phongExponent;
         _diffuse = new Texture(diffusePath);
-        _diffuse.Bind();
 
         if (!string.IsNullOrEmpty(normalPath))
         {
             _normal = new Texture(normalPath);
-            _normal.Bind(TextureUnit.Texture1);
         }
 
         // move to vertex buffer?

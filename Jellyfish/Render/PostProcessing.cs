@@ -34,11 +34,9 @@ public class PostProcessing : IInputHandler
         GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
 
         _shader = new Shaders.PostProcessing(colorHandle, depthHandle);
-        _shader.Bind();
 
         InputManager.RegisterInputHandler(this);
         GL.BindVertexArray(0);
-        GL.UseProgram(0);
     }
 
     public void Draw()
