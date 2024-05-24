@@ -39,6 +39,8 @@ uniform int lightSourcesCount;
 uniform bool usePhong;
 uniform int phongExponent;
 
+uniform bool useNormals;
+
 float FLASHLIGHT_SHADOW_TEXTURE_RESOLUTION = 2048;
 
 float DoShadowNvidiaPCF5x5GaussianPC( sampler DepthSampler, vec3 vProjCoords )
@@ -302,16 +304,20 @@ void main()
     //if (diffuseTex.a < 0.01)
     //    discard;
 
-    vec3 normalTex = texture(normalSampler, frag_texCoord * vec2(1.0, -1.0)).rgb;
+    vec3 normal = frag_normal;
+    if (useNormals)
+    {
+        vec3 normalTex = texture(normalSampler, frag_texCoord * vec2(1.0, -1.0)).rgb;
 
-    vec3 tangentSpaceNormal = normalize(normalTex * 2.0 - 1.0);
-    mat3 tbn = GetTBN(frag_position, frag_texCoord, frag_normal);
-    tangentSpaceNormal = normalize(tbn * tangentSpaceNormal);  
+        vec3 tangentSpaceNormal = normalize(normalTex * 2.0 - 1.0);
+        mat3 tbn = GetTBN(frag_position, frag_texCoord, frag_normal);
+        normal = normalize(tbn * tangentSpaceNormal);  
+    }
 
     vec3 viewDir = normalize(cameraPos - frag_position);
 
     vec3 result = diffuseTex.rgb;
-    vec3 lighting = CalcLighting(tangentSpaceNormal, frag_position, viewDir);
+    vec3 lighting = CalcLighting(normal, frag_position, viewDir);
     result *= lighting;
 
     outputColor = vec4(result, 1.0);
