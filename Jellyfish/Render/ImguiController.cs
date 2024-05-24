@@ -47,25 +47,29 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
     public void CreateDeviceResources()
     {
-        _vao = new VertexArray();
-        _vbo = new VertexBuffer(usage: BufferUsageHint.DynamicDraw);
-        _ibo = new IndexBuffer(usage: BufferUsageHint.DynamicDraw);
+        _vbo = new VertexBuffer(usage: BufferUsageHint.DynamicDraw)
+        {
+            Stride = Unsafe.SizeOf<ImDrawVert>()
+        };
 
+        _ibo = new IndexBuffer(usage: BufferUsageHint.DynamicDraw);
+        _vao = new VertexArray(_vbo, _ibo);
         RecreateFontDeviceTexture();
 
         _shader = new Imgui();
 
-        var stride = Unsafe.SizeOf<ImDrawVert>();
-        GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, stride, 0);
-        GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, stride, 8);
-        GL.VertexAttribPointer(2, 4, VertexAttribPointerType.UnsignedByte, true, stride, 16);
+        GL.EnableVertexArrayAttrib(_vao.Handle, 0);
+        GL.VertexArrayAttribFormat(_vao.Handle, 0, 2, VertexAttribType.Float, false, 0);
 
-        GL.EnableVertexAttribArray(0);
-        GL.EnableVertexAttribArray(1);
-        GL.EnableVertexAttribArray(2);
+        GL.EnableVertexArrayAttrib(_vao.Handle, 1);
+        GL.VertexArrayAttribFormat(_vao.Handle, 1, 2, VertexAttribType.Float, false, 8);
 
-        GL.BindVertexArray(0);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        GL.EnableVertexArrayAttrib(_vao.Handle, 2);
+        GL.VertexArrayAttribFormat(_vao.Handle, 2, 4, VertexAttribType.UnsignedByte, true, 16);
+
+        GL.VertexArrayAttribBinding(_vao.Handle, 0, 0);
+        GL.VertexArrayAttribBinding(_vao.Handle, 1, 0);
+        GL.VertexArrayAttribBinding(_vao.Handle, 2, 0);
 
         CheckGlError("End of ImGui setup");
     }
@@ -169,7 +173,6 @@ public sealed class ImguiController : IDisposable, IInputHandler
         GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
 
         _vao.Bind();
-        _vbo.Bind();
 
         for (var i = 0; i < drawData.CmdListsCount; i++)
         {
@@ -224,11 +227,11 @@ public sealed class ImguiController : IDisposable, IInputHandler
         {
             var cmdList = drawData.CmdLists[n];
 
-            GL.BufferSubData(BufferTarget.ArrayBuffer, nint.Zero,
+            GL.NamedBufferSubData(_vbo.Handle, nint.Zero,
                 cmdList.VtxBuffer.Size * Unsafe.SizeOf<ImDrawVert>(), cmdList.VtxBuffer.Data);
             CheckGlError($"Data Vert {n}");
 
-            GL.BufferSubData(BufferTarget.ElementArrayBuffer, nint.Zero, cmdList.IdxBuffer.Size * sizeof(ushort),
+            GL.NamedBufferSubData(_ibo.Handle, nint.Zero, cmdList.IdxBuffer.Size * sizeof(ushort),
                 cmdList.IdxBuffer.Data);
             CheckGlError($"Data Idx {n}");
 
@@ -270,12 +273,8 @@ public sealed class ImguiController : IDisposable, IInputHandler
         GL.Disable(EnableCap.ScissorTest);
 
         // Reset state
-        GL.BindTexture(TextureTarget.Texture2D, 0);
-        GL.ActiveTexture(TextureUnit.Texture0);
         GL.UseProgram(0);
-        GL.BindVertexArray(0);
         GL.Scissor(prevScissorBox[0], prevScissorBox[1], prevScissorBox[2], prevScissorBox[3]);
-        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
         GL.BlendEquationSeparate((BlendEquationMode)prevBlendEquationRgb,
             (BlendEquationMode)prevBlendEquationAlpha);
         GL.BlendFuncSeparate(

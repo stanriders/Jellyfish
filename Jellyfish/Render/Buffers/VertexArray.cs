@@ -4,17 +4,20 @@ namespace Jellyfish.Render.Buffers;
 
 public class VertexArray
 {
-    private readonly int _vaoHandler;
+    public readonly int Handle;
 
-    public VertexArray()
+    public VertexArray(VertexBuffer vbo, IndexBuffer? ibo)
     {
-        _vaoHandler = GL.GenVertexArray();
-        GL.BindVertexArray(_vaoHandler);
+        GL.CreateVertexArrays(1, out Handle);
+
+        GL.VertexArrayVertexBuffer(Handle, 0, vbo.Handle, 0, vbo.Stride);
+        if (ibo != null)
+            GL.VertexArrayElementBuffer(Handle, ibo.Handle);
     }
 
     public void Bind()
     {
-        GL.BindVertexArray(_vaoHandler);
+        GL.BindVertexArray(Handle);
     }
 
     public void Unbind()
@@ -25,6 +28,6 @@ public class VertexArray
     public void Unload()
     {
         Unbind();
-        GL.DeleteVertexArray(_vaoHandler);
+        GL.DeleteVertexArray(Handle);
     }
 }

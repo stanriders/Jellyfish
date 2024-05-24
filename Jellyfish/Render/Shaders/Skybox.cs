@@ -1,5 +1,4 @@
 ﻿using Jellyfish.Entities;
-using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using Serilog;
 
@@ -10,13 +9,7 @@ public class Skybox : Shader
     private Sun? _sun;
     private bool _noSun;
 
-    public Skybox() :
-        base("shaders/Skybox.vert", null, "shaders/Skybox.frag")
-    {
-        var vertexLocation = GetAttribLocation("aPosition");
-        GL.EnableVertexAttribArray(vertexLocation);
-        GL.VertexAttribPointer(vertexLocation, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
-    }
+    public Skybox() : base("shaders/Skybox.vert", null, "shaders/Skybox.frag") { }
 
     public override void Bind()
     {

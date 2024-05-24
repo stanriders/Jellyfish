@@ -99,7 +99,7 @@ public class Mesh
     protected void AddMaterial(string path)
     {
         var material = new Material(path);
-        shader = material.GetShaderInstance();
+        shader = material.GetShaderInstance(vao);
         shader.Bind();
     }
 
@@ -110,9 +110,7 @@ public class Mesh
         if (MeshPart.Indices != null && MeshPart.Indices.Count > 0)
             ibo = new IndexBuffer(MeshPart.Indices.ToArray());
 
-        vao = new VertexArray();
-        vbo.Bind();
-        ibo?.Bind();
+        vao = new VertexArray(vbo, ibo);
     }
 
     public void Draw(Shader? shaderToUse = null)

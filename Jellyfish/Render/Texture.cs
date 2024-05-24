@@ -51,7 +51,7 @@ public class Texture
         GL.GenerateTextureMipmap(_handle);
     }
 
-    public void Bind(int unit = 0)
+    public void Bind(int unit)
     {
         if (_handle != 0)
         {

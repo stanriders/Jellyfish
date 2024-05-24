@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Shaders;
 using Jellyfish.Render.Shaders.Deferred;
 using Newtonsoft.Json;
@@ -55,11 +56,12 @@ public class Material
         Phong = false;
     }
 
-    public Shader GetShaderInstance()
+    public Shader GetShaderInstance(VertexArray vao)
     {
+        // TODO: redo vertex attrib handling, this is getting absurd
         if (Shader == "Main")
-            return new Main(Diffuse, Normal, Phong, PhongExponent ?? 16);
+            return new Main(vao, Diffuse, Normal, Phong, PhongExponent ?? 16);
 
-        return new Main("materials/error.png");
+        return new Main(vao, "materials/error.png");
     }
 }

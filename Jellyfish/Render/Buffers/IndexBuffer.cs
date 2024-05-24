@@ -5,7 +5,7 @@ namespace Jellyfish.Render.Buffers;
 
 public class IndexBuffer
 {
-    private readonly int _handler;
+    public readonly int Handle;
     
     private int _size;
     public int Size
@@ -14,8 +14,7 @@ public class IndexBuffer
         set
         {
             _size = value;
-            Bind();
-            GL.BufferData(BufferTarget.ElementArrayBuffer, _size, IntPtr.Zero, _usage);
+            GL.NamedBufferData(Handle, _size, IntPtr.Zero, _usage);
         }
     }
 
@@ -26,9 +25,8 @@ public class IndexBuffer
         _usage = usage;
         _size = size;
 
-        _handler = GL.GenBuffer();
-        GL.BindBuffer(BufferTarget.ElementArrayBuffer, _handler);
-        GL.BufferData(BufferTarget.ElementArrayBuffer, _size, IntPtr.Zero, _usage);
+        GL.CreateBuffers(1, out Handle);
+        GL.NamedBufferData(Handle, _size, IntPtr.Zero, _usage);
     }
 
     public IndexBuffer(uint[] indices)
@@ -36,24 +34,12 @@ public class IndexBuffer
         _usage = BufferUsageHint.StaticDraw;
         _size = indices.Length * sizeof(uint);
 
-        _handler = GL.GenBuffer();
-        GL.BindBuffer(BufferTarget.ElementArrayBuffer, _handler);
-        GL.BufferData(BufferTarget.ElementArrayBuffer, _size, indices, _usage);
+        GL.CreateBuffers(1, out Handle);
+        GL.NamedBufferData(Handle, _size, indices, _usage);
     }
-
-    public void Bind()
-    {
-        GL.BindBuffer(BufferTarget.ElementArrayBuffer, _handler);
-    }
-
-    public void Unbind()
-    {
-        GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
-    }
-
+    
     public void Unload()
     {
-        Unbind();
-        GL.DeleteBuffer(_handler);
+        GL.DeleteBuffer(Handle);
     }
 }

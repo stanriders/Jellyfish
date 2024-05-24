@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL;
-using OpenTK.Mathematics;
 
 namespace Jellyfish.Render.Buffers;
 
 public class VertexBuffer
 {
-    private readonly int _handler;
+    public readonly int Handle;
     public int Length;
+    public int Stride;
 
     private int _size;
     public int Size
@@ -17,8 +17,7 @@ public class VertexBuffer
         set
         {
             _size = value;
-            Bind();
-            GL.BufferData(BufferTarget.ArrayBuffer, Size, IntPtr.Zero, _usage);
+            GL.NamedBufferData(Handle, Size, IntPtr.Zero, _usage);
         }
     }
 
@@ -29,53 +28,42 @@ public class VertexBuffer
         _size = size;
         _usage = usage;
 
-        _handler = GL.GenBuffer();
-        Bind();
-        GL.BufferData(BufferTarget.ArrayBuffer, _size, IntPtr.Zero, _usage);
+        GL.CreateBuffers(1, out Handle);
+        GL.NamedBufferData(Handle, _size, IntPtr.Zero, _usage);
     }
 
     public VertexBuffer(Vertex[] vertices, BufferUsageHint usage = BufferUsageHint.StaticDraw)
     {
         _usage = usage;
-        _handler = GL.GenBuffer();
-        Bind();
+
+        GL.CreateBuffers(1, out Handle);
 
         var coords = new List<float>();
-        for (var i = 0; i < vertices.Length; i++)
+        foreach (var vertex in vertices)
         {
             // THIS IS UGLY
 
             // vertex
-            coords.Add(vertices[i].Coordinates.X);
-            coords.Add(vertices[i].Coordinates.Y);
-            coords.Add(vertices[i].Coordinates.Z);
+            coords.Add(vertex.Coordinates.X);
+            coords.Add(vertex.Coordinates.Y);
+            coords.Add(vertex.Coordinates.Z);
 
-            coords.Add(vertices[i].UV.X);
-            coords.Add(vertices[i].UV.Y);
+            coords.Add(vertex.UV.X);
+            coords.Add(vertex.UV.Y);
 
-            coords.Add(vertices[i].Normal.X);
-            coords.Add(vertices[i].Normal.Y);
-            coords.Add(vertices[i].Normal.Z);
+            coords.Add(vertex.Normal.X);
+            coords.Add(vertex.Normal.Y);
+            coords.Add(vertex.Normal.Z);
         }
 
+        Stride = 8 * sizeof(float);
         Size = coords.Count * sizeof(float);
-        GL.BufferData(BufferTarget.ArrayBuffer, Size, coords.ToArray(), _usage);
+        GL.NamedBufferData(Handle, Size, coords.ToArray(), _usage);
         Length = vertices.Length;
     }
-
-    public void Bind()
-    {
-        GL.BindBuffer(BufferTarget.ArrayBuffer, _handler);
-    }
-
-    public void Unbind()
-    {
-        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-    }
-
+    
     public void Unload()
     {
-        GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-        GL.DeleteBuffer(_handler);
+        GL.DeleteBuffer(Handle);
     }
 }

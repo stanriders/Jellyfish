@@ -25,18 +25,28 @@ public class PostProcessing : IInputHandler
 
     public PostProcessing(int colorHandle, int depthHandle)
     {
-        var vertexBuffer = GL.GenBuffer();
+        var vertexBuffer = new VertexBuffer(_quad.Length)
+        {
+            Stride = 4 * sizeof(float)
+        };
+        GL.NamedBufferData(vertexBuffer.Handle, _quad.Length * sizeof(float), _quad, BufferUsageHint.StaticDraw);
 
-        GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
-        GL.BufferData(BufferTarget.ArrayBuffer, _quad.Length * sizeof(float), _quad, BufferUsageHint.StaticDraw);
-
-        _vertexArray = new VertexArray();
-        GL.BindBuffer(BufferTarget.ArrayBuffer, vertexBuffer);
+        _vertexArray = new VertexArray(vertexBuffer, null);
 
         _shader = new Shaders.PostProcessing(colorHandle, depthHandle);
 
+        var vertexLocation = _shader.GetAttribLocation("aPos");
+        GL.EnableVertexArrayAttrib(_vertexArray.Handle, vertexLocation);
+        GL.VertexArrayAttribFormat(_vertexArray.Handle, vertexLocation, 2, VertexAttribType.Float, false, 0);
+
+        var texCoordLocation = _shader.GetAttribLocation("aTexCoords");
+        GL.EnableVertexArrayAttrib(_vertexArray.Handle, texCoordLocation);
+        GL.VertexArrayAttribFormat(_vertexArray.Handle, texCoordLocation, 2, VertexAttribType.Float, false, 2 * sizeof(float));
+
+        GL.VertexArrayAttribBinding(_vertexArray.Handle, vertexLocation, 0);
+        GL.VertexArrayAttribBinding(_vertexArray.Handle, texCoordLocation, 0);
+
         InputManager.RegisterInputHandler(this);
-        GL.BindVertexArray(0);
     }
 
     public void Draw()
