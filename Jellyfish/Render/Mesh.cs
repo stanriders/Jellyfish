@@ -78,7 +78,6 @@ public class Mesh
     public Mesh(MeshPart mesh)
     {
         MeshPart = mesh;
-        CreateBuffers();
         if (mesh.Texture != null)
         {
             AddMaterial(mesh.Texture);
@@ -88,6 +87,7 @@ public class Mesh
             Log.Warning("Mesh {Name} doesn't have a texture!", mesh.Name);
             AddMaterial("materials/error.mat");
         }
+        CreateBuffers();
 
         vao.Unbind();
     }
@@ -99,8 +99,7 @@ public class Mesh
     protected void AddMaterial(string path)
     {
         var material = new Material(path);
-        shader = material.GetShaderInstance(vao);
-        shader.Bind();
+        shader = material.GetShaderInstance();
     }
 
     protected void CreateBuffers()
@@ -111,6 +110,22 @@ public class Mesh
             ibo = new IndexBuffer(MeshPart.Indices.ToArray());
 
         vao = new VertexArray(vbo, ibo);
+
+        var vertexLocation = shader.GetAttribLocation("aPosition");
+        GL.EnableVertexArrayAttrib(vao.Handle, vertexLocation);
+        GL.VertexArrayAttribFormat(vao.Handle, vertexLocation, 3, VertexAttribType.Float, false, 0);
+
+        var texCoordLocation = shader.GetAttribLocation("aTexCoord");
+        GL.EnableVertexArrayAttrib(vao.Handle, texCoordLocation);
+        GL.VertexArrayAttribFormat(vao.Handle, texCoordLocation, 2, VertexAttribType.Float, false, 3 * sizeof(float));
+
+        var normalLocation = shader.GetAttribLocation("aNormal");
+        GL.EnableVertexArrayAttrib(vao.Handle, normalLocation);
+        GL.VertexArrayAttribFormat(vao.Handle, normalLocation, 3, VertexAttribType.Float, false, 5 * sizeof(float));
+
+        GL.VertexArrayAttribBinding(vao.Handle, vertexLocation, 0);
+        GL.VertexArrayAttribBinding(vao.Handle, texCoordLocation, 0);
+        GL.VertexArrayAttribBinding(vao.Handle, normalLocation, 0);
     }
 
     public void Draw(Shader? shaderToUse = null)

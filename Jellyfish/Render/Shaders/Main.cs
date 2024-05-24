@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using Jellyfish.Entities;
-using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Lighting;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
@@ -15,7 +14,7 @@ public class Main : Shader
     private readonly Texture _diffuse;
     private readonly Texture? _normal;
 
-    public Main(VertexArray vao, string diffusePath, string? normalPath = null, bool usePhong = false, int phongExponent = 16) : 
+    public Main(string diffusePath, string? normalPath = null, bool usePhong = false, int phongExponent = 16) : 
         base("shaders/Main.vert", null, "shaders/Main.frag")
     {
         _usePhong = usePhong;
@@ -26,23 +25,6 @@ public class Main : Shader
         {
             _normal = new Texture(normalPath);
         }
-
-        // move to vertex array!!!!!!!!!!
-        var vertexLocation = GetAttribLocation("aPosition");
-        GL.EnableVertexArrayAttrib(vao.Handle, vertexLocation);
-        GL.VertexArrayAttribFormat(vao.Handle, vertexLocation, 3, VertexAttribType.Float, false, 0);
-
-        var texCoordLocation = GetAttribLocation("aTexCoord");
-        GL.EnableVertexArrayAttrib(vao.Handle, texCoordLocation);
-        GL.VertexArrayAttribFormat(vao.Handle, texCoordLocation, 2, VertexAttribType.Float, false, 3 * sizeof(float));
-
-        var normalLocation = GetAttribLocation("aNormal");
-        GL.EnableVertexArrayAttrib(vao.Handle, normalLocation);
-        GL.VertexArrayAttribFormat(vao.Handle, normalLocation, 3, VertexAttribType.Float, false, 5 * sizeof(float));
-
-        GL.VertexArrayAttribBinding(vao.Handle, vertexLocation, 0);
-        GL.VertexArrayAttribBinding(vao.Handle, texCoordLocation, 0);
-        GL.VertexArrayAttribBinding(vao.Handle, normalLocation, 0);
     }
 
     public override void Bind()

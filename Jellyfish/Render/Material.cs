@@ -56,12 +56,11 @@ public class Material
         Phong = false;
     }
 
-    public Shader GetShaderInstance(VertexArray vao)
+    public Shader GetShaderInstance()
     {
-        // TODO: redo vertex attrib handling, this is getting absurd
         if (Shader == "Main")
-            return new Main(vao, Diffuse, Normal, Phong, PhongExponent ?? 16);
+            return new Main(Diffuse, Normal, Phong, PhongExponent ?? 16);
 
-        return new Main(vao, "materials/error.png");
+        return new Main("materials/error.png");
     }
 }

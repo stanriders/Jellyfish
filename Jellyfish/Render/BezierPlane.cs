@@ -17,8 +17,8 @@ public class BezierPlane : Mesh
         QuadSize = quadSize;
 
         MeshPart = GenerateRandom();
-        CreateBuffers();
         AddMaterial($"materials/{texture}");
+        CreateBuffers();
     }
 
     /// <summary>
