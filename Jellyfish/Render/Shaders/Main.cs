@@ -103,17 +103,11 @@ public class Main : Shader
         SetInt("phongExponent", _phongExponent);
 
         _diffuse.Bind();
-        _normal?.Bind(TextureUnit.Texture1);
+        _normal?.Bind(1);
     }
 
     public override void Unbind()
     {
-        GL.ActiveTexture(TextureUnit.Texture0);
-        GL.BindTexture(TextureTarget.Texture2D, 0);
-
-        GL.ActiveTexture(TextureUnit.Texture1);
-        GL.BindTexture(TextureTarget.Texture2D, 0);
-
         var lights = LightManager.Lights.Where(x => x.Source.Enabled).ToArray();
         SetInt("lightSourcesCount", lights.Length);
         for (var i = 0; i < lights.Length; i++)
@@ -122,6 +116,6 @@ public class Main : Shader
             GL.BindTexture(TextureTarget.Texture2D, 0);
         }
 
-        base.Bind();
+        base.Unbind();
     }
 }

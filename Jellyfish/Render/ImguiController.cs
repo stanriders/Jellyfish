@@ -9,7 +9,6 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using Serilog;
 using ErrorCode = OpenTK.Graphics.OpenGL.ErrorCode;
 using Jellyfish.Input;
-using OpenTK.Windowing.Common;
 using System.Collections.Generic;
 
 namespace Jellyfish.Render;
@@ -81,31 +80,24 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
         var mips = (int)Math.Floor(Math.Log(Math.Max(width, height), 2));
 
-        var prevActiveTexture = GL.GetInteger(GetPName.ActiveTexture);
-        GL.ActiveTexture(TextureUnit.Texture0);
-        var prevTexture2D = GL.GetInteger(GetPName.TextureBinding2D);
+        (_fontTexture, var alreadyExists) = TextureManager.GenerateHandle("_imgui_Fonts", TextureTarget.Texture2D);
+        if (!alreadyExists)
+        {
+            GL.TextureStorage2D(_fontTexture, mips, SizedInternalFormat.Rgba8, width, height);
 
-        _fontTexture = TextureManager.GenerateHandle("_imgui_Fonts");
-        GL.BindTexture(TextureTarget.Texture2D, _fontTexture);
-        GL.TexStorage2D(TextureTarget2d.Texture2D, mips, SizedInternalFormat.Rgba8, width, height);
-        //LabelObject(ObjectLabelIdentifier.Texture, _fontTexture, "ImGui Text Atlas");
+            GL.TextureSubImage2D(_fontTexture, 0, 0, 0, width, height, PixelFormat.Bgra, PixelType.UnsignedByte,
+                pixels);
 
-        GL.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, width, height, PixelFormat.Bgra, PixelType.UnsignedByte,
-            pixels);
+            GL.GenerateTextureMipmap(_fontTexture);
 
-        GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+            GL.TextureParameter(_fontTexture, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            GL.TextureParameter(_fontTexture, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
 
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+            GL.TextureParameter(_fontTexture, TextureParameterName.TextureMaxLevel, mips - 1);
 
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMaxLevel, mips - 1);
-
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-
-        // Restore state
-        GL.BindTexture(TextureTarget.Texture2D, prevTexture2D);
-        GL.ActiveTexture((TextureUnit)prevActiveTexture);
+            GL.TextureParameter(_fontTexture, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.TextureParameter(_fontTexture, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+        }
 
         io.Fonts.SetTexID(_fontTexture);
 

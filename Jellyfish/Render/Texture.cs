@@ -17,8 +17,11 @@ public class Texture
             return;
 
         // we get a handle before checking for path existing to be able to see which textures failed to load in the texture list
-        _handle = TextureManager.GenerateHandle(path);
-        Bind();
+        (_handle, var alreadyExists) = TextureManager.GenerateHandle(path, TextureTarget.Texture2D);
+        if (alreadyExists)
+            return;
+
+        GL.ObjectLabel(ObjectLabelIdentifier.Texture, _handle, path.Length, path);
 
         if (!File.Exists(path))
         {
@@ -29,36 +32,30 @@ public class Texture
         using var image = new MagickImage(path);
         using var data = image.GetPixelsUnsafe(); // feels scary
 
-        var pixelFormat = PixelInternalFormat.Rgba;
-        if (image.ChannelCount == 3)
-            pixelFormat = PixelInternalFormat.Rgb;
-
-        GL.TexImage2D(TextureTarget.Texture2D,
-            0,
-            pixelFormat,
-            image.Width,
-            image.Height,
-            0,
-            (PixelFormat) pixelFormat,
-            PixelType.UnsignedByte,
-            data.GetAreaPointer(0, 0, image.Width, image.Height));
-
-        //GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-        //GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+        var pixelFormat = PixelFormat.Rgba;
+        var internalPixelFormat = SizedInternalFormat.Rgba8;
+        if (image is { ChannelCount: 3, Depth: 8 })
+        {
+            pixelFormat = PixelFormat.Rgb;
+            internalPixelFormat = SizedInternalFormat.Rgb8;
+        }
         
-        GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+        //GL.TextureParameter(_handle, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+        //GL.TextureParameter(_handle, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+        GL.TextureParameter(_handle, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+        GL.TextureParameter(_handle, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
 
-        GL.BindTexture(TextureTarget.Texture2D, 0);
+        GL.TextureStorage2D(_handle, 1, internalPixelFormat, image.Width, image.Height);
+        GL.TextureSubImage2D(_handle, 0, 0, 0, image.Width, image.Height, pixelFormat, PixelType.UnsignedByte, data.GetAreaPointer(0, 0, image.Width, image.Height));
+
+        GL.GenerateTextureMipmap(_handle);
     }
 
-    public void Bind(TextureUnit unit = TextureUnit.Texture0)
+    public void Bind(int unit = 0)
     {
         if (_handle != 0)
         {
-            GL.ActiveTexture(unit);
-            GL.BindTexture(TextureTarget.Texture2D, _handle);
+            GL.BindTextureUnit(unit, _handle);
         }
     }
 }
