@@ -8,6 +8,7 @@ public class Program
     {
         Log.Logger = new LoggerConfiguration()
             .Enrich.FromLogContext()
+            //.MinimumLevel.Debug()
             .WriteTo.Console()
             .CreateLogger();
 

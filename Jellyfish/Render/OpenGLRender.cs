@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Text;
 using Jellyfish.Input;
 using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Lighting;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using Serilog;
 
 namespace Jellyfish.Render;
 
@@ -17,10 +19,18 @@ public class OpenGLRender : IRender, IInputHandler
 
     private bool _wireframe;
 
+    // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
+    private readonly DebugProc _debugProc; // if this delegate doesn't have a reference it gets GC'd after the first call
+
     public bool IsReady { get; set; }
 
     public OpenGLRender()
     {
+#if DEBUG
+        GL.Enable(EnableCap.DebugOutput);
+        _debugProc = DebugMessage;
+        GL.DebugMessageCallback(_debugProc, nint.Zero);
+#endif
         GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
     }
@@ -31,9 +41,6 @@ public class OpenGLRender : IRender, IInputHandler
 
         _mainFramebuffer = new FrameBuffer();
         _mainFramebuffer.Bind();
-
-        RenderBuffer.Create(RenderbufferStorage.StencilIndex8, FramebufferAttachment.Stencil,
-            MainWindow.WindowWidth, MainWindow.WindowHeight);
 
         _colorRenderTarget = new RenderTarget("_rt_Color", MainWindow.WindowWidth, MainWindow.WindowHeight, PixelFormat.Rgb,
             FramebufferAttachment.ColorAttachment0, PixelType.UnsignedByte, TextureWrapMode.Clamp);
@@ -99,5 +106,28 @@ public class OpenGLRender : IRender, IInputHandler
         }
 
         return false;
+    }
+
+    private unsafe void DebugMessage(DebugSource source, DebugType type, int id, DebugSeverity severity, int length, nint message, nint userData)
+    {
+        if (length <= 0)
+            return;
+
+        var decodedMessage = Encoding.UTF8.GetString(new Span<byte>(message.ToPointer(), length));
+        switch (severity)
+        {
+            case DebugSeverity.DebugSeverityNotification:
+                Log.Debug("[OpenGL] {Source} {Type} {Id}: {Message}", source, type, id, decodedMessage);
+                break;
+            case DebugSeverity.DebugSeverityHigh:
+                Log.Error("[OpenGL] {Source} {Type} {Id}: {Message}", source, type, id, decodedMessage);
+                break;
+            case DebugSeverity.DebugSeverityMedium:
+                Log.Warning("[OpenGL] {Source} {Type} {Id}: {Message}", source, type, id, decodedMessage);
+                break;
+            case DebugSeverity.DebugSeverityLow:
+                Log.Information("[OpenGL] {Source} {Type} {Id}: {Message}", source, type, id, decodedMessage);
+                break;
+        }
     }
 }
