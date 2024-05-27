@@ -58,12 +58,7 @@ namespace Jellyfish.Render
 
         public Sky()
         {
-            _vbo = new VertexBuffer(_skyboxVertices.Length * sizeof(float))
-            {
-                Stride = 3 * sizeof(float)
-            };
-            GL.NamedBufferData(_vbo.Handle, _skyboxVertices.Length * sizeof(float), _skyboxVertices.ToArray(), BufferUsageHint.StaticDraw);
-
+            _vbo = new VertexBuffer(_skyboxVertices, 3 * sizeof(float));
             _vao = new VertexArray(_vbo, null);
             _shader = new Skybox();
 

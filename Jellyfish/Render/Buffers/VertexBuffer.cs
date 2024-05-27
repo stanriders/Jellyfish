@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Jellyfish.Render.Buffers;
 
@@ -17,7 +18,7 @@ public class VertexBuffer
         set
         {
             _size = value;
-            GL.NamedBufferData(Handle, Size, IntPtr.Zero, _usage);
+            GL.NamedBufferData(Handle, _size, IntPtr.Zero, _usage);
         }
     }
 
@@ -30,6 +31,16 @@ public class VertexBuffer
 
         GL.CreateBuffers(1, out Handle);
         GL.NamedBufferData(Handle, _size, IntPtr.Zero, _usage);
+    }
+
+    public VertexBuffer(float[] data, int stride, BufferUsageHint usage = BufferUsageHint.StaticDraw)
+    {
+        _size = data.Length * sizeof(float);
+        _usage = usage;
+        Stride = stride;
+
+        GL.CreateBuffers(1, out Handle);
+        GL.NamedBufferData(Handle, _size, data, _usage);
     }
 
     public VertexBuffer(Vertex[] vertices, BufferUsageHint usage = BufferUsageHint.StaticDraw)
@@ -57,8 +68,8 @@ public class VertexBuffer
         }
 
         Stride = 8 * sizeof(float);
-        Size = coords.Count * sizeof(float);
-        GL.NamedBufferData(Handle, Size, coords.ToArray(), _usage);
+        _size = coords.Count * sizeof(float);
+        GL.NamedBufferData(Handle, _size, coords.ToArray(), _usage);
         Length = vertices.Length;
     }
     

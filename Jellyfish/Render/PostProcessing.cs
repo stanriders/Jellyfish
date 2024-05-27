@@ -23,17 +23,12 @@ public class PostProcessing : IInputHandler
          1.0f,  1.0f,  1.0f, 1.0f
     };
 
-    public PostProcessing(int colorHandle, int depthHandle)
+    public PostProcessing(RenderTarget color, RenderTarget depth)
     {
-        var vertexBuffer = new VertexBuffer(_quad.Length)
-        {
-            Stride = 4 * sizeof(float)
-        };
-        GL.NamedBufferData(vertexBuffer.Handle, _quad.Length * sizeof(float), _quad, BufferUsageHint.StaticDraw);
-
+        var vertexBuffer = new VertexBuffer(_quad, 4 * sizeof(float));
         _vertexArray = new VertexArray(vertexBuffer, null);
 
-        _shader = new Shaders.PostProcessing(colorHandle, depthHandle);
+        _shader = new Shaders.PostProcessing(color, depth);
 
         var vertexLocation = _shader.GetAttribLocation("aPos");
         GL.EnableVertexArrayAttrib(_vertexArray.Handle, vertexLocation);

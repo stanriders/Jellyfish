@@ -47,12 +47,16 @@ public struct BoneLink
     }
 }
 
-public class Vertex
+public struct Vertex
 {
     public Vector3 Coordinates { get; set; }
     public Vector2 UV { get; set; }
     public Vector3 Normal { get; set; }
     public List<BoneLink> BoneLinks { get; set; } = new();
+
+    public Vertex()
+    {
+    }
 
     public override string ToString()
     {

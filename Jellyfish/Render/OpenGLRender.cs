@@ -56,7 +56,7 @@ public class OpenGLRender : IRender, IInputHandler
         _mainFramebuffer.Unbind();
 
         _sky = new Sky();
-        _postProcessing = new PostProcessing(_colorRenderTarget.TextureHandle, _depthRenderTarget.TextureHandle);
+        _postProcessing = new PostProcessing(_colorRenderTarget, _depthRenderTarget);
 
         InputManager.RegisterInputHandler(this);
     }
