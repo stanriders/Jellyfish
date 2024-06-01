@@ -37,7 +37,7 @@ public class TextureListPanel : IUiPanel, IInputHandler
 
                 // flip RTs upside down
                 if (texture.Key.StartsWith("_rt_"))
-                    ImGui.Image(texture.Value, new Vector2(item_width, item_width), Vector2.One, Vector2.Zero)
+                    ImGui.Image(texture.Value, new Vector2(item_width, item_width), Vector2.One, Vector2.Zero);
                 else
                     ImGui.Image(texture.Value, new Vector2(item_width, item_width));
 

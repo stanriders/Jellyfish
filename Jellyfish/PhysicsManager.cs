@@ -71,7 +71,7 @@ public class PhysicsManager
 
         var charSettings = new CharacterVirtualSettings
         {
-            Shape = new CapsuleShape(50f, 10f),
+            Shape = new CapsuleShape(48f, 10f),
             Mass = 50f,
             Up = System.Numerics.Vector3.UnitY
         };
@@ -217,7 +217,7 @@ public class PhysicsManager
             if (!ShouldSimulate)
                 continue;
 
-            _character?.ExtendedUpdate(update_rate / 1000f, new ExtendedUpdateSettings(), Layers.Moving, _physicsSystem);
+            _character?.Update(update_rate / 1000f, Layers.Moving, _physicsSystem);
 
             foreach (var (bodyId, entity) in _bodies)
             {

@@ -10,7 +10,7 @@ public class PostProcessing : IInputHandler
     private readonly Shaders.PostProcessing _shader;
     private readonly VertexArray _vertexArray;
 
-    private bool _isEnabled = true;
+    private bool _isEnabled;
 
     private readonly float[] _quad = {
         // positions   // texCoords
