@@ -33,7 +33,13 @@ public class TextureListPanel : IUiPanel, IInputHandler
                 ImGui.PushTextWrapPos(ImGui.GetCursorPos().X + item_width);
                 ImGui.Text(texture.Key);
                 ImGui.PopTextWrapPos();
-                ImGui.Image(texture.Value, new Vector2(item_width, item_width));
+
+                // flip RTs upside down
+                if (texture.Key.StartsWith("_rt_"))
+                    ImGui.Image(texture.Value, new Vector2(item_width, item_width), Vector2.One, Vector2.Zero);
+                else
+                    ImGui.Image(texture.Value, new Vector2(item_width, item_width));
+
                 ImGui.EndGroup();
 
                 var windowSize = ImGui.GetWindowPos().X + ImGui.GetWindowContentRegionMax().X;
