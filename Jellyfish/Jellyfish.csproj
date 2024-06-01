@@ -26,15 +26,13 @@
 
 	<ItemGroup>
 		<PackageReference Include="AssimpNet" Version="4.1.0" />
-		<PackageReference Include="ImGui.NET" Version="1.90.5.1" />
-		<PackageReference Include="JoltPhysicsSharp" Version="2.5.1" />
+		<PackageReference Include="ImGui.NET" Version="1.90.6.1" />
+		<PackageReference Include="JoltPhysicsSharp" Version="2.5.3" />
 		<PackageReference Include="ManagedBass" Version="3.1.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="OpenTK" Version="4.8.2" />
 		<PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
-		<PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0031" />
-		<PackageReference Include="Magick.NET-Q8-AnyCPU" Version="13.8.0" />
-		<PackageReference Include="SharpGLTF.Toolkit" Version="1.0.0-alpha0031" />
+		<PackageReference Include="Magick.NET-Q8-AnyCPU" Version="13.9.0" />
 		<PackageReference Include="SteamAudio.NET" Version="4.5.3" />
 		<PackageReference Include="SteamAudio.NET.Natives" Version="4.5.3" />
 	</ItemGroup>

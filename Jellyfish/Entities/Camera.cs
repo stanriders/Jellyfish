@@ -16,10 +16,12 @@ public class Camera : BaseEntity, IInputHandler
     private float _yaw = -MathHelper.PiOver2; // Without this you would be started rotated 90 degrees right
     private float _fov = MathHelper.PiOver2;
 
+    private bool _noclip;
+
     private readonly Spotlight? _camLight;
     private readonly CharacterVirtual? _physCharacter;
 
-    private const float camera_speed = 32.0f;
+    private const float camera_speed = 120.0f;
     private const float sensitivity = 0.2f;
 
     public bool IsControllingCursor { get; set; }
@@ -65,8 +67,7 @@ public class Camera : BaseEntity, IInputHandler
             }
         }
         
-        // TODO: update to the newest Jolt when `new CharacterVirtual()` is fixed
-        //_physCharacter = PhysicsManager.AddPlayerController(this);
+        _physCharacter = PhysicsManager.AddPlayerController(this);
         InputManager.RegisterInputHandler(this);
 
         base.Load();
@@ -151,44 +152,85 @@ public class Camera : BaseEntity, IInputHandler
 
     public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
     {
+        var inputHandled = false;
+
         if (keyboardState.IsKeyPressed(Keys.L))
         {
             if (_camLight is not null)
             {
                 var isEnabled = _camLight.GetPropertyValue<bool>("Enabled");
                 _camLight.SetPropertyValue("Enabled", !isEnabled);
+                inputHandled = true;
             }
         }
 
-        if (_physCharacter != null)
+        if (keyboardState.IsKeyPressed(Keys.V))
         {
-            SetPropertyValue("Position", _physCharacter.GetPosition().ToOpentkVector());
+            _noclip = !_noclip;
+            inputHandled = true;
         }
+        
 
         var cameraSpeed = keyboardState.IsKeyDown(Keys.LeftShift) ? camera_speed * 4 : camera_speed;
 
-        if (mouseState.IsButtonDown(MouseButton.Left))
+        if (_physCharacter != null && !_noclip)
         {
-            if (_physCharacter != null)
+            SetPropertyValue("Position", _physCharacter.Position.ToOpentkVector());
+
+            bool playerControlsHorizontalVelocity = _physCharacter.IsSupported;
+
+            var verticalVelocity = (Vector3.Dot(_physCharacter.LinearVelocity.ToOpentkVector(), Vector3.UnitY) * Vector3.UnitY).ToNumericsVector();
+
+            var desiredVelocity = new System.Numerics.Vector3();
+            var newVelocity = verticalVelocity;
+
+            if (_physCharacter.GroundState != GroundState.InAir)
             {
-                var velocity = _physCharacter.GetLinearVelocity();
+                newVelocity = _physCharacter.GroundVelocity;
+            }
 
+            if (mouseState.IsButtonDown(MouseButton.Left))
+            {
                 if (keyboardState.IsKeyDown(Keys.W))
-                    velocity += Front.ToNumericsVector() * cameraSpeed * frameTime; // Forward 
+                    desiredVelocity += new System.Numerics.Vector3(Front.X, 0, Front.Z) * cameraSpeed;  // Forward 
                 if (keyboardState.IsKeyDown(Keys.S))
-                    velocity -= Front.ToNumericsVector() * cameraSpeed * frameTime; // Backwards
+                    desiredVelocity -= new System.Numerics.Vector3(Front.X, 0, Front.Z) * cameraSpeed; // Backwards
                 if (keyboardState.IsKeyDown(Keys.A))
-                    velocity -= Right.ToNumericsVector() * cameraSpeed * frameTime; // Left
+                    desiredVelocity -= new System.Numerics.Vector3(Right.X, 0, Right.Z) * cameraSpeed; // Left
                 if (keyboardState.IsKeyDown(Keys.D))
-                    velocity += Right.ToNumericsVector() * cameraSpeed * frameTime; // Right
+                    desiredVelocity += new System.Numerics.Vector3(Right.X, 0, Right.Z) * cameraSpeed; // Right
                 if (keyboardState.IsKeyDown(Keys.Space))
-                    velocity += Up.ToNumericsVector() * cameraSpeed * frameTime; // Up 
+                    desiredVelocity += System.Numerics.Vector3.UnitY * cameraSpeed; // Up 
                 if (keyboardState.IsKeyDown(Keys.LeftControl))
-                    velocity -= Up.ToNumericsVector() * cameraSpeed * frameTime; // Down
+                    desiredVelocity -= System.Numerics.Vector3.UnitY * cameraSpeed; // Down
 
-                _physCharacter.SetLinearVelocity(velocity);
+                Yaw += mouseState.Delta.X * sensitivity;
+                Pitch -= mouseState.Delta.Y * sensitivity;
+
+                inputHandled = true;
+
+                if (!IsControllingCursor)
+                    IsControllingCursor = true;
+            }
+
+            newVelocity += (System.Numerics.Vector3.UnitY * PhysicsManager.GetGravity()) * frameTime;
+
+            if (playerControlsHorizontalVelocity)
+            {
+                newVelocity += desiredVelocity;
             }
             else
+            {
+                // Preserve horizontal velocity
+                var currentHorizontalVelocity = _physCharacter.LinearVelocity - verticalVelocity;
+                newVelocity += currentHorizontalVelocity;
+            }
+
+            _physCharacter.LinearVelocity = newVelocity;
+        }
+        else
+        {
+            if (mouseState.IsButtonDown(MouseButton.Left))
             {
                 var position = GetPropertyValue<Vector3>("Position");
 
@@ -206,20 +248,20 @@ public class Camera : BaseEntity, IInputHandler
                     position -= Up * cameraSpeed * frameTime; // Down
 
                 SetPropertyValue("Position", position);
+
+                Yaw += mouseState.Delta.X * sensitivity;
+                Pitch -= mouseState.Delta.Y * sensitivity;
+
+                if (!IsControllingCursor)
+                    IsControllingCursor = true;
+
+                inputHandled = true;
             }
-
-            Yaw += mouseState.Delta.X * sensitivity;
-            Pitch -= mouseState.Delta.Y * sensitivity;
-
-            if (!IsControllingCursor)
-                IsControllingCursor = true;
-
-            return true;
         }
 
-        if (IsControllingCursor)
+        if (IsControllingCursor && !inputHandled)
             IsControllingCursor = false;
 
-        return false;
+        return inputHandled;
     }
 }

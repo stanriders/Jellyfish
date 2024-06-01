@@ -11,6 +11,7 @@ namespace Jellyfish;
 public class PhysicsManager
 {
     public bool ShouldSimulate { get; set; }
+    public bool IsReady { get; private set; }
 
     private static class Layers
     {
@@ -23,6 +24,8 @@ public class PhysicsManager
         public static readonly BroadPhaseLayer NonMoving = 0;
         public static readonly BroadPhaseLayer Moving = 1;
     }
+
+    private System.Numerics.Vector3 Gravity => _physicsSystem.Gravity;
 
     private PhysicsSystem _physicsSystem = null!;
     private BodyInterface _bodyInterface;
@@ -40,6 +43,11 @@ public class PhysicsManager
         physicsThread.Start();
 
         instance = this;
+    }
+
+    public static System.Numerics.Vector3 GetGravity()
+    {
+        return instance?.Gravity ?? System.Numerics.Vector3.Zero;
     }
 
     public static void AddStaticObject(MeshPart[] meshes, BaseEntity entity)
@@ -61,10 +69,14 @@ public class PhysicsManager
     {
         var initialPosition = entity.GetPropertyValue<Vector3>("Position");
 
-        var charSettings = new CharacterVirtualSettings();
-        charSettings.SetShape(new CapsuleShape(50f, 10f));
+        var charSettings = new CharacterVirtualSettings
+        {
+            Shape = new CapsuleShape(50f, 10f),
+            Mass = 50f,
+            Up = System.Numerics.Vector3.UnitY
+        };
 
-        _character = new CharacterVirtual(charSettings, new Double3(initialPosition.ToNumericsVector()), System.Numerics.Quaternion.Identity, 0, _physicsSystem);
+        _character = new CharacterVirtual(charSettings, initialPosition.ToNumericsVector(), System.Numerics.Quaternion.Identity, 0, _physicsSystem);
         return _character;
     }
 
@@ -192,9 +204,11 @@ public class PhysicsManager
 
         _physicsSystem = new PhysicsSystem(settings);
         _bodyInterface = _physicsSystem.BodyInterface;
+        _physicsSystem.Gravity *= 100f;
         _physicsSystem.OptimizeBroadPhase();
 
         Log.Information("[PhysicsManager] Jolt ready!");
+        IsReady = true;
 
         while (!_shouldStop)
         {

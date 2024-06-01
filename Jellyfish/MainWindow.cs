@@ -1,4 +1,5 @@
-﻿using Jellyfish.Audio;
+﻿using System.Threading;
+using Jellyfish.Audio;
 using Jellyfish.Entities;
 using Jellyfish.Input;
 using Jellyfish.Render;
@@ -61,6 +62,12 @@ public class MainWindow : GameWindow
     
     private void OnFinishedLoading()
     {
+        while (!_physicsManager.IsReady)
+        {
+            Thread.Sleep(100);
+            Log.Debug("[MainWindow] Waiting for physics to start...");
+        }
+
         Log.Information("[MainWindow] Finished loading!");
 
         _camera = EntityManager.CreateEntity("camera") as Camera;
