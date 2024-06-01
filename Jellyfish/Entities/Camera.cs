@@ -22,6 +22,7 @@ public class Camera : BaseEntity, IInputHandler
     private readonly CharacterVirtual? _physCharacter;
 
     private const float camera_speed = 120.0f;
+    private const float jump_velocity = 250.0f;
     private const float sensitivity = 0.2f;
 
     public bool IsControllingCursor { get; set; }
@@ -199,10 +200,10 @@ public class Camera : BaseEntity, IInputHandler
                     desiredVelocity -= new System.Numerics.Vector3(Right.X, 0, Right.Z) * cameraSpeed; // Left
                 if (keyboardState.IsKeyDown(Keys.D))
                     desiredVelocity += new System.Numerics.Vector3(Right.X, 0, Right.Z) * cameraSpeed; // Right
+
+                // jump
                 if (keyboardState.IsKeyDown(Keys.Space))
-                    desiredVelocity += System.Numerics.Vector3.UnitY * cameraSpeed; // Up 
-                if (keyboardState.IsKeyDown(Keys.LeftControl))
-                    desiredVelocity -= System.Numerics.Vector3.UnitY * cameraSpeed; // Down
+                    desiredVelocity += System.Numerics.Vector3.UnitY * jump_velocity;
 
                 Yaw += mouseState.Delta.X * sensitivity;
                 Pitch -= mouseState.Delta.Y * sensitivity;
