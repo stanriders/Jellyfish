@@ -16,7 +16,7 @@ public class Camera : BaseEntity, IInputHandler
     private float _yaw = -MathHelper.PiOver2; // Without this you would be started rotated 90 degrees right
     private float _fov = MathHelper.PiOver2;
 
-    private readonly PointLight? _camLight;
+    private readonly Spotlight? _camLight;
     private readonly CharacterVirtual? _physCharacter;
 
     private const float camera_speed = 32.0f;
@@ -47,15 +47,20 @@ public class Camera : BaseEntity, IInputHandler
         SetPropertyValue("Name", "cam");
         if (_camLight is null)
         {
-            _camLight = EntityManager.CreateEntity("light_point") as PointLight;
+            _camLight = EntityManager.CreateEntity("light_spot") as Spotlight;
             if (_camLight != null)
             {
+#if DEBUG
+                _camLight.DrawDevCone = false;
+#endif
                 _camLight.SetPropertyValue("Name", "cam light");
                 _camLight.SetPropertyValue("Enabled", true);
                 _camLight.SetPropertyValue("Quadratic", 0.0f);
                 _camLight.SetPropertyValue("Linear", 0.8f);
                 _camLight.SetPropertyValue("Constant", 0.2f);
                 _camLight.SetPropertyValue("Color", new Color4(200, 220, 255, 10));
+                _camLight.SetPropertyValue("OuterCone", 60f);
+                _camLight.SetPropertyValue("Cone", 40f);
                 _camLight.Load();
             }
         }
@@ -63,6 +68,8 @@ public class Camera : BaseEntity, IInputHandler
         // TODO: update to the newest Jolt when `new CharacterVirtual()` is fixed
         //_physCharacter = PhysicsManager.AddPlayerController(this);
         InputManager.RegisterInputHandler(this);
+
+        base.Load();
     }
 
     public float AspectRatio { get; set; }

@@ -42,6 +42,7 @@ public static class LightManager
 
     public static void DrawShadows()
     {
+        GL.Disable(EnableCap.CullFace);
         foreach (var light in lights.Where(x=> x.Source.Enabled && x.Source.UseShadows))
         {
             if (light.Source.UseShadows && light.ShadowRt == null)
@@ -54,10 +55,11 @@ public static class LightManager
 
             GL.Viewport(0, 0, shadow_size, shadow_size);
             GL.Clear(ClearBufferMask.DepthBufferBit);
-            MeshManager.Draw(light.ShadowShader);
+            MeshManager.Draw(false, light.ShadowShader);
 
             light.ShadowFrameBuffer.Unbind();
         }
+        GL.Enable(EnableCap.CullFace);
     }
 
     private static void CreateShadows(Light light)

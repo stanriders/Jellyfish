@@ -9,9 +9,24 @@ namespace Jellyfish.Render;
 public class Model
 {
     private readonly List<Mesh> _meshes = new();
+    private bool _shouldDraw = true;
     public IReadOnlyList<Mesh> Meshes => _meshes.AsReadOnly();
 
-    public Model(string path)
+    public bool ShouldDraw
+    {
+        get => _shouldDraw;
+        set
+        {
+            foreach (var mesh in _meshes)
+            {
+                mesh.ShouldDraw = value;
+            }
+            _shouldDraw = value;
+        }
+    }
+
+
+    public Model(string path, bool isDev = false)
     {
         var meshParts = ModelParser.Parse(path);
         if (meshParts == null)
@@ -36,7 +51,7 @@ public class Model
                 Log.Warning("[Model] Mesh {Name} has no texture data!!", meshPart.Name);
             }
 
-            _meshes.Add(new Mesh(meshPart));
+            _meshes.Add(new Mesh(meshPart) {IsDev = isDev});
         }
 
         foreach (var mesh in _meshes)

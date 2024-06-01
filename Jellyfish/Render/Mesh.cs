@@ -66,14 +66,16 @@ public struct Vertex
 
 public class Mesh
 {
-    protected IndexBuffer? ibo;
+    private IndexBuffer? _ibo;
     
     public Vector3 Position = Vector3.Zero;
     public Vector3 Rotation = Vector3.Zero;
+    public bool ShouldDraw { get; set; } = true;
+    public bool IsDev { get; set; }
 
-    protected Shader shader = null!;
-    protected VertexArray vao = null!;
-    protected VertexBuffer vbo = null!;
+    private Shader _shader = null!;
+    private VertexArray _vao = null!;
+    private VertexBuffer _vbo = null!;
 
     public Mesh()
     {
@@ -93,7 +95,7 @@ public class Mesh
         }
         CreateBuffers();
 
-        vao.Unbind();
+        _vao.Unbind();
     }
 
     public MeshPart MeshPart { get; set; } = null!;
@@ -103,41 +105,41 @@ public class Mesh
     protected void AddMaterial(string path)
     {
         var material = new Material(path);
-        shader = material.GetShaderInstance();
+        _shader = material.GetShaderInstance();
     }
 
     protected void CreateBuffers()
     {
-        vbo = new VertexBuffer(MeshPart.Vertices.ToArray());
+        _vbo = new VertexBuffer(MeshPart.Vertices.ToArray());
 
         if (MeshPart.Indices != null && MeshPart.Indices.Count > 0)
-            ibo = new IndexBuffer(MeshPart.Indices.ToArray());
+            _ibo = new IndexBuffer(MeshPart.Indices.ToArray());
 
-        vao = new VertexArray(vbo, ibo);
+        _vao = new VertexArray(_vbo, _ibo);
 
-        var vertexLocation = shader.GetAttribLocation("aPosition");
-        GL.EnableVertexArrayAttrib(vao.Handle, vertexLocation);
-        GL.VertexArrayAttribFormat(vao.Handle, vertexLocation, 3, VertexAttribType.Float, false, 0);
+        var vertexLocation = _shader.GetAttribLocation("aPosition");
+        GL.EnableVertexArrayAttrib(_vao.Handle, vertexLocation);
+        GL.VertexArrayAttribFormat(_vao.Handle, vertexLocation, 3, VertexAttribType.Float, false, 0);
 
-        var texCoordLocation = shader.GetAttribLocation("aTexCoord");
-        GL.EnableVertexArrayAttrib(vao.Handle, texCoordLocation);
-        GL.VertexArrayAttribFormat(vao.Handle, texCoordLocation, 2, VertexAttribType.Float, false, 3 * sizeof(float));
+        var texCoordLocation = _shader.GetAttribLocation("aTexCoord");
+        GL.EnableVertexArrayAttrib(_vao.Handle, texCoordLocation);
+        GL.VertexArrayAttribFormat(_vao.Handle, texCoordLocation, 2, VertexAttribType.Float, false, 3 * sizeof(float));
 
-        var normalLocation = shader.GetAttribLocation("aNormal");
-        GL.EnableVertexArrayAttrib(vao.Handle, normalLocation);
-        GL.VertexArrayAttribFormat(vao.Handle, normalLocation, 3, VertexAttribType.Float, false, 5 * sizeof(float));
+        var normalLocation = _shader.GetAttribLocation("aNormal");
+        GL.EnableVertexArrayAttrib(_vao.Handle, normalLocation);
+        GL.VertexArrayAttribFormat(_vao.Handle, normalLocation, 3, VertexAttribType.Float, false, 5 * sizeof(float));
 
-        GL.VertexArrayAttribBinding(vao.Handle, vertexLocation, 0);
-        GL.VertexArrayAttribBinding(vao.Handle, texCoordLocation, 0);
-        GL.VertexArrayAttribBinding(vao.Handle, normalLocation, 0);
+        GL.VertexArrayAttribBinding(_vao.Handle, vertexLocation, 0);
+        GL.VertexArrayAttribBinding(_vao.Handle, texCoordLocation, 0);
+        GL.VertexArrayAttribBinding(_vao.Handle, normalLocation, 0);
     }
 
     public void Draw(Shader? shaderToUse = null)
     {
-        var drawShader = shaderToUse ?? shader;
+        var drawShader = shaderToUse ?? _shader;
 
         drawShader.Bind();
-        vao.Bind();
+        _vao.Bind();
 
         var transform = Matrix4.Identity * Matrix4.CreateTranslation(Position);
 
@@ -150,20 +152,20 @@ public class Mesh
 
         drawShader.SetMatrix4("rotation", rotation);
 
-        if (ibo != null)
+        if (_ibo != null)
             GL.DrawElements(PrimitiveType, MeshPart.Indices!.Count, DrawElementsType.UnsignedInt, 0);
         else
-            GL.DrawArrays(PrimitiveType, 0, vbo.Length);
+            GL.DrawArrays(PrimitiveType, 0, _vbo.Length);
 
         drawShader.Unbind();
-        vao.Unbind();
+        _vao.Unbind();
     }
 
     public void Unload()
     {
-        vbo.Unload();
-        ibo?.Unload();
-        vao.Unload();
-        shader.Unload();
+        _vbo.Unload();
+        _ibo?.Unload();
+        _vao.Unload();
+        _shader.Unload();
     }
 }

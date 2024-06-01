@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Jellyfish.Render;
 using OpenTK.Mathematics;
 using Serilog;
 
@@ -11,6 +12,11 @@ public abstract class BaseEntity
     private readonly Dictionary<string, EntityProperty> _entityProperties = new();
     public IReadOnlyList<EntityProperty> EntityProperties => _entityProperties.Values.ToList().AsReadOnly();
 
+#if DEBUG
+    public virtual bool DrawDevCone { get; set; }
+    private EntityDevCone? _devCone;
+#endif
+
     protected BaseEntity()
     {
         AddProperty("Name", Guid.NewGuid().ToString("n")[..8]);
@@ -20,6 +26,10 @@ public abstract class BaseEntity
 
     public virtual void Load()
     {
+#if DEBUG
+        if (DrawDevCone)
+            _devCone = new EntityDevCone(this);
+#endif
     }
 
     public virtual void Unload()
@@ -28,6 +38,9 @@ public abstract class BaseEntity
 
     public virtual void Think()
     {
+#if DEBUG
+        _devCone?.Think();
+#endif
     }
 
     protected void AddProperty<T>(string name, T defaultValue = default!)
@@ -77,7 +90,25 @@ public abstract class BaseEntity
             return true;
         }
 
-        Log.Warning("Unknown property {Name}!", name);
         return false;
+    }
+}
+
+public class EntityDevCone
+{
+    private readonly BaseEntity _entity;
+    private readonly Model _model;
+
+    public EntityDevCone(BaseEntity entity)
+    {
+        _entity = entity;
+        _model = new Model("models/spot_reference.smd", true);
+    }
+
+    public void Think()
+    {
+        _model.Position = _entity.GetPropertyValue<Vector3>("Position");
+        _model.Rotation = _entity.GetPropertyValue<Vector3>("Rotation");
+        _model.ShouldDraw = _entity.DrawDevCone;
     }
 }

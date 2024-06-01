@@ -61,6 +61,10 @@ public class Material
         if (Shader == "Main")
             return new Main(Diffuse, Normal, Phong, PhongExponent ?? 16);
 
+        // todo: unlit shader
+        if (Shader == "Simple")
+            return new Main(Diffuse);
+
         return new Main("materials/error.png");
     }
 }

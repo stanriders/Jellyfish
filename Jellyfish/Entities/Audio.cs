@@ -8,6 +8,7 @@ namespace Jellyfish.Entities;
 [Entity("audio")]
 public class Audio : BaseEntity
 {
+    public override bool DrawDevCone { get; set; } = true;
     private Sound? _handle;
 
     public Audio()
