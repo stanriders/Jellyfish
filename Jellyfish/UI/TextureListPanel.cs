@@ -24,8 +24,9 @@ public class TextureListPanel : IUiPanel, IInputHandler
         
         var textureCount = TextureManager.Textures.Count;
 
-        if (ImGui.Begin($"Texture list ({textureCount} textures)"))
+        if (ImGui.Begin("Texture list"))
         {
+            ImGui.Text($"{textureCount} textures");
             for (int i = 0; i < textureCount; i++)
             {
                 var texture = TextureManager.Textures.ElementAt(i);
@@ -36,7 +37,7 @@ public class TextureListPanel : IUiPanel, IInputHandler
 
                 // flip RTs upside down
                 if (texture.Key.StartsWith("_rt_"))
-                    ImGui.Image(texture.Value, new Vector2(item_width, item_width), Vector2.One, Vector2.Zero);
+                    ImGui.Image(texture.Value, new Vector2(item_width, item_width), Vector2.One, Vector2.Zero)
                 else
                     ImGui.Image(texture.Value, new Vector2(item_width, item_width));
 
