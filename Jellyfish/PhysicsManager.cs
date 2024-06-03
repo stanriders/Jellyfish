@@ -223,7 +223,7 @@ public class PhysicsManager
             {
                 if (_bodyInterface.IsActive(bodyId))
                 {
-                    var centerOfMassPosition = _bodyInterface.GetCenterOfMassPosition(bodyId).ToOpentkVector();
+                    var centerOfMassPosition = _bodyInterface.GetPosition(bodyId).ToOpentkVector();
                     var rotation = _bodyInterface.GetRotation(bodyId).ToOpentkQuaternion().ToEulerAngles();
                     var angleRotation = new Vector3(float.RadiansToDegrees(rotation.X), float.RadiansToDegrees(rotation.Y), float.RadiansToDegrees(rotation.Z));
 
