@@ -58,7 +58,7 @@ public class Camera : BaseEntity, IInputHandler
 #endif
                 _camLight.SetPropertyValue("Name", "cam light");
                 _camLight.SetPropertyValue("Enabled", true);
-                _camLight.SetPropertyValue("Quadratic", 0.0f);
+                _camLight.SetPropertyValue("Quadratic", 0.01f);
                 _camLight.SetPropertyValue("Linear", 0.8f);
                 _camLight.SetPropertyValue("Constant", 0.2f);
                 _camLight.SetPropertyValue("Color", new Color4(200, 220, 255, 10));
@@ -211,7 +211,10 @@ public class Camera : BaseEntity, IInputHandler
                 inputHandled = true;
 
                 if (!IsControllingCursor)
+                {
+                    InputManager.CaptureInput(this);
                     IsControllingCursor = true;
+                }
             }
 
             newVelocity += (System.Numerics.Vector3.UnitY * PhysicsManager.GetGravity()) * frameTime;
@@ -254,14 +257,20 @@ public class Camera : BaseEntity, IInputHandler
                 Pitch -= mouseState.Delta.Y * sensitivity;
 
                 if (!IsControllingCursor)
+                {
+                    InputManager.CaptureInput(this);
                     IsControllingCursor = true;
+                }
 
                 inputHandled = true;
             }
         }
 
         if (IsControllingCursor && !inputHandled)
+        {
+            InputManager.ReleaseInput(this);
             IsControllingCursor = false;
+        }
 
         return inputHandled;
     }
