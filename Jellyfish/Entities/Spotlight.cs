@@ -6,6 +6,8 @@ namespace Jellyfish.Entities;
 [Entity("light_spot")]
 public class Spotlight : BaseEntity, ILightSource
 {
+    public override bool DrawDevCone { get; set; } = true;
+
     public Spotlight()
     {
         AddProperty("Color", new Color4(255, 255, 255, 255));
@@ -21,6 +23,7 @@ public class Spotlight : BaseEntity, ILightSource
 
     public override void Load()
     {
+        base.Load();
         LightManager.AddLight(this);
     }
 
@@ -31,11 +34,14 @@ public class Spotlight : BaseEntity, ILightSource
     public bool Enabled => GetPropertyValue<bool>("Enabled");
     public bool UseShadows => GetPropertyValue<bool>("Shadows");
     public float NearPlane => 0.1f;
-    public float FarPlane => 1000f; 
-    public Matrix4 Projection()
+    public float FarPlane => 500f;
+    public Matrix4 Projection 
     {
-        var lightProjection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(GetPropertyValue<float>("OuterCone")), 1.0f, NearPlane, FarPlane);
-        var lightView = Matrix4.LookAt(Position, Position + Rotation, Vector3.UnitY);
-        return lightView * lightProjection;
+        get
+        {
+            var lightProjection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(GetPropertyValue<float>("OuterCone")), 1.0f, NearPlane, FarPlane);
+            var lightView = Matrix4.LookAt(Position, Position + Rotation, Vector3.UnitY);
+            return lightView * lightProjection;
+        }
     }
 }

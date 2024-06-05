@@ -75,7 +75,7 @@ public class Main : Shader
                 SetFloat($"lightSources[{i}].outcone", (float)Math.Cos(MathHelper.DegreesToRadians(spot.GetPropertyValue<float>("OuterCone"))));
             }
 
-            SetMatrix4($"lightSources[{i}].lightSpaceMatrix", light.Projection());
+            SetMatrix4($"lightSources[{i}].lightSpaceMatrix", light.Projection);
 
             if (light.UseShadows)
             {

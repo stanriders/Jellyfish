@@ -15,6 +15,7 @@ public class Sun : BaseEntity, ILightSource
 
     public override void Load()
     {
+        base.Load();
         LightManager.AddLight(this);
     }
 
@@ -26,17 +27,21 @@ public class Sun : BaseEntity, ILightSource
     public bool UseShadows => GetPropertyValue<bool>("Shadows");
     public float NearPlane => 0.1f;
     public float FarPlane => 4100f;
-    public Matrix4 Projection()
+
+    public Matrix4 Projection
     {
-        var position = new Vector3(0f, 4000f, 0f);
-
-        if (Camera.Instance != null)
+        get
         {
-            position = Camera.Instance.GetPropertyValue<Vector3>("Position") + new Vector3(0f, 4000f, 0f);
-        }
+            var position = new Vector3(0f, 4000f, 0f);
 
-        var lightProjection = Matrix4.CreateOrthographic(10000, 10000, NearPlane, FarPlane);
-        var lightView = Matrix4.LookAt(position, position + -Rotation, Vector3.UnitY);
-        return lightView * lightProjection;
+            if (Camera.Instance != null)
+            {
+                position = Camera.Instance.GetPropertyValue<Vector3>("Position") + new Vector3(0f, 4000f, 0f);
+            }
+
+            var lightProjection = Matrix4.CreateOrthographic(10000, 10000, NearPlane, FarPlane);
+            var lightView = Matrix4.LookAt(position, position + -Rotation, Vector3.UnitY);
+            return lightView * lightProjection;
+        }
     }
 }

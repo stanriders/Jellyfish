@@ -6,6 +6,8 @@ namespace Jellyfish.Entities;
 [Entity("light_point")]
 public class PointLight : BaseEntity, ILightSource
 {
+    public override bool DrawDevCone { get; set; } = true;
+
     public PointLight()
     {
         AddProperty("Color", new Color4(255, 255, 255, 255));
@@ -19,6 +21,7 @@ public class PointLight : BaseEntity, ILightSource
 
     public override void Load()
     {
+        base.Load();
         LightManager.AddLight(this);
     }
 
@@ -31,10 +34,13 @@ public class PointLight : BaseEntity, ILightSource
     public float NearPlane => 0.1f;
     public float FarPlane => 500f;
 
-    public Matrix4 Projection()
+    public Matrix4 Projection
     {
-        var lightProjection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(90f), 1.0f, NearPlane, FarPlane);
-        var lightView = Matrix4.LookAt(Position, Position + Rotation, new Vector3(0f, 1f, 0f));
-        return lightView * lightProjection;
+        get
+        {
+            var lightProjection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(90f), 1.0f, NearPlane, FarPlane);
+            var lightView = Matrix4.LookAt(Position, Position + Rotation, new Vector3(0f, 1f, 0f));
+            return lightView * lightProjection;
+        }
     }
 }

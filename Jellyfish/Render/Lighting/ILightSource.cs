@@ -16,5 +16,5 @@ public interface ILightSource
     float NearPlane { get; }
     float FarPlane { get; }
 
-    Matrix4 Projection();
+    Matrix4 Projection { get; }
 }

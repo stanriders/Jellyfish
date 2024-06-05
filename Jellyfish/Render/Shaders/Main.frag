@@ -43,6 +43,45 @@ uniform bool useNormals;
 
 float FLASHLIGHT_SHADOW_TEXTURE_RESOLUTION = 2048;
 
+float SimpleShadow(sampler DepthSampler, vec3 projCoords, vec3 lightDir, vec3 normal)
+{
+    float closestDepth = texture(DepthSampler, projCoords.xy).r; 
+    float currentDepth = projCoords.z;
+    
+    float bias = 0f;
+    if (gl_FrontFacing)
+        bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
+
+    float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;  
+
+    return shadow;
+}  
+
+float SimplePCF(sampler DepthSampler, vec3 projCoords, vec3 lightDir, vec3 normal)
+{
+    float currentDepth = projCoords.z;
+
+    float bias = 0f;
+    if (gl_FrontFacing)
+        bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
+
+    // PCF: percentage-closer filtering
+    float shadow = 0.0;
+    vec2 texelSize = vec2(1.0 / FLASHLIGHT_SHADOW_TEXTURE_RESOLUTION);
+    const int halfkernelWidth = 3;
+    for(int x = -halfkernelWidth; x <= halfkernelWidth; ++x)
+    {
+	    for(int y = -halfkernelWidth; y <= halfkernelWidth; ++y)
+	    {
+		    float pcfDepth = texture(DepthSampler, projCoords.xy + vec2(x, y) * texelSize).r;
+		    shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+	    }
+    }
+    shadow /= ((halfkernelWidth*2+1)*(halfkernelWidth*2+1));
+
+    return shadow;
+}
+
 float DoShadowNvidiaPCF5x5GaussianPC( sampler DepthSampler, vec3 vProjCoords )
 {
 	float flTexelEpsilon    = 1.0f / FLASHLIGHT_SHADOW_TEXTURE_RESOLUTION;
@@ -106,8 +145,9 @@ float DoShadowNvidiaPCF5x5GaussianPC( sampler DepthSampler, vec3 vProjCoords )
 	return 1f - flSum;
 }
 
-float ShadowCalculation(vec4 fragPosLightSpace, int lightIndex, vec3 lightDir, vec3 normal)
+float ShadowCalculation(int lightIndex, vec3 lightDir, vec3 normal)
 {
+    vec4 fragPosLightSpace = frag_position_lightspace[lightIndex];
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 
     projCoords = projCoords * 0.5 + 0.5;
@@ -117,24 +157,33 @@ float ShadowCalculation(vec4 fragPosLightSpace, int lightIndex, vec3 lightDir, v
         
     if (lightIndex == 0)
     {
+        //return SimplePCF(shadow1Sampler, projCoords, lightDir, normal);
+        //return SimpleShadow(shadow1Sampler, projCoords, lightDir, normal);
         return DoShadowNvidiaPCF5x5GaussianPC(shadow1Sampler, projCoords);
     } 
     else if (lightIndex == 1) 
     {
+        //return SimplePCF(shadow2Sampler, projCoords, lightDir, normal);
+        //return SimpleShadow(shadow2Sampler, projCoords, lightDir, normal);
         return DoShadowNvidiaPCF5x5GaussianPC(shadow2Sampler, projCoords);
     }
     else if (lightIndex == 2) 
     {
+        //return SimplePCF(shadow3Sampler, projCoords, lightDir, normal);
+        //return SimpleShadow(shadow3Sampler, projCoords, lightDir, normal);
         return DoShadowNvidiaPCF5x5GaussianPC(shadow3Sampler, projCoords);
     }
     else if (lightIndex == 3) 
     {
+        //return SimplePCF(shadow4Sampler, projCoords, lightDir, normal);
+        //return SimpleShadow(shadow4Sampler, projCoords, lightDir, normal);
         return DoShadowNvidiaPCF5x5GaussianPC(shadow4Sampler, projCoords);
     }
 }  
 
-vec3 CalcPointLight(Light light, int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
+vec3 CalcPointLight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
 {
+    Light light = lightSources[lightIndex];
     vec3 lightDir = normalize(light.position - fragPos);
 
     //diffuse shading
@@ -163,7 +212,7 @@ vec3 CalcPointLight(Light light, int lightIndex, vec3 normal, vec3 fragPos, vec3
         specular = specularStrength * spec * light.diffuse; 
     }
 
-    float shadow = ShadowCalculation(frag_position_lightspace[lightIndex], lightIndex, lightDir, normal);
+    float shadow = ShadowCalculation(lightIndex, lightDir, normal);
     
     outdiffuse *= (1.0f - shadow);
     specular *= (1.0f - shadow);
@@ -171,8 +220,9 @@ vec3 CalcPointLight(Light light, int lightIndex, vec3 normal, vec3 fragPos, vec3
     return (ambient + (outdiffuse + specular)) * light.brightness;
 }
 
-vec3 CalcSpotlight(Light light, int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
+vec3 CalcSpotlight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
 {
+    Light light = lightSources[lightIndex];
     vec3 lightDir = normalize(light.position - fragPos);
 
     //diffuse shading
@@ -209,7 +259,7 @@ vec3 CalcSpotlight(Light light, int lightIndex, vec3 normal, vec3 fragPos, vec3 
     specular *= intensity;
     ambient *= intensity;
 
-    float shadow = ShadowCalculation(frag_position_lightspace[lightIndex], lightIndex, lightDir, normal);
+    float shadow = ShadowCalculation(lightIndex, lightDir, normal);
     
     outdiffuse *= (1.0f - shadow);
     specular *= (1.0f - shadow);
@@ -217,8 +267,9 @@ vec3 CalcSpotlight(Light light, int lightIndex, vec3 normal, vec3 fragPos, vec3 
     return (ambient + (outdiffuse + specular)) * light.brightness;
 }
 
-vec3 CalcSun(Light light, int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
+vec3 CalcSun(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
 {
+    Light light = lightSources[lightIndex];
     vec3 lightDir = normalize(light.direction);
 
     //diffuse shading
@@ -237,7 +288,7 @@ vec3 CalcSun(Light light, int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDi
         specular = specularStrength * spec * light.diffuse; 
     }
     
-    float shadow = ShadowCalculation(frag_position_lightspace[lightIndex], lightIndex, lightDir, normal);
+    float shadow = ShadowCalculation(lightIndex, lightDir, normal);
 
     outdiffuse *= (1.0f - shadow);
     specular *= (1.0f - shadow);
@@ -255,17 +306,17 @@ vec3 CalcLighting(vec3 normal, vec3 fragPos, vec3 viewDir)
         {
             case 0: // point
             {
-              result += CalcPointLight(lightSources[i], i, normal, fragPos, viewDir);
+              result += CalcPointLight(i, normal, fragPos, viewDir);
               break;
             }
             case 1: // sun
             {
-              result += CalcSun(lightSources[i], i, normal, fragPos, viewDir);
+              result += CalcSun(i, normal, fragPos, viewDir);
               break;
             }
             case 2: // spot
             {
-              result += CalcSpotlight(lightSources[i], i, normal, fragPos, viewDir);
+              result += CalcSpotlight(i, normal, fragPos, viewDir);
               break;
             }
         }

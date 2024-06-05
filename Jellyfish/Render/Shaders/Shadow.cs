@@ -1,4 +1,5 @@
-﻿using Jellyfish.Render.Lighting;
+﻿using System;
+using Jellyfish.Render.Lighting;
 
 namespace Jellyfish.Render.Shaders;
 
@@ -15,6 +16,6 @@ public class Shadow : Shader
     public override void Bind()
     {
         base.Bind();
-        SetMatrix4("lightSpaceMatrix", _light.Projection());
+        SetMatrix4("lightSpaceMatrix", _light.Projection);
     }
 }
