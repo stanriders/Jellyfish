@@ -11,6 +11,7 @@ public class TextureListPanel : IUiPanel, IInputHandler
 {
     private const int item_width = 250;
     private bool _isEnabled;
+    private int? _expandedTexture;
 
     public TextureListPanel()
     {
@@ -35,11 +36,20 @@ public class TextureListPanel : IUiPanel, IInputHandler
                 ImGui.Text(texture.Key);
                 ImGui.PopTextWrapPos();
 
+                var expanded = _expandedTexture == i;
+                var size = expanded ? item_width * 2 : item_width;
+                bool pressed;
                 // flip RTs upside down
                 if (texture.Key.StartsWith("_rt_"))
-                    ImGui.Image(texture.Value, new Vector2(item_width, item_width), Vector2.One, Vector2.Zero);
+                    pressed = ImGui.ImageButton(texture.Key, texture.Value, new Vector2(size, size), Vector2.One,
+                        Vector2.Zero);
                 else
-                    ImGui.Image(texture.Value, new Vector2(item_width, item_width));
+                    pressed = ImGui.ImageButton(texture.Key, texture.Value, new Vector2(size, size));
+
+                if (pressed)
+                {
+                    _expandedTexture = i;
+                }
 
                 ImGui.EndGroup();
 
