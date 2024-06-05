@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace Jellyfish.Input;
@@ -9,7 +8,7 @@ public class InputManager
 {
     private readonly List<IInputHandler> _inputHandlers = new();
     private bool _inputCaptured;
-    private IInputHandler _capturer;
+    private IInputHandler? _capturer;
 
     private static InputManager? instance;
 
@@ -35,14 +34,17 @@ public class InputManager
     public static void ReleaseInput(IInputHandler inputHandler)
     {
         if (instance != null && inputHandler == instance._capturer)
+        {
             instance._inputCaptured = false;
+            instance._capturer = null;
+        }
     }
 
     public void Frame(KeyboardState keyboardState, MouseState mouseState, float frameTime)
     {
         if (_inputCaptured)
         {
-            _capturer.HandleInput(keyboardState, mouseState, frameTime);
+            _capturer?.HandleInput(keyboardState, mouseState, frameTime);
             return;
         }
 
