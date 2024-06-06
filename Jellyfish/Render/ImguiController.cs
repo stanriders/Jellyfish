@@ -10,6 +10,7 @@ using Serilog;
 using ErrorCode = OpenTK.Graphics.OpenGL.ErrorCode;
 using Jellyfish.Input;
 using System.Collections.Generic;
+using ImGuizmoNET;
 
 namespace Jellyfish.Render;
 
@@ -27,11 +28,13 @@ public sealed class ImguiController : IDisposable, IInputHandler
     private int _windowHeight;
 
     private readonly List<char> _pressedChars = new();
+    private bool _usingGizmo;
 
     public ImguiController()
     {
         var context = ImGui.CreateContext();
         ImGui.SetCurrentContext(context);
+        ImGuizmo.SetImGuiContext(context);
 
         var io = ImGui.GetIO();
         io.Fonts.AddFontDefault();
@@ -123,6 +126,8 @@ public sealed class ImguiController : IDisposable, IInputHandler
         }
 
         ImGui.NewFrame();
+        ImGuizmo.BeginFrame();
+        ImGuizmo.SetRect(0, 0, io.DisplaySize.X, io.DisplaySize.Y);
         _frameBegun = true;
     }
 
@@ -176,7 +181,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
         for (var i = 0; i < drawData.CmdListsCount; i++)
         {
-            var cmdList = drawData.CmdLists[i];
+            var cmdList = new ImVector<ImDrawListPtr>(drawData.CmdListsCount, drawData.CmdListsCount, drawData.CmdLists)[i];
 
             var vertexSize = cmdList.VtxBuffer.Size * Unsafe.SizeOf<ImDrawVert>();
             if (vertexSize > _vbo.Size)
@@ -225,7 +230,8 @@ public sealed class ImguiController : IDisposable, IInputHandler
         // Render command lists
         for (var n = 0; n < drawData.CmdListsCount; n++)
         {
-            var cmdList = drawData.CmdLists[n];
+            var cmdList = new ImVector<ImDrawListPtr>(drawData.CmdListsCount, drawData.CmdListsCount, drawData.CmdLists)[n];//drawData.CmdLists[n];
+            ImGuizmo.SetDrawlist(cmdList);
 
             GL.NamedBufferSubData(_vbo.Handle, nint.Zero,
                 cmdList.VtxBuffer.Size * Unsafe.SizeOf<ImDrawVert>(), cmdList.VtxBuffer.Data);
@@ -355,7 +361,20 @@ public sealed class ImguiController : IDisposable, IInputHandler
         io.KeyShift = keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift);
         io.KeySuper = keyboardState.IsKeyDown(Keys.LeftSuper) || keyboardState.IsKeyDown(Keys.RightSuper);
 
-        return io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput;
+        if (ImGuizmo.IsUsing())
+        {
+            _usingGizmo = true;
+            InputManager.CaptureInput(this);
+            return true;
+        }
+
+        if (_usingGizmo && !ImGuizmo.IsUsing())
+        {
+            _usingGizmo = false;
+            InputManager.ReleaseInput(this);
+        }
+
+        return io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput || ImGuizmo.IsOver();
     }
 
     public void PressChar(char keyChar)
@@ -374,8 +393,8 @@ public sealed class ImguiController : IDisposable, IInputHandler
         if (key >= Keys.KeyPad0 && key <= Keys.KeyPad9)
             return key - Keys.KeyPad0 + ImGuiKey.Keypad0;
 
-        if (key >= Keys.F1 && key <= Keys.F24)
-            return key - Keys.F1 + ImGuiKey.F24;
+        if (key >= Keys.F1 && key <= Keys.F12)
+            return key - Keys.F1 + ImGuiKey.F12;
 
         switch (key)
         {
