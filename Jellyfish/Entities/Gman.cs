@@ -14,7 +14,7 @@ public class Gman : BaseModelEntity
         if (Model != null)
         {
             Model.Position = GetPropertyValue<Vector3>("Position");
-            Model.Rotation = GetPropertyValue<Vector3>("Rotation");
+            Model.Rotation = GetPropertyValue<Quaternion>("Rotation");
         }
 
         base.Think();

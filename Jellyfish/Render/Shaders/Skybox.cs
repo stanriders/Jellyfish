@@ -32,8 +32,9 @@ public class Skybox : Shader
             return;
 
         base.Bind();
-        
-        SetVector3("uSunPos", _sun!.GetPropertyValue<Vector3>("Rotation"));
+
+        var rotationVector = Vector3.Transform(Vector3.UnitY, _sun!.GetPropertyValue<Quaternion>("Rotation"));
+        SetVector3("uSunPos", rotationVector);
 
         var proj = camera.GetProjectionMatrix();
         proj.Transpose();

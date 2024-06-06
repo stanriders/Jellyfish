@@ -26,7 +26,7 @@ public class PointLight : BaseEntity, ILightSource
     }
 
     public Vector3 Position => GetPropertyValue<Vector3>("Position");
-    public Vector3 Rotation => GetPropertyValue<Vector3>("Rotation");
+    public Quaternion Rotation => GetPropertyValue<Quaternion>("Rotation");
     public Color4 Color => GetPropertyValue<Color4>("Color");
     public Color4 Ambient => GetPropertyValue<Color4>("Ambient");
     public bool Enabled => GetPropertyValue<bool>("Enabled");
@@ -39,7 +39,7 @@ public class PointLight : BaseEntity, ILightSource
         get
         {
             var lightProjection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(90f), 1.0f, NearPlane, FarPlane);
-            var lightView = Matrix4.LookAt(Position, Position + Rotation, new Vector3(0f, 1f, 0f));
+            var lightView = Matrix4.LookAt(Position, Position + Vector3.Transform(-Vector3.UnitY, Rotation), Vector3.UnitY);
             return lightView * lightProjection;
         }
     }

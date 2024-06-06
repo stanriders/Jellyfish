@@ -77,14 +77,14 @@ public class Model
         }
     }
 
-    public Vector3 Rotation
+    public Quaternion Rotation
     {
         get
         {
             if (_meshes.Any())
                 return _meshes[0].Rotation;
 
-            return Vector3.Zero;
+            return Quaternion.Identity;
         }
         set
         {

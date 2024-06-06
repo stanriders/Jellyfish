@@ -45,7 +45,9 @@ public class InfoOverlay : IUiPanel
                 ImGui.Separator();
                 ImGui.Text($"FPS: {1.0 / _lastAverageFrametime:N0} (frametime: {_lastAverageFrametime * 1000.0:N4})");
                 ImGui.Separator();
-                ImGui.Text($"Position: {Camera.Instance.GetPropertyValue<OpenTK.Mathematics.Vector3>("Position")}");
+                ImGui.Text($"Position: {Camera.Instance.GetPropertyValue<OpenTK.Mathematics.Vector3>("Position"):N4}");
+                ImGui.Separator();
+                ImGui.Text($"Rotation: {Camera.Instance.GetPropertyValue<OpenTK.Mathematics.Quaternion>("Rotation").ToEulerAngles().ToDegrees():N2}");
             }
         }
 

@@ -47,6 +47,20 @@ public class EntityListPanel : IUiPanel
 
                             entity.SetPropertyValue(entityProperty.Name, new Color4(val.X, val.Y, val.Z, val.W));
                         }
+                        else if (entityProperty.Type == typeof(Quaternion))
+                        {
+                            var valueCasted = (Quaternion)entityProperty.Value!;
+                            var eulerAngles = valueCasted.ToEulerAngles();
+
+                            var val = new System.Numerics.Vector3(MathHelper.RadiansToDegrees(eulerAngles.X), 
+                                MathHelper.RadiansToDegrees(eulerAngles.Y), 
+                                MathHelper.RadiansToDegrees(eulerAngles.Z));
+
+                            ImGui.DragFloat3($"{entityProperty.Name}", ref val, 1f, -360.0f, 360.0f);
+
+                            entity.SetPropertyValue(entityProperty.Name, 
+                                new Quaternion(MathHelper.DegreesToRadians(val.X), MathHelper.DegreesToRadians(val.Y), MathHelper.DegreesToRadians(val.Z)));
+                        }
                         else if (entityProperty.Type == typeof(bool))
                         {
                             var val = (bool)entityProperty.Value!;

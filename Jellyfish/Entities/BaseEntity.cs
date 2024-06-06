@@ -21,7 +21,7 @@ public abstract class BaseEntity
     {
         AddProperty("Name", Guid.NewGuid().ToString("n")[..8]);
         AddProperty<Vector3>("Position");
-        AddProperty<Vector3>("Rotation");
+        AddProperty<Quaternion>("Rotation");
     }
 
     public virtual void Load()
@@ -108,7 +108,7 @@ public class EntityDevCone
     public void Think()
     {
         _model.Position = _entity.GetPropertyValue<Vector3>("Position");
-        _model.Rotation = _entity.GetPropertyValue<Vector3>("Rotation");
+        _model.Rotation = _entity.GetPropertyValue<Quaternion>("Rotation");
         _model.ShouldDraw = _entity.DrawDevCone;
     }
 }

@@ -69,7 +69,7 @@ public class Mesh
     private IndexBuffer? _ibo;
     
     public Vector3 Position = Vector3.Zero;
-    public Vector3 Rotation = Vector3.Zero;
+    public Quaternion Rotation = Quaternion.Identity;
     public bool ShouldDraw { get; set; } = true;
     public bool IsDev { get; set; }
 
@@ -142,14 +142,9 @@ public class Mesh
         _vao.Bind();
 
         var transform = Matrix4.Identity * Matrix4.CreateTranslation(Position);
-
         drawShader.SetMatrix4("transform", transform);
 
-        var rotation = Matrix4.Identity *
-                       Matrix4.CreateRotationX(MathHelper.DegreesToRadians(Rotation.X)) *
-                       Matrix4.CreateRotationY(MathHelper.DegreesToRadians(Rotation.Y)) *
-                       Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(Rotation.Z));
-
+        var rotation = Matrix4.Identity * Matrix4.CreateFromQuaternion(Rotation);
         drawShader.SetMatrix4("rotation", rotation);
 
         if (_ibo != null)

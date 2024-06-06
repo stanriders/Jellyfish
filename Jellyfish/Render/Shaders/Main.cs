@@ -45,7 +45,9 @@ public class Main : Shader
         {
             var light = lights[i].Source;
             SetVector3($"lightSources[{i}].position", light.Position);
-            SetVector3($"lightSources[{i}].direction", light.Rotation);
+
+            var rotationVector = Vector3.Transform(-Vector3.UnitY, light.Rotation);
+            SetVector3($"lightSources[{i}].direction", rotationVector);
 
             SetVector3($"lightSources[{i}].diffuse", new Vector3(light.Color.R, light.Color.G, light.Color.B));
             SetVector3($"lightSources[{i}].ambient", new Vector3(light.Ambient.R, light.Ambient.G, light.Ambient.B));

@@ -18,9 +18,9 @@
         {
           "Name": "Rotation",
           "Value": {
-            "X": -90,
-            "Y": 0,
-            "Z": 0
+            "Pitch": -90,
+            "Yaw": 0,
+            "Roll": 0
           }
         }
       ]
@@ -36,16 +36,16 @@
           "Name": "Position",
           "Value": {
             "X": -50,
-            "Y": 0,
+            "Y": 20,
             "Z": 0
           }
         },
         {
           "Name": "Rotation",
           "Value": {
-            "X": -90,
-            "Y": 0,
-            "Z": 0
+            "Pitch": -90,
+            "Yaw": 0,
+            "Roll": 0
           }
         },
         {
@@ -76,9 +76,9 @@
         {
           "Name": "Rotation",
           "Value": {
-            "X": 0,
-            "Y": 0,
-            "Z": 0
+            "Pitch": 0,
+            "Yaw": 0,
+            "Roll": 0
           }
         },
         {
@@ -105,9 +105,9 @@
         {
           "Name": "Rotation",
           "Value": {
-            "X": 0,
-            "Y": 0,
-            "Z": 0
+            "Pitch": 0,
+            "Yaw": 0,
+            "Roll": 0
           }
         },
         {
@@ -117,6 +117,39 @@
         {
           "Name": "BoundingBox",
           "Value": "Box"
+        }
+      ]
+    },
+    {
+      "ClassName": "model_dynamic",
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "oildrum1"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": -10,
+            "Y": 20,
+            "Z": 10
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0,
+            "Yaw": 0,
+            "Roll": 0
+          }
+        },
+        {
+          "Name": "Model",
+          "Value": "oildrum001_reference.smd"
+        },
+        {
+          "Name": "BoundingBox",
+          "Value": "Cylinder"
         }
       ]
     },
@@ -172,9 +205,9 @@
         {
           "Name": "Rotation",
           "Value": {
-            "X": 0.5,
-            "Y": -0.5,
-            "Z": 0.3
+            "Pitch": 0.5,
+            "Yaw": -0.5,
+            "Roll": 0.3
           }
         },
         {
@@ -192,11 +225,11 @@
         },
         {
           "Name": "Cone",
-          "Value": 25.0
+          "Value": 45.0
         },
         {
           "Name": "OuterCone",
-          "Value": 40.0
+          "Value": 50.0
         },
         {
           "Name": "Enabled",
@@ -222,9 +255,9 @@
         {
           "Name": "Rotation",
           "Value": {
-            "X": -90,
-            "Y": 0,
-            "Z": 0
+            "Pitch": -90,
+            "Yaw": 0,
+            "Roll": 0
           }
         },
         {
@@ -262,9 +295,9 @@
         {
           "Name": "Rotation",
           "Value": {
-            "X": 90,
-            "Y": 0,
-            "Z": 0
+            "Pitch": 90,
+            "Yaw": 0,
+            "Roll": 0
           }
         },
         {
@@ -302,9 +335,9 @@
         {
           "Name": "Rotation",
           "Value": {
-            "X": 180,
-            "Y": 0,
-            "Z": 0
+            "Pitch": 180,
+            "Yaw": 0,
+            "Roll": 0
           }
         },
         {
@@ -342,9 +375,9 @@
         {
           "Name": "Rotation",
           "Value": {
-            "X": 180,
-            "Y": 90,
-            "Z": 0
+            "Pitch": 0,
+            "Yaw": -90,
+            "Roll": 0
           }
         },
         {
@@ -372,11 +405,19 @@
           "Value": "sun"
         },
         {
+          "Name": "Position",
+          "Value": {
+            "X": 0,
+            "Y": 4000,
+            "Z": 0
+          }
+        },
+        {
           "Name": "Rotation",
           "Value": {
-            "X": 0.5,
-            "Y": 0.95,
-            "Z": 0.3
+            "Pitch": 6,
+            "Yaw": 0,
+            "Roll": 0
           }
         },
         {

@@ -20,12 +20,12 @@ public class Sun : BaseEntity, ILightSource
     }
 
     public Vector3 Position => GetPropertyValue<Vector3>("Position");
-    public Vector3 Rotation => GetPropertyValue<Vector3>("Rotation");
+    public Quaternion Rotation => GetPropertyValue<Quaternion>("Rotation");
     public Color4 Color => GetPropertyValue<Color4>("Color");
     public Color4 Ambient => GetPropertyValue<Color4>("Ambient");
     public bool Enabled => GetPropertyValue<bool>("Enabled");
     public bool UseShadows => GetPropertyValue<bool>("Shadows");
-    public float NearPlane => 0.1f;
+    public float NearPlane => 1f;
     public float FarPlane => 4100f;
 
     public Matrix4 Projection
@@ -36,11 +36,11 @@ public class Sun : BaseEntity, ILightSource
 
             if (Camera.Instance != null)
             {
-                position = Camera.Instance.GetPropertyValue<Vector3>("Position") + new Vector3(0f, 4000f, 0f);
+                position = Camera.Instance.GetPropertyValue<Vector3>("Position") + GetPropertyValue<Vector3>("Position");
             }
 
             var lightProjection = Matrix4.CreateOrthographic(10000, 10000, NearPlane, FarPlane);
-            var lightView = Matrix4.LookAt(position, position + -Rotation, Vector3.UnitY);
+            var lightView = Matrix4.LookAt(position, position + Vector3.Transform(-Vector3.UnitY, Rotation), Vector3.UnitY);
             return lightView * lightProjection;
         }
     }

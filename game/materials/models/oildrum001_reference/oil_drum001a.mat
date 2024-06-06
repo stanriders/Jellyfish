@@ -1,0 +1,14 @@
+{
+  "Shader": "Main",
+  "Diffuse": "Oil_Drum001a.png",
+  "Normal": "Oil_Drum001a_normal.png",
+  "Phong": true,
+  "PhongExponent": "50"
+/*
+	"$phongboost" "0.6"
+	"$phongalbedoboost" "1"
+	"$phongfresnelranges" "[.14 .14 .15]"
+	"$phongalbedotint" "1"
+	"$phongdisablehalflambert" "1"
+*/
+}

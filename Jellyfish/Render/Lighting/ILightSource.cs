@@ -5,7 +5,7 @@ namespace Jellyfish.Render.Lighting;
 public interface ILightSource
 {
     Vector3 Position { get; }
-    Vector3 Rotation { get; }
+    Quaternion Rotation { get; }
 
     Color4 Color { get; }
     Color4 Ambient { get; }

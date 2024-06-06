@@ -90,25 +90,20 @@ public class PhysicsManager
         _bodyInterface.SetPosition(bodyId, newPosition.ToNumericsVector(), Activation.Activate);
     }
 
-    public static void SetRotation(BodyID bodyId, Vector3 newRotation)
+    public static void SetRotation(BodyID bodyId, Quaternion newRotation)
     {
         instance?.SetRotationInternal(bodyId, newRotation);
     }
 
-    private void SetRotationInternal(BodyID bodyId, Vector3 newRotation)
+    private void SetRotationInternal(BodyID bodyId, Quaternion newRotation)
     {
-        var quatRotation = Quaternion.FromEulerAngles(float.DegreesToRadians(newRotation.X),
-            float.DegreesToRadians(newRotation.Y), float.DegreesToRadians(newRotation.Z));
-
-        _bodyInterface.SetRotation(bodyId, quatRotation.ToNumericsQuaternion(), Activation.Activate);
+        _bodyInterface.SetRotation(bodyId, newRotation.ToNumericsQuaternion(), Activation.Activate);
     }
 
     private void AddStaticObjectInternal(MeshPart[] meshes, BaseEntity entity)
     {
         var initialPosition = entity.GetPropertyValue<Vector3>("Position");
-        var initialRotation = entity.GetPropertyValue<Vector3>("Rotation");
-        var quatRotation = Quaternion.FromEulerAngles(float.DegreesToRadians(initialRotation.X),
-            float.DegreesToRadians(initialRotation.Y), float.DegreesToRadians(initialRotation.Z));
+        var initialRotation = entity.GetPropertyValue<Quaternion>("Rotation");
 
         var triangles = new List<Triangle>();
 
@@ -142,7 +137,7 @@ public class PhysicsManager
 
         var bodySettings = new BodyCreationSettings(shapeSettings,
             initialPosition.ToNumericsVector(),
-            quatRotation.ToNumericsQuaternion(),
+            initialRotation.ToNumericsQuaternion(),
             MotionType.Static,
             Layers.NonMoving);
 
@@ -154,13 +149,11 @@ public class PhysicsManager
     private BodyID AddDynamicObjectInternal(ShapeSettings shape, BaseEntity entity)
     {
         var initialPosition = entity.GetPropertyValue<Vector3>("Position");
-        var initialRotation = entity.GetPropertyValue<Vector3>("Rotation");
-        var quatRotation = Quaternion.FromEulerAngles(float.DegreesToRadians(initialRotation.X),
-            float.DegreesToRadians(initialRotation.Y), float.DegreesToRadians(initialRotation.Z));
+        var initialRotation = entity.GetPropertyValue<Quaternion>("Rotation");
 
         var bodySettings = new BodyCreationSettings(shape,
             initialPosition.ToNumericsVector(),
-            quatRotation.ToNumericsQuaternion(),
+            initialRotation.ToNumericsQuaternion(),
             MotionType.Dynamic,
             Layers.Moving);
 
@@ -223,12 +216,11 @@ public class PhysicsManager
             {
                 if (_bodyInterface.IsActive(bodyId))
                 {
-                    var centerOfMassPosition = _bodyInterface.GetPosition(bodyId).ToOpentkVector();
-                    var rotation = _bodyInterface.GetRotation(bodyId).ToOpentkQuaternion().ToEulerAngles();
-                    var angleRotation = new Vector3(float.RadiansToDegrees(rotation.X), float.RadiansToDegrees(rotation.Y), float.RadiansToDegrees(rotation.Z));
+                    var position = _bodyInterface.GetPosition(bodyId).ToOpentkVector();
+                    var rotation = _bodyInterface.GetRotation(bodyId).ToOpentkQuaternion();
 
-                    entity.SetPropertyValue("Position", centerOfMassPosition);
-                    entity.SetPropertyValue("Rotation", angleRotation);
+                    entity.SetPropertyValue("Position", position);
+                    entity.SetPropertyValue("Rotation", rotation);
                 }
             }
 

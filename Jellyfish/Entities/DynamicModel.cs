@@ -10,14 +10,17 @@ public class DynamicModel : BaseModelEntity
 {
     private BodyID _physicsBodyId;
     private Vector3? _previousPosition;
-    private Vector3? _previousRotation;
+    private Quaternion? _previousRotation;
 
     public enum BoundingBoxType
     {
         Capsule,
         Box,
-        Sphere
+        Sphere,
+        Cylinder
     }
+
+    public override bool DrawDevCone => true;
 
     public DynamicModel()
     {
@@ -38,7 +41,7 @@ public class DynamicModel : BaseModelEntity
         if (Model != null)
         {
             Model.Position = GetPropertyValue<Vector3>("Position");
-            Model.Rotation = GetPropertyValue<Vector3>("Rotation");
+            Model.Rotation = GetPropertyValue<Quaternion>("Rotation");
 
             if (_previousPosition != Model.Position)
             {
@@ -87,21 +90,34 @@ public class DynamicModel : BaseModelEntity
                 maxY = coords.Y;
         }
 
-        var halfHeigth = (maxY - minY) / 2;
+        var midX = (maxX - minX) / 2f;
+        var midY = (maxX - minX) / 2f;
+        var midZ = (maxX - minX) / 2f;
+
+        var middleCoord = new System.Numerics.Vector3(midX, midY, midZ);
+
+        var halfHeigth = midY;
         var horizontalRadius = Math.Max(maxX - minX, maxZ - minZ) / 2f;
         var radius = Math.Max(Math.Max(maxX - minX, maxZ - minZ), maxY - minY) / 2f;
 
+        var rotated = horizontalRadius > halfHeigth;
+        var rotateByX = midX > midZ;
+
         var type = GetPropertyValue<BoundingBoxType>("BoundingBox");
-        switch (type)
+        ShapeSettings shape = type switch
         {
-            case BoundingBoxType.Sphere:
-                return new SphereShapeSettings(radius);
-            case BoundingBoxType.Capsule:
-                return new CapsuleShapeSettings(halfHeigth, horizontalRadius);
-            case BoundingBoxType.Box:
-                return new BoxShapeSettings(new System.Numerics.Vector3((maxX - minX) / 2f, halfHeigth, (maxZ - minZ) / 2f));
-            default:
-                throw new ArgumentException("Unknown bounding box type");
-        }
+            BoundingBoxType.Sphere => new SphereShapeSettings(radius),
+            BoundingBoxType.Capsule => rotated ? new CapsuleShapeSettings(horizontalRadius, halfHeigth) : new CapsuleShapeSettings(halfHeigth, horizontalRadius),
+            BoundingBoxType.Box => new BoxShapeSettings(middleCoord),
+            BoundingBoxType.Cylinder => new CylinderShapeSettings(halfHeigth, radius),
+            _ => throw new ArgumentException("Unknown bounding box type"),
+        };
+        
+        var rotation = GetPropertyValue<Quaternion>("Rotation");
+
+        //float rotationX = rotated && rotateByX ? float.DegreesToRadians(rotation.X + 90) : float.DegreesToRadians(rotation.X);
+        //float rotationZ = rotated && !rotateByX ? float.DegreesToRadians(rotation.Z + 90) : float.DegreesToRadians(rotation.Z);
+
+        return new RotatedTranslatedShapeSettings(new System.Numerics.Vector3(0, halfHeigth, 0), rotation.ToNumericsQuaternion(), shape);
     }
 }

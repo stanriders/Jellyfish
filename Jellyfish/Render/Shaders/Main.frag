@@ -270,7 +270,7 @@ vec3 CalcSpotlight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
 vec3 CalcSun(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
 {
     Light light = lightSources[lightIndex];
-    vec3 lightDir = normalize(light.direction);
+    vec3 lightDir = normalize(-light.direction);
 
     //diffuse shading
     float diff = max(dot(normal, lightDir), 0.0);

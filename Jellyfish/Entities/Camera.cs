@@ -142,13 +142,15 @@ public class Camera : BaseEntity, IInputHandler
         Right = Vector3.Normalize(Vector3.Cross(_front, Vector3.UnitY));
         Up = Vector3.Normalize(Vector3.Cross(Right, _front));
 
+        var quatRotation = new Matrix3(_front, Up, Right).ExtractRotation();
+
         if (_camLight is not null)
         {
             _camLight.SetPropertyValue("Position", GetPropertyValue<Vector3>("Position"));
-            _camLight.SetPropertyValue("Rotation", _front);
+            _camLight.SetPropertyValue("Rotation", quatRotation);
         }
 
-        SetPropertyValue("Rotation", new Vector3(Pitch, Yaw, 0));
+        SetPropertyValue("Rotation", quatRotation);
     }
 
     public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)

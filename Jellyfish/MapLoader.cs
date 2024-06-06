@@ -18,6 +18,7 @@ public static class MapLoader
         var mapString = File.ReadAllText(path);
         var deserializer = JsonSerializer.CreateDefault();
         deserializer.Converters.Add(new ColorConverter());
+        deserializer.Converters.Add(new RotationConverter());
 
         var map = JsonConvert.DeserializeObject<Map>(mapString, new ColorConverter());
         if (map == null)
@@ -43,6 +44,14 @@ public static class MapLoader
                     {
                         var propertyValue = propertyToken.Value.ToObject(entityProperty.Type, deserializer);
                         entityProperty.Value = propertyValue;
+                    }
+                    else
+                    {
+                        if (entityProperty.Type == typeof(Quaternion))
+                        {
+                            // otherwise it initializes into NaNs
+                            entityProperty.Value = Quaternion.Identity;
+                        }
                     }
                 }
             }
@@ -100,6 +109,54 @@ public static class MapLoader
             }
 
             return new Color4(r, g, b, a);
+        }
+
+        public override bool CanRead => true;
+        public override bool CanWrite => false;
+    }
+
+    public class RotationConverter : JsonConverter
+    {
+        public override bool CanConvert(Type objectType)
+        {
+            return objectType == typeof(Quaternion);
+        }
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+        {
+            throw new NotImplementedException();
+        }
+        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue,
+            JsonSerializer serializer)
+        {
+            float pitch = 0, yaw = 0, roll = 0;
+
+            while (reader.Read())
+            {
+                var token = reader.Path;
+                switch (token)
+                {
+                    case "Pitch":
+                    {
+                        reader.Read();
+                        pitch = Convert.ToSingle(reader.Value);
+                        break;
+                    }
+                    case "Yaw":
+                    {
+                        reader.Read();
+                        yaw = Convert.ToSingle(reader.Value);
+                        break;
+                    }
+                    case "Roll":
+                    {
+                        reader.Read();
+                        roll = Convert.ToSingle(reader.Value);
+                        break;
+                    }
+                }
+            }
+
+            return new Quaternion(MathHelper.DegreesToRadians(pitch), MathHelper.DegreesToRadians(yaw), MathHelper.DegreesToRadians(roll));
         }
 
         public override bool CanRead => true;

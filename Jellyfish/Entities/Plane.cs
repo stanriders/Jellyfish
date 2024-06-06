@@ -94,7 +94,7 @@ public class Plane : BaseEntity
         if (_plane != null)
         {
             _plane.Position = GetPropertyValue<Vector3>("Position");
-            _plane.Rotation = GetPropertyValue<Vector3>("Rotation");
+            _plane.Rotation = GetPropertyValue<Quaternion>("Rotation");
         }
 
         base.Think();
