@@ -70,6 +70,7 @@ public class Mesh
     
     public Vector3 Position = Vector3.Zero;
     public Quaternion Rotation = Quaternion.Identity;
+    public Vector3 Scale = Vector3.One;
     public bool ShouldDraw { get; set; } = true;
     public bool IsDev { get; set; }
 
@@ -141,7 +142,7 @@ public class Mesh
         drawShader.Bind();
         _vao.Bind();
 
-        var transform = Matrix4.Identity * Matrix4.CreateTranslation(Position);
+        var transform = Matrix4.Identity * Matrix4.CreateScale(Scale) * Matrix4.CreateTranslation(Position);
         drawShader.SetMatrix4("transform", transform);
 
         var rotation = Matrix4.Identity * Matrix4.CreateFromQuaternion(Rotation);

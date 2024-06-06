@@ -109,6 +109,7 @@ public class EntityDevCone
     {
         _model.Position = _entity.GetPropertyValue<Vector3>("Position");
         _model.Rotation = _entity.GetPropertyValue<Quaternion>("Rotation");
+        _model.Scale = new Vector3(0.3f);
         _model.ShouldDraw = _entity.DrawDevCone;
     }
 }

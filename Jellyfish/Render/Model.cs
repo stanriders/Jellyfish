@@ -95,4 +95,23 @@ public class Model
             }
         }
     }
+
+    public Vector3 Scale
+    {
+        get
+        {
+            if (_meshes.Any())
+                return _meshes[0].Scale;
+
+            return Vector3.One;
+        }
+        set
+        {
+            if (_meshes.Any())
+            {
+                foreach (var mesh in _meshes)
+                    mesh.Scale = value;
+            }
+        }
+    }
 }
