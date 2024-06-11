@@ -17,19 +17,28 @@ public abstract class BaseEntity
     private EntityDevCone? _devCone;
 #endif
 
+    public bool Loaded { get; private set; }
+
     protected BaseEntity()
     {
-        AddProperty("Name", Guid.NewGuid().ToString("n")[..8]);
-        AddProperty<Vector3>("Position");
-        AddProperty<Quaternion>("Rotation");
+        AddProperty("Name", Guid.NewGuid().ToString("n")[..8], false);
+        AddProperty("Position", Vector3.Zero);
+        AddProperty("Rotation", Quaternion.Identity);
     }
 
     public virtual void Load()
     {
+        if (Loaded)
+        {
+            Log.Error("Entity is already loaded!"); // todo? rename to init to make it less ambiguous? 
+            return;
+        }
+
 #if DEBUG
         if (DrawDevCone)
             _devCone = new EntityDevCone(this);
 #endif
+        Loaded = true;
     }
 
     public virtual void Unload()
@@ -43,9 +52,9 @@ public abstract class BaseEntity
 #endif
     }
 
-    protected void AddProperty<T>(string name, T defaultValue = default!)
+    protected void AddProperty<T>(string name, T defaultValue = default!, bool editable = true)
     {
-        _entityProperties.Add(name, new EntityProperty<T>(name,defaultValue));
+        _entityProperties.Add(name, new EntityProperty<T>(name,defaultValue, editable));
     }
 
     protected EntityProperty<T>? GetProperty<T>(string name)

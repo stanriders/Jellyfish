@@ -14,9 +14,9 @@ public class BezierPlaneEntity : BaseEntity
 
     public BezierPlaneEntity()
     {
-        AddProperty("Size", new Vector2(20, 20));
-        AddProperty("QuadSize", 2);
-        AddProperty("Texture", "test.png");
+        AddProperty("Size", new Vector2(20, 20), false);
+        AddProperty("QuadSize", 2, false);
+        AddProperty("Texture", "test.png", false);
     }
 
     public override void Load()

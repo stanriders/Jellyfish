@@ -13,7 +13,7 @@ public class Audio : BaseEntity
 
     public Audio()
     {
-        AddProperty<string>("Path");
+        AddProperty<string>("Path", editable: false);
         AddProperty("Autoplay", false);
         AddProperty("UseAirAbsorption", true);
     }

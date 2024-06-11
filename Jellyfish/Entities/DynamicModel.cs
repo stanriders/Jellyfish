@@ -24,8 +24,8 @@ public class DynamicModel : BaseModelEntity
 
     public DynamicModel()
     {
-        AddProperty<string>("Model");
-        AddProperty<BoundingBoxType>("BoundingBox");
+        AddProperty<string>("Model", editable: false);
+        AddProperty<BoundingBoxType>("BoundingBox", editable: false);
     }
 
     public override void Load()

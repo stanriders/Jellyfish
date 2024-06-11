@@ -12,9 +12,9 @@ public class Plane : BaseEntity
 
     public Plane()
     {
-        AddProperty("Size", new Vector2(20, 20));
-        AddProperty("Texture", "test.png");
-        AddProperty("TextureScale", 1.0f);
+        AddProperty("Size", new Vector2(20, 20), false);
+        AddProperty("Texture", "test.png", false);
+        AddProperty("TextureScale", 1.0f, false);
     }
 
     public override void Load()

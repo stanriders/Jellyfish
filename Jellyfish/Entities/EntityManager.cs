@@ -12,6 +12,8 @@ public class EntityManager
     private readonly List<BaseEntity> _entityList = new();
 
     public static IReadOnlyList<BaseEntity>? Entities => instance?._entityList.AsReadOnly();
+    public static IReadOnlyList<string>? EntityClasses => instance?._entityClassDictionary.Keys.ToList().AsReadOnly();
+
     private static EntityManager? instance;
 
     public EntityManager()
