@@ -45,6 +45,13 @@ public class BezierPlaneEntity : BaseEntity
         base.Think();
     }
 
+    public override void Unload()
+    {
+        if (_plane != null)
+            MeshManager.RemoveMesh(_plane);
+
+        base.Unload();
+    }
 
     /// <summary>
     /// https://github.com/tugbadogan/opengl-bezier-surface/tree/master

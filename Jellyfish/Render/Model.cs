@@ -58,6 +58,12 @@ public class Model
             MeshManager.AddMesh(mesh);
     }
 
+    public void Unload()
+    {
+        foreach (var mesh in _meshes)
+            MeshManager.RemoveMesh(mesh);
+    }
+
     public Vector3 Position
     {
         get

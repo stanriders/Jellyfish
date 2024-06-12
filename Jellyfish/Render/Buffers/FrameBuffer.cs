@@ -25,6 +25,11 @@ public class FrameBuffer
         GL.BindFramebuffer(target, 0);
     }
 
+    public void Unload()
+    {
+        GL.DeleteFramebuffer(_framebufferHandle);
+    }
+
     public bool Check()
     {
         var code = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);

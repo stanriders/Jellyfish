@@ -27,6 +27,12 @@ public class Spotlight : BaseEntity, ILightSource
         LightManager.AddLight(this);
     }
 
+    public override void Unload()
+    {
+        LightManager.RemoveLight(this);
+        base.Unload();
+    }
+
     public Vector3 Position => GetPropertyValue<Vector3>("Position");
     public Quaternion Rotation => GetPropertyValue<Quaternion>("Rotation");
     public Color4 Color => GetPropertyValue<Color4>("Color");

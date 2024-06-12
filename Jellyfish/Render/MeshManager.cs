@@ -15,6 +15,12 @@ public static class MeshManager
             AudioManager.AddMesh(mesh.MeshPart);
     }
 
+    public static void RemoveMesh(Mesh mesh)
+    {
+        meshes.Remove(mesh);
+        mesh.Unload();
+    }
+
     public static void Draw(bool drawDev = true, Shader? shaderToUse = null)
     {
         foreach (var mesh in meshes)

@@ -7,55 +7,73 @@ namespace Jellyfish.Render;
 
 public class Texture
 {
-    private readonly int _handle;
+    public string Path { get; }
+    public int Handle { get; }
+    public int References { get; set; } = 1;
+    
+    private readonly bool _isError;
 
     public const string error_texture = "materials/error.png";
 
-    public Texture(string path)
+    public Texture(string path, TextureTarget type)
     {
+        Path = path;
+
         if (string.IsNullOrEmpty(path))
             return;
 
-        // we get a handle before checking for path existing to be able to see which textures failed to load in the texture list
-        (_handle, var alreadyExists) = TextureManager.GenerateHandle(path, TextureTarget.Texture2D);
-        if (alreadyExists)
-            return;
+        var textureHandles = new int[1];
+        GL.CreateTextures(type, 1, textureHandles);
+        Handle = textureHandles[0];
 
-        GL.ObjectLabel(ObjectLabelIdentifier.Texture, _handle, path.Length, path);
+        GL.ObjectLabel(ObjectLabelIdentifier.Texture, Handle, path.Length, path);
 
-        if (!File.Exists(path))
+        if (!path.StartsWith("_"))
         {
-            Log.Warning("[Texture] Texture {Path} doesn't exist!", path);
-            path = error_texture;
+            if (!File.Exists(path))
+            {
+                Log.Warning("[Texture] Texture {Path} doesn't exist!", path);
+                path = error_texture;
+            }
+
+            if (path == error_texture)
+                _isError = true;
+
+            using var image = new MagickImage(path);
+            using var data = image.GetPixelsUnsafe(); // feels scary
+
+            var pixelFormat = PixelFormat.Rgba;
+            var internalPixelFormat = SizedInternalFormat.Rgba8;
+            if (image is { ChannelCount: 3, Depth: 8 })
+            {
+                pixelFormat = PixelFormat.Rgb;
+                internalPixelFormat = SizedInternalFormat.Rgb8;
+            }
+
+            //GL.TextureParameter(_handle, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+            //GL.TextureParameter(_handle, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+            GL.TextureParameter(Handle, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            GL.TextureParameter(Handle, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+
+            GL.TextureStorage2D(Handle, 1, internalPixelFormat, image.Width, image.Height);
+            GL.TextureSubImage2D(Handle, 0, 0, 0, image.Width, image.Height, pixelFormat, PixelType.UnsignedByte,
+                data.GetAreaPointer(0, 0, image.Width, image.Height));
+
+            GL.GenerateTextureMipmap(Handle);
         }
-
-        using var image = new MagickImage(path);
-        using var data = image.GetPixelsUnsafe(); // feels scary
-
-        var pixelFormat = PixelFormat.Rgba;
-        var internalPixelFormat = SizedInternalFormat.Rgba8;
-        if (image is { ChannelCount: 3, Depth: 8 })
-        {
-            pixelFormat = PixelFormat.Rgb;
-            internalPixelFormat = SizedInternalFormat.Rgb8;
-        }
-        
-        //GL.TextureParameter(_handle, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-        //GL.TextureParameter(_handle, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-        GL.TextureParameter(_handle, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-        GL.TextureParameter(_handle, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
-
-        GL.TextureStorage2D(_handle, 1, internalPixelFormat, image.Width, image.Height);
-        GL.TextureSubImage2D(_handle, 0, 0, 0, image.Width, image.Height, pixelFormat, PixelType.UnsignedByte, data.GetAreaPointer(0, 0, image.Width, image.Height));
-
-        GL.GenerateTextureMipmap(_handle);
     }
 
     public void Bind(int unit)
     {
-        if (_handle != 0)
+        if (Handle != 0)
         {
-            GL.BindTextureUnit(unit, _handle);
+            GL.BindTextureUnit(unit, Handle);
         }
+    }
+
+    public void Unload()
+    {
+        if (!_isError && Handle != 0)
+            TextureManager.RemoveTexture(this);
     }
 }

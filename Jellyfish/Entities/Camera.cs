@@ -173,7 +173,6 @@ public class Camera : BaseEntity, IInputHandler
             inputHandled = true;
         }
         
-
         var cameraSpeed = keyboardState.IsKeyDown(Keys.LeftShift) ? camera_speed * 4 : camera_speed;
 
         if (_physCharacter != null && !_noclip)

@@ -1,38 +1,37 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.Render;
 
 public static class TextureManager
 {
-    private static Dictionary<string, int> _textures { get; } = new();
-    public static IReadOnlyDictionary<string, int> Textures { get; } = _textures.AsReadOnly();
+    private static List<Texture> _textures { get; } = new();
+    public static IReadOnlyList<Texture> Textures { get; } = _textures.AsReadOnly();
 
-    public static (int handle, bool alreadyExists) GenerateHandle(string name, TextureTarget target)
+    public static (Texture Texture, bool AlreadyExists) GetTexture(string name, TextureTarget type)
     {
-        if (_textures.TryGetValue(name, out var handle))
+        var existingTexture = _textures.FirstOrDefault(x => x.Path == name);
+        if (existingTexture != default)
         {
-            return (handle, true);
+            existingTexture.References++;
+            return (existingTexture, true);
         }
 
-        var textureHandles = new int[1];
-        GL.CreateTextures(target, 1, textureHandles);
-        handle = textureHandles[0];
-        _textures.Add(name, handle);
+        var texture = new Texture(name, type);
+        _textures.Add(texture);
 
-        return (handle, false);
+        return (texture, false);
     }
 
-    public static int GenerateHandle(string name)
+    public static void RemoveTexture(Texture texture)
     {
-        if (_textures.TryGetValue(name, out var handle))
+        texture.References--;
+
+        if (texture.References <= 0)
         {
-            return handle;
+            _textures.Remove(texture);
+            GL.DeleteTexture(texture.Handle);
         }
-
-        handle = GL.GenTexture();
-        _textures.Add(name, handle);
-
-        return handle;
     }
 }

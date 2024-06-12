@@ -15,4 +15,11 @@ public abstract class BaseModelEntity : BaseEntity
 
         base.Load();
     }
+
+    public override void Unload()
+    {
+        Model?.Unload();
+
+        base.Unload();
+    }
 }

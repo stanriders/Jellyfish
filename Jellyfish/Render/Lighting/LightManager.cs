@@ -40,6 +40,19 @@ public static class LightManager
         }
     }
 
+    public static void RemoveLight(ILightSource source)
+    {
+        var light = lights.Find(x => x.Source == source);
+        if (light != null)
+        {
+            light.ShadowFrameBuffer?.Unload();
+            light.ShadowRt?.Unload();
+            light.ShadowShader?.Unload();
+
+            lights.Remove(light);
+        }
+    }
+
     public static void DrawShadows()
     {
         GL.Disable(EnableCap.CullFace);

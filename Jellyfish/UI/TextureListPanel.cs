@@ -33,18 +33,18 @@ public class TextureListPanel : IUiPanel, IInputHandler
                 var texture = TextureManager.Textures.ElementAt(i);
                 ImGui.BeginGroup();
                 ImGui.PushTextWrapPos(ImGui.GetCursorPos().X + item_width);
-                ImGui.Text(texture.Key);
+                ImGui.Text($"{texture.Path} ({texture.References} references)");
                 ImGui.PopTextWrapPos();
 
                 var expanded = _expandedTexture == i;
                 var size = expanded ? item_width * 2 : item_width;
                 bool pressed;
                 // flip RTs upside down
-                if (texture.Key.StartsWith("_rt_"))
-                    pressed = ImGui.ImageButton(texture.Key, texture.Value, new Vector2(size, size), Vector2.One,
+                if (texture.Path.StartsWith("_rt_"))
+                    pressed = ImGui.ImageButton(texture.Path, texture.Handle, new Vector2(size, size), Vector2.One,
                         Vector2.Zero);
                 else
-                    pressed = ImGui.ImageButton(texture.Key, texture.Value, new Vector2(size, size));
+                    pressed = ImGui.ImageButton(texture.Path, texture.Handle, new Vector2(size, size));
 
                 if (pressed)
                 {

@@ -136,7 +136,7 @@ public abstract class Shader
         }
     }
 
-    public void Unload()
+    public virtual void Unload()
     {
         if (_shaderHandle != 0)
         {

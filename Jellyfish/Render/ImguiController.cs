@@ -87,7 +87,9 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
         var mips = (int)Math.Floor(Math.Log(Math.Max(width, height), 2));
 
-        (_fontTexture, var alreadyExists) = TextureManager.GenerateHandle("_imgui_Fonts", TextureTarget.Texture2D);
+        (var fontTexture, var alreadyExists) = TextureManager.GetTexture("_imgui_Fonts", TextureTarget.Texture2D);
+        _fontTexture = fontTexture.Handle;
+
         if (!alreadyExists)
         {
             GL.TextureStorage2D(_fontTexture, mips, SizedInternalFormat.Rgba8, width, height);

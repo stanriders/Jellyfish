@@ -12,6 +12,9 @@ public abstract class BaseEntity
     private readonly Dictionary<string, EntityProperty> _entityProperties = new();
     public IReadOnlyList<EntityProperty> EntityProperties => _entityProperties.Values.ToList().AsReadOnly();
 
+    private readonly Dictionary<string, EntityAction> _entityActions = new();
+    public IReadOnlyList<EntityAction> EntityActions => _entityActions.Values.ToList().AsReadOnly();
+    
 #if DEBUG
     public virtual bool DrawDevCone { get; set; }
     private EntityDevCone? _devCone;
@@ -24,6 +27,8 @@ public abstract class BaseEntity
         AddProperty("Name", Guid.NewGuid().ToString("n")[..8], false);
         AddProperty("Position", Vector3.Zero);
         AddProperty("Rotation", Quaternion.Identity);
+
+        AddAction("Kill", () => EntityManager.KillEntity(this));
     }
 
     public virtual void Load()
@@ -43,6 +48,13 @@ public abstract class BaseEntity
 
     public virtual void Unload()
     {
+#if DEBUG
+        if (DrawDevCone && _devCone != null)
+        {
+            _devCone.Unload();
+            _devCone = null;
+        }
+#endif
     }
 
     public virtual void Think()
@@ -101,6 +113,22 @@ public abstract class BaseEntity
 
         return false;
     }
+
+    protected void AddAction(string name, Action action, bool enabled = true)
+    {
+        _entityActions.Add(name, new EntityAction(name, action, enabled));
+    }
+
+    protected EntityAction? GetAction(string name)
+    {
+        if (_entityActions.TryGetValue(name, out var action))
+        {
+            return action;
+        }
+
+        Log.Warning("Unknown action {Name}!", name);
+        return null;
+    }
 }
 
 public class EntityDevCone
@@ -120,5 +148,10 @@ public class EntityDevCone
         _model.Rotation = _entity.GetPropertyValue<Quaternion>("Rotation");
         _model.Scale = new Vector3(0.3f);
         _model.ShouldDraw = _entity.DrawDevCone;
+    }
+
+    public void Unload()
+    {
+        _model.Unload();
     }
 }

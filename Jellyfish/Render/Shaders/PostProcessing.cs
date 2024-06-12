@@ -24,4 +24,12 @@ public class PostProcessing : Shader
         GL.ActiveTexture(TextureUnit.Texture1);
         _rtDepth.Bind();
     }
+
+    public override void Unload()
+    {
+        _rtColor.Unload();
+        _rtDepth.Unload();
+
+        base.Unload();
+    }
 }

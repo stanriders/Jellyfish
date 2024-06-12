@@ -99,4 +99,12 @@ public class Plane : BaseEntity
 
         base.Think();
     }
+
+    public override void Unload()
+    {
+        if (_plane != null)
+            MeshManager.RemoveMesh(_plane);
+
+        base.Unload();
+    }
 }

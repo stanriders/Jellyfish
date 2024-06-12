@@ -16,6 +16,8 @@ public class Audio : BaseEntity
         AddProperty<string>("Path", editable: false);
         AddProperty("Autoplay", false);
         AddProperty("UseAirAbsorption", true);
+
+        AddAction("Play", Play);
     }
 
     public override void Load()
@@ -59,5 +61,17 @@ public class Audio : BaseEntity
         }
 
         base.Think();
+    }
+
+    public override void Unload()
+    {
+        _handle?.Dispose();
+
+        base.Unload();
+    }
+
+    public void Play()
+    {
+        _handle?.Play();
     }
 }

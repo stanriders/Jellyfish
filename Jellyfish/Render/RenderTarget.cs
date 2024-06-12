@@ -13,7 +13,7 @@ public class RenderTarget
     {
         Size = new Vector2(width, heigth);
 
-        TextureHandle = TextureManager.GenerateHandle(name);
+        TextureHandle = TextureManager.GetTexture(name, TextureTarget.Texture2D).Texture.Handle;
         GL.BindTexture(TextureTarget.Texture2D, TextureHandle);
 
         GL.TexImage2D(TextureTarget.Texture2D, 0, (PixelInternalFormat)format, width, heigth, 0, format, pixelType, IntPtr.Zero);
@@ -36,5 +36,10 @@ public class RenderTarget
     public void Bind()
     {
         GL.BindTexture(TextureTarget.Texture2D, TextureHandle);
+    }
+
+    public void Unload()
+    {
+        GL.DeleteTexture(TextureHandle);
     }
 }

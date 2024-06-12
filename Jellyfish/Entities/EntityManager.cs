@@ -10,6 +10,7 @@ public class EntityManager
 {
     private readonly Dictionary<string, Type> _entityClassDictionary = new();
     private readonly List<BaseEntity> _entityList = new();
+    private readonly Queue<BaseEntity> _killQueue = new();
 
     public static IReadOnlyList<BaseEntity>? Entities => instance?._entityList.AsReadOnly();
     public static IReadOnlyList<string>? EntityClasses => instance?._entityClassDictionary.Keys.ToList().AsReadOnly();
@@ -56,6 +57,15 @@ public class EntityManager
 
     public void Frame()
     {
+        while (_killQueue.Count > 0)
+        {
+            var entity = _killQueue.Dequeue();
+
+            Log.Information("[EntityManager] Destroying entity {Name}...", entity.GetPropertyValue<string>("Name"));
+            entity.Unload();
+            _entityList.Remove(entity);
+        }
+
         foreach (var entity in _entityList)
             entity.Think();
     }
@@ -104,5 +114,23 @@ public class EntityManager
 
         Log.Error("[EntityManager] Entity {Name} wasn't found", className);
         return null;
+    }
+
+    public static void KillEntity(BaseEntity entity)
+    {
+        if (instance == null)
+        {
+            Log.Information("[EntityManager] Entity manager doesn't exist");
+            return;
+        }
+        
+        if (!instance._entityList.Any(x => x == entity))
+        {
+            Log.Error("Trying to kill entity {Name} that doesn't exist already???", entity.GetPropertyValue<string>("Name"));
+            return;
+        }
+        
+        // there are some entity list enumerations that run every frame so we want to kill entities on the start of the frame instead of the middle of it
+        instance._killQueue.Enqueue(entity);
     }
 }

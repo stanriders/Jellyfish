@@ -8,7 +8,6 @@ namespace Jellyfish.UI;
 
 public class EntityListPanel : IUiPanel
 {
-    private bool _showAddEntity;
     private string? _selectedEntityType;
 
     public void Frame()
@@ -29,6 +28,14 @@ public class EntityListPanel : IUiPanel
 
                     ImGui.Spacing();
 
+                    foreach (var entityAction in entity.EntityActions.Order())
+                    {
+                       if (ImGui.Button(entityAction.Name))
+                           entityAction.Act();
+                    }
+
+                    ImGui.Spacing();
+
                     if (!entity.Loaded)
                     {
                         if (ImGui.Button("Load"))
@@ -40,12 +47,8 @@ public class EntityListPanel : IUiPanel
             }
 
             ImGui.Separator();
-            if (ImGui.Button("Add entity"))
-            {
-                _showAddEntity = !_showAddEntity;
-            }
 
-            if (_showAddEntity)
+            if (ImGui.CollapsingHeader("Add entity"))
             {
                 ImGui.BeginListBox("Entity types");
 
