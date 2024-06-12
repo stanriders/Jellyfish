@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System;
 using OpenTK.Mathematics;
+using JoltPhysicsSharp;
 
 namespace Jellyfish.Entities;
 
@@ -11,6 +12,7 @@ namespace Jellyfish.Entities;
 public class BezierPlaneEntity : BaseEntity
 {
     private Mesh? _plane;
+    private BodyID _physicsBodyId;
 
     public BezierPlaneEntity()
     {
@@ -30,7 +32,7 @@ public class BezierPlaneEntity : BaseEntity
 
         _plane = new Mesh(GenerateRandom(GetPropertyValue<Vector2>("Size"), texture, GetPropertyValue<int>("QuadSize")));
         MeshManager.AddMesh(_plane);
-        PhysicsManager.AddStaticObject(new[] { _plane.MeshPart }, this);
+        _physicsBodyId = PhysicsManager.AddStaticObject(new[] { _plane.MeshPart }, this) ?? 0;
         base.Load();
     }
 
@@ -49,6 +51,8 @@ public class BezierPlaneEntity : BaseEntity
     {
         if (_plane != null)
             MeshManager.RemoveMesh(_plane);
+
+        PhysicsManager.RemoveObject(_physicsBodyId);
 
         base.Unload();
     }

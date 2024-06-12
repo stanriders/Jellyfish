@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using JoltPhysicsSharp;
 using OpenTK.Mathematics;
 
 namespace Jellyfish.Entities;
@@ -6,6 +7,8 @@ namespace Jellyfish.Entities;
 [Entity("model_static")]
 public class StaticModel : BaseModelEntity
 {
+    private BodyID _physicsBodyId;
+
     public StaticModel()
     {
         AddProperty<string>("Model", editable: false);
@@ -21,6 +24,12 @@ public class StaticModel : BaseModelEntity
     {
         ModelPath = $"models/{GetPropertyValue<string>("Model")}";
         base.Load();
-        PhysicsManager.AddStaticObject(Model!.Meshes.Select(x => x.MeshPart).ToArray(), this);
+        _physicsBodyId = PhysicsManager.AddStaticObject(Model!.Meshes.Select(x => x.MeshPart).ToArray(), this) ?? 0;
+    }
+
+    public override void Unload()
+    {
+        PhysicsManager.RemoveObject(_physicsBodyId);
+        base.Unload();
     }
 }

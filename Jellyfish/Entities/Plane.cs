@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Jellyfish.Render;
+using JoltPhysicsSharp;
 using OpenTK.Mathematics;
 using Serilog;
 
@@ -9,6 +10,7 @@ namespace Jellyfish.Entities;
 public class Plane : BaseEntity
 {
     private Mesh? _plane;
+    private BodyID _physicsBodyId;
 
     public Plane()
     {
@@ -85,7 +87,7 @@ public class Plane : BaseEntity
         });
 
         MeshManager.AddMesh(_plane);
-        PhysicsManager.AddStaticObject(new []{ _plane.MeshPart }, this);
+        _physicsBodyId = PhysicsManager.AddStaticObject(new []{ _plane.MeshPart }, this) ?? 0;
         base.Load();
     }
 
@@ -104,6 +106,8 @@ public class Plane : BaseEntity
     {
         if (_plane != null)
             MeshManager.RemoveMesh(_plane);
+
+        PhysicsManager.RemoveObject(_physicsBodyId);
 
         base.Unload();
     }

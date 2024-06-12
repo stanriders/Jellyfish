@@ -50,57 +50,7 @@ public class PhysicsManager
         return instance?.Gravity ?? System.Numerics.Vector3.Zero;
     }
 
-    public static void AddStaticObject(MeshPart[] meshes, BaseEntity entity)
-    {
-        instance?.AddStaticObjectInternal(meshes, entity);
-    }
-
-    public static BodyID AddDynamicObject(ShapeSettings shape, BaseEntity entity)
-    {
-        return instance?.AddDynamicObjectInternal(shape, entity) ?? default;
-    }
-
-    public static CharacterVirtual AddPlayerController(BaseEntity entity)
-    {
-        return instance?.AddPlayerControllerInternal(entity)!;
-    }
-
-    private CharacterVirtual AddPlayerControllerInternal(BaseEntity entity)
-    {
-        var initialPosition = entity.GetPropertyValue<Vector3>("Position");
-
-        var charSettings = new CharacterVirtualSettings
-        {
-            Shape = new CapsuleShape(48f, 10f),
-            Mass = 50f,
-            Up = System.Numerics.Vector3.UnitY
-        };
-
-        _character = new CharacterVirtual(charSettings, initialPosition.ToNumericsVector(), System.Numerics.Quaternion.Identity, 0, _physicsSystem);
-        return _character;
-    }
-
-    public static void SetPosition(BodyID bodyId, Vector3 newPosition)
-    {
-        instance?.SetPositionInternal(bodyId, newPosition);
-    }
-
-    private void SetPositionInternal(BodyID bodyId, Vector3 newPosition)
-    {
-        _bodyInterface.SetPosition(bodyId, newPosition.ToNumericsVector(), Activation.Activate);
-    }
-
-    public static void SetRotation(BodyID bodyId, Quaternion newRotation)
-    {
-        instance?.SetRotationInternal(bodyId, newRotation);
-    }
-
-    private void SetRotationInternal(BodyID bodyId, Quaternion newRotation)
-    {
-        _bodyInterface.SetRotation(bodyId, newRotation.ToNumericsQuaternion(), Activation.Activate);
-    }
-
-    private void AddStaticObjectInternal(MeshPart[] meshes, BaseEntity entity)
+    public static BodyID? AddStaticObject(MeshPart[] meshes, BaseEntity entity)
     {
         var initialPosition = entity.GetPropertyValue<Vector3>("Position");
         var initialRotation = entity.GetPropertyValue<Quaternion>("Rotation");
@@ -141,12 +91,16 @@ public class PhysicsManager
             MotionType.Static,
             Layers.NonMoving);
 
-        var bodyId = _bodyInterface.CreateAndAddBody(bodySettings, Activation.DontActivate);
+        var bodyId = instance?._bodyInterface.CreateAndAddBody(bodySettings, Activation.DontActivate);
+        if (bodyId == null)
+            return null;
 
-        _bodies.Add(bodyId, entity);
+        instance?._bodies.Add(bodyId.Value, entity);
+
+        return bodyId;
     }
 
-    private BodyID AddDynamicObjectInternal(ShapeSettings shape, BaseEntity entity)
+    public static BodyID? AddDynamicObject(ShapeSettings shape, BaseEntity entity)
     {
         var initialPosition = entity.GetPropertyValue<Vector3>("Position");
         var initialRotation = entity.GetPropertyValue<Quaternion>("Rotation");
@@ -158,11 +112,47 @@ public class PhysicsManager
             Layers.Moving);
 
         var bodyId =
-            _bodyInterface.CreateAndAddBody(bodySettings, Activation.Activate);
+            instance?._bodyInterface.CreateAndAddBody(bodySettings, Activation.Activate);
 
-        _bodies.Add(bodyId, entity);
+        if (bodyId == null)
+            return null;
+
+        instance?._bodies.Add(bodyId.Value, entity);
 
         return bodyId;
+    }
+
+    public static CharacterVirtual? AddPlayerController(BaseEntity entity)
+    {
+        if (instance == null)
+            return null;
+
+        var initialPosition = entity.GetPropertyValue<Vector3>("Position");
+
+        var charSettings = new CharacterVirtualSettings
+        {
+            Shape = new CapsuleShape(48f, 10f),
+            Mass = 50f,
+            Up = System.Numerics.Vector3.UnitY
+        };
+
+        instance._character = new CharacterVirtual(charSettings, initialPosition.ToNumericsVector(), System.Numerics.Quaternion.Identity, 0, instance._physicsSystem);
+        return instance._character;
+    }
+
+    public static void SetPosition(BodyID bodyId, Vector3 newPosition)
+    {
+        instance?._bodyInterface.SetPosition(bodyId, newPosition.ToNumericsVector(), Activation.Activate);
+    }
+
+    public static void SetRotation(BodyID bodyId, Quaternion newRotation)
+    {
+        instance?._bodyInterface.SetRotation(bodyId, newRotation.ToNumericsQuaternion(), Activation.Activate);
+    }
+    
+    public static void RemoveObject(BodyID body)
+    {
+        instance?._bodyInterface.RemoveBody(body);
     }
 
     private void Run()

@@ -33,7 +33,7 @@ public class DynamicModel : BaseModelEntity
         ModelPath = $"models/{GetPropertyValue<string>("Model")}";
         base.Load();
 
-        _physicsBodyId = PhysicsManager.AddDynamicObject(CalculatePhysicsShape(), this);
+        _physicsBodyId = PhysicsManager.AddDynamicObject(CalculatePhysicsShape(), this) ?? 0;
     }
 
     public override void Think()
@@ -57,6 +57,12 @@ public class DynamicModel : BaseModelEntity
         }
 
         base.Think();
+    }
+
+    public override void Unload()
+    {
+        PhysicsManager.RemoveObject(_physicsBodyId);
+        base.Unload();
     }
 
     public virtual ShapeSettings CalculatePhysicsShape()
