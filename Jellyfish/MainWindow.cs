@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Numerics;
+using ImGuiNET;
 using Jellyfish.Audio;
 using Jellyfish.Entities;
 using Jellyfish.Input;
@@ -9,6 +10,8 @@ using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using Serilog;
+using System.Threading;
+using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace Jellyfish;
 
@@ -22,6 +25,8 @@ public class MainWindow : GameWindow
     private AudioManager _audioManager = null!;
     private PhysicsManager _physicsManager = null!;
     private Camera? _camera;
+
+    private int _loadingStep;
 
     public MainWindow(int width, int height, string title) : base(
         new GameWindowSettings { UpdateFrequency = 0.0 }, NativeWindowSettings.Default)
@@ -50,12 +55,21 @@ public class MainWindow : GameWindow
 
         _inputHandler = new InputManager();
         _imguiController = new ImguiController();
-        _uiManager = new UiManager();
-        _entityManager = new EntityManager();
-        _audioManager = new AudioManager();
-        _physicsManager = new PhysicsManager();
 
+        UpdateLoadingScreen("Loading UI...");
+        _uiManager = new UiManager();
+
+        UpdateLoadingScreen("Starting entity manager...");
+        _entityManager = new EntityManager();
+
+        UpdateLoadingScreen("Starting audio...");
+        _audioManager = new AudioManager();
+
+        UpdateLoadingScreen("Creating rendering buffers...");
         _render.CreateBuffers();
+
+        UpdateLoadingScreen("Starting physics...");
+        _physicsManager = new PhysicsManager();
 
         base.OnLoad();
     }
@@ -70,6 +84,7 @@ public class MainWindow : GameWindow
 
         Log.Information("[MainWindow] Finished loading!");
 
+        UpdateLoadingScreen("Creating player...");
         _camera = EntityManager.CreateEntity("camera") as Camera;
         if (_camera != null)
         {
@@ -77,7 +92,11 @@ public class MainWindow : GameWindow
             _camera.SetPropertyValue("Position", new Vector3(40, 20, 20));
         }
 
-        MapLoader.Load("maps/test.json");
+        var mapName = "maps/test.json";
+        UpdateLoadingScreen($"Loading map '{mapName}'...");
+        MapLoader.Load(mapName);
+
+        UpdateLoadingScreen("Finishing loading...");
         _render.IsReady = true;
         _physicsManager.ShouldSimulate = true;
     }
@@ -150,5 +169,39 @@ public class MainWindow : GameWindow
         _imguiController?.Render();
 
         SwapBuffers();
+    }
+
+    private void UpdateLoadingScreen(string text = "Loading...")
+    {
+        _imguiController?.Update(WindowWidth, WindowHeight);
+
+        var windowFlags = ImGuiWindowFlags.NoDecoration |
+                          ImGuiWindowFlags.AlwaysAutoResize |
+                          ImGuiWindowFlags.NoSavedSettings |
+                          ImGuiWindowFlags.NoFocusOnAppearing |
+                          ImGuiWindowFlags.NoNav |
+                          ImGuiWindowFlags.NoMove;
+
+        const int loadingSteps = 8;
+        const float fracIncrease = 1.0f / loadingSteps;
+
+        const int pad = 10;
+        const int heigth = 60;
+
+        var viewport = ImGui.GetMainViewport();
+        ImGui.SetNextWindowPos(new System.Numerics.Vector2(viewport.WorkPos.X + pad, viewport.WorkSize.Y - heigth - pad), ImGuiCond.Always);
+        ImGui.SetNextWindowSize(new System.Numerics.Vector2(viewport.WorkSize.X - pad * 2, heigth));
+        ImGui.SetNextWindowBgAlpha(0.2f);
+
+        if (ImGui.Begin("LoadingScreen", windowFlags))
+        {
+            ImGui.Text(text);
+            ImGui.ProgressBar(fracIncrease * _loadingStep, new System.Numerics.Vector2(viewport.WorkSize.X - pad * 4, 20f));
+            ImGui.End();
+        }
+
+        Render();
+
+        _loadingStep++;
     }
 }
