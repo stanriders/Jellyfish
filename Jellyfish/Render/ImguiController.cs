@@ -10,6 +10,7 @@ using Serilog;
 using ErrorCode = OpenTK.Graphics.OpenGL.ErrorCode;
 using Jellyfish.Input;
 using System.Collections.Generic;
+using System.Numerics;
 using ImGuizmoNET;
 
 namespace Jellyfish.Render;
@@ -36,8 +37,21 @@ public sealed class ImguiController : IDisposable, IInputHandler
         ImGui.SetCurrentContext(context);
         ImGuizmo.SetImGuiContext(context);
 
+        ImGui.StyleColorsClassic();
+        ImGui.PushStyleVar(ImGuiStyleVar.ScrollbarRounding, 4f);
+        ImGui.PushStyleVar(ImGuiStyleVar.FrameRounding, 4f);
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowRounding, 4f);
+        ImGui.PushStyleVar(ImGuiStyleVar.ScrollbarRounding, 4f);
+        ImGui.PushStyleColor(ImGuiCol.WindowBg, new System.Numerics.Vector4(0.08f, 0.08f, 0.08f, 0.93f));
+        ImGui.PushStyleColor(ImGuiCol.TitleBg, new System.Numerics.Vector4(0.18f, 0.18f, 0.18f, 0.83f));
+        ImGui.PushStyleColor(ImGuiCol.TitleBgActive, new System.Numerics.Vector4(0.25f, 0.25f, 0.25f, 0.87f));
+        ImGui.PushStyleColor(ImGuiCol.TitleBgCollapsed, new System.Numerics.Vector4(0.04f, 0.04f, 0.04f, 0.20f));
+        ImGui.PushStyleColor(ImGuiCol.ScrollbarBg, new System.Numerics.Vector4(0.00f, 0.00f, 0.00f, 0.20f));
+
         var io = ImGui.GetIO();
+        io.Fonts.AddFontFromFileTTF("fonts/Roboto-Regular.ttf", 15f);
         io.Fonts.AddFontDefault();
+
         io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
 
         CreateDeviceResources();
