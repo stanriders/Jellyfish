@@ -28,7 +28,7 @@ public class EntityListPanel : IUiPanel
 
                     ImGui.Spacing();
 
-                    foreach (var entityAction in entity.EntityActions.Order())
+                    foreach (var entityAction in entity.EntityActions.OrderBy(x=> x.Name))
                     {
                        if (ImGui.Button(entityAction.Name))
                            entityAction.Act();
@@ -83,32 +83,36 @@ public class EntityListPanel : IUiPanel
             return;
         }
 
+        var entityName = entity.GetPropertyValue<string>("Name");
+        var propertyName = entityProperty.Name;
+        var elementLabel = $"{propertyName}##{entityName}";
+
         if (entityProperty.Type == typeof(Vector2))
         {
             var valueCasted = (Vector2)entityProperty.Value!;
 
             var val = new System.Numerics.Vector2(valueCasted.X, valueCasted.Y);
-            ImGui.DragFloat2($"{entityProperty.Name}", ref val);
+            ImGui.DragFloat2(elementLabel, ref val);
 
-            entity.SetPropertyValue(entityProperty.Name, new Vector2(val.X, val.Y));
+            entity.SetPropertyValue(propertyName, new Vector2(val.X, val.Y));
         }
         else if (entityProperty.Type == typeof(Vector3))
         {
             var valueCasted = (Vector3)entityProperty.Value!;
 
             var val = valueCasted.ToNumericsVector();
-            ImGui.DragFloat3($"{entityProperty.Name}", ref val);
+            ImGui.DragFloat3(elementLabel, ref val);
 
-            entity.SetPropertyValue(entityProperty.Name, val.ToOpentkVector());
+            entity.SetPropertyValue(propertyName, val.ToOpentkVector());
         }
         else if (entityProperty.Type == typeof(Color4))
         {
             var valueCasted = (Color4)entityProperty.Value!;
 
             var val = new System.Numerics.Vector4(valueCasted.R, valueCasted.G, valueCasted.B, valueCasted.A);
-            ImGui.DragFloat4($"{entityProperty.Name}", ref val, 0.01f, 0.0f, 1.0f);
+            ImGui.DragFloat4(elementLabel, ref val, 0.01f, 0.0f, 1.0f);
 
-            entity.SetPropertyValue(entityProperty.Name, new Color4(val.X, val.Y, val.Z, val.W));
+            entity.SetPropertyValue(propertyName, new Color4(val.X, val.Y, val.Z, val.W));
         }
         else if (entityProperty.Type == typeof(Quaternion))
         {
@@ -119,41 +123,41 @@ public class EntityListPanel : IUiPanel
                 MathHelper.RadiansToDegrees(eulerAngles.Y),
                 MathHelper.RadiansToDegrees(eulerAngles.Z));
 
-            ImGui.DragFloat3($"{entityProperty.Name}", ref val, 1f, -360.0f, 360.0f);
+            ImGui.DragFloat3(elementLabel, ref val, 1f, -360.0f, 360.0f);
 
-            entity.SetPropertyValue(entityProperty.Name,
+            entity.SetPropertyValue(propertyName,
                 new Quaternion(MathHelper.DegreesToRadians(val.X), MathHelper.DegreesToRadians(val.Y), MathHelper.DegreesToRadians(val.Z)));
         }
         else if (entityProperty.Type == typeof(bool))
         {
             var val = (bool)entityProperty.Value!;
-            ImGui.Checkbox(entityProperty.Name, ref val);
-            entity.SetPropertyValue(entityProperty.Name, val);
+            ImGui.Checkbox(elementLabel, ref val);
+            entity.SetPropertyValue(propertyName, val);
         }
         else if (entityProperty.Type == typeof(int))
         {
             var val = (int)entityProperty.Value!;
-            ImGui.DragInt(entityProperty.Name, ref val);
-            entity.SetPropertyValue(entityProperty.Name, val);
+            ImGui.DragInt(elementLabel, ref val);
+            entity.SetPropertyValue(propertyName, val);
         }
         else if (entityProperty.Type == typeof(float))
         {
             var val = (float)entityProperty.Value!;
             var speed = val > 1.0f ? 1.0f : 0.01f;
-            ImGui.DragFloat(entityProperty.Name, ref val, speed);
-            entity.SetPropertyValue(entityProperty.Name, val);
+            ImGui.DragFloat(elementLabel, ref val, speed);
+            entity.SetPropertyValue(propertyName, val);
         }
         else if (entityProperty.Type == typeof(string))
         {
             var val = (string?)entityProperty.Value ?? string.Empty;
-            ImGui.InputText(entityProperty.Name, ref val, 1024);
-            entity.SetPropertyValue(entityProperty.Name, val);
+            ImGui.InputText(elementLabel, ref val, 1024);
+            entity.SetPropertyValue(propertyName, val);
         }
         else if (entityProperty.Type == typeof(Enum))
         {
             var val = (int)entityProperty.Value!;
-            ImGui.DragInt(entityProperty.Name, ref val);
-            entity.SetPropertyValue(entityProperty.Name, val);
+            ImGui.DragInt(elementLabel, ref val);
+            entity.SetPropertyValue(propertyName, val);
         }
         else
         {

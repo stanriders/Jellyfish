@@ -197,6 +197,9 @@ namespace Jellyfish.Audio
         
         public void Dispose()
         {
+            if (Playing)
+                Playing = false;
+
             Marshal.FreeHGlobal(_inBuffer);
             Marshal.FreeHGlobal(_outBuffer);
             _audioStream.Dispose();
