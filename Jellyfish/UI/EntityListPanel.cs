@@ -19,9 +19,15 @@ public class EntityListPanel : IUiPanel
         {
             foreach (var entity in EntityManager.Entities)
             {
-                if (ImGui.CollapsingHeader($"{entity.GetPropertyValue<string>("Name")} ({entity.GetType().Name})"))
+                var header = $"{entity.GetPropertyValue<string>("Name")} ({entity.GetType().Name})";
+                if (!entity.Loaded)
                 {
-                    foreach (var entityProperty in entity.EntityProperties.Where(x=> x.Name != "Name"))
+                    header = $"[UNLOADED] {entity.GetType().Name}";
+                }
+
+                if (ImGui.CollapsingHeader(header))
+                {
+                    foreach (var entityProperty in entity.EntityProperties)
                     {
                         AddProperty(entity, entityProperty);
                     }
@@ -77,10 +83,18 @@ public class EntityListPanel : IUiPanel
 
     private void AddProperty(BaseEntity entity, EntityProperty entityProperty)
     {
-        if (entity.Loaded && !entityProperty.Editable)
+        if (entity.Loaded)
         {
-            ImGui.Text($"{entityProperty.Name}: {entityProperty.Value}");
-            return;
+            if (entityProperty.Name == "Name")
+            {
+                return;
+            }
+
+            if (!entityProperty.Editable)
+            {
+                ImGui.Text($"{entityProperty.Name}: {entityProperty.Value}");
+                return;
+            }
         }
 
         var entityName = entity.GetPropertyValue<string>("Name");
