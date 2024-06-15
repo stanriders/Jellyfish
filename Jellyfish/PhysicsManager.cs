@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
+using Jellyfish.Audio;
 using Jellyfish.Entities;
 using Jellyfish.Render;
 using JoltPhysicsSharp;
@@ -34,6 +35,8 @@ public class PhysicsManager
 
     private readonly Dictionary<BodyID, BaseEntity> _bodies = new();
     private CharacterVirtual? _character;
+
+    private Sound? _impactSound;
 
     private static PhysicsManager? instance;
 
@@ -190,6 +193,11 @@ public class PhysicsManager
         _physicsSystem.Gravity *= 100f;
         _physicsSystem.OptimizeBroadPhase();
 
+        _impactSound = AudioManager.AddSound("sounds/impact.wav");
+        _impactSound!.Volume = 0.1f;
+
+        _physicsSystem.OnContactAdded += OnContactAdded;
+
         Log.Information("[PhysicsManager] Jolt ready!");
         IsReady = true;
 
@@ -221,8 +229,18 @@ public class PhysicsManager
             }
         }
 
+        _impactSound?.Dispose();
         _physicsSystem.Dispose();
         Foundation.Shutdown();
+    }
+
+    private void OnContactAdded(PhysicsSystem system, in Body body1, in Body body2, in ContactManifold manifold, in ContactSettings settings)
+    {
+        if (_impactSound != null)
+        {
+            _impactSound.Position = manifold.GetWorldSpaceContactPointOn1(1).ToOpentkVector();
+            _impactSound.Play();
+        }
     }
 
     public void Unload()

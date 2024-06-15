@@ -13,6 +13,8 @@ namespace Jellyfish.Audio
 {
     public unsafe class AudioManager
     {
+        public static float Volume { get; set; } = 1.0f;
+
         private IPL.Context _iplContext;
         private IPL.Hrtf _iplHrtf;
         private IPL.Scene _iplScene;
@@ -35,9 +37,6 @@ namespace Jellyfish.Audio
             Bass.Init();
             Bass.UpdatePeriod = 0;
 
-            Bass.GlobalStreamVolume = 10000;
-            Bass.Volume = 1;
-
             var audioThread = new Thread(Run) { Name = "Audio thread" };
             audioThread.Start();
 
@@ -46,35 +45,31 @@ namespace Jellyfish.Audio
 
         public static Sound? AddSound(string path)
         {
-            return instance?.AddSoundInternal(path);
-        }
+            if (instance == null)
+                return null;
 
-        private Sound? AddSoundInternal(string path)
-        {
             IPL.Source source = default;
 
-            IplRun(() => IPL.SourceCreate(_iplSimulator, new IPL.SourceSettings { Flags = IPL.SimulationFlags.Direct }, out source));
+            IplRun(() => IPL.SourceCreate(instance._iplSimulator, new IPL.SourceSettings { Flags = IPL.SimulationFlags.Direct }, out source));
             if (source != default)
             {
-                var sound = new Sound(path, source, _iplContext, _iplHrtf);
-                IPL.SourceAdd(source, _iplSimulator);
-                IPL.SimulatorCommit(_iplSimulator);
+                var sound = new Sound(path, source, instance._iplContext, instance._iplHrtf);
+                IPL.SourceAdd(source, instance._iplSimulator);
+                IPL.SimulatorCommit(instance._iplSimulator);
 
-                _sounds.Add(sound);
+                instance._sounds.Add(sound);
 
                 return sound;
             }
 
             return null;
         }
-
+        
         public static void AddMesh(MeshPart mesh)
         {
-            instance?.AddMeshInternal(mesh);
-        }
+            if (instance == null)
+                return;
 
-        private void AddMeshInternal(MeshPart mesh)
-        {
             var triangles = new List<IPL.Triangle>();
             for (var i = 0; i < mesh.Vertices.Count; i += 3)
             {
@@ -104,7 +99,7 @@ namespace Jellyfish.Audio
             fixed (IPL.Material* materials = materialsList)
             fixed (int* materialIndicies = Enumerable.Repeat(0, triangles.Count).ToArray())
             {
-                IPL.StaticMeshCreate(_iplScene, new IPL.StaticMeshSettings
+                IPL.StaticMeshCreate(instance._iplScene, new IPL.StaticMeshSettings
                 {
                     NumVertices = mesh.Vertices.Count,
                     NumTriangles = triangles.Count,
@@ -115,8 +110,8 @@ namespace Jellyfish.Audio
                     Materials = (nint)materials
                 }, out var iplMesh);
 
-                IPL.StaticMeshAdd(iplMesh, _iplScene);
-                IPL.SceneCommit(_iplScene);
+                IPL.StaticMeshAdd(iplMesh, instance._iplScene);
+                IPL.SceneCommit(instance._iplScene);
             }
         }
 
@@ -176,6 +171,7 @@ namespace Jellyfish.Audio
             {
                 Thread.Sleep(update_rate);
                 Bass.Update(update_rate);
+                Bass.GlobalStreamVolume = (int)(Volume * 10000);
 
                 var error = Bass.LastError;
                 if (error != Errors.OK)

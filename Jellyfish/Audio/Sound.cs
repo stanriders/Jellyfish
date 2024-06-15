@@ -49,11 +49,13 @@ namespace Jellyfish.Audio
             }
         }
 
+        public float Volume { get; set; } = 1.0f;
+
         private readonly MemoryStream _audioStream;
         private readonly int _stream;
 
-        private Vector3 _position;
-        private bool _useAirAbsorption;
+        private Vector3 _position = Vector3.Zero;
+        private bool _useAirAbsorption = true;
 
         private IPL.AudioBuffer _iplInputBuffer;
         private IPL.AudioBuffer _iplSimulationBuffer;
@@ -131,6 +133,8 @@ namespace Jellyfish.Audio
         {
             if (!Playing)
                 return;
+
+            Bass.ChannelSetAttribute(_stream, ChannelAttribute.Volume, Volume);
 
             var inputBufferByteSpan = new Span<byte>((void*)_inBuffer, AudioManager.ipl_buffer_size_bytes);
             int bytesRead = _audioStream.Read(inputBufferByteSpan);
