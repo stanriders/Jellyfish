@@ -124,6 +124,8 @@ namespace Jellyfish.Audio
         {
             Log.Information("[AudioManager] Starting audio thread...");
 
+            Volume = Settings.Instance.Audio.Volume;
+
             var contextCreateResult = IPL.ContextCreate(new IPL.ContextSettings { Version = IPL.Version }, out _iplContext);
             if (contextCreateResult != IPL.Error.Success)
             {

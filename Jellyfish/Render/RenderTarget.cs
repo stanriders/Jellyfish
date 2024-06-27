@@ -8,12 +8,14 @@ public class RenderTarget
 {
     public readonly int TextureHandle;
     public readonly Vector2 Size;
+    private readonly Texture _texture;
 
     public RenderTarget(string name, int width, int heigth, PixelFormat format, FramebufferAttachment attachment, PixelType pixelType, TextureWrapMode wrapMode, float[]? borderColor = null)
     {
         Size = new Vector2(width, heigth);
 
-        TextureHandle = TextureManager.GetTexture(name, TextureTarget.Texture2D).Texture.Handle;
+        _texture = TextureManager.GetTexture(name, TextureTarget.Texture2D).Texture;
+        TextureHandle = _texture.Handle;
         GL.BindTexture(TextureTarget.Texture2D, TextureHandle);
 
         GL.TexImage2D(TextureTarget.Texture2D, 0, (PixelInternalFormat)format, width, heigth, 0, format, pixelType, IntPtr.Zero);
@@ -40,6 +42,6 @@ public class RenderTarget
 
     public void Unload()
     {
-        GL.DeleteTexture(TextureHandle);
+        TextureManager.RemoveTexture(_texture);
     }
 }

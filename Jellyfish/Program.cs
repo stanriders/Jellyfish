@@ -12,7 +12,7 @@ public class Program
             .WriteTo.Console()
             .CreateLogger();
 
-        using var game = new MainWindow(1920, 1080, "Game");
+        using var game = new MainWindow();
         game.Run();
     }
 }

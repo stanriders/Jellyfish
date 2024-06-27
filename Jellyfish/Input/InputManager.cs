@@ -22,6 +22,11 @@ public class InputManager
         instance?._inputHandlers.Add(inputHandler);
     }
 
+    public static void UnregisterInputHandler(IInputHandler inputHandler)
+    {
+        instance?._inputHandlers.Remove(inputHandler);
+    }
+
     public static void CaptureInput(IInputHandler inputHandler)
     {
         if (instance != null)
@@ -47,9 +52,6 @@ public class InputManager
             _capturer?.HandleInput(keyboardState, mouseState, frameTime);
             return;
         }
-
-        if (keyboardState.IsKeyDown(Keys.Escape))
-            Environment.Exit(0);
 
         foreach (var inputHandler in _inputHandlers)
         {

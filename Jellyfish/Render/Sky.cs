@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Jellyfish.Input;
 using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Shaders;
 using OpenTK.Graphics.OpenGL;
@@ -79,6 +80,13 @@ namespace Jellyfish.Render
             GL.UseProgram(0);
             
             GL.DepthFunc(DepthFunction.Less);
+        }
+
+        public void Unload()
+        {
+            _shader.Unload();
+            _vao.Unload();
+            _vbo.Unload();
         }
     }
 }

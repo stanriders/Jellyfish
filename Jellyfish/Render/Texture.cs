@@ -28,39 +28,40 @@ public class Texture
 
         GL.ObjectLabel(ObjectLabelIdentifier.Texture, Handle, path.Length, path);
 
-        if (!path.StartsWith("_"))
+        // procedural textures create themselves
+        if (path.StartsWith("_")) 
+            return;
+
+        if (!File.Exists(path))
         {
-            if (!File.Exists(path))
-            {
-                Log.Warning("[Texture] Texture {Path} doesn't exist!", path);
-                path = error_texture;
-            }
-
-            if (path == error_texture)
-                _isError = true;
-
-            using var image = new MagickImage(path);
-            using var data = image.GetPixelsUnsafe(); // feels scary
-
-            var pixelFormat = PixelFormat.Rgba;
-            var internalPixelFormat = SizedInternalFormat.Rgba8;
-            if (image is { ChannelCount: 3, Depth: 8 })
-            {
-                pixelFormat = PixelFormat.Rgb;
-                internalPixelFormat = SizedInternalFormat.Rgb8;
-            }
-
-            //GL.TextureParameter(_handle, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-            //GL.TextureParameter(_handle, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-            GL.TextureParameter(Handle, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-            GL.TextureParameter(Handle, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
-
-            GL.TextureStorage2D(Handle, 1, internalPixelFormat, image.Width, image.Height);
-            GL.TextureSubImage2D(Handle, 0, 0, 0, image.Width, image.Height, pixelFormat, PixelType.UnsignedByte,
-                data.GetAreaPointer(0, 0, image.Width, image.Height));
-
-            GL.GenerateTextureMipmap(Handle);
+            Log.Warning("[Texture] Texture {Path} doesn't exist!", path);
+            path = error_texture;
         }
+
+        if (path == error_texture)
+            _isError = true;
+
+        using var image = new MagickImage(path);
+        using var data = image.GetPixelsUnsafe(); // feels scary
+
+        var pixelFormat = PixelFormat.Rgba;
+        var internalPixelFormat = SizedInternalFormat.Rgba8;
+        if (image is { ChannelCount: 3, Depth: 8 })
+        {
+            pixelFormat = PixelFormat.Rgb;
+            internalPixelFormat = SizedInternalFormat.Rgb8;
+        }
+
+        //GL.TextureParameter(_handle, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+        //GL.TextureParameter(_handle, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+        GL.TextureParameter(Handle, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+        GL.TextureParameter(Handle, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+
+        GL.TextureStorage2D(Handle, 1, internalPixelFormat, image.Width, image.Height);
+        GL.TextureSubImage2D(Handle, 0, 0, 0, image.Width, image.Height, pixelFormat, PixelType.UnsignedByte,
+            data.GetAreaPointer(0, 0, image.Width, image.Height));
+
+        GL.GenerateTextureMipmap(Handle);
     }
 
     public void Bind(int unit)

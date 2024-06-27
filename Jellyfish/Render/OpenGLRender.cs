@@ -23,6 +23,7 @@ public class OpenGLRender : IRender, IInputHandler
     private readonly DebugProc _debugProc; // if this delegate doesn't have a reference it gets GC'd after the first call
 
     public bool IsReady { get; set; }
+    public bool NeedToRecreateBuffers { get; set; }
 
     public OpenGLRender()
     {
@@ -63,6 +64,12 @@ public class OpenGLRender : IRender, IInputHandler
 
     public void Frame()
     {
+        if (NeedToRecreateBuffers)
+        {
+            RecreateRenderTargets();
+            return;
+        }
+
         if (!IsReady)
         {
             GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -95,6 +102,13 @@ public class OpenGLRender : IRender, IInputHandler
     public void Unload()
     {
         MeshManager.Unload();
+
+        _sky?.Unload();
+        _postProcessing?.Unload();
+
+        _colorRenderTarget?.Unload();
+        _depthRenderTarget?.Unload();
+        _mainFramebuffer?.Unload();
     }
 
     public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
@@ -129,5 +143,21 @@ public class OpenGLRender : IRender, IInputHandler
                 Log.Information("[OpenGL] {Source} {Type} {Id}: {Message}", source, type, id, decodedMessage);
                 break;
         }
+    }
+
+    public void RecreateRenderTargets()
+    {
+        Log.Warning("Recreating render buffers!");
+
+        _sky?.Unload();
+        _postProcessing?.Unload();
+
+        _colorRenderTarget?.Unload();
+        _depthRenderTarget?.Unload();
+        _mainFramebuffer?.Unload();
+
+        CreateBuffers();
+
+        NeedToRecreateBuffers = false;
     }
 }

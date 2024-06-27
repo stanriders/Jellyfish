@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
@@ -48,6 +49,17 @@ public class InfoOverlay : IUiPanel
                 ImGui.Text($"Position: {Camera.Instance.GetPropertyValue<OpenTK.Mathematics.Vector3>("Position"):N4}");
                 ImGui.Separator();
                 ImGui.Text($"Rotation: {Camera.Instance.GetPropertyValue<OpenTK.Mathematics.Quaternion>("Rotation").ToEulerAngles().ToDegrees():N2}");
+            }
+
+            ImGui.Separator();
+            if (ImGui.Button("Settings"))
+            {
+                SettingsPanel.ShowPanel = true;
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("Quit"))
+            {
+                MainWindow.ShouldQuit = true;
             }
         }
 

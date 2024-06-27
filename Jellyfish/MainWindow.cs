@@ -1,12 +1,10 @@
-﻿using System.Numerics;
-using ImGuiNET;
+﻿using ImGuiNET;
 using Jellyfish.Audio;
 using Jellyfish.Entities;
 using Jellyfish.Input;
 using Jellyfish.Render;
 using Jellyfish.UI;
 using OpenTK.Graphics.OpenGL4;
-using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using Serilog;
@@ -28,26 +26,29 @@ public class MainWindow : GameWindow
 
     private int _loadingStep;
 
-    public MainWindow(int width, int height, string title) : base(
+    public MainWindow() : base(
         new GameWindowSettings { UpdateFrequency = 0.0 }, NativeWindowSettings.Default)
     {
-        WindowHeight = height;
-        WindowWidth = width;
+        var config = Settings.Instance;
+        WindowHeight = config.Video.WindowSize.Y;
+        WindowWidth = config.Video.WindowSize.X;
 
-        ClientSize = new Vector2i(width, height);
-        Title = title;
+        ClientSize = config.Video.WindowSize;
+        WindowState = config.Video.Fullscreen ? WindowState.Fullscreen : WindowState.Normal;
+        Title = "Jellyfish";
 
         _render = new OpenGLRender();
         Render();
 
+        CenterWindow();
+
         Load += OnFinishedLoading;
     }
-
-    public static int WindowX { get; set; }
-    public static int WindowY { get; set; }
+    
     public static int WindowWidth { get; set; }
     public static int WindowHeight { get; set; }
     public static double Frametime { get; set; }
+    public static bool ShouldQuit { get; set; }
 
     protected override void OnLoad()
     {
@@ -112,6 +113,12 @@ public class MainWindow : GameWindow
     {
         Frametime = e.Time;
 
+        if (ShouldQuit)
+        {
+            Close();
+            return;
+        }
+
         // we want to update ui regardless of focus otherwise it disappears
         _imguiController?.Update(WindowWidth, WindowHeight);
         _uiManager.Frame();
@@ -125,8 +132,24 @@ public class MainWindow : GameWindow
         _physicsManager.ShouldSimulate = true;
         _entityManager.Frame();
 
-        WindowX = ClientSize.X;
-        WindowY = ClientSize.Y;
+        var config = Settings.Instance.Video;
+        if (config.WindowSize != ClientSize)
+        {
+            ClientSize = config.WindowSize;
+            WindowHeight = config.WindowSize.Y;
+            WindowWidth = config.WindowSize.X;
+            _render.NeedToRecreateBuffers = true;
+        }
+
+        if (config.Fullscreen && WindowState != WindowState.Fullscreen)
+        {
+            WindowState = WindowState.Fullscreen;
+        }
+
+        if (!config.Fullscreen && WindowState == WindowState.Fullscreen)
+        {
+            WindowState = WindowState.Normal;
+        }
 
         _inputHandler.Frame(KeyboardState, MouseState, (float)e.Time);
         CursorState = !_camera?.IsControllingCursor ?? false ? CursorState.Normal : CursorState.Grabbed;

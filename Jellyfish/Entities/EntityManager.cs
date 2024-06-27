@@ -52,7 +52,10 @@ public class EntityManager
     public void Unload()
     {
         foreach (var entity in _entityList)
+        {
             entity.Unload();
+            _entityList.Remove(entity);
+        }
     }
 
     public void Frame()

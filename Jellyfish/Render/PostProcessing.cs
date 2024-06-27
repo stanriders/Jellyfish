@@ -9,6 +9,7 @@ public class PostProcessing : IInputHandler
 {
     private readonly Shaders.PostProcessing _shader;
     private readonly VertexArray _vertexArray;
+    private readonly VertexBuffer _vertexBuffer;
 
     private bool _isEnabled;
 
@@ -25,8 +26,8 @@ public class PostProcessing : IInputHandler
 
     public PostProcessing(RenderTarget color, RenderTarget depth)
     {
-        var vertexBuffer = new VertexBuffer(_quad, 4 * sizeof(float));
-        _vertexArray = new VertexArray(vertexBuffer, null);
+        _vertexBuffer = new VertexBuffer(_quad, 4 * sizeof(float));
+        _vertexArray = new VertexArray(_vertexBuffer, null);
 
         _shader = new Shaders.PostProcessing(color, depth);
 
@@ -72,5 +73,14 @@ public class PostProcessing : IInputHandler
         }
 
         return false;
+    }
+
+    public void Unload()
+    {
+        _shader.Unload();
+        _vertexArray.Unload();
+        _vertexBuffer.Unload();
+
+        InputManager.UnregisterInputHandler(this);
     }
 }
