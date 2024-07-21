@@ -54,8 +54,9 @@ public class EntityManager
         foreach (var entity in _entityList)
         {
             entity.Unload();
-            _entityList.Remove(entity);
         }
+
+        _entityList.Clear();
     }
 
     public void Frame()
