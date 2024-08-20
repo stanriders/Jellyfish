@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Jellyfish.Console;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
-using Serilog;
 
 namespace Jellyfish.Render;
 
@@ -171,7 +171,7 @@ public abstract class Shader
         }
         else
         {
-            Log.Error("[Shader] Tried drawing shader with no handle!");
+            Log.Context(this).Error("Tried drawing shader with no handle!");
         }
     }
 
@@ -197,11 +197,31 @@ public abstract class Shader
     /// <param name="name">The name of the uniform</param>
     /// <param name="data">The data to set</param>
     /// <param name="bind"></param>
+    public void SetBool(string name, bool data, bool bind = false)
+    {
+        if (!_uniformLocations.ContainsKey(name))
+        {
+            Log.Context(this).Error("Uniform {Name} isn't found!", name);
+            return;
+        }
+
+        if (bind)
+            Bind();
+
+        GL.Uniform1(_uniformLocations[name], data ? 1 : 0);
+    }
+
+    /// <summary>
+    ///     Set a uniform int on this shader.
+    /// </summary>
+    /// <param name="name">The name of the uniform</param>
+    /// <param name="data">The data to set</param>
+    /// <param name="bind"></param>
     public void SetInt(string name, int data, bool bind = false)
     {
         if (!_uniformLocations.ContainsKey(name))
         {
-            Log.Error("[Shader] Uniform {Name} isn't found!", name);
+            Log.Context(this).Error("Uniform {Name} isn't found!", name);
             return;
         }
 
@@ -221,7 +241,7 @@ public abstract class Shader
     {
         if (!_uniformLocations.ContainsKey(name))
         {
-            Log.Error("[Shader] Uniform {Name} isn't found!", name);
+            Log.Context(this).Error("Uniform {Name} isn't found!", name);
             return;
         }
 
@@ -242,7 +262,7 @@ public abstract class Shader
     {
         if (!_uniformLocations.ContainsKey(name))
         {
-            Log.Error("[Shader] Uniform {Name} isn't found!", name);
+            Log.Context(this).Error("Uniform {Name} isn't found!", name);
             return;
         }
 
@@ -262,7 +282,7 @@ public abstract class Shader
     {
         if (!_uniformLocations.ContainsKey(name))
         {
-            Log.Error("[Shader] Uniform {Name} isn't found!", name);
+            Log.Context(this).Error("Uniform {Name} isn't found!", name);
             return;
         }
 
@@ -282,7 +302,7 @@ public abstract class Shader
     {
         if (!_uniformLocations.ContainsKey(name))
         {
-            Log.Error("[Shader] Uniform {Name} isn't found!", name);
+            Log.Context(this).Error("Uniform {Name} isn't found!", name);
             return;
         }
 
@@ -302,7 +322,7 @@ public abstract class Shader
     {
         if (!_uniformLocations.ContainsKey(name))
         {
-            Log.Error("[Shader] Uniform {Name} isn't found!", name);
+            Log.Context(this).Error("Uniform {Name} isn't found!", name);
             return;
         }
 
@@ -322,7 +342,7 @@ public abstract class Shader
     {
         if (!_uniformLocations.ContainsKey(name))
         {
-            Log.Error("[Shader] Uniform {Name} isn't found!", name);
+            Log.Context(this).Error("Uniform {Name} isn't found!", name);
             return;
         }
 
@@ -342,7 +362,7 @@ public abstract class Shader
     {
         if (!_uniformLocations.ContainsKey(name))
         {
-            Log.Error("[Shader] Uniform {Name} isn't found!", name);
+            Log.Context(this).Error("Uniform {Name} isn't found!", name);
             return;
         }
 

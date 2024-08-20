@@ -1,11 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using Jellyfish.Console;
 using Jellyfish.Entities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OpenTK.Mathematics;
-using Serilog;
 
 namespace Jellyfish;
 
@@ -13,7 +13,7 @@ public static class MapLoader
 {
     public static void Load(string path)
     {
-        Log.Information("[MapLoader] Parsing map {Path}...", path);
+        Log.Context("MapLoader").Information("Parsing map {Path}...", path);
 
         var mapString = File.ReadAllText(path);
         var deserializer = JsonSerializer.CreateDefault();
@@ -23,7 +23,7 @@ public static class MapLoader
         var map = JsonConvert.DeserializeObject<Map>(mapString, new ColorConverter());
         if (map == null)
         {
-            Log.Error("[MapLoader] Couldn't parse map {Path}!", path);
+            Log.Context("MapLoader").Error("Couldn't parse map {Path}!", path);
             return;
         }
         foreach (var ent in map.Entities)
@@ -31,7 +31,7 @@ public static class MapLoader
             var entity = EntityManager.CreateEntity(ent.ClassName);
             if (entity == null)
             {
-                Log.Warning("[MapLoader] Couldn't create entity {Entity}", ent.ClassName);
+                Log.Context("MapLoader").Warning("Couldn't create entity {Entity}", ent.ClassName);
                 continue;
             }
 
@@ -59,7 +59,7 @@ public static class MapLoader
             entity.Load();
         }
 
-        Log.Information("[MapLoader] Finished parsing map");
+        Log.Context("MapLoader").Information("Finished parsing map");
     }
     public class ColorConverter : JsonConverter
     {

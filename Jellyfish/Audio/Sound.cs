@@ -2,10 +2,10 @@
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Jellyfish.Console;
 using Jellyfish.Entities;
 using ManagedBass;
 using OpenTK.Mathematics;
-using Serilog;
 using SteamAudio;
 
 namespace Jellyfish.Audio
@@ -125,7 +125,7 @@ namespace Jellyfish.Audio
             {
                 _audioStream.Position = 0;
                 Playing = true;
-                Bass.ChannelPlay(_stream);
+                Bass.ChannelPlay(_stream, true);
             }
         }
 
@@ -186,7 +186,7 @@ namespace Jellyfish.Audio
             var result = Bass.StreamPutData(_stream, _outBuffer, AudioManager.ipl_buffer_size_bytes * AudioManager.output_channels);
             if (result == -1)
             {
-                Log.Warning("[AudioManager] BASS StreamPutData error {Error}", Bass.LastError);
+                Log.Context(this).Warning("BASS StreamPutData error {Error}", Bass.LastError);
             }
         }
 
@@ -195,7 +195,7 @@ namespace Jellyfish.Audio
             var result = func();
             if (result != IPL.Error.Success)
             {
-                Log.Warning("[AudioManager] IPL error {Error}", result);
+                Log.Context("IPL").Warning("IPL error {Error}", result);
             }
         }
         

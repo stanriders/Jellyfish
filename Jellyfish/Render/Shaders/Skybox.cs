@@ -1,6 +1,6 @@
-﻿using Jellyfish.Entities;
+﻿using Jellyfish.Console;
+using Jellyfish.Entities;
 using OpenTK.Mathematics;
-using Serilog;
 
 namespace Jellyfish.Render.Shaders;
 
@@ -22,7 +22,7 @@ public class Skybox : Shader
             _sun = EntityManager.FindEntity("light_sun") as Sun;
             if (_sun == null && !_noSun)
             {
-                Log.Error("[Skybox] No sun, sky won't be rendered!");
+                Log.Context(this).Error("No sun, sky won't be rendered!");
                 _noSun = true;
                 return;
             }

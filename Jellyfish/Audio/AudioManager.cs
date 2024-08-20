@@ -1,10 +1,10 @@
 ﻿using Jellyfish.Entities;
 using ManagedBass;
-using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Jellyfish.Console;
 using Jellyfish.Render;
 using SteamAudio;
 using Vector3 = OpenTK.Mathematics.Vector3;
@@ -122,14 +122,14 @@ namespace Jellyfish.Audio
 
         private void Run()
         {
-            Log.Information("[AudioManager] Starting audio thread...");
+            Log.Context(this).Information("Starting audio thread...");
 
             Volume = Settings.Instance.Audio.Volume;
 
             var contextCreateResult = IPL.ContextCreate(new IPL.ContextSettings { Version = IPL.Version }, out _iplContext);
             if (contextCreateResult != IPL.Error.Success)
             {
-                Log.Error("[AudioManager] Couldn't start SteamAudio! {Error}", contextCreateResult);
+                Log.Context(this).Error("Couldn't start SteamAudio! {Error}", contextCreateResult);
             }
 
             var iplAudioSettings = new IPL.AudioSettings
@@ -167,7 +167,7 @@ namespace Jellyfish.Audio
             IPL.SimulatorSetScene(_iplSimulator, _iplScene);
             IPL.SimulatorCommit(_iplSimulator);
 
-            Log.Information("[AudioManager] SteamAudio is ready.");
+            Log.Context(this).Information("SteamAudio is ready.");
 
             while (!_shouldStop)
             {
@@ -178,7 +178,7 @@ namespace Jellyfish.Audio
                 var error = Bass.LastError;
                 if (error != Errors.OK)
                 {
-                    Log.Warning("[AudioManager] BASS error {Error}", error);
+                    Log.Context(this).Warning("BASS error {Error}", error);
                 }
 
                 if (_sounds.Count(x=> x.Playing) == 0)
@@ -225,7 +225,7 @@ namespace Jellyfish.Audio
             var result = func();
             if (result != IPL.Error.Success)
             {
-                Log.Warning("[AudioManager] IPL error {Error}", result);
+                Log.Context("IPL").Warning("IPL error {Error}", result);
             }
         }
     }

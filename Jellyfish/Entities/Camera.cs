@@ -1,9 +1,9 @@
 ﻿using System;
+using Jellyfish.Console;
 using Jellyfish.Input;
 using JoltPhysicsSharp;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
-using Serilog;
 
 namespace Jellyfish.Entities;
 
@@ -38,7 +38,7 @@ public class Camera : BaseEntity, IInputHandler
             camera = EntityManager.FindEntity("camera") as Camera;
             if (camera == null)
             {
-                Log.Error("Camera doesn't exist!");
+                Log.Context("Camera").Error("Camera doesn't exist!");
                 return null;
             }
             return camera;

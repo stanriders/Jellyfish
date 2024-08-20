@@ -1,5 +1,5 @@
-﻿using OpenTK.Graphics.OpenGL;
-using Serilog;
+﻿using Jellyfish.Console;
+using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.Render.Buffers;
 
@@ -35,7 +35,7 @@ public class FrameBuffer
         var code = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
         if (code != FramebufferErrorCode.FramebufferComplete)
         {
-            Log.Error("[FrameBuffer] Framebuffer {Id} status check failed with code {Code}", _framebufferHandle, code);
+            Log.Context(this).Error("Framebuffer {Id} status check failed with code {Code}", _framebufferHandle, code);
             return false;
         }
 

@@ -4,6 +4,7 @@ using System.Linq;
 using Jellyfish.Render;
 using OpenTK.Mathematics;
 using Serilog;
+using Log = Jellyfish.Console.Log;
 
 namespace Jellyfish.Entities;
 
@@ -14,6 +15,8 @@ public abstract class BaseEntity
 
     private readonly Dictionary<string, EntityAction> _entityActions = new();
     public IReadOnlyList<EntityAction> EntityActions => _entityActions.Values.ToList().AsReadOnly();
+
+    public string? Name => _entityProperties["Name"].Value as string;
     
 #if DEBUG
     public virtual bool DrawDevCone { get; set; }
@@ -35,7 +38,7 @@ public abstract class BaseEntity
     {
         if (Loaded)
         {
-            Log.Error("Entity is already loaded!"); // todo? rename to init to make it less ambiguous? 
+            EntityLog().Error("Entity is already loaded!"); // todo? rename to init to make it less ambiguous? 
             return;
         }
 
@@ -78,11 +81,11 @@ public abstract class BaseEntity
                 return castedProperty;
             }
 
-            Log.Warning("Found property {Name} but it has different type!", name);
+            EntityLog().Warning("Found property {Name} but it has different type!", name);
             return null;
         }
 
-        Log.Warning("Unknown property {Name}!", name);
+        EntityLog().Warning("Unknown property {Name}!", name);
         return null;
     }
 
@@ -98,7 +101,7 @@ public abstract class BaseEntity
             return (T?)property.Value;
         }
 
-        Log.Warning("Unknown property {Name}!", name);
+        EntityLog().Warning("Unknown property {Name}!", name);
         return default;
     }
 
@@ -126,8 +129,13 @@ public abstract class BaseEntity
             return action;
         }
 
-        Log.Warning("Unknown action {Name}!", name);
+        EntityLog().Warning("Unknown action {Name}!", name);
         return null;
+    }
+
+    protected ILogger EntityLog()
+    {
+        return Log.Context(Name ?? GetType().Name);
     }
 }
 

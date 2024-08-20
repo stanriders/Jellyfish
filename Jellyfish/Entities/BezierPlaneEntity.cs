@@ -1,5 +1,4 @@
 ﻿using Jellyfish.Render;
-using Serilog;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System;
@@ -26,7 +25,7 @@ public class BezierPlaneEntity : BaseEntity
         var texture = GetPropertyValue<string>("Texture");
         if (texture == null)
         {
-            Log.Error("[BezierPlaneEntity] Texture not set!");
+            EntityLog().Error("Texture not set!");
             return;
         }
 
@@ -167,7 +166,7 @@ public class BezierPlaneEntity : BaseEntity
         }
 
         watch.Stop();
-        Log.Information("[BezierPlane] Took {Elapsed} time to create a plane", watch.Elapsed);
+        EntityLog().Information("Took {Elapsed} time to create a plane", watch.Elapsed);
 
         return new MeshPart
         {

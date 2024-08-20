@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Text;
+using Jellyfish.Console;
 using Jellyfish.Input;
 using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Lighting;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.GraphicsLibraryFramework;
-using Serilog;
 
 namespace Jellyfish.Render;
 
@@ -131,23 +131,23 @@ public class OpenGLRender : IRender, IInputHandler
         switch (severity)
         {
             case DebugSeverity.DebugSeverityNotification:
-                Log.Debug("[OpenGL] {Source} {Type} {Id}: {Message}", source, type, id, decodedMessage);
+                Log.Context("OpenGL").Debug("{Source} {Type} {Id}: {Message}", source, type, id, decodedMessage);
                 break;
             case DebugSeverity.DebugSeverityHigh:
-                Log.Error("[OpenGL] {Source} {Type} {Id}: {Message}", source, type, id, decodedMessage);
+                Log.Context("OpenGL").Error("{Source} {Type} {Id}: {Message}", source, type, id, decodedMessage);
                 break;
             case DebugSeverity.DebugSeverityMedium:
-                Log.Warning("[OpenGL] {Source} {Type} {Id}: {Message}", source, type, id, decodedMessage);
+                Log.Context("OpenGL").Warning("{Source} {Type} {Id}: {Message}", source, type, id, decodedMessage);
                 break;
             case DebugSeverity.DebugSeverityLow:
-                Log.Information("[OpenGL] {Source} {Type} {Id}: {Message}", source, type, id, decodedMessage);
+                Log.Context("OpenGL").Information("{Source} {Type} {Id}: {Message}", source, type, id, decodedMessage);
                 break;
         }
     }
 
     public void RecreateRenderTargets()
     {
-        Log.Warning("Recreating render buffers!");
+        Log.Context(this).Warning("Recreating render buffers!");
 
         _sky?.Unload();
         _postProcessing?.Unload();

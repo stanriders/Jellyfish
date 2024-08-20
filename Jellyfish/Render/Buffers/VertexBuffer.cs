@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Jellyfish.Render.Buffers;
 

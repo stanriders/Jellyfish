@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using ImageMagick;
+using Jellyfish.Console;
 using OpenTK.Graphics.OpenGL;
-using Serilog;
 
 namespace Jellyfish.Render;
 
@@ -34,7 +34,7 @@ public class Texture
 
         if (!File.Exists(path))
         {
-            Log.Warning("[Texture] Texture {Path} doesn't exist!", path);
+            Log.Context(this).Warning("Texture {Path} doesn't exist!", path);
             path = error_texture;
         }
 

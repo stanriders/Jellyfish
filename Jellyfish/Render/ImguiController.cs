@@ -6,12 +6,11 @@ using System.Runtime.CompilerServices;
 using Jellyfish.Render.Shaders;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
-using Serilog;
 using ErrorCode = OpenTK.Graphics.OpenGL.ErrorCode;
 using Jellyfish.Input;
 using System.Collections.Generic;
-using System.Numerics;
 using ImGuizmoNET;
+using Jellyfish.Console;
 
 namespace Jellyfish.Render;
 
@@ -204,7 +203,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
             {
                 var newSize = (int)Math.Max(_vbo.Size * 1.5f, vertexSize);
                 _vbo.Size = newSize;
-                Log.Information($"[ImGui] Resized dear imgui vertex buffer to new size {_vbo.Size}");
+                Log.Context(this).Information($"Resized dear imgui vertex buffer to new size {_vbo.Size}");
             }
 
             var indexSize = cmdList.IdxBuffer.Size * sizeof(ushort);
@@ -212,7 +211,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
             {
                 var newSize = (int)Math.Max(_ibo.Size * 1.5f, indexSize);
                 _ibo.Size = newSize;
-                Log.Information($"[ImGui] Resized dear imgui index buffer to new size {_ibo.Size}");
+                Log.Context(this).Information($"Resized dear imgui index buffer to new size {_ibo.Size}");
             }
         }
 
@@ -334,7 +333,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
         var i = 1;
         while ((error = GL.GetError()) != ErrorCode.NoError)
         {
-            Log.Error($"[ImGui] {title} ({i++}): {error}");
+            Log.Context("OpenGL").Error($"{title} ({i++}): {error}");
         }
     }
 

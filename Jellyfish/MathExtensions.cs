@@ -25,6 +25,11 @@ public static class MathExtensions
         return new System.Numerics.Vector3(v.X, v.Y, v.Z);
     }
 
+    public static System.Numerics.Vector4 ToNumericsVector(this Color4 v)
+    {
+        return new System.Numerics.Vector4(v.R, v.G, v.B, v.A);
+    }
+
     public static SteamAudio.IPL.Vector3 ToIplVector(this Vector3 v)
     {
         return new SteamAudio.IPL.Vector3(v.X, v.Y, v.Z);

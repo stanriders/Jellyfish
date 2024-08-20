@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using Jellyfish.Audio;
+using Jellyfish.Console;
 using Jellyfish.Entities;
 using Jellyfish.Render;
 using JoltPhysicsSharp;
 using OpenTK.Mathematics;
-using Serilog;
 
 namespace Jellyfish;
 
@@ -160,11 +160,11 @@ public class PhysicsManager
 
     private void Run()
     {
-        Log.Information("[PhysicsManager] Starting physics thread...");
+        Log.Context(this).Information("Starting physics thread...");
 
         if (!Foundation.Init())
         {
-            Log.Information("[PhysicsManager] Failed to start Jolt!");
+            Log.Context(this).Error("Failed to start Jolt!");
         }
 
         // We use only 2 layers: one for non-moving objects and one for moving objects
@@ -198,7 +198,7 @@ public class PhysicsManager
 
         _physicsSystem.OnContactAdded += OnContactAdded;
 
-        Log.Information("[PhysicsManager] Jolt ready!");
+        Log.Context(this).Information("Jolt ready!");
         IsReady = true;
 
         while (!_shouldStop)
@@ -225,7 +225,7 @@ public class PhysicsManager
             var error = _physicsSystem.Step(update_rate / 1000f, 2);
             if (error != 0)
             {
-                Log.Warning("[PhysicsManager] Physics simulation reported error {Error}!", error);
+                Log.Context(this).Warning("Physics simulation reported error {Error}!", error);
             }
         }
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Serilog;
+using Jellyfish.Console;
 
 namespace Jellyfish.Entities;
 
@@ -34,17 +34,17 @@ public class EntityManager
             var entityAttribute = entityType.GetCustomAttribute<EntityAttribute>();
             if (entityAttribute == null)
             {
-                Log.Error("[EntityManager] Invalid entity declaration for type {Type}", entityType.FullName);
+                Log.Context(this).Error("Invalid entity declaration for type {Type}", entityType.FullName);
                 continue;
             }
 
             if (_entityClassDictionary.ContainsKey(entityType.Name))
             {
-                Log.Error("[EntityManager] Duplicate class name {Name} for type {Type}", entityAttribute.ClassName, entityType.FullName);
+                Log.Context(this).Error("Duplicate class name {Name} for type {Type}", entityAttribute.ClassName, entityType.FullName);
                 continue;
             }
 
-            Log.Information("[EntityManager] Registering class name {Name} for type {Type}...", entityAttribute.ClassName, entityType.FullName);
+            Log.Context(this).Information("Registering class name {Name} for type {Type}...", entityAttribute.ClassName, entityType.FullName);
             _entityClassDictionary.Add(entityAttribute.ClassName, entityType);
         }
     }
@@ -65,7 +65,7 @@ public class EntityManager
         {
             var entity = _killQueue.Dequeue();
 
-            Log.Information("[EntityManager] Destroying entity {Name}...", entity.GetPropertyValue<string>("Name"));
+            Log.Context(this).Information("Destroying entity {Name}...", entity.GetPropertyValue<string>("Name"));
             entity.Unload();
             _entityList.Remove(entity);
         }
@@ -78,13 +78,13 @@ public class EntityManager
     {
         if (instance == null)
         {
-            Log.Information("[EntityManager] Entity manager doesn't exist");
+            Log.Context("EntityManager").Information("Entity manager doesn't exist");
             return null;
         }
 
         if (instance._entityClassDictionary.TryGetValue(className, out var type))
         {
-            Log.Information("[EntityManager] Creating entity {Name}...", className);
+            Log.Context("EntityManager").Information("Creating entity {Name}...", className);
             if (Activator.CreateInstance(type) is BaseEntity entity)
             {
                 instance._entityList.Add(entity);
@@ -92,7 +92,7 @@ public class EntityManager
             }
         }
 
-        Log.Error("[EntityManager] Tried to create unknown entity {Name}!", className);
+        Log.Context("EntityManager").Error("Tried to create unknown entity {Name}!", className);
         return null;
     }
 
@@ -100,13 +100,13 @@ public class EntityManager
     {
         if (instance == null)
         {
-            Log.Information("[EntityManager] Entity manager doesn't exist");
+            Log.Context("EntityManager").Information("Entity manager doesn't exist");
             return null;
         }
 
         if (!instance._entityClassDictionary.TryGetValue(className, out var entityType))
         {
-            Log.Error("[EntityManager] Class name {Name} doesn't exist!", className);
+            Log.Context("EntityManager").Error("Class name {Name} doesn't exist!", className);
             return null;
         }
 
@@ -116,7 +116,7 @@ public class EntityManager
             return entity;
         }
 
-        Log.Error("[EntityManager] Entity {Name} wasn't found", className);
+        Log.Context("EntityManager").Error("Entity {Name} wasn't found", className);
         return null;
     }
 
@@ -124,13 +124,13 @@ public class EntityManager
     {
         if (instance == null)
         {
-            Log.Information("[EntityManager] Entity manager doesn't exist");
+            Log.Context("EntityManager").Information("Entity manager doesn't exist");
             return;
         }
         
         if (!instance._entityList.Any(x => x == entity))
         {
-            Log.Error("Trying to kill entity {Name} that doesn't exist already???", entity.GetPropertyValue<string>("Name"));
+            Log.Context("EntityManager").Error("Trying to kill entity {Name} that doesn't exist already???", entity.GetPropertyValue<string>("Name"));
             return;
         }
         

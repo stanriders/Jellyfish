@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Jellyfish.Console;
 using OpenTK.Mathematics;
-using Serilog;
 
 namespace Jellyfish.Render;
 
@@ -31,7 +31,7 @@ public class Model
         var meshParts = ModelParser.Parse(path);
         if (meshParts == null)
         {
-            Log.Error("[Model] Failed to create Model!");
+            Log.Context(this).Error("Failed to create Model!");
             return;
         }
 
@@ -48,7 +48,7 @@ public class Model
             }
             else
             {
-                Log.Warning("[Model] Mesh {Name} has no texture data!!", meshPart.Name);
+                Log.Context(this).Warning("Mesh {Name} has no texture data!!", meshPart.Name);
             }
 
             _meshes.Add(new Mesh(meshPart) {IsDev = isDev});

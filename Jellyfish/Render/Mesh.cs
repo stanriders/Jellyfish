@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
+using Jellyfish.Console;
 using Jellyfish.Render.Buffers;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
-using Serilog;
 
 namespace Jellyfish.Render;
 
@@ -91,7 +91,7 @@ public class Mesh
         }
         else
         {
-            Log.Warning("Mesh {Name} doesn't have a texture!", mesh.Name);
+            Log.Context(this).Warning("Mesh {Name} doesn't have a texture!", mesh.Name);
             AddMaterial("materials/error.mat");
         }
         CreateBuffers();

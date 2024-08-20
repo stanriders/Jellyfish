@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Jellyfish.Console;
 using Jellyfish.Render;
 using JoltPhysicsSharp;
 using OpenTK.Mathematics;
@@ -25,7 +26,7 @@ public class Plane : BaseEntity
         var textureProperty = GetPropertyValue<string>("Texture");
         if (textureProperty == null)
         {
-            Log.Error("[Plane] Texture not set!");
+            EntityLog().Error("Texture not set!");
             return;
         }
 

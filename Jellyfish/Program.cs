@@ -1,4 +1,6 @@
-﻿using Serilog;
+﻿using Jellyfish.Console;
+using Serilog;
+using Log = Serilog.Log;
 
 namespace Jellyfish;
 
@@ -8,8 +10,9 @@ public class Program
     {
         Log.Logger = new LoggerConfiguration()
             .Enrich.FromLogContext()
-            //.MinimumLevel.Debug()
+            .MinimumLevel.Debug()
             .WriteTo.Console()
+            .WriteTo.GameConsole()
             .CreateLogger();
 
         using var game = new MainWindow();

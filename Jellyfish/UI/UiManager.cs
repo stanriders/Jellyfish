@@ -1,9 +1,8 @@
-﻿using Jellyfish.Input;
-using Serilog;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Jellyfish.Console;
 
 namespace Jellyfish.UI;
 
@@ -30,7 +29,7 @@ public class UiManager
             }
             else
             {
-                Log.Error("Can't create panel {Type}", panelType.Name);
+                Log.Context(this).Error("Can't create panel {Type}", panelType.Name);
             }
         }
     }

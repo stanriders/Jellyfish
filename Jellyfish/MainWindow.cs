@@ -1,5 +1,6 @@
 ﻿using ImGuiNET;
 using Jellyfish.Audio;
+using Jellyfish.Console;
 using Jellyfish.Entities;
 using Jellyfish.Input;
 using Jellyfish.Render;
@@ -7,7 +8,6 @@ using Jellyfish.UI;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
-using Serilog;
 using System.Threading;
 using Vector3 = OpenTK.Mathematics.Vector3;
 
@@ -52,7 +52,7 @@ public class MainWindow : GameWindow
 
     protected override void OnLoad()
     {
-        Log.Information("[MainWindow] Loading..."); 
+        Log.Context(this).Information("Loading..."); 
 
         _inputHandler = new InputManager();
         _imguiController = new ImguiController();
@@ -80,10 +80,10 @@ public class MainWindow : GameWindow
         while (!_physicsManager.IsReady)
         {
             Thread.Sleep(100);
-            Log.Debug("[MainWindow] Waiting for physics to start...");
+            Log.Context(this).Debug("Waiting for physics to start...");
         }
 
-        Log.Information("[MainWindow] Finished loading!");
+        Log.Context(this).Information("Finished loading!");
 
         UpdateLoadingScreen("Creating player...");
         _camera = EntityManager.CreateEntity("camera") as Camera;

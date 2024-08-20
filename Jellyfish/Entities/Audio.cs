@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using Jellyfish.Audio;
 using OpenTK.Mathematics;
-using Serilog;
 
 namespace Jellyfish.Entities;
 
@@ -26,13 +25,13 @@ public class Audio : BaseEntity
         var path = GetPropertyValue<string>("Path");
         if (path == null)
         {
-            Log.Error("[Sound] Null path!");
+            EntityLog().Error("Null path!");
             return;
         }
 
         if (!File.Exists(path))
         {
-            Log.Error("[Sound] Path {Path} doesn't exist!", path);
+            EntityLog().Error("Path {Path} doesn't exist!", path);
             return;
         }
 
