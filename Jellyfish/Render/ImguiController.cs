@@ -356,7 +356,9 @@ public sealed class ImguiController : IDisposable, IInputHandler
         io.AddMouseButtonEvent(0, mouseState[MouseButton.Left]);
         io.AddMouseButtonEvent(1, mouseState[MouseButton.Right]);
         io.AddMouseButtonEvent(2, mouseState[MouseButton.Middle]);
-        
+
+        io.AddMouseWheelEvent(mouseState.ScrollDelta.X, mouseState.ScrollDelta.Y);
+
         foreach (Keys key in Enum.GetValues(typeof(Keys)))
         {
             if (key == Keys.Unknown)
