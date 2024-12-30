@@ -51,7 +51,7 @@ public class PostProcessing : IInputHandler
         GL.Clear(ClearBufferMask.ColorBufferBit);
         GL.Disable(EnableCap.DepthTest);
 
-        GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+        GL.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
 
         _shader.Bind();
         _shader.SetInt("isEnabled", _isEnabled ? 1 : 0);

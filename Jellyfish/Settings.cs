@@ -9,7 +9,7 @@ namespace Jellyfish;
 public class Settings
 {
     // todo: write a converter that will exclude computed properties instead??
-    public struct Integer2Serializable
+    public record struct Integer2Serializable
     {
         /// <summary>The X component of the Vector2i.</summary>
         public int X;

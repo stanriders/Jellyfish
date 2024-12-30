@@ -190,7 +190,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
             }
         }
 
-        GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+        GL.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
 
         _vao.Bind();
 
@@ -324,7 +324,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
             GL.Disable(EnableCap.ScissorTest);
 
 
-        GL.PolygonMode(MaterialFace.FrontAndBack, (PolygonMode)prevPolygonMode[0]);
+        GL.PolygonMode(TriangleFace.FrontAndBack, (PolygonMode)prevPolygonMode[0]);
     }
 
     private static void CheckGlError(string title)

@@ -57,8 +57,8 @@ public class Texture
         GL.TextureParameter(Handle, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
         GL.TextureParameter(Handle, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
 
-        GL.TextureStorage2D(Handle, 1, internalPixelFormat, image.Width, image.Height);
-        GL.TextureSubImage2D(Handle, 0, 0, 0, image.Width, image.Height, pixelFormat, PixelType.UnsignedByte,
+        GL.TextureStorage2D(Handle, 1, internalPixelFormat, (int)image.Width, (int)image.Height);
+        GL.TextureSubImage2D(Handle, 0, 0, 0, (int)image.Width, (int)image.Height, pixelFormat, PixelType.UnsignedByte,
             data.GetAreaPointer(0, 0, image.Width, image.Height));
 
         GL.GenerateTextureMipmap(Handle);

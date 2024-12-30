@@ -30,6 +30,7 @@ public class PhysicsManager
 
     private PhysicsSystem _physicsSystem = null!;
     private BodyInterface _bodyInterface;
+    private JobSystem _jobSystem = null!;
     private bool _shouldStop;
     private const int update_rate = (int)(1.0 / 120.0 * 1000);
 
@@ -167,6 +168,18 @@ public class PhysicsManager
             Log.Context(this).Error("Failed to start Jolt!");
         }
 
+        Foundation.SetTraceHandler((message) =>
+        {
+            Log.Context(this).Information(message);
+        });
+
+        Foundation.SetAssertFailureHandler((inExpression, inMessage, inFile, inLine) =>
+        {
+            var message = inMessage ?? inExpression;
+            Log.Context(this).Error($"[JoltPhysics] Assertion failure at {inFile}:{inLine}: {message}");
+            return true;
+        });
+
         // We use only 2 layers: one for non-moving objects and one for moving objects
         ObjectLayerPairFilterTable objectLayerPairFilterTable = new(2);
         objectLayerPairFilterTable.EnableCollision(Layers.NonMoving, Layers.Moving);
@@ -187,6 +200,8 @@ public class PhysicsManager
             BroadPhaseLayerInterface = broadPhaseLayerInterface,
             ObjectVsBroadPhaseLayerFilter = objectVsBroadPhaseLayerFilter
         };
+        
+        _jobSystem = new JobSystemThreadPool();
 
         _physicsSystem = new PhysicsSystem(settings);
         _bodyInterface = _physicsSystem.BodyInterface;
@@ -194,7 +209,7 @@ public class PhysicsManager
         _physicsSystem.OptimizeBroadPhase();
 
         _impactSound = AudioManager.AddSound("sounds/impact.wav");
-        _impactSound!.Volume = 0.1f;
+        _impactSound!.Volume = 0.5f;
 
         _physicsSystem.OnContactAdded += OnContactAdded;
 
@@ -222,13 +237,14 @@ public class PhysicsManager
                 }
             }
 
-            var error = _physicsSystem.Step(update_rate / 1000f, 2);
-            if (error != 0)
+            var error = _physicsSystem.Update(update_rate / 1000f, 2, _jobSystem);
+            if (error != PhysicsUpdateError.None)
             {
                 Log.Context(this).Warning("Physics simulation reported error {Error}!", error);
             }
         }
 
+        _jobSystem.Dispose();
         _impactSound?.Dispose();
         _physicsSystem.Dispose();
         Foundation.Shutdown();

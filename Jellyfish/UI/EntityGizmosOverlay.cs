@@ -13,7 +13,7 @@ public class EntityGizmosOverlay : IUiPanel
     private const float pad = 10.0f;
     private const int overlay_height = 35;
     private const int overlay_width = 150;
-    private bool _enableGizmos = true;
+    private bool _enableGizmos = false;
 
     public unsafe void Frame()
     {

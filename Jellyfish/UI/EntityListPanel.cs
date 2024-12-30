@@ -19,7 +19,9 @@ public class EntityListPanel : IUiPanel
         {
             foreach (var entity in EntityManager.Entities)
             {
-                var header = $"{entity.GetPropertyValue<string>("Name")} ({entity.GetType().Name})";
+                var entityName = entity.GetPropertyValue<string>("Name");
+                ImGui.PushID(entityName);
+                var header = $"{entityName} ({entity.GetType().Name})";
                 if (!entity.Loaded)
                 {
                     header = $"[UNLOADED] {entity.GetType().Name}";
@@ -44,11 +46,12 @@ public class EntityListPanel : IUiPanel
 
                     if (!entity.Loaded)
                     {
-                        if (ImGui.Button("Load"))
+                        if (ImGui.Button($"Load"))
                         {
                             entity.Load();
                         }
                     }
+                    ImGui.PopID();
                 }
             }
 
@@ -96,10 +99,9 @@ public class EntityListPanel : IUiPanel
                 return;
             }
         }
-
-        var entityName = entity.GetPropertyValue<string>("Name");
+        
         var propertyName = entityProperty.Name;
-        var elementLabel = $"{propertyName}##{entityName}";
+        var elementLabel = propertyName;
 
         if (entityProperty.Type == typeof(Vector2))
         {
