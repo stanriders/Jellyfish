@@ -9,20 +9,20 @@ namespace Jellyfish.UI;
 public class InfoOverlay : IUiPanel
 {
     private const float pad = 10.0f;
-    private const int frametime_buffer_size = 10;
+    private const int frametime_buffer_size = 30;
 
-    private readonly List<double> _lastFiveFrametimes = new();
+    private readonly List<double> _lastFewFrametimes = new();
     private double _lastAverageFrametime;
 
     public void Frame()
     {
         // smoothing out frametime a bit
-        if (_lastFiveFrametimes.Count > frametime_buffer_size)
+        if (_lastFewFrametimes.Count > frametime_buffer_size)
         {
-            _lastAverageFrametime = _lastFiveFrametimes.Average();
-            _lastFiveFrametimes.Clear();
+            _lastAverageFrametime = _lastFewFrametimes.Average();
+            _lastFewFrametimes.Clear();
         }
-        _lastFiveFrametimes.Add(MainWindow.Frametime);
+        _lastFewFrametimes.Add(MainWindow.Frametime);
 
         var windowFlags = ImGuiWindowFlags.NoDecoration |
                           ImGuiWindowFlags.AlwaysAutoResize |
