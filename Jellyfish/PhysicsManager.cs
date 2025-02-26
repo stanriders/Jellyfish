@@ -332,12 +332,14 @@ public class PhysicsManager
 
         public void Render()
         {
+#if PHYSDEBUG
             MeshManager.UpdateMesh(_mesh, new MeshPart
             {
                 Name = "physdebug",
                 Vertices = _vertices.ToList(),
                 Texture = "materials/error.mat"
             });
+#endif
 
             _vertices.Clear();
         }

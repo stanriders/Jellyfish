@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using JoltPhysicsSharp;
 using OpenTK.Mathematics;
@@ -117,8 +118,8 @@ public class DynamicModel : BaseModelEntity
         }
 
         var midX = (maxX - minX) / 2f;
-        var midY = (maxX - minX) / 2f;
-        var midZ = (maxX - minX) / 2f;
+        var midY = (maxY - minY) / 2f;
+        var midZ = (maxZ - minZ) / 2f;
 
         var middleCoord = new System.Numerics.Vector3(midX, midY, midZ);
 
@@ -126,24 +127,19 @@ public class DynamicModel : BaseModelEntity
         var horizontalRadius = Math.Max(maxX - minX, maxZ - minZ) / 2f;
         var radius = Math.Max(Math.Max(maxX - minX, maxZ - minZ), maxY - minY) / 2f;
 
-        var rotated = horizontalRadius > halfHeigth;
-        var rotateByX = midX > midZ;
-
         var type = GetPropertyValue<BoundingBoxType>("BoundingBox");
+
         ShapeSettings shape = type switch
         {
             BoundingBoxType.Sphere => new SphereShapeSettings(radius),
-            BoundingBoxType.Capsule => rotated ? new CapsuleShapeSettings(horizontalRadius, halfHeigth) : new CapsuleShapeSettings(halfHeigth, horizontalRadius),
+            BoundingBoxType.Capsule => new CapsuleShapeSettings(radius, horizontalRadius),
             BoundingBoxType.Box => new BoxShapeSettings(middleCoord),
-            BoundingBoxType.Cylinder => new CylinderShapeSettings(halfHeigth, radius),
+            BoundingBoxType.Cylinder => new CylinderShapeSettings(horizontalRadius, halfHeigth),
             _ => throw new ArgumentException("Unknown bounding box type"),
         };
-        
+
         var rotation = GetPropertyValue<Quaternion>("Rotation");
 
-        //float rotationX = rotated && rotateByX ? float.DegreesToRadians(rotation.X + 90) : float.DegreesToRadians(rotation.X);
-        //float rotationZ = rotated && !rotateByX ? float.DegreesToRadians(rotation.Z + 90) : float.DegreesToRadians(rotation.Z);
-
-        return new RotatedTranslatedShapeSettings(new System.Numerics.Vector3(0, halfHeigth, 0), rotation.ToNumericsQuaternion(), shape);
+        return new RotatedTranslatedShapeSettings(new System.Numerics.Vector3(0, 0, midZ), rotation.ToNumericsQuaternion(), shape);
     }
 }
