@@ -1,11 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Runtime;
 using System.Threading;
 using Jellyfish.Audio;
 using Jellyfish.Console;
 using Jellyfish.Entities;
 using Jellyfish.Render;
+using Jellyfish.Render.Buffers;
 using JoltPhysicsSharp;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
 namespace Jellyfish;
@@ -42,10 +47,17 @@ public class PhysicsManager
 
     private Sound? _impactSound;
 
+    private PhysicsDebugRenderer? _debugRenderer;
+    private PhysicsDebugDrawFilter _debugDrawFilter = null!;
+    private readonly Mesh _debugMesh;
+
     private static PhysicsManager? instance;
 
     public PhysicsManager()
     {
+        _debugMesh = new Mesh(new MeshPart() { Name = "physdebug"}) { IsDev = true };
+        MeshManager.AddMesh(_debugMesh);
+
         var physicsThread = new Thread(Run) { Name = "Physics thread" };
         physicsThread.Start();
 
@@ -185,6 +197,9 @@ public class PhysicsManager
             return true;
         });
 
+        _debugRenderer = new PhysicsDebugRenderer(_debugMesh);
+        _debugDrawFilter = new PhysicsDebugDrawFilter();
+
         _jobSystem = new JobSystemThreadPool();
 
         // We use only 2 layers: one for non-moving objects and one for moving objects
@@ -256,6 +271,15 @@ public class PhysicsManager
             {
                 Log.Context(this).Warning("Physics simulation reported error {Error}!", error);
             }
+
+            var drawSettings = new DrawSettings
+            {
+                DrawShape = true,
+                DrawShapeColor = ShapeColor.MotionTypeColor
+            };
+
+            _physicsSystem.DrawBodies(drawSettings, _debugRenderer, _debugDrawFilter);
+            _debugRenderer.Render();
         }
 
         _jobSystem.Dispose();
@@ -276,5 +300,54 @@ public class PhysicsManager
     public void Unload()
     {
         _shouldStop = true;
+    }
+
+    public class PhysicsDebugRenderer : DebugRenderer
+    {
+        private readonly List<Vertex> _vertices = new();
+
+        private readonly Mesh _mesh;
+
+        public PhysicsDebugRenderer(Mesh mesh)
+        {
+            _mesh = mesh;
+        }
+
+        protected override void DrawLine(System.Numerics.Vector3 from, System.Numerics.Vector3 to, JoltColor color)
+        {
+        }
+
+        protected override void DrawText3D(System.Numerics.Vector3 position, string? text, JoltColor color, float height = 0.5f)
+        {
+        }
+        
+        protected override void DrawTriangle(System.Numerics.Vector3 v1, System.Numerics.Vector3 v2, System.Numerics.Vector3 v3, JoltColor color, CastShadow castShadow = CastShadow.Off)
+        {
+            _vertices.AddRange([
+                new Vertex { Coordinates = v1.ToOpentkVector(), Normal = new Vector3(1), UV = new Vector2(0,1) },
+                new Vertex { Coordinates = v2.ToOpentkVector(), Normal = new Vector3(1), UV = new Vector2(0,1) },
+                new Vertex { Coordinates = v3.ToOpentkVector(), Normal = new Vector3(1), UV = new Vector2(0,1) }
+            ]);
+        }
+
+        public void Render()
+        {
+            MeshManager.UpdateMesh(_mesh, new MeshPart
+            {
+                Name = "physdebug",
+                Vertices = _vertices.ToList(),
+                Texture = "materials/error.mat"
+            });
+
+            _vertices.Clear();
+        }
+    }
+
+    public class PhysicsDebugDrawFilter : BodyDrawFilter
+    {
+        protected override bool ShouldDraw(Body body)
+        {
+            return body.ObjectLayer == Layers.Moving;
+        }
     }
 }

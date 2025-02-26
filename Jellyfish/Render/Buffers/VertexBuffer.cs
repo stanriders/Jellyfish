@@ -71,7 +71,33 @@ public class VertexBuffer
         GL.NamedBufferData(Handle, _size, coords.ToArray(), _usage);
         Length = vertices.Length;
     }
-    
+
+    public void UpdateData(Vertex[] vertices)
+    {
+        var coords = new List<float>();
+        foreach (var vertex in vertices)
+        {
+            // THIS IS UGLY
+
+            // vertex
+            coords.Add(vertex.Coordinates.X);
+            coords.Add(vertex.Coordinates.Y);
+            coords.Add(vertex.Coordinates.Z);
+
+            coords.Add(vertex.UV.X);
+            coords.Add(vertex.UV.Y);
+
+            coords.Add(vertex.Normal.X);
+            coords.Add(vertex.Normal.Y);
+            coords.Add(vertex.Normal.Z);
+        }
+
+        Stride = 8 * sizeof(float);
+        _size = coords.Count * sizeof(float);
+        GL.NamedBufferData(Handle, _size, coords.ToArray(), _usage);
+        Length = vertices.Length;
+    }
+
     public void Unload()
     {
         GL.DeleteBuffer(Handle);

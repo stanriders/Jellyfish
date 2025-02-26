@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Jellyfish.Audio;
 
 namespace Jellyfish.Render;
@@ -6,6 +7,9 @@ namespace Jellyfish.Render;
 public static class MeshManager
 {
     private static readonly List<Mesh> meshes = new();
+    private static readonly List<(Mesh, MeshPart)> updateQueue = new();
+
+    private static bool drawing;
 
     public static void AddMesh(Mesh mesh)
     {
@@ -17,12 +21,29 @@ public static class MeshManager
 
     public static void RemoveMesh(Mesh mesh)
     {
+        while (drawing)
+        {
+            // never remove meshes mid-drawing
+        }
+
         meshes.Remove(mesh);
         mesh.Unload();
     }
 
+    public static void UpdateMesh(Mesh mesh, MeshPart part)
+    {
+        if (!drawing)
+        {
+            if (!updateQueue.Any(x=> x.Item1 == mesh))
+                updateQueue.Add((mesh, part));
+        }
+    }
+
     public static void Draw(bool drawDev = true, Shader? shaderToUse = null)
     {
+        drawing = true;
+
+
         foreach (var mesh in meshes)
         {
             if (mesh.IsDev && !drawDev)
@@ -31,6 +52,16 @@ public static class MeshManager
             if (mesh.ShouldDraw)
                 mesh.Draw(shaderToUse);
         }
+
+        // ensures that all VBO updates happen post-rendering
+        foreach (var update in updateQueue)
+        {
+            update.Item1.SetMeshPart(update.Item2);
+        }
+
+        updateQueue.Clear();
+
+        drawing = false;
     }
 
     public static void Unload()

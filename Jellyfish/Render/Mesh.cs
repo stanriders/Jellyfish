@@ -78,10 +78,6 @@ public class Mesh
     private VertexArray _vao = null!;
     private VertexBuffer _vbo = null!;
 
-    public Mesh()
-    {
-    }
-
     public Mesh(MeshPart mesh)
     {
         MeshPart = mesh;
@@ -99,7 +95,7 @@ public class Mesh
         _vao.Unbind();
     }
 
-    public MeshPart MeshPart { get; set; } = null!;
+    public MeshPart MeshPart { get; private set; } = null!;
 
     public virtual PrimitiveType PrimitiveType { get; set; } = PrimitiveType.Triangles;
 
@@ -155,6 +151,12 @@ public class Mesh
 
         drawShader.Unbind();
         _vao.Unbind();
+    }
+
+    public void SetMeshPart(MeshPart part)
+    {
+        _vbo.UpdateData(part.Vertices.ToArray());
+        MeshPart = part;
     }
 
     public void Unload()
