@@ -31,7 +31,7 @@
 		<PackageReference Include="JoltPhysicsSharp" Version="2.12.1" />
 		<PackageReference Include="ManagedBass" Version="3.1.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-		<PackageReference Include="OpenTK" Version="4.9.3" />
+		<PackageReference Include="OpenTK" Version="5.0.0-pre.13" />
 		<PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
 		<PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.3.0" />
 		<PackageReference Include="SteamAudio.NET" Version="4.5.3" />

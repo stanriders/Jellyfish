@@ -21,32 +21,32 @@ public class VertexBuffer
         }
     }
 
-    private readonly BufferUsageHint _usage;
+    private readonly VertexBufferObjectUsage _usage;
 
-    public VertexBuffer(int size = 10000, BufferUsageHint usage = BufferUsageHint.StaticDraw)
+    public VertexBuffer(int size = 10000, VertexBufferObjectUsage usage = VertexBufferObjectUsage.StaticDraw)
     {
         _size = size;
         _usage = usage;
 
-        GL.CreateBuffers(1, out Handle);
+        GL.CreateBuffer(out Handle);
         GL.NamedBufferData(Handle, _size, IntPtr.Zero, _usage);
     }
 
-    public VertexBuffer(float[] data, int stride, BufferUsageHint usage = BufferUsageHint.StaticDraw)
+    public VertexBuffer(float[] data, int stride, VertexBufferObjectUsage usage = VertexBufferObjectUsage.StaticDraw)
     {
         _size = data.Length * sizeof(float);
         _usage = usage;
         Stride = stride;
 
-        GL.CreateBuffers(1, out Handle);
+        GL.CreateBuffer(out Handle);
         GL.NamedBufferData(Handle, _size, data, _usage);
     }
 
-    public VertexBuffer(Vertex[] vertices, BufferUsageHint usage = BufferUsageHint.StaticDraw)
+    public VertexBuffer(Vertex[] vertices, VertexBufferObjectUsage usage = VertexBufferObjectUsage.StaticDraw)
     {
         _usage = usage;
 
-        GL.CreateBuffers(1, out Handle);
+        GL.CreateBuffer(out Handle);
 
         var coords = new List<float>();
         foreach (var vertex in vertices)

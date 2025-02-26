@@ -20,7 +20,7 @@ public class OpenGLRender : IRender, IInputHandler
     private bool _wireframe;
 
     // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
-    private readonly DebugProc _debugProc; // if this delegate doesn't have a reference it gets GC'd after the first call
+    private readonly GLDebugProc _debugProc; // if this delegate doesn't have a reference it gets GC'd after the first call
 
     public bool IsReady { get; set; }
     public bool NeedToRecreateBuffers { get; set; }
@@ -44,10 +44,10 @@ public class OpenGLRender : IRender, IInputHandler
         _mainFramebuffer.Bind();
 
         _colorRenderTarget = new RenderTarget("_rt_Color", MainWindow.WindowWidth, MainWindow.WindowHeight, PixelFormat.Rgb,
-            FramebufferAttachment.ColorAttachment0, PixelType.UnsignedByte, TextureWrapMode.Clamp);
+            FramebufferAttachment.ColorAttachment0, PixelType.UnsignedByte, TextureWrapMode.ClampToEdge);
 
         _depthRenderTarget = new RenderTarget("_rt_Depth", MainWindow.WindowWidth, MainWindow.WindowHeight, PixelFormat.DepthComponent,
-            FramebufferAttachment.DepthAttachment, PixelType.UnsignedShort, TextureWrapMode.Clamp);
+            FramebufferAttachment.DepthAttachment, PixelType.UnsignedShort, TextureWrapMode.ClampToEdge);
 
         if (!_mainFramebuffer.Check())
         {
@@ -122,7 +122,7 @@ public class OpenGLRender : IRender, IInputHandler
         return false;
     }
 
-    private unsafe void DebugMessage(DebugSource source, DebugType type, int id, DebugSeverity severity, int length, nint message, nint userData)
+    private unsafe void DebugMessage(DebugSource source, DebugType type, uint id, DebugSeverity severity, int length, nint message, nint userParam)
     {
         if (length <= 0)
             return;

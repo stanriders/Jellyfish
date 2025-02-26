@@ -65,7 +65,7 @@ public static class MapLoader
     {
         public override bool CanConvert(Type objectType)
         {
-            return objectType == typeof(Color4);
+            return objectType == typeof(Color4<Rgba>);
         }
         public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
@@ -108,7 +108,7 @@ public static class MapLoader
                 }
             }
 
-            return new Color4(r, g, b, a);
+            return new Color4<Rgba>(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
         }
 
         public override bool CanRead => true;

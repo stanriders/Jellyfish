@@ -10,8 +10,8 @@ public class PointLight : BaseEntity, ILightSource
 
     public PointLight()
     {
-        AddProperty("Color", new Color4(255, 255, 255, 255));
-        AddProperty("Ambient", new Color4(0.1f, 0.1f, 0.1f, 0));
+        AddProperty("Color", new Color4<Rgba>(1, 1, 1, 1));
+        AddProperty("Ambient", new Color4<Rgba>(0.1f, 0.1f, 0.1f, 0));
         AddProperty("Enabled", true);
         AddProperty("Shadows", true);
         AddProperty("Quadratic", 0.8f);
@@ -33,8 +33,8 @@ public class PointLight : BaseEntity, ILightSource
 
     public Vector3 Position => GetPropertyValue<Vector3>("Position");
     public Quaternion Rotation => GetPropertyValue<Quaternion>("Rotation");
-    public Color4 Color => GetPropertyValue<Color4>("Color");
-    public Color4 Ambient => GetPropertyValue<Color4>("Ambient");
+    public Color4<Rgba> Color => GetPropertyValue<Color4<Rgba>>("Color");
+    public Color4<Rgba> Ambient => GetPropertyValue<Color4<Rgba>>("Ambient");
     public bool Enabled => GetPropertyValue<bool>("Enabled");
     public bool UseShadows => GetPropertyValue<bool>("Shadows");
     public float NearPlane => 0.1f;

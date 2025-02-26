@@ -18,23 +18,23 @@ public class IndexBuffer
         }
     }
 
-    private readonly BufferUsageHint _usage;
+    private readonly VertexBufferObjectUsage _usage;
 
-    public IndexBuffer(int size = 2000, BufferUsageHint usage = BufferUsageHint.StaticDraw)
+    public IndexBuffer(int size = 2000, VertexBufferObjectUsage usage = VertexBufferObjectUsage.StaticDraw)
     {
         _usage = usage;
         _size = size;
 
-        GL.CreateBuffers(1, out Handle);
+        GL.CreateBuffer(out Handle);
         GL.NamedBufferData(Handle, _size, IntPtr.Zero, _usage);
     }
 
     public IndexBuffer(uint[] indices)
     {
-        _usage = BufferUsageHint.StaticDraw;
+        _usage = VertexBufferObjectUsage.StaticDraw;
         _size = indices.Length * sizeof(uint);
 
-        GL.CreateBuffers(1, out Handle);
+        GL.CreateBuffer(out Handle);
         GL.NamedBufferData(Handle, _size, indices, _usage);
     }
     

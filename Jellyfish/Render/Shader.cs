@@ -126,10 +126,10 @@ public abstract class Shader
             GL.DeleteShader(computeShader);
         }
 
-        GL.GetProgram(_shaderHandle, GetProgramParameterName.ActiveUniforms, out var numberOfUniforms);
-        for (var i = 0; i < numberOfUniforms; i++)
+        GL.GetProgrami(_shaderHandle, ProgramProperty.ActiveUniforms, out var numberOfUniforms);
+        for (uint i = 0; i < numberOfUniforms; i++)
         {
-            var key = GL.GetActiveUniform(_shaderHandle, i, out _, out _);
+            GL.GetActiveUniformName(_shaderHandle, i, 128, out _, out var key);
             var location = GL.GetUniformLocation(_shaderHandle, key);
 
             _uniformLocations.Add(key, location);
@@ -149,18 +149,24 @@ public abstract class Shader
     {
         GL.CompileShader(shader);
 
-        GL.GetShader(shader, ShaderParameter.CompileStatus, out var code);
-        if (code != (int)All.True) 
-            throw new Exception($"Cant compile shader, {GL.GetShaderInfoLog(shader)}");
+        GL.GetShaderi(shader, ShaderParameterName.CompileStatus, out var code);
+        if (code != (int)All.True)
+        {
+            GL.GetShaderInfoLog(shader, out var error);
+            throw new Exception($"Cant compile shader, {error}");
+        }
     }
 
     private static void LinkProgram(int program)
     {
         GL.LinkProgram(program);
 
-        GL.GetProgram(program, GetProgramParameterName.LinkStatus, out var code);
-        if (code != (int)All.True) 
-            throw new Exception($"Cant link shader, {GL.GetProgramInfoLog(program)}");
+        GL.GetProgrami(program, ProgramProperty.LinkStatus, out var code);
+        if (code != (int)All.True)
+        {
+            GL.GetShaderInfoLog(program, out var error);
+            throw new Exception($"Cant link shader, {error}");
+        }
     }
 
     public virtual void Bind()
@@ -180,9 +186,9 @@ public abstract class Shader
         GL.UseProgram(0);
     }
 
-    public int GetAttribLocation(string attribName)
+    public uint GetAttribLocation(string attribName)
     {
-        return GL.GetAttribLocation(_shaderHandle, attribName);
+        return (uint)GL.GetAttribLocation(_shaderHandle, attribName);
     }
 
     private static string LoadSource(string path)
@@ -208,7 +214,7 @@ public abstract class Shader
         if (bind)
             Bind();
 
-        GL.Uniform1(_uniformLocations[name], data ? 1 : 0);
+        GL.Uniform1i(_uniformLocations[name], data ? 1 : 0);
     }
 
     /// <summary>
@@ -228,7 +234,7 @@ public abstract class Shader
         if (bind)
             Bind();
 
-        GL.Uniform1(_uniformLocations[name], data);
+        GL.Uniform1i(_uniformLocations[name], data);
     }
 
     /// <summary>
@@ -248,7 +254,7 @@ public abstract class Shader
         if (bind)
             Bind();
 
-        GL.Uniform1(_uniformLocations[name], data);
+        GL.Uniform1f(_uniformLocations[name], data);
     }
 
     /// <summary>
@@ -269,7 +275,7 @@ public abstract class Shader
         if (bind)
             Bind();
 
-        GL.UniformMatrix4(_uniformLocations[name], transpose, ref data);
+        GL.UniformMatrix4f(_uniformLocations[name], 1, transpose, ref data);
     }
 
     /// <summary>
@@ -289,7 +295,7 @@ public abstract class Shader
         if (bind)
             Bind();
 
-        GL.Uniform2(_uniformLocations[name], data);
+        GL.Uniform2f(_uniformLocations[name], data.X, data.Y);
     }
 
     /// <summary>
@@ -309,7 +315,7 @@ public abstract class Shader
         if (bind)
             Bind();
 
-        GL.Uniform3(_uniformLocations[name], data);
+        GL.Uniform3f(_uniformLocations[name], data.X, data.Y, data.Z);
     }
 
     /// <summary>
@@ -329,7 +335,7 @@ public abstract class Shader
         if (bind)
             Bind();
 
-        GL.Uniform3(_uniformLocations[name], data.Length, data);
+        GL.Uniform3f(_uniformLocations[name], data[0], data[1], data[2]);
     }
 
     /// <summary>
@@ -349,7 +355,7 @@ public abstract class Shader
         if (bind)
             Bind();
 
-        GL.Uniform4(_uniformLocations[name], data);
+        GL.Uniform4f(_uniformLocations[name], data.X, data.Y, data.Z, data.W);
     }
 
     /// <summary>
@@ -369,6 +375,6 @@ public abstract class Shader
         if (bind)
             Bind();
 
-        GL.Uniform3(_uniformLocations[name], data.Length, data);
+        GL.Uniform4f(_uniformLocations[name], data[0], data[1], data[2], data[3]);
     }
 }

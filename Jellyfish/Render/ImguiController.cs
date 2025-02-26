@@ -63,12 +63,12 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
     public void CreateDeviceResources()
     {
-        _vbo = new VertexBuffer(usage: BufferUsageHint.DynamicDraw)
+        _vbo = new VertexBuffer(usage: VertexBufferObjectUsage.DynamicDraw)
         {
             Stride = Unsafe.SizeOf<ImDrawVert>()
         };
 
-        _ibo = new IndexBuffer(usage: BufferUsageHint.DynamicDraw);
+        _ibo = new IndexBuffer(usage: VertexBufferObjectUsage.DynamicDraw);
         _vao = new VertexArray(_vbo, _ibo);
         RecreateFontDeviceTexture();
 
@@ -100,7 +100,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
         var mips = (int)Math.Floor(Math.Log(Math.Max(width, height), 2));
 
-        (var fontTexture, var alreadyExists) = TextureManager.GetTexture("_imgui_Fonts", TextureTarget.Texture2D);
+        (var fontTexture, var alreadyExists) = TextureManager.GetTexture("_imgui_Fonts", TextureTarget.Texture2d);
         _fontTexture = fontTexture.Handle;
 
         if (!alreadyExists)
@@ -112,13 +112,13 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
             GL.GenerateTextureMipmap(_fontTexture);
 
-            GL.TextureParameter(_fontTexture, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-            GL.TextureParameter(_fontTexture, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+            GL.TextureParameteri(_fontTexture, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            GL.TextureParameteri(_fontTexture, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
 
-            GL.TextureParameter(_fontTexture, TextureParameterName.TextureMaxLevel, mips - 1);
+            GL.TextureParameteri(_fontTexture, TextureParameterName.TextureMaxLevel, mips - 1);
 
-            GL.TextureParameter(_fontTexture, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-            GL.TextureParameter(_fontTexture, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+            GL.TextureParameteri(_fontTexture, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.TextureParameteri(_fontTexture, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         }
 
         io.Fonts.SetTexID(_fontTexture);
@@ -177,7 +177,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
         {
             fixed (int* iptr = &prevScissorBox[0])
             {
-                GL.GetInteger(GetPName.ScissorBox, iptr);
+                GL.GetInteger(GetPName.ScissorBox, prevScissorBox);
             }
         }
 
@@ -186,7 +186,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
         {
             fixed (int* iptr = &prevPolygonMode[0])
             {
-                GL.GetInteger(GetPName.PolygonMode, iptr);
+                GL.GetInteger(GetPName.PolygonMode, prevPolygonMode);
             }
         }
 
@@ -265,7 +265,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
                 }
 
                 GL.ActiveTexture(TextureUnit.Texture0);
-                GL.BindTexture(TextureTarget.Texture2D, (int)pcmd.TextureId);
+                GL.BindTexture(TextureTarget.Texture2d, (int)pcmd.TextureId);
                 CheckGlError("Texture");
 
                 // We do _windowHeight - (int)clip.W instead of (int)clip.Y because gl has flipped Y when it comes to these coordinates
@@ -282,7 +282,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
                 }
                 else
                 {
-                    GL.DrawElements(BeginMode.Triangles, (int)pcmd.ElemCount, DrawElementsType.UnsignedShort,
+                    GL.DrawElements(PrimitiveType.Triangles, (int)pcmd.ElemCount, DrawElementsType.UnsignedShort,
                         (int)pcmd.IdxOffset * sizeof(ushort));
                 }
 
@@ -299,10 +299,10 @@ public sealed class ImguiController : IDisposable, IInputHandler
         GL.BlendEquationSeparate((BlendEquationMode)prevBlendEquationRgb,
             (BlendEquationMode)prevBlendEquationAlpha);
         GL.BlendFuncSeparate(
-            (BlendingFactorSrc)prevBlendFuncSrcRgb,
-            (BlendingFactorDest)prevBlendFuncDstRgb,
-            (BlendingFactorSrc)prevBlendFuncSrcAlpha,
-            (BlendingFactorDest)prevBlendFuncDstAlpha);
+            (BlendingFactor)prevBlendFuncSrcRgb,
+            (BlendingFactor)prevBlendFuncDstRgb,
+            (BlendingFactor)prevBlendFuncSrcAlpha,
+            (BlendingFactor)prevBlendFuncDstAlpha);
         if (prevBlendEnabled)
             GL.Enable(EnableCap.Blend);
         else

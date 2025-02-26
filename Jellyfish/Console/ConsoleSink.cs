@@ -12,7 +12,7 @@ namespace Jellyfish.Console
     {
         public string Text { get; set; } = null!;
         public DateTime Timestamp { get; set; }
-        public Color4 Color { get; set; }
+        public Color4<Rgba> Color { get; set; }
         public string? Context { get; set; }
         public bool Unimportant { get; set; }
     }
@@ -45,13 +45,13 @@ namespace Jellyfish.Console
             });
         }
 
-        private Color4 SeverityToColor(LogEventLevel level)
+        private Color4<Rgba> SeverityToColor(LogEventLevel level)
         {
             return level switch
             {
-                LogEventLevel.Verbose => Color4.DimGray,
-                LogEventLevel.Debug => Color4.DimGray,
-                LogEventLevel.Information => Color4.DarkGray,
+                LogEventLevel.Verbose => Color4.Gray,
+                LogEventLevel.Debug => Color4.Gray,
+                LogEventLevel.Information => Color4.Gray,
                 LogEventLevel.Warning => Color4.Yellow,
                 LogEventLevel.Error => Color4.Red,
                 LogEventLevel.Fatal => Color4.Red,

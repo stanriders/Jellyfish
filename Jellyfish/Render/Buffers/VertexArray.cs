@@ -8,7 +8,7 @@ public class VertexArray
 
     public VertexArray(VertexBuffer vbo, IndexBuffer? ibo)
     {
-        GL.CreateVertexArrays(1, out Handle);
+        GL.CreateVertexArray(out Handle);
 
         GL.VertexArrayVertexBuffer(Handle, 0, vbo.Handle, 0, vbo.Stride);
         if (ibo != null)

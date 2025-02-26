@@ -4,7 +4,7 @@ namespace Jellyfish.Render.Buffers;
 
 public static class RenderBuffer
 {
-    public static void Create(RenderbufferStorage type, FramebufferAttachment attachment, int width, int heigth)
+    public static void Create(InternalFormat type, FramebufferAttachment attachment, int width, int heigth)
     {
         var renderBuffer = GL.GenRenderbuffer();
         GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, renderBuffer);

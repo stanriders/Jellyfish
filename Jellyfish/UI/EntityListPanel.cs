@@ -121,14 +121,14 @@ public class EntityListPanel : IUiPanel
 
             entity.SetPropertyValue(propertyName, val.ToOpentkVector());
         }
-        else if (entityProperty.Type == typeof(Color4))
+        else if (entityProperty.Type == typeof(Color4<Rgba>))
         {
-            var valueCasted = (Color4)entityProperty.Value!;
+            var valueCasted = (Color4<Rgba>)entityProperty.Value!;
 
-            var val = new System.Numerics.Vector4(valueCasted.R, valueCasted.G, valueCasted.B, valueCasted.A);
+            var val = new System.Numerics.Vector4(valueCasted.X, valueCasted.Y, valueCasted.Z, valueCasted.W);
             ImGui.DragFloat4(elementLabel, ref val, 0.01f, 0.0f, 1.0f);
 
-            entity.SetPropertyValue(propertyName, new Color4(val.X, val.Y, val.Z, val.W));
+            entity.SetPropertyValue(propertyName, new Color4<Rgba>(val.X, val.Y, val.Z, val.W));
         }
         else if (entityProperty.Type == typeof(Quaternion))
         {

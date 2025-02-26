@@ -33,7 +33,7 @@ public class FrameBuffer
     public bool Check()
     {
         var code = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
-        if (code != FramebufferErrorCode.FramebufferComplete)
+        if (code != FramebufferStatus.FramebufferComplete)
         {
             Log.Context(this).Error("Framebuffer {Id} status check failed with code {Code}", _framebufferHandle, code);
             return false;

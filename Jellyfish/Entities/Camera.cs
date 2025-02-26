@@ -61,7 +61,7 @@ public class Camera : BaseEntity, IInputHandler
                 _camLight.SetPropertyValue("Quadratic", 0.01f);
                 _camLight.SetPropertyValue("Linear", 0.8f);
                 _camLight.SetPropertyValue("Constant", 0.2f);
-                _camLight.SetPropertyValue("Color", new Color4(200, 220, 255, 10));
+                _camLight.SetPropertyValue("Color", new Color4<Rgba>(200 / 255.0f, 220 / 255.0f, 1f, 10 / 255.0f));
                 _camLight.SetPropertyValue("OuterCone", 60f);
                 _camLight.SetPropertyValue("Cone", 40f);
                 _camLight.Load();
@@ -86,7 +86,7 @@ public class Camera : BaseEntity, IInputHandler
         set
         {
             // We clamp the pitch value between -89 and 89 to prevent the camera from going upside down
-            var angle = MathHelper.Clamp(value, -89.9f, 89.9f);
+            var angle = Math.Clamp(value, -89.9f, 89.9f);
             _pitch = MathHelper.DegreesToRadians(angle);
             UpdateVectors();
         }
@@ -112,7 +112,7 @@ public class Camera : BaseEntity, IInputHandler
         get => MathHelper.RadiansToDegrees(_fov);
         set
         {
-            var angle = MathHelper.Clamp(value, 1f, 45f);
+            var angle = Math.Clamp(value, 1f, 45f);
             _fov = MathHelper.DegreesToRadians(angle);
         }
     }
@@ -143,11 +143,12 @@ public class Camera : BaseEntity, IInputHandler
         Up = Vector3.Normalize(Vector3.Cross(Right, _front));
 
         var quatRotation = new Matrix3(_front, Up, Right).ExtractRotation();
+        var lightRotation = new Matrix3(_front, Up, Right).Inverted().ExtractRotation();
 
         if (_camLight is not null)
         {
             _camLight.SetPropertyValue("Position", GetPropertyValue<Vector3>("Position"));
-            _camLight.SetPropertyValue("Rotation", quatRotation);
+            _camLight.SetPropertyValue("Rotation", lightRotation);
         }
 
         SetPropertyValue("Rotation", quatRotation);

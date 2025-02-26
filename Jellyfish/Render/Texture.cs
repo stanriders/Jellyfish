@@ -22,11 +22,9 @@ public class Texture
         if (string.IsNullOrEmpty(path))
             return;
 
-        var textureHandles = new int[1];
-        GL.CreateTextures(type, 1, textureHandles);
-        Handle = textureHandles[0];
+        Handle = GL.CreateTexture(type);
 
-        GL.ObjectLabel(ObjectLabelIdentifier.Texture, Handle, path.Length, path);
+        GL.ObjectLabel(ObjectIdentifier.Texture, (uint)Handle, path.Length, path);
 
         // procedural textures create themselves
         if (path.StartsWith("_")) 
@@ -54,8 +52,8 @@ public class Texture
 
         //GL.TextureParameter(_handle, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
         //GL.TextureParameter(_handle, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-        GL.TextureParameter(Handle, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-        GL.TextureParameter(Handle, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+        GL.TextureParameteri(Handle, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+        GL.TextureParameteri(Handle, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
 
         GL.TextureStorage2D(Handle, 1, internalPixelFormat, (int)image.Width, (int)image.Height);
         GL.TextureSubImage2D(Handle, 0, 0, 0, (int)image.Width, (int)image.Height, pixelFormat, PixelType.UnsignedByte,
@@ -64,7 +62,7 @@ public class Texture
         GL.GenerateTextureMipmap(Handle);
     }
 
-    public void Bind(int unit)
+    public void Bind(uint unit)
     {
         if (Handle != 0)
         {

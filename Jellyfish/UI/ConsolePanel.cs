@@ -40,7 +40,7 @@ namespace Jellyfish.UI
 
                         if (consoleLine.Context != null)
                         {
-                            var contextColor = new System.Numerics.Vector4(consoleLine.Color.R, consoleLine.Color.G, consoleLine.Color.B, 0.5f);
+                            var contextColor = new System.Numerics.Vector4(consoleLine.Color.X, consoleLine.Color.Y, consoleLine.Color.Z, 0.5f);
                             ImGui.TextColored(contextColor, consoleLine.Context);
                             ImGui.SameLine();
                         }

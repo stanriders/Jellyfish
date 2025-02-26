@@ -5,10 +5,10 @@ using Jellyfish.Entities;
 using Jellyfish.Input;
 using Jellyfish.Render;
 using Jellyfish.UI;
-using OpenTK.Graphics.OpenGL4;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using System.Threading;
+using OpenTK.Graphics.OpenGL;
 using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace Jellyfish;
