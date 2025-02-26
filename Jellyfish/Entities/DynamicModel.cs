@@ -8,9 +8,12 @@ namespace Jellyfish.Entities;
 [Entity("model_dynamic")]
 public class DynamicModel : BaseModelEntity
 {
-    private BodyID _physicsBodyId;
+    private BodyID? _physicsBodyId;
+
+    // TODO: add property change callbacks
     private Vector3? _previousPosition;
     private Quaternion? _previousRotation;
+    private bool _previousEnablePhysics = true; 
 
     public enum BoundingBoxType
     {
@@ -26,6 +29,7 @@ public class DynamicModel : BaseModelEntity
     {
         AddProperty<string>("Model", editable: false);
         AddProperty<BoundingBoxType>("BoundingBox", editable: false);
+        AddProperty<bool>("EnablePhysics", true);
     }
 
     public override void Load()
@@ -43,16 +47,30 @@ public class DynamicModel : BaseModelEntity
             Model.Position = GetPropertyValue<Vector3>("Position");
             Model.Rotation = GetPropertyValue<Quaternion>("Rotation");
 
-            if (_previousPosition != Model.Position)
+            if (_physicsBodyId != null)
             {
-                PhysicsManager.SetPosition(_physicsBodyId, Model.Position);
-                _previousPosition = Model.Position;
+                if (_previousPosition != Model.Position)
+                {
+                    PhysicsManager.SetPosition(_physicsBodyId.Value, Model.Position);
+                    _previousPosition = Model.Position;
+                }
+
+                if (_previousRotation != Model.Rotation)
+                {
+                    PhysicsManager.SetRotation(_physicsBodyId.Value, Model.Rotation);
+                    _previousRotation = Model.Rotation;
+                }
             }
 
-            if (_previousRotation != Model.Rotation)
+            var enablePhysics = GetPropertyValue<bool>("EnablePhysics");
+            if (_previousEnablePhysics != enablePhysics)
             {
-                PhysicsManager.SetRotation(_physicsBodyId, Model.Rotation);
-                _previousRotation = Model.Rotation;
+                if (enablePhysics)
+                    _physicsBodyId = PhysicsManager.AddDynamicObject(CalculatePhysicsShape(), this) ?? 0;
+                else
+                    PhysicsManager.RemoveObject(_physicsBodyId!.Value);
+
+                _previousEnablePhysics = enablePhysics;
             }
         }
 
@@ -61,7 +79,9 @@ public class DynamicModel : BaseModelEntity
 
     public override void Unload()
     {
-        PhysicsManager.RemoveObject(_physicsBodyId);
+        if (_physicsBodyId != null)
+            PhysicsManager.RemoveObject(_physicsBodyId.Value);
+
         base.Unload();
     }
 

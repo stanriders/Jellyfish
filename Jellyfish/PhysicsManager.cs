@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Runtime;
 using System.Threading;
 using Jellyfish.Audio;
 using Jellyfish.Console;
@@ -36,6 +37,8 @@ public class PhysicsManager
 
     private readonly Dictionary<BodyID, BaseEntity> _bodies = new();
     private CharacterVirtual? _character;
+
+    private readonly Queue<BodyID> _deletionQueue = new();
 
     private Sound? _impactSound;
 
@@ -87,9 +90,9 @@ public class PhysicsManager
             }
         }
 
-        var shapeSettings = new MeshShapeSettings(triangles.ToArray());
+        using var shapeSettings = new MeshShapeSettings(triangles.ToArray());
 
-        var bodySettings = new BodyCreationSettings(shapeSettings,
+        using var bodySettings = new BodyCreationSettings(shapeSettings,
             initialPosition.ToNumericsVector(),
             initialRotation.ToNumericsQuaternion(),
             MotionType.Static,
@@ -109,7 +112,7 @@ public class PhysicsManager
         var initialPosition = entity.GetPropertyValue<Vector3>("Position");
         var initialRotation = entity.GetPropertyValue<Quaternion>("Rotation");
 
-        var bodySettings = new BodyCreationSettings(shape,
+        using var bodySettings = new BodyCreationSettings(shape,
             initialPosition.ToNumericsVector(),
             initialRotation.ToNumericsQuaternion(),
             MotionType.Dynamic,
@@ -122,6 +125,8 @@ public class PhysicsManager
             return null;
 
         instance?._bodies.Add(bodyId.Value, entity);
+
+        shape.Dispose();
 
         return bodyId;
     }
@@ -156,7 +161,7 @@ public class PhysicsManager
     
     public static void RemoveObject(BodyID body)
     {
-        instance?._bodyInterface.RemoveBody(body);
+        instance?._deletionQueue.Enqueue(body);
     }
 
     private void Run()
@@ -180,28 +185,30 @@ public class PhysicsManager
             return true;
         });
 
+        _jobSystem = new JobSystemThreadPool();
+
         // We use only 2 layers: one for non-moving objects and one for moving objects
-        ObjectLayerPairFilterTable objectLayerPairFilterTable = new(2);
-        objectLayerPairFilterTable.EnableCollision(Layers.NonMoving, Layers.Moving);
-        objectLayerPairFilterTable.EnableCollision(Layers.Moving, Layers.Moving);
+        ObjectLayerPairFilterTable objectLayerPairFilter = new(2);
+        objectLayerPairFilter.EnableCollision(Layers.NonMoving, Layers.Moving);
+        objectLayerPairFilter.EnableCollision(Layers.Moving, Layers.Moving);
 
         // We use a 1-to-1 mapping between object layers and broadphase layers
-        BroadPhaseLayerInterfaceTable broadPhaseLayerInterfaceTable = new(2, 2);
-        broadPhaseLayerInterfaceTable.MapObjectToBroadPhaseLayer(Layers.NonMoving, BroadPhaseLayers.NonMoving);
-        broadPhaseLayerInterfaceTable.MapObjectToBroadPhaseLayer(Layers.Moving, BroadPhaseLayers.Moving);
+        BroadPhaseLayerInterfaceTable broadPhaseLayerInterface = new(2, 2);
+        broadPhaseLayerInterface.MapObjectToBroadPhaseLayer(Layers.NonMoving, BroadPhaseLayers.NonMoving);
+        broadPhaseLayerInterface.MapObjectToBroadPhaseLayer(Layers.Moving, BroadPhaseLayers.Moving);
 
-        ObjectLayerPairFilter objectLayerPairFilter = objectLayerPairFilterTable;
-        BroadPhaseLayerInterface broadPhaseLayerInterface = broadPhaseLayerInterfaceTable;
-        ObjectVsBroadPhaseLayerFilter objectVsBroadPhaseLayerFilter = new ObjectVsBroadPhaseLayerFilterTable(broadPhaseLayerInterfaceTable, 2, objectLayerPairFilterTable, 2);
+        ObjectVsBroadPhaseLayerFilterTable objectVsBroadPhaseLayerFilter = new(broadPhaseLayerInterface, 2, objectLayerPairFilter, 2);
 
         var settings = new PhysicsSystemSettings
         {
+            MaxBodies = 65536,
+            MaxBodyPairs = 65536,
+            MaxContactConstraints = 65536,
+            NumBodyMutexes = 0,
             ObjectLayerPairFilter = objectLayerPairFilter,
             BroadPhaseLayerInterface = broadPhaseLayerInterface,
             ObjectVsBroadPhaseLayerFilter = objectVsBroadPhaseLayerFilter
         };
-        
-        _jobSystem = new JobSystemThreadPool();
 
         _physicsSystem = new PhysicsSystem(settings);
         _bodyInterface = _physicsSystem.BodyInterface;
@@ -223,6 +230,13 @@ public class PhysicsManager
             if (!ShouldSimulate)
                 continue;
 
+            while (_deletionQueue.TryDequeue(out var bodyId))
+            {
+                _bodyInterface.DeactivateBody(bodyId);
+                _bodyInterface.RemoveAndDestroyBody(bodyId);
+                _bodies.Remove(bodyId);
+            }
+
             _character?.Update(update_rate / 1000f, Layers.Moving, _physicsSystem);
 
             foreach (var (bodyId, entity) in _bodies)
@@ -237,7 +251,7 @@ public class PhysicsManager
                 }
             }
 
-            var error = _physicsSystem.Update(update_rate / 1000f, 2, _jobSystem);
+            var error = _physicsSystem.Update(update_rate / 1000f, 1, _jobSystem);
             if (error != PhysicsUpdateError.None)
             {
                 Log.Context(this).Warning("Physics simulation reported error {Error}!", error);
