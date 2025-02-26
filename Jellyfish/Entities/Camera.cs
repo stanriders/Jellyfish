@@ -255,6 +255,11 @@ public class Camera : BaseEntity, IInputHandler
 
                 SetPropertyValue("Position", position);
 
+                if (_physCharacter != null)
+                {
+                    _physCharacter.Position = position.ToNumericsVector();
+                }
+
                 Yaw += mouseState.Delta.X * sensitivity;
                 Pitch -= mouseState.Delta.Y * sensitivity;
 
