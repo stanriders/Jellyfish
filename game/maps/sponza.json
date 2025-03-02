@@ -5,14 +5,14 @@
       "Properties": [
         {
           "Name": "Name",
-          "Value": "player"
+          "Value": "playerge"
         },
         {
           "Name": "Position",
           "Value": {
-            "X": 40,
+            "X": 0,
             "Y": 60,
-            "Z": 40
+            "Z": 120
           }
         },
         {
@@ -76,6 +76,101 @@
         {
           "Name": "Model",
           "Value": "Police_reference.smd"
+        },
+        {
+          "Name": "BoundingBox",
+          "Value": "Cylinder"
+        }
+      ]
+    },
+    {
+      "ClassName": "model_static",
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "sponza"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": 0,
+            "Y": 0,
+            "Z": 0
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0,
+            "Yaw": 0,
+            "Roll": 0
+          }
+        },
+        {
+          "Name": "Model",
+          "Value": "sponza.gltf"
+        }
+      ]
+    },
+    {
+      "ClassName": "model_dynamic",
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "cube"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": -10,
+            "Y": 20,
+            "Z": 10
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0,
+            "Yaw": 0,
+            "Roll": 0
+          }
+        },
+        {
+          "Name": "Model",
+          "Value": "AnimatedCube.gltf"
+        },
+        {
+          "Name": "BoundingBox",
+          "Value": "Box"
+        }
+      ]
+    },
+    {
+      "ClassName": "model_dynamic",
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "oildrum1"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": -10,
+            "Y": 20,
+            "Z": 10
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0,
+            "Yaw": 0,
+            "Roll": 0
+          }
+        },
+        {
+          "Name": "Model",
+          "Value": "oildrum001_reference.smd"
         },
         {
           "Name": "BoundingBox",
@@ -168,24 +263,24 @@
       ]
     },
     {
-      "ClassName": "plane_flat",
+      "ClassName": "plane_bezier",
       "Properties": [
         {
           "Name": "Name",
-          "Value": "floor"
+          "Value": "bezier"
         },
         {
           "Name": "Position",
           "Value": {
             "X": 0,
-            "Y": 0,
-            "Z": 0
+            "Y": 10,
+            "Z": 100
           }
         },
         {
           "Name": "Rotation",
           "Value": {
-            "Pitch": 90,
+            "Pitch": -90,
             "Yaw": 0,
             "Roll": 0
           }
@@ -193,97 +288,17 @@
         {
           "Name": "Size",
           "Value": {
-            "X": 360,
-            "Y": 360
+            "X": 20,
+            "Y": 20
           }
+        },
+        {
+          "Name": "QuadSize",
+          "Value": 4
         },
         {
           "Name": "Texture",
           "Value": "tile.mat"
-        },
-        {
-          "Name": "TextureScale",
-          "Value": 4
-        }
-      ]
-    },
-    {
-      "ClassName": "plane_flat",
-      "Properties": [
-        {
-          "Name": "Name",
-          "Value": "wall1"
-        },
-        {
-          "Name": "Position",
-          "Value": {
-            "X": 0,
-            "Y": 45,
-            "Z": -90
-          }
-        },
-        {
-          "Name": "Rotation",
-          "Value": {
-            "Pitch": 180,
-            "Yaw": 0,
-            "Roll": 0
-          }
-        },
-        {
-          "Name": "Size",
-          "Value": {
-            "X": 180,
-            "Y": 90
-          }
-        },
-        {
-          "Name": "Texture",
-          "Value": "tile.mat"
-        },
-        {
-          "Name": "TextureScale",
-          "Value": 4
-        }
-      ]
-    },
-    {
-      "ClassName": "plane_flat",
-      "Properties": [
-        {
-          "Name": "Name",
-          "Value": "wall2"
-        },
-        {
-          "Name": "Position",
-          "Value": {
-            "X": -90,
-            "Y": 45,
-            "Z": 0
-          }
-        },
-        {
-          "Name": "Rotation",
-          "Value": {
-            "Pitch": 0,
-            "Yaw": -90,
-            "Roll": 0
-          }
-        },
-        {
-          "Name": "Size",
-          "Value": {
-            "X": 180,
-            "Y": 90
-          }
-        },
-        {
-          "Name": "Texture",
-          "Value": "tile.mat"
-        },
-        {
-          "Name": "TextureScale",
-          "Value": 4
         }
       ]
     },
@@ -322,6 +337,31 @@
         {
           "Name": "Enabled",
           "Value": true
+        }
+      ]
+    },
+    {
+      "ClassName": "audio",
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "positional audio"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": 0,
+            "Y": 10,
+            "Z": 0
+          }
+        },
+        {
+          "Name": "Path",
+          "Value": "sounds/test.mp3"
+        },
+        {
+          "Name": "Autoplay",
+          "Value": false
         }
       ]
     }

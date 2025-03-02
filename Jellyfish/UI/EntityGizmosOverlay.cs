@@ -20,6 +20,9 @@ public class EntityGizmosOverlay : IUiPanel
         if (EntityManager.Entities == null)
             return;
 
+        if (!MainWindow.Loaded)
+            return;
+
         var camera = Camera.Instance;
         if (camera == null)
             return;

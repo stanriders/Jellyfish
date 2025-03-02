@@ -9,7 +9,6 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using System.Threading;
 using OpenTK.Graphics.OpenGL;
-using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace Jellyfish;
 
@@ -22,7 +21,6 @@ public class MainWindow : GameWindow
     private UiManager _uiManager = null!;
     private AudioManager _audioManager = null!;
     private PhysicsManager _physicsManager = null!;
-    private Camera? _camera;
 
     private int _loadingStep;
 
@@ -49,6 +47,9 @@ public class MainWindow : GameWindow
     public static int WindowHeight { get; set; }
     public static double Frametime { get; set; }
     public static bool ShouldQuit { get; set; }
+    public static string? QueuedMap { private get; set; }
+    public static string? CurrentMap { get; private set; }
+    public static bool Loaded => CurrentMap != null;
 
     protected override void OnLoad()
     {
@@ -85,21 +86,9 @@ public class MainWindow : GameWindow
 
         Log.Context(this).Information("Finished loading!");
 
-        UpdateLoadingScreen("Creating player...");
-        _camera = EntityManager.CreateEntity("camera") as Camera;
-        if (_camera != null)
-        {
-            _camera.AspectRatio = WindowWidth / (float)WindowHeight;
-            _camera.SetPropertyValue("Position", new Vector3(40, 20, 20));
-        }
-
-        var mapName = "maps/test.json";
-        UpdateLoadingScreen($"Loading map '{mapName}'...");
-        MapLoader.Load(mapName);
-
-        UpdateLoadingScreen("Finishing loading...");
-        _render.IsReady = true;
-        _physicsManager.ShouldSimulate = true;
+#if DEBUG
+        QueuedMap = "maps/test.json";
+#endif
     }
 
     protected override void OnRenderFrame(FrameEventArgs e)
@@ -119,9 +108,22 @@ public class MainWindow : GameWindow
             return;
         }
 
+        if (QueuedMap != null)
+        {
+            LoadMap(QueuedMap);
+            QueuedMap = null;
+        }
+
         // we want to update ui regardless of focus otherwise it disappears
         _imguiController?.Update(WindowWidth, WindowHeight);
         _uiManager.Frame();
+        _inputHandler.Frame(KeyboardState, MouseState, (float)e.Time);
+
+        if (!Loaded)
+        {
+            base.OnUpdateFrame(e);
+            return;
+        }
 
         if (!IsFocused)
         {
@@ -151,8 +153,7 @@ public class MainWindow : GameWindow
             WindowState = WindowState.Normal;
         }
 
-        _inputHandler.Frame(KeyboardState, MouseState, (float)e.Time);
-        CursorState = !_camera?.IsControllingCursor ?? false ? CursorState.Normal : CursorState.Grabbed;
+        CursorState = !Camera.Instance?.IsControllingCursor ?? false ? CursorState.Normal : CursorState.Grabbed;
 
         base.OnUpdateFrame(e);
     }
@@ -226,5 +227,32 @@ public class MainWindow : GameWindow
         Render();
 
         _loadingStep++;
+    }
+
+    private void LoadMap(string map)
+    {
+        _physicsManager.ShouldSimulate = false;
+        _render.IsReady = false;
+        Camera.Instance = null;
+
+        UpdateLoadingScreen("Cleaning up entities...");
+        _entityManager.Unload();
+
+        UpdateLoadingScreen($"Loading map '{map}'...");
+        MapLoader.Load(map);
+
+        UpdateLoadingScreen("Creating player...");
+        Camera.Instance = EntityManager.FindEntity("camera", true) as Camera ?? EntityManager.CreateEntity("camera") as Camera;
+        if (Camera.Instance != null)
+        {
+            Camera.Instance.AspectRatio = WindowWidth / (float)WindowHeight;
+        }
+
+        UpdateLoadingScreen("Finishing loading...");
+
+        CurrentMap = map;
+
+        _render.IsReady = true;
+        _physicsManager.ShouldSimulate = true;
     }
 }

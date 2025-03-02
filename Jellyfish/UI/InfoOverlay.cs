@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
@@ -13,6 +12,8 @@ public class InfoOverlay : IUiPanel
 
     private readonly List<double> _lastFewFrametimes = new();
     private double _lastAverageFrametime;
+
+    private string _mapInput = string.Empty;
 
     public void Frame()
     {
@@ -41,14 +42,33 @@ public class InfoOverlay : IUiPanel
         {
             ImGui.Text("Jellyfish");
 
-            if (Camera.Instance != null)
+            ImGui.Separator();
+            ImGui.Text(
+                $"FPS: {1.0 / _lastAverageFrametime:N0} (frametime: {_lastAverageFrametime * 1000.0:N4})");
+
+            if (MainWindow.Loaded)
             {
                 ImGui.Separator();
-                ImGui.Text($"FPS: {1.0 / _lastAverageFrametime:N0} (frametime: {_lastAverageFrametime * 1000.0:N4})");
-                ImGui.Separator();
-                ImGui.Text($"Position: {Camera.Instance.GetPropertyValue<OpenTK.Mathematics.Vector3>("Position"):N4}");
-                ImGui.Separator();
-                ImGui.Text($"Rotation: {Camera.Instance.GetPropertyValue<OpenTK.Mathematics.Quaternion>("Rotation").ToEulerAngles().ToDegrees():N2}");
+                ImGui.Text($"{MainWindow.CurrentMap}");
+
+                if (Camera.Instance != null)
+                {
+
+                    ImGui.Separator();
+                    ImGui.Text(
+                        $"Position: {Camera.Instance.GetPropertyValue<OpenTK.Mathematics.Vector3>("Position"):N4}");
+                    ImGui.Separator();
+                    ImGui.Text(
+                        $"Rotation: {Camera.Instance.GetPropertyValue<OpenTK.Mathematics.Quaternion>("Rotation").ToEulerAngles().ToDegrees():N2}");
+                }
+            }
+
+            ImGui.Separator();
+            ImGui.InputText("", ref _mapInput, 1024);
+            ImGui.SameLine();
+            if (ImGui.Button("Load"))
+            {
+                MainWindow.QueuedMap = _mapInput;
             }
 
             ImGui.Separator();

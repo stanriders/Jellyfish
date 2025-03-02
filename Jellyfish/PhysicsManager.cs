@@ -161,6 +161,15 @@ public class PhysicsManager
         return instance._character;
     }
 
+    public static void RemovePlayerController()
+    {
+        if (instance?._character == null)
+            return;
+
+        instance._character?.Dispose();
+        instance._character = null;
+    }
+
     public static void SetPosition(BodyID bodyId, Vector3 newPosition)
     {
         instance?._bodyInterface.SetPosition(bodyId, newPosition.ToNumericsVector(), Activation.Activate);

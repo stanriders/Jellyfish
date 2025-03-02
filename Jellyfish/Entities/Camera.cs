@@ -18,8 +18,8 @@ public class Camera : BaseEntity, IInputHandler
 
     private bool _noclip;
 
-    private readonly Spotlight? _camLight;
-    private readonly CharacterVirtual? _physCharacter;
+    private Spotlight? _camLight;
+    private CharacterVirtual? _physCharacter;
 
     private const float camera_speed = 120.0f;
     private const float jump_velocity = 250.0f;
@@ -35,43 +35,43 @@ public class Camera : BaseEntity, IInputHandler
             if (camera != null) 
                 return camera;
 
-            camera = EntityManager.FindEntity("camera") as Camera;
-            if (camera == null)
-            {
-                Log.Context("Camera").Error("Camera doesn't exist!");
-                return null;
-            }
+            camera = EntityManager.FindEntity("camera", true) as Camera;
             return camera;
         }
+        set => camera = value;
     }
 
-    public Camera()
+    public override void Load()
     {
-        SetPropertyValue("Name", "cam");
-        if (_camLight is null)
+        _camLight = EntityManager.CreateEntity("light_spot") as Spotlight;
+        if (_camLight != null)
         {
-            _camLight = EntityManager.CreateEntity("light_spot") as Spotlight;
-            if (_camLight != null)
-            {
 #if DEBUG
-                _camLight.DrawDevCone = false;
+            _camLight.DrawDevCone = false;
 #endif
-                _camLight.SetPropertyValue("Name", "cam light");
-                _camLight.SetPropertyValue("Enabled", true);
-                _camLight.SetPropertyValue("Quadratic", 0.01f);
-                _camLight.SetPropertyValue("Linear", 0.8f);
-                _camLight.SetPropertyValue("Constant", 0.2f);
-                _camLight.SetPropertyValue("Color", new Color4<Rgba>(200 / 255.0f, 220 / 255.0f, 1f, 10 / 255.0f));
-                _camLight.SetPropertyValue("OuterCone", 60f);
-                _camLight.SetPropertyValue("Cone", 40f);
-                _camLight.Load();
-            }
+            _camLight.SetPropertyValue("Name", "cam light");
+            _camLight.SetPropertyValue("Enabled", true);
+            _camLight.SetPropertyValue("Quadratic", 0.01f);
+            _camLight.SetPropertyValue("Linear", 0.8f);
+            _camLight.SetPropertyValue("Constant", 0.2f);
+            _camLight.SetPropertyValue("Color", new Color4<Rgba>(200 / 255.0f, 220 / 255.0f, 1f, 10 / 255.0f));
+            _camLight.SetPropertyValue("OuterCone", 60f);
+            _camLight.SetPropertyValue("Cone", 40f);
+            _camLight.Load();
         }
-        
+
         _physCharacter = PhysicsManager.AddPlayerController(this);
         InputManager.RegisterInputHandler(this);
 
         base.Load();
+    }
+
+    public override void Unload()
+    {
+        PhysicsManager.RemovePlayerController();
+        InputManager.UnregisterInputHandler(this);
+
+        base.Unload();
     }
 
     public float AspectRatio { get; set; }

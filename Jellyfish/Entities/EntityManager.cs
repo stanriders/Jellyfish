@@ -96,7 +96,7 @@ public class EntityManager
         return null;
     }
 
-    public static BaseEntity? FindEntity(string className)
+    public static BaseEntity? FindEntity(string className, bool silent = false)
     {
         if (instance == null)
         {
@@ -116,7 +116,9 @@ public class EntityManager
             return entity;
         }
 
-        Log.Context("EntityManager").Error("Entity {Name} wasn't found", className);
+        if (!silent)
+            Log.Context("EntityManager").Error("Entity {Name} wasn't found", className);
+
         return null;
     }
 

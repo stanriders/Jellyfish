@@ -14,6 +14,9 @@ public class EntityListPanel : IUiPanel
     {
         if (EntityManager.Entities == null || EntityManager.EntityClasses == null)
             return;
+
+        if (!MainWindow.Loaded)
+            return;
         
         if (ImGui.Begin("Entity list"))
         {
