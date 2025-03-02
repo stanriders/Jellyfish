@@ -19,6 +19,11 @@
 		<Copy SourceFiles="@(VertShaders)" DestinationFolder="$(OutDir)\shaders" />
 	</Target>
 
+	<ItemGroup>
+		<Watch Include="@(FragShaders)" />
+		<Watch Include="@(VertShaders)" />
+	</ItemGroup>
+
 	<Target Name="CopyDLLs" AfterTargets="Build">
 		<Message Importance="High" Text="Copying everything to /game/..." />
 		<Copy SourceFiles="@(AllFiles)" DestinationFolder="../game/%(RecursiveDir)" />

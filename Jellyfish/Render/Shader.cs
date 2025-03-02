@@ -10,140 +10,270 @@ namespace Jellyfish.Render;
 
 public abstract class Shader
 {
-    private readonly int _shaderHandle;
+    private int _shaderHandle;
 
     private readonly Dictionary<string, int> _uniformLocations = new();
     private readonly Dictionary<int, object> _uniformCache = new();
 
+    private readonly string _vertPath;
+    private readonly string? _geomPath;
+    private readonly string _fragPath;
+    private readonly string? _tessControlPath;
+    private readonly string? _tessEvalPath;
+    private readonly string? _compPath;
+
+    private readonly List<FileSystemWatcher> _watchers = new();
+
     protected Shader(string vertPath, string? geomPath, string fragPath, string? tessControlPath = null,
         string? tessEvalPath = null, string? compPath = null)
     {
-        // create shader program
-        _shaderHandle = GL.CreateProgram();
+        _vertPath = vertPath;
+        _geomPath = geomPath;
+        _fragPath = fragPath;
+        _tessControlPath = tessControlPath;
+        _tessEvalPath = tessEvalPath;
+        _compPath = compPath;
 
-        // compile shaders
-        var vertexShader = 0;
-        if (!string.IsNullOrEmpty(vertPath))
+        _shaderHandle = LoadShader();
+
+        var vertWatcher = new FileSystemWatcher(Path.GetDirectoryName(vertPath)!, Path.GetFileName(vertPath))
         {
-            vertexShader = GL.CreateShader(ShaderType.VertexShader);
-            GL.ShaderSource(vertexShader, LoadSource(vertPath));
-            CompileShader(vertexShader);
-        }
+            NotifyFilter = NotifyFilters.LastWrite,
+            EnableRaisingEvents = true
+        };
+        vertWatcher.Changed += OnChanged;
+        _watchers.Add(vertWatcher);
 
-        var geometryShader = 0;
         if (!string.IsNullOrEmpty(geomPath))
         {
-            geometryShader = GL.CreateShader(ShaderType.GeometryShader);
-            GL.ShaderSource(geometryShader, LoadSource(geomPath));
-            CompileShader(geometryShader);
+            var geomWatcher = new FileSystemWatcher(Path.GetDirectoryName(geomPath)!, Path.GetFileName(geomPath))
+            {
+                NotifyFilter = NotifyFilters.LastWrite,
+                EnableRaisingEvents = true
+            };
+            geomWatcher.Changed += OnChanged;
+            _watchers.Add(geomWatcher);
         }
 
-        var fragmentShader = 0;
-        if (!string.IsNullOrEmpty(fragPath))
+        var fragWatcher = new FileSystemWatcher(Path.GetDirectoryName(fragPath)!, Path.GetFileName(fragPath))
         {
-            fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
-            GL.ShaderSource(fragmentShader, LoadSource(fragPath));
-            CompileShader(fragmentShader);
-        }
+            NotifyFilter = NotifyFilters.LastWrite,
+            EnableRaisingEvents = true
+        };
+        fragWatcher.Changed += OnChanged;
+        _watchers.Add(fragWatcher);
 
-        var tesselationControlShader = 0;
         if (!string.IsNullOrEmpty(tessControlPath))
         {
-            tesselationControlShader = GL.CreateShader(ShaderType.TessControlShader);
-            GL.ShaderSource(tesselationControlShader, LoadSource(tessControlPath));
-            CompileShader(tesselationControlShader);
+            var tessControlWatcher = new FileSystemWatcher(Path.GetDirectoryName(tessControlPath)!, Path.GetFileName(tessControlPath))
+            {
+                NotifyFilter = NotifyFilters.LastWrite,
+                EnableRaisingEvents = true
+            };
+            tessControlWatcher.Changed += OnChanged;
+            _watchers.Add(tessControlWatcher);
         }
 
-        var tesselationEvaluationShader = 0;
         if (!string.IsNullOrEmpty(tessEvalPath))
         {
-            tesselationEvaluationShader = GL.CreateShader(ShaderType.TessEvaluationShader);
-            GL.ShaderSource(tesselationEvaluationShader, LoadSource(tessEvalPath));
-            CompileShader(tesselationEvaluationShader);
+            var tessEvalWatcher = new FileSystemWatcher(Path.GetDirectoryName(tessEvalPath)!, Path.GetFileName(tessEvalPath))
+            {
+                NotifyFilter = NotifyFilters.LastWrite,
+                EnableRaisingEvents = true
+            };
+            tessEvalWatcher.Changed += OnChanged;
+            _watchers.Add(tessEvalWatcher);
         }
 
-        var computeShader = 0;
         if (!string.IsNullOrEmpty(compPath))
         {
-            computeShader = GL.CreateShader(ShaderType.ComputeShader);
-            GL.ShaderSource(computeShader, LoadSource(compPath));
-            CompileShader(computeShader);
+            var compWatcher = new FileSystemWatcher(Path.GetDirectoryName(compPath)!, Path.GetFileName(compPath))
+            {
+                NotifyFilter = NotifyFilters.LastWrite,
+                EnableRaisingEvents = true
+            };
+            compWatcher.Changed += OnChanged;
+            _watchers.Add(compWatcher);
         }
+    }
 
-        if (vertexShader != 0)
-            GL.AttachShader(_shaderHandle, vertexShader);
-
-        if (geometryShader != 0)
-            GL.AttachShader(_shaderHandle, geometryShader);
-
-        if (fragmentShader != 0)
-            GL.AttachShader(_shaderHandle, fragmentShader);
-
-        if (tesselationControlShader != 0)
-            GL.AttachShader(_shaderHandle, tesselationControlShader);
-
-        if (tesselationEvaluationShader != 0)
-            GL.AttachShader(_shaderHandle, tesselationEvaluationShader);
-
-        if (computeShader != 0)
-            GL.AttachShader(_shaderHandle, computeShader);
-
-        LinkProgram(_shaderHandle);
-
-        // remove singular shaders
-        if (vertexShader != 0)
+    private void OnChanged(object sender, FileSystemEventArgs e)
+    {
+        RenderScheduler.Schedule(() =>
         {
-            GL.DetachShader(_shaderHandle, vertexShader);
-            GL.DeleteShader(vertexShader);
-        }
+            var newHandle = LoadShader();
+            var oldHandle = _shaderHandle;
 
-        if (geometryShader != 0)
-        {
-            GL.DetachShader(_shaderHandle, geometryShader);
-            GL.DeleteShader(geometryShader);
-        }
+            _shaderHandle = newHandle;
 
-        if (fragmentShader != 0)
-        {
-            GL.DetachShader(_shaderHandle, fragmentShader);
-            GL.DeleteShader(fragmentShader);
-        }
-
-        if (tesselationControlShader != 0)
-        {
-            GL.DetachShader(_shaderHandle, tesselationControlShader);
-            GL.DeleteShader(tesselationControlShader);
-        }
-
-        if (tesselationEvaluationShader != 0)
-        {
-            GL.DetachShader(_shaderHandle, tesselationEvaluationShader);
-            GL.DeleteShader(tesselationEvaluationShader);
-        }
-
-        if (computeShader != 0)
-        {
-            GL.DetachShader(_shaderHandle, computeShader);
-            GL.DeleteShader(computeShader);
-        }
-
-        GL.GetProgrami(_shaderHandle, ProgramProperty.ActiveUniforms, out var numberOfUniforms);
-        for (uint i = 0; i < numberOfUniforms; i++)
-        {
-            GL.GetActiveUniformName(_shaderHandle, i, 128, out _, out var key);
-            var location = GL.GetUniformLocation(_shaderHandle, key);
-
-            _uniformLocations.Add(key, location);
-        }
+            if (oldHandle != 0)
+            {
+                GL.UseProgram(0);
+                GL.DeleteProgram(oldHandle);
+            }
+        });
     }
 
     public virtual void Unload()
     {
+        foreach (var watcher in _watchers)
+        {
+            watcher.EnableRaisingEvents = false;
+            watcher.Dispose();
+        }
+
         if (_shaderHandle != 0)
         {
             GL.UseProgram(0);
             GL.DeleteProgram(_shaderHandle);
         }
+    }
+
+    private int LoadShader()
+    {
+        // cleanup
+        _uniformLocations.Clear();
+        _uniformCache.Clear();
+
+        // create shader program
+        var handle = GL.CreateProgram();
+        if (handle == 0)
+            return 0;
+
+        // compile shaders
+        var vertexShader = 0;
+        if (!string.IsNullOrEmpty(_vertPath))
+        {
+            vertexShader = GL.CreateShader(ShaderType.VertexShader);
+            if (vertexShader != 0)
+            {
+                GL.ShaderSource(vertexShader, LoadSource(_vertPath));
+                CompileShader(vertexShader);
+            }
+        }
+
+        var geometryShader = 0;
+        if (!string.IsNullOrEmpty(_geomPath))
+        {
+            geometryShader = GL.CreateShader(ShaderType.GeometryShader);
+            if (geometryShader != 0)
+            {
+                GL.ShaderSource(geometryShader, LoadSource(_geomPath));
+                CompileShader(geometryShader);
+            }
+        }
+
+        var fragmentShader = 0;
+        if (!string.IsNullOrEmpty(_fragPath))
+        {
+            fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
+            if (fragmentShader != 0)
+            {
+                GL.ShaderSource(fragmentShader, LoadSource(_fragPath));
+                CompileShader(fragmentShader);
+            }
+        }
+
+        var tesselationControlShader = 0;
+        if (!string.IsNullOrEmpty(_tessControlPath))
+        {
+            tesselationControlShader = GL.CreateShader(ShaderType.TessControlShader);
+            if (tesselationControlShader != 0)
+            {
+                GL.ShaderSource(tesselationControlShader, LoadSource(_tessControlPath));
+                CompileShader(tesselationControlShader);
+            }
+        }
+
+        var tesselationEvaluationShader = 0;
+        if (!string.IsNullOrEmpty(_tessEvalPath))
+        {
+            tesselationEvaluationShader = GL.CreateShader(ShaderType.TessEvaluationShader);
+            if (tesselationEvaluationShader != 0)
+            {
+                GL.ShaderSource(tesselationEvaluationShader, LoadSource(_tessEvalPath));
+                CompileShader(tesselationEvaluationShader);
+            }
+        }
+
+        var computeShader = 0;
+        if (!string.IsNullOrEmpty(_compPath))
+        {
+            computeShader = GL.CreateShader(ShaderType.ComputeShader);
+            if (computeShader != 0)
+            {
+                GL.ShaderSource(computeShader, LoadSource(_compPath));
+                CompileShader(computeShader);
+            }
+        }
+
+        if (vertexShader != 0)
+            GL.AttachShader(handle, vertexShader);
+
+        if (geometryShader != 0)
+            GL.AttachShader(handle, geometryShader);
+
+        if (fragmentShader != 0)
+            GL.AttachShader(handle, fragmentShader);
+
+        if (tesselationControlShader != 0)
+            GL.AttachShader(handle, tesselationControlShader);
+
+        if (tesselationEvaluationShader != 0)
+            GL.AttachShader(handle, tesselationEvaluationShader);
+
+        if (computeShader != 0)
+            GL.AttachShader(handle, computeShader);
+
+        LinkProgram(handle);
+
+        // remove singular shaders
+        if (vertexShader != 0)
+        {
+            GL.DetachShader(handle, vertexShader);
+            GL.DeleteShader(vertexShader);
+        }
+
+        if (geometryShader != 0)
+        {
+            GL.DetachShader(handle, geometryShader);
+            GL.DeleteShader(geometryShader);
+        }
+
+        if (fragmentShader != 0)
+        {
+            GL.DetachShader(handle, fragmentShader);
+            GL.DeleteShader(fragmentShader);
+        }
+
+        if (tesselationControlShader != 0)
+        {
+            GL.DetachShader(handle, tesselationControlShader);
+            GL.DeleteShader(tesselationControlShader);
+        }
+
+        if (tesselationEvaluationShader != 0)
+        {
+            GL.DetachShader(handle, tesselationEvaluationShader);
+            GL.DeleteShader(tesselationEvaluationShader);
+        }
+
+        if (computeShader != 0)
+        {
+            GL.DetachShader(handle, computeShader);
+            GL.DeleteShader(computeShader);
+        }
+
+        GL.GetProgrami(handle, ProgramProperty.ActiveUniforms, out var numberOfUniforms);
+        for (uint i = 0; i < numberOfUniforms; i++)
+        {
+            GL.GetActiveUniformName(handle, i, 128, out _, out var key);
+            var location = GL.GetUniformLocation(handle, key);
+
+            _uniformLocations.Add(key, location);
+        }
+
+        return handle;
     }
 
     private static void CompileShader(int shader)

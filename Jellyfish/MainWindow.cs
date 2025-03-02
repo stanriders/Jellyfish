@@ -93,6 +93,7 @@ public class MainWindow : GameWindow
 
     protected override void OnRenderFrame(FrameEventArgs e)
     {
+        RenderScheduler.Run();
         Render();
 
         base.OnRenderFrame(e);
