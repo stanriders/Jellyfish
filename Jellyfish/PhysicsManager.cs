@@ -1,16 +1,12 @@
-﻿using System;
+﻿//#define PHYSDEBUG // TODO: convars
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime;
 using System.Threading;
 using Jellyfish.Audio;
 using Jellyfish.Console;
 using Jellyfish.Entities;
 using Jellyfish.Render;
-using Jellyfish.Render.Buffers;
 using JoltPhysicsSharp;
-using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
 namespace Jellyfish;
@@ -47,16 +43,20 @@ public class PhysicsManager
 
     private Sound? _impactSound;
 
+#if PHYSDEBUG
     private PhysicsDebugRenderer? _debugRenderer;
     private PhysicsDebugDrawFilter _debugDrawFilter = null!;
     private readonly Mesh _debugMesh;
+#endif
 
     private static PhysicsManager? instance;
 
     public PhysicsManager()
     {
-        _debugMesh = new Mesh(new MeshPart() { Name = "physdebug"}) { IsDev = true };
+#if PHYSDEBUG
+        _debugMesh = new Mesh(new MeshPart { Name = "physdebug"}) { IsDev = true };
         MeshManager.AddMesh(_debugMesh);
+#endif
 
         var physicsThread = new Thread(Run) { Name = "Physics thread" };
         physicsThread.Start();
@@ -197,8 +197,10 @@ public class PhysicsManager
             return true;
         });
 
+#if PHYSDEBUG
         _debugRenderer = new PhysicsDebugRenderer(_debugMesh);
         _debugDrawFilter = new PhysicsDebugDrawFilter();
+#endif
 
         _jobSystem = new JobSystemThreadPool();
 
@@ -272,6 +274,7 @@ public class PhysicsManager
                 Log.Context(this).Warning("Physics simulation reported error {Error}!", error);
             }
 
+#if PHYSDEBUG
             var drawSettings = new DrawSettings
             {
                 DrawShape = true,
@@ -280,6 +283,7 @@ public class PhysicsManager
 
             _physicsSystem.DrawBodies(drawSettings, _debugRenderer, _debugDrawFilter);
             _debugRenderer.Render();
+#endif
         }
 
         _jobSystem.Dispose();
@@ -302,6 +306,7 @@ public class PhysicsManager
         _shouldStop = true;
     }
 
+#if PHYSDEBUG
     public class PhysicsDebugRenderer : DebugRenderer
     {
         private readonly List<Vertex> _vertices = new();
@@ -332,14 +337,12 @@ public class PhysicsManager
 
         public void Render()
         {
-#if PHYSDEBUG
             MeshManager.UpdateMesh(_mesh, new MeshPart
             {
                 Name = "physdebug",
                 Vertices = _vertices.ToList(),
                 Texture = "materials/error.mat"
             });
-#endif
 
             _vertices.Clear();
         }
@@ -352,4 +355,5 @@ public class PhysicsManager
             return body.ObjectLayer == Layers.Moving;
         }
     }
+#endif
 }
