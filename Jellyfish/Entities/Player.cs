@@ -1,5 +1,4 @@
 ﻿using System;
-using Jellyfish.Console;
 using Jellyfish.Input;
 using JoltPhysicsSharp;
 using OpenTK.Mathematics;
@@ -18,7 +17,6 @@ public class Player : BaseEntity, IInputHandler
 
     private bool _noclip;
 
-    private Spotlight? _camLight;
     private CharacterVirtual? _physCharacter;
 
     private const float camera_speed = 120.0f;
@@ -43,23 +41,6 @@ public class Player : BaseEntity, IInputHandler
 
     public override void Load()
     {
-        _camLight = EntityManager.CreateEntity("light_spot") as Spotlight;
-        if (_camLight != null)
-        {
-#if DEBUG
-            _camLight.DrawDevCone = false;
-#endif
-            _camLight.SetPropertyValue("Name", "cam light");
-            _camLight.SetPropertyValue("Enabled", true);
-            _camLight.SetPropertyValue("Quadratic", 0.01f);
-            _camLight.SetPropertyValue("Linear", 0.8f);
-            _camLight.SetPropertyValue("Constant", 0.2f);
-            _camLight.SetPropertyValue("Color", new Color4<Rgba>(200 / 255.0f, 220 / 255.0f, 1f, 10 / 255.0f));
-            _camLight.SetPropertyValue("OuterCone", 60f);
-            _camLight.SetPropertyValue("Cone", 40f);
-            _camLight.Load();
-        }
-
         _physCharacter = PhysicsManager.AddPlayerController(this);
         InputManager.RegisterInputHandler(this);
 
@@ -143,30 +124,12 @@ public class Player : BaseEntity, IInputHandler
         Up = Vector3.Normalize(Vector3.Cross(Right, _front));
 
         var quatRotation = new Matrix3(_front, Up, Right).ExtractRotation();
-        var lightRotation = new Matrix3(_front, Up, Right).Inverted().ExtractRotation();
-
-        if (_camLight is not null)
-        {
-            _camLight.SetPropertyValue("Position", GetPropertyValue<Vector3>("Position"));
-            _camLight.SetPropertyValue("Rotation", lightRotation);
-        }
-
         SetPropertyValue("Rotation", quatRotation);
     }
 
     public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
     {
         var inputHandled = false;
-
-        if (keyboardState.IsKeyPressed(Keys.L))
-        {
-            if (_camLight is not null)
-            {
-                var isEnabled = _camLight.GetPropertyValue<bool>("Enabled");
-                _camLight.SetPropertyValue("Enabled", !isEnabled);
-                inputHandled = true;
-            }
-        }
 
         if (keyboardState.IsKeyPressed(Keys.V))
         {
