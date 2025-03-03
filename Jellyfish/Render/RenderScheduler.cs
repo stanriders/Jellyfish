@@ -10,16 +10,19 @@ namespace Jellyfish.Render
 
         public static void Schedule(Action action)
         {
-            Actions.Add(action);
+            lock (Lock)
+            {
+                Actions.Add(action);
+            }
         }
 
         public static void Run()
         {
-            if (Actions.Count <= 0) 
-                return;
-
             lock (Lock)
             {
+                if (Actions.Count <= 0)
+                    return;
+
                 foreach (var action in Actions)
                 {
                     action.Invoke();
