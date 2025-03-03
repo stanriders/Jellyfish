@@ -21,7 +21,6 @@ public static class LightManager
     private const int max_lights = 4;
     private static readonly List<Light> lights = new(max_lights);
 
-    private const int shadow_size = 2048;
     public static void AddLight(ILightSource source)
     {
         if (lights.Count < max_lights)
@@ -66,7 +65,7 @@ public static class LightManager
 
             light.ShadowFrameBuffer!.Bind();
 
-            GL.Viewport(0, 0, shadow_size, shadow_size);
+            GL.Viewport(0, 0, light.Source.ShadowResolution, light.Source.ShadowResolution);
             GL.Clear(ClearBufferMask.DepthBufferBit);
             MeshManager.Draw(false, light.ShadowShader);
 
@@ -82,7 +81,7 @@ public static class LightManager
 
         var shader = new Shadow(light.Source);
 
-        var rt = new RenderTarget($"_rt_Shadow{lights.Count}", shadow_size, shadow_size, PixelFormat.DepthComponent,
+        var rt = new RenderTarget($"_rt_Shadow{lights.Count}", light.Source.ShadowResolution, light.Source.ShadowResolution, PixelFormat.DepthComponent,
             FramebufferAttachment.DepthAttachment, PixelType.Float, TextureWrapMode.ClampToBorder, new[] { 1f, 1f, 1f, 1f });
         rt.Bind();
 
