@@ -8,12 +8,18 @@ using OpenTK.Mathematics;
 
 namespace Jellyfish.Render;
 
+public class Uniform
+{
+    public required int Location { get; set; }
+    public required string Name { get; set; }
+    public object? Value { get; set; }
+}
+
 public abstract class Shader
 {
     private int _shaderHandle;
 
-    private readonly Dictionary<string, int> _uniformLocations = new();
-    private readonly Dictionary<int, object> _uniformCache = new();
+    private readonly Dictionary<string, Uniform> _uniforms = new();
 
     private readonly string _vertPath;
     private readonly string? _geomPath;
@@ -132,8 +138,7 @@ public abstract class Shader
     private int LoadShader()
     {
         // cleanup
-        _uniformLocations.Clear();
-        _uniformCache.Clear();
+        _uniforms.Clear();
 
         // create shader program
         var handle = GL.CreateProgram();
@@ -270,7 +275,7 @@ public abstract class Shader
             GL.GetActiveUniformName(handle, i, 128, out _, out var key);
             var location = GL.GetUniformLocation(handle, key);
 
-            _uniformLocations.Add(key, location);
+            _uniforms.Add(key, new Uniform { Location = location, Name = key });
         }
 
         return handle;
@@ -328,6 +333,28 @@ public abstract class Shader
         return sr.ReadToEnd();
     }
 
+    private Uniform? SetUniform<T>(string name, T data, bool bind = false)
+    {
+        if (!_uniforms.TryGetValue(name, out var uniform))
+        {
+            Log.Context(this).Error("Uniform {Name} isn't found!", name);
+            return null;
+        }
+
+        if (uniform.Value != null)
+        {
+            if (((T)uniform.Value).Equals(data))
+                return null;
+        }
+
+        uniform.Value = data;
+
+        if (bind)
+            Bind();
+
+        return uniform;
+    }
+
     /// <summary>
     ///     Set a uniform int on this shader.
     /// </summary>
@@ -336,26 +363,9 @@ public abstract class Shader
     /// <param name="bind"></param>
     public void SetBool(string name, bool data, bool bind = false)
     {
-        if (!_uniformLocations.TryGetValue(name, out var uniformLocation))
-        {
-            Log.Context(this).Error("Uniform {Name} isn't found!", name);
-            return;
-        }
-
-        if (_uniformCache.TryGetValue(uniformLocation, out var uniformCachedValue))
-        {
-            if ((bool)uniformCachedValue == data)
-                return;
-        }
-        else
-        {
-            _uniformCache.Add(uniformLocation, data);
-        }
-
-        if (bind)
-            Bind();
-
-        GL.Uniform1i(uniformLocation, data ? 1 : 0);
+        var uniform = SetUniform(name, data, bind);
+        if (uniform != null)
+            GL.Uniform1i(uniform.Location, data ? 1 : 0);
     }
 
     /// <summary>
@@ -366,26 +376,9 @@ public abstract class Shader
     /// <param name="bind"></param>
     public void SetInt(string name, int data, bool bind = false)
     {
-        if (!_uniformLocations.TryGetValue(name, out var uniformLocation))
-        {
-            Log.Context(this).Error("Uniform {Name} isn't found!", name);
-            return;
-        }
-
-        if (_uniformCache.TryGetValue(uniformLocation, out var uniformCachedValue))
-        {
-            if ((int)uniformCachedValue == data)
-                return;
-        }
-        else
-        {
-            _uniformCache.Add(uniformLocation, data);
-        }
-
-        if (bind)
-            Bind();
-
-        GL.Uniform1i(uniformLocation, data);
+        var uniform = SetUniform(name, data, bind);
+        if (uniform != null)
+            GL.Uniform1i(uniform.Location, data);
     }
 
     /// <summary>
@@ -396,27 +389,9 @@ public abstract class Shader
     /// <param name="bind"></param>
     public void SetFloat(string name, float data, bool bind = false)
     {
-        if (!_uniformLocations.TryGetValue(name, out var uniformLocation))
-        {
-            Log.Context(this).Error("Uniform {Name} isn't found!", name);
-            return;
-        }
-
-        if (_uniformCache.TryGetValue(uniformLocation, out var uniformCachedValue))
-        {
-            // ReSharper disable once CompareOfFloatsByEqualityOperator
-            if ((float)uniformCachedValue == data)
-                return;
-        }
-        else
-        {
-            _uniformCache.Add(uniformLocation, data);
-        }
-
-        if (bind)
-            Bind();
-
-        GL.Uniform1f(uniformLocation, data);
+        var uniform = SetUniform(name, data, bind);
+        if (uniform != null)
+            GL.Uniform1f(uniform.Location, data);
     }
 
     /// <summary>
@@ -428,26 +403,9 @@ public abstract class Shader
     /// <param name="bind"></param>
     public void SetMatrix4(string name, Matrix4 data, bool transpose = true, bool bind = false)
     {
-        if (!_uniformLocations.TryGetValue(name, out var uniformLocation))
-        {
-            Log.Context(this).Error("Uniform {Name} isn't found!", name);
-            return;
-        }
-
-        if (_uniformCache.TryGetValue(uniformLocation, out var uniformCachedValue))
-        {
-            if ((Matrix4)uniformCachedValue == data)
-                return;
-        }
-        else
-        {
-            _uniformCache.Add(uniformLocation, data);
-        }
-
-        if (bind)
-            Bind();
-
-        GL.UniformMatrix4f(uniformLocation, 1, transpose, ref data);
+        var uniform = SetUniform(name, data, bind);
+        if (uniform != null)
+            GL.UniformMatrix4f(uniform.Location, 1, transpose, ref data);
     }
 
     /// <summary>
@@ -458,26 +416,9 @@ public abstract class Shader
     /// <param name="bind"></param>
     public void SetVector2(string name, Vector2 data, bool bind = false)
     {
-        if (!_uniformLocations.TryGetValue(name, out var uniformLocation))
-        {
-            Log.Context(this).Error("Uniform {Name} isn't found!", name);
-            return;
-        }
-
-        if (_uniformCache.TryGetValue(uniformLocation, out var uniformCachedValue))
-        {
-            if ((Vector2)uniformCachedValue == data)
-                return;
-        }
-        else
-        {
-            _uniformCache.Add(uniformLocation, data);
-        }
-
-        if (bind)
-            Bind();
-
-        GL.Uniform2f(uniformLocation, data.X, data.Y);
+        var uniform = SetUniform(name, data, bind);
+        if (uniform != null)
+            GL.Uniform2f(uniform.Location, data.X, data.Y);
     }
 
     /// <summary>
@@ -488,26 +429,9 @@ public abstract class Shader
     /// <param name="bind"></param>
     public void SetVector3(string name, Vector3 data, bool bind = false)
     {
-        if (!_uniformLocations.TryGetValue(name, out var uniformLocation))
-        {
-            Log.Context(this).Error("Uniform {Name} isn't found!", name);
-            return;
-        }
-
-        if (_uniformCache.TryGetValue(uniformLocation, out var uniformCachedValue))
-        {
-            if ((Vector3)uniformCachedValue == data)
-                return;
-        }
-        else
-        {
-            _uniformCache.Add(uniformLocation, data);
-        }
-
-        if (bind)
-            Bind();
-
-        GL.Uniform3f(uniformLocation, data.X, data.Y, data.Z);
+        var uniform = SetUniform(name, data, bind);
+        if (uniform != null)
+            GL.Uniform3f(uniform.Location, data.X, data.Y, data.Z);
     }
 
     /// <summary>
@@ -518,26 +442,9 @@ public abstract class Shader
     /// <param name="bind"></param>
     public void SetVector3(string name, float[] data, bool bind = false)
     {
-        if (!_uniformLocations.TryGetValue(name, out var uniformLocation))
-        {
-            Log.Context(this).Error("Uniform {Name} isn't found!", name);
-            return;
-        }
-
-        if (_uniformCache.TryGetValue(uniformLocation, out var uniformCachedValue))
-        {
-            if ((float[])uniformCachedValue == data)
-                return;
-        }
-        else
-        {
-            _uniformCache.Add(uniformLocation, data);
-        }
-
-        if (bind)
-            Bind();
-
-        GL.Uniform3f(uniformLocation, data[0], data[1], data[2]);
+        var uniform = SetUniform(name, data, bind);
+        if (uniform != null)
+            GL.Uniform3f(uniform.Location, data[0], data[1], data[2]);
     }
 
     /// <summary>
@@ -548,26 +455,9 @@ public abstract class Shader
     /// <param name="bind"></param>
     public void SetVector4(string name, Vector4 data, bool bind = false)
     {
-        if (!_uniformLocations.TryGetValue(name, out var uniformLocation))
-        {
-            Log.Context(this).Error("Uniform {Name} isn't found!", name);
-            return;
-        }
-
-        if (_uniformCache.TryGetValue(uniformLocation, out var uniformCachedValue))
-        {
-            if ((Vector4)uniformCachedValue == data)
-                return;
-        }
-        else
-        {
-            _uniformCache.Add(uniformLocation, data);
-        }
-
-        if (bind)
-            Bind();
-
-        GL.Uniform4f(uniformLocation, data.X, data.Y, data.Z, data.W);
+        var uniform = SetUniform(name, data, bind);
+        if (uniform != null)
+            GL.Uniform4f(uniform.Location, data.X, data.Y, data.Z, data.W);
     }
 
     /// <summary>
@@ -578,25 +468,10 @@ public abstract class Shader
     /// <param name="bind"></param>
     public void SetVector4(string name, float[] data, bool bind = false)
     {
-        if (!_uniformLocations.TryGetValue(name, out var uniformLocation))
-        {
-            Log.Context(this).Error("Uniform {Name} isn't found!", name);
-            return;
-        }
-
-        if (_uniformCache.TryGetValue(uniformLocation, out var uniformCachedValue))
-        {
-            if ((float[])uniformCachedValue == data)
-                return;
-        }
-        else
-        {
-            _uniformCache.Add(uniformLocation, data);
-        }
-
-        if (bind)
-            Bind();
-
-        GL.Uniform4f(uniformLocation, data[0], data[1], data[2], data[3]);
+        var uniform = SetUniform(name, data, bind);
+        if (uniform != null)
+            GL.Uniform4f(uniform.Location, data[0], data[1], data[2], data[3]);
     }
+
+
 }
