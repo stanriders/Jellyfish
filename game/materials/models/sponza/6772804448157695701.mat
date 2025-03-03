@@ -2,6 +2,7 @@
   "Shader": "Main",
   "Diffuse": "lion.jpg",
   "Normal": "lion_normal.jpg",
+  "MetalRoughness": "lion_mr.jpg",
   "Phong": true,
   "PhongExponent": "40"
 }

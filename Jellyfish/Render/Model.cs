@@ -49,6 +49,13 @@ public class Model
             else
             {
                 Log.Context(this).Warning("Mesh {Name} has no texture data!!", meshPart.Name);
+
+                var modelFolder = $"materials/models/{meshPart.Name}";
+                var matPath = $"{modelFolder}/{meshPart.Name}.mat";
+                if (!File.Exists(matPath))
+                    matPath = $"{modelFolder}/{Path.GetFileName(meshPart.Texture)}";
+
+                meshPart.Texture = matPath;
             }
 
             _meshes.Add(new Mesh(meshPart) {IsDev = isDev});

@@ -10,11 +10,12 @@ in vec4 frag_position_lightspace[4];
 uniform vec3 cameraPos;
 layout(binding=0) uniform sampler2D diffuseSampler;
 layout(binding=1) uniform sampler2D normalSampler;
+layout(binding=2) uniform sampler2D metroughSampler;
 
-layout(binding=2) uniform sampler2D shadow1Sampler;
-layout(binding=3) uniform sampler2D shadow2Sampler;
-layout(binding=4) uniform sampler2D shadow3Sampler;
-layout(binding=5) uniform sampler2D shadow4Sampler;
+layout(binding=3) uniform sampler2D shadow1Sampler;
+layout(binding=4) uniform sampler2D shadow2Sampler;
+layout(binding=5) uniform sampler2D shadow3Sampler;
+layout(binding=6) uniform sampler2D shadow4Sampler;
 
 struct Light {
     vec3 position;
@@ -32,16 +33,53 @@ struct Light {
 
     vec3 ambient;
     vec3 diffuse;
+    bool hasShadows;
 };
 uniform Light lightSources[4];
 uniform int lightSourcesCount;
 
-uniform bool usePhong;
-uniform int phongExponent;
-
 uniform bool useNormals;
+uniform bool usePbr;
 
-float FLASHLIGHT_SHADOW_TEXTURE_RESOLUTION = 2048;
+const float FLASHLIGHT_SHADOW_TEXTURE_RESOLUTION = 2048;
+const float PI = 3.14159265359;
+
+float DistributionGGX(vec3 N, vec3 H, float roughness)
+{
+    float alpha      = roughness*roughness;
+    float alphaSq     = alpha*alpha;
+    float NdotH  = max(dot(N, H), 0.0);
+    float NdotHSq = NdotH*NdotH;
+	
+    float denom = (NdotHSq * (alphaSq - 1.0) + 1.0);
+    return alphaSq / (PI * denom * denom);
+}
+
+float GeometrySchlickGGX(float NdotV, float roughness)
+{
+    float r = (roughness + 1.0);
+    float k = (r*r) / 8.0;
+
+    float num   = NdotV;
+    float denom = NdotV * (1.0 - k) + k;
+	
+    return num / denom;
+}
+
+float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
+{
+    float NdotV = max(dot(N, V), 0.0);
+    float NdotL = max(dot(N, L), 0.0);
+    float ggx2  = GeometrySchlickGGX(NdotV, roughness);
+    float ggx1  = GeometrySchlickGGX(NdotL, roughness);
+	
+    return ggx1 * ggx2;
+}
+
+vec3 fresnelSchlick(float cosTheta, vec3 F0)
+{
+    return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+} 
 
 float SimpleShadow(sampler DepthSampler, vec3 projCoords, vec3 lightDir, vec3 normal)
 {
@@ -186,11 +224,8 @@ vec3 CalcPointLight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
     Light light = lightSources[lightIndex];
     vec3 lightDir = normalize(light.position - fragPos);
 
-    //diffuse shading
-    float diff = max(dot(normal, lightDir), 0.0);
-
     vec3 ambient = light.ambient;
-    vec3 outdiffuse = light.diffuse * diff;
+    vec3 outdiffuse = light.diffuse * light.brightness;
 
     float distanceToLight = length(light.position - fragPos);
     float attenuation = 255.0 / (light.constant + 
@@ -198,26 +233,17 @@ vec3 CalcPointLight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
                         light.quadratic * (distanceToLight * distanceToLight));
 
     ambient  *= attenuation;
-    outdiffuse  *= attenuation;
+    outdiffuse *= attenuation;
 
-    // specular
-    vec3 specular = vec3(0,0,0);
-    if (usePhong)
+    float shadow = 0f;
+    if (light.hasShadows) 
     {
-        float specularStrength = texture(normalSampler, frag_texCoord * vec2(1.0, -1.0)).a;
-        specularStrength  *= attenuation;
-
-        vec3 reflectDir = reflect(-lightDir, normal);  
-        float spec = pow(max(dot(viewDir, reflectDir), 0.0), phongExponent);
-        specular = specularStrength * spec * light.diffuse; 
+        shadow = ShadowCalculation(lightIndex, lightDir, normal);
     }
 
-    float shadow = ShadowCalculation(lightIndex, lightDir, normal);
-    
     outdiffuse *= (1.0f - shadow);
-    specular *= (1.0f - shadow);
 
-    return (ambient + (outdiffuse + specular)) * light.brightness;
+    return ambient + outdiffuse;
 }
 
 vec3 CalcSpotlight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
@@ -225,11 +251,8 @@ vec3 CalcSpotlight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
     Light light = lightSources[lightIndex];
     vec3 lightDir = normalize(light.position - fragPos);
 
-    //diffuse shading
-    float diff = max(dot(normal, lightDir), 0.0);
-
     vec3 ambient = light.ambient;
-    vec3 outdiffuse = light.diffuse * diff;
+    vec3 outdiffuse = light.diffuse * light.brightness;
 
     float distanceToLight = length(light.position - fragPos);
     float attenuation = 255.0 / (light.constant + 
@@ -239,32 +262,23 @@ vec3 CalcSpotlight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
     ambient  *= attenuation;
     outdiffuse  *= attenuation;
 
-    // specular
-    vec3 specular = vec3(0,0,0);
-    if (usePhong)
-    {
-        float specularStrength = texture(normalSampler, frag_texCoord * vec2(1.0, -1.0)).a;
-        specularStrength  *= attenuation;
-
-        vec3 reflectDir = reflect(-lightDir, normal);  
-        float spec = pow(max(dot(viewDir, reflectDir), 0.0), phongExponent);
-        specular = specularStrength * spec * light.diffuse; 
-    }
 
     float theta = dot(lightDir, normalize(-light.direction));
     float epsilon   = light.cone - light.outcone;
     float intensity = clamp((theta - light.outcone) / epsilon, 0.0, 1.0); 
 
     outdiffuse *= intensity;
-    specular *= intensity;
     ambient *= intensity;
 
-    float shadow = ShadowCalculation(lightIndex, lightDir, normal);
-    
-    outdiffuse *= (1.0f - shadow);
-    specular *= (1.0f - shadow);
+    float shadow = 0f;
+    if (light.hasShadows) 
+    {
+        shadow = ShadowCalculation(lightIndex, lightDir, normal);
+    }
 
-    return (ambient + (outdiffuse + specular)) * light.brightness;
+    outdiffuse *= (1.0f - shadow);
+
+    return ambient + outdiffuse;
 }
 
 vec3 CalcSun(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
@@ -272,28 +286,17 @@ vec3 CalcSun(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
     Light light = lightSources[lightIndex];
     vec3 lightDir = normalize(-light.direction);
 
-    //diffuse shading
-    float diff = max(dot(normal, lightDir), 0.0);
+    vec3 outdiffuse = light.diffuse * light.brightness;
 
-    vec3 ambient = light.ambient;
-    vec3 outdiffuse = light.diffuse * diff;
-        
-    vec3 specular = vec3(0,0,0);
-    if (usePhong)
+    float shadow = 0f;
+    if (light.hasShadows) 
     {
-        float specularStrength = texture(normalSampler, frag_texCoord * vec2(1.0, -1.0)).a;
-
-        vec3 reflectDir = reflect(-lightDir, normal);  
-        float spec = pow(max(dot(viewDir, reflectDir), 0.0), phongExponent);
-        specular = specularStrength * spec * light.diffuse; 
+        shadow = ShadowCalculation(lightIndex, lightDir, normal);
     }
-    
-    float shadow = ShadowCalculation(lightIndex, lightDir, normal);
 
     outdiffuse *= (1.0f - shadow);
-    specular *= (1.0f - shadow);
 
-    return (ambient + (outdiffuse + specular)) * light.brightness;
+    return light.ambient + outdiffuse;
 }
 
 vec3 CalcLighting(vec3 normal, vec3 fragPos, vec3 viewDir)
@@ -355,7 +358,7 @@ void main()
     //if (diffuseTex.a < 0.01)
     //    discard;
 
-    vec3 normal = frag_normal;
+    vec3 normal = normalize(frag_normal);
     if (useNormals)
     {
         vec3 normalTex = texture(normalSampler, frag_texCoord * vec2(1.0, -1.0)).rgb;
@@ -366,10 +369,83 @@ void main()
     }
 
     vec3 viewDir = normalize(cameraPos - frag_position);
+    
+    vec3 metroughTex = texture(metroughSampler, frag_texCoord * vec2(1.0, -1.0)).rgb;
+    float metalness = metroughTex.b;
+    float roughness = metroughTex.g;
+   
+    vec3 dielectricCoefficient = vec3(0.04);  //F0 dielectric
+    dielectricCoefficient = mix(dielectricCoefficient, diffuseTex.rgb, metalness);
 
-    vec3 result = diffuseTex.rgb;
-    vec3 lighting = CalcLighting(normal, frag_position, viewDir);
-    result *= lighting;
+    vec3 result = vec3(0.0, 0.0, 0.0);
+    
+    vec3 lighting = vec3(0);
+    for(int i = 0; i < lightSourcesCount; i++)
+    {
+        Light light = lightSources[i];
+        vec3 lightDir = normalize(light.position - frag_position);
+        if (lightSources[i].type == 1) // sun
+            lightDir = normalize(-light.direction);
+
+        float NdotL = max(dot(normal, lightDir), 0.0);    
+
+        vec3 specular = vec3(0);
+        vec3 kD = vec3(0);
+        if (usePbr)
+        {
+            // cook-torrance brdf
+            vec3 H = normalize(viewDir + lightDir);
+            float NDF = DistributionGGX(normal, H, roughness);        
+            float G   = GeometrySmith(normal, viewDir, lightDir, roughness);      
+            vec3 F    = fresnelSchlick(max(dot(H, viewDir), 0.0), dielectricCoefficient);      
+    
+            vec3 kS = F;
+            kD = vec3(1.0) - kS;
+            kD *= 1.0 - metalness;
+        
+            vec3 numerator    = NDF * G * F;
+            float denominator = max(0.00001, 4.0 * max(dot(normal, viewDir), 0.0) * NdotL);
+            specular          = numerator / denominator; 
+        }
+        
+        vec3 radiance = vec3(0);
+        switch(lightSources[i].type)
+        {
+            case 0: // point
+            {
+              radiance = CalcPointLight(i, normal, frag_position, viewDir);
+              break;
+            }
+            case 1: // sun
+            {
+              radiance = CalcSun(i, normal, frag_position, viewDir);
+              break;
+            }
+            case 2: // spot
+            {
+              radiance = CalcSpotlight(i, normal, frag_position, viewDir);
+              break;
+            }
+        }
+
+        if (usePbr)
+        {
+            // add to outgoing radiance Lo
+            vec3 diffuseBDR = diffuseTex.rgb;
+            lighting += max(vec3(0), (diffuseBDR + specular) * radiance * NdotL); 
+        }
+        else 
+        {
+            lighting += radiance * NdotL;
+        }
+    }
+
+    result = lighting;
+
+    if (!usePbr)
+    {
+        result *= diffuseTex.rgb;
+    }
 
     outputColor = vec4(result, 1.0);
 }

@@ -1,0 +1,6 @@
+{
+  "Shader": "Main",
+  "Diffuse": "export3dcoat_lambert3SG_base.png",
+  "Normal": "wall3_normal.jpg",
+  "MetalRoughness": "export3dcoat_lambert3SG_metrough.png"
+}

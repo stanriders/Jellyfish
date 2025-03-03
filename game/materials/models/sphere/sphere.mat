@@ -1,0 +1,6 @@
+{
+  "Shader": "Main",
+  "Diffuse": "sphere_Base_Color.png",
+  "Normal": "sphere_Normal.png",
+  "MetalRoughness": "sphere_Metrough.png"
+}

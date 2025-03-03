@@ -2,6 +2,5 @@
   "Shader": "Main",
   "Diffuse": "door.jpg",
   "Normal": "door_normal.jpg",
-  "Phong": true,
-  "PhongExponent": "10"
+  "MetalRoughness": "door_mr.jpg"
 }

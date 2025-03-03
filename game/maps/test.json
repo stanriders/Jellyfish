@@ -84,6 +84,80 @@
       ]
     },
     {
+      "ClassName": "model_dynamic",
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "sphere"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": 65,
+            "Y": 50,
+            "Z": 0
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0,
+            "Yaw": 90,
+            "Roll": 0
+          }
+        },
+        {
+          "Name": "Model",
+          "Value": "sphere.obj"
+        },
+        {
+          "Name": "BoundingBox",
+          "Value": "Sphere"
+        },
+        {
+          "Name": "EnablePhysics",
+          "Value": "False"
+        }
+      ]
+    },
+    {
+      "ClassName": "model_dynamic",
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "sphere2"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": 85,
+            "Y": 50,
+            "Z": 0
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0,
+            "Yaw": 0,
+            "Roll": 0
+          }
+        },
+        {
+          "Name": "Model",
+          "Value": "fakesphere.obj"
+        },
+        {
+          "Name": "BoundingBox",
+          "Value": "Sphere"
+        },
+        {
+          "Name": "EnablePhysics",
+          "Value": "False"
+        }
+      ]
+    },
+    {
       "ClassName": "light_point",
       "Properties": [
         {
@@ -298,16 +372,16 @@
           "Name": "Position",
           "Value": {
             "X": 0,
-            "Y": 4000,
+            "Y": 2000,
             "Z": 0
           }
         },
         {
           "Name": "Rotation",
           "Value": {
-            "Pitch": 6,
-            "Yaw": 0,
-            "Roll": 0
+            "Pitch": 0,
+            "Yaw": -45,
+            "Roll": -45
           }
         },
         {

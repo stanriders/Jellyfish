@@ -32,6 +32,7 @@ struct Light {
 
     vec3 ambient;
     vec3 diffuse;
+    bool hasShadows;
 };
 uniform Light lightSources[4];
 uniform int lightSourcesCount;

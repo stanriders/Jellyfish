@@ -2,5 +2,6 @@
   "Shader": "Main",
   "Diffuse": "curtain4.jpg",
   "Normal": "curtain4_normal.jpg",
+  "MetalRoughness": "curtain1_mr.jpg",
   "Phong": false,
 }

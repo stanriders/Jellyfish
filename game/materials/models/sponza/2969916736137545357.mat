@@ -2,6 +2,7 @@
   "Shader": "Main",
   "Diffuse": "roof.jpg",
   "Normal": "roof_normal.jpg",
+  "MetalRoughness": "roof_mr.jpg",
   "Phong": true,
   "PhongExponent": "2"
 }
