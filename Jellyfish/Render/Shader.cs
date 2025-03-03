@@ -329,8 +329,15 @@ public abstract class Shader
 
     private static string LoadSource(string path)
     {
-        using var sr = new StreamReader(path, Encoding.UTF8);
-        return sr.ReadToEnd();
+        try
+        {
+            using var sr = new StreamReader(path, Encoding.UTF8);
+            return sr.ReadToEnd();
+        }
+        catch
+        {
+            return string.Empty;
+        }
     }
 
     private Uniform? SetUniform<T>(string name, T data, bool bind = false)
