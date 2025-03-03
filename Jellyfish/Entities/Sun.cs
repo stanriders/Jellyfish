@@ -42,10 +42,10 @@ public class Sun : BaseEntity, ILightSource
 
             if (Player.Instance != null)
             {
-                position = Player.Instance.GetPropertyValue<Vector3>("Position") + GetPropertyValue<Vector3>("Position");
+                position = Player.Instance.GetPropertyValue<Vector3>("Position") + Vector3.Transform(GetPropertyValue<Vector3>("Position"), Rotation);
             }
 
-            var lightProjection = Matrix4.CreateOrthographic(10000, 10000, NearPlane, FarPlane);
+            var lightProjection = Matrix4.CreateOrthographic(position.Y, position.Y, NearPlane, position.Y * 1.5f);
             var lightView = Matrix4.LookAt(position, position + Vector3.Transform(-Vector3.UnitY, Rotation), Vector3.UnitY);
             return lightView * lightProjection;
         }
