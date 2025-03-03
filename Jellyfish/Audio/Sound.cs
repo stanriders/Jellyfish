@@ -144,17 +144,17 @@ namespace Jellyfish.Audio
                 Playing = false;
             }
 
-            var camera = Camera.Instance;
-            if (camera == null)
+            var player = Player.Instance;
+            if (player == null)
                 return;
 
-            var cameraPosition = camera.GetPropertyValue<Vector3>("Position");
+            var playerPosition = player.GetPropertyValue<Vector3>("Position");
 
             var direction = IPL.CalculateRelativeDirection(iplContext,
                 Position.ToIplVector(),
-                cameraPosition.ToIplVector(),
-                camera.Front.ToIplVector(),
-                camera.Up.ToIplVector());
+                playerPosition.ToIplVector(),
+                player.Front.ToIplVector(),
+                player.Up.ToIplVector());
 
             var binauralEffectParams = new IPL.BinauralEffectParams
             {

@@ -13,8 +13,8 @@ public class Skybox : Shader
 
     public override void Bind()
     {
-        var camera = Camera.Instance;
-        if (camera == null)
+        var player = Player.Instance;
+        if (player == null)
             return;
 
         if (_sun == null)
@@ -36,10 +36,10 @@ public class Skybox : Shader
         var rotationVector = Vector3.Transform(Vector3.UnitY, _sun!.GetPropertyValue<Quaternion>("Rotation"));
         SetVector3("uSunPos", rotationVector);
 
-        var proj = camera.GetProjectionMatrix();
+        var proj = player.GetProjectionMatrix();
         proj.Transpose();
 
-        SetMatrix4("view", camera.GetViewMatrix().ClearTranslation().Inverted());
+        SetMatrix4("view", player.GetViewMatrix().ClearTranslation().Inverted());
         SetMatrix4("projection", proj);
     }
 }

@@ -154,7 +154,7 @@ public class MainWindow : GameWindow
             WindowState = WindowState.Normal;
         }
 
-        CursorState = !Camera.Instance?.IsControllingCursor ?? false ? CursorState.Normal : CursorState.Grabbed;
+        CursorState = !Player.Instance?.IsControllingCursor ?? false ? CursorState.Normal : CursorState.Grabbed;
 
         base.OnUpdateFrame(e);
     }
@@ -234,7 +234,7 @@ public class MainWindow : GameWindow
     {
         _physicsManager.ShouldSimulate = false;
         _render.IsReady = false;
-        Camera.Instance = null;
+        Player.Instance = null;
 
         UpdateLoadingScreen("Cleaning up entities...");
         _entityManager.Unload();
@@ -243,10 +243,10 @@ public class MainWindow : GameWindow
         MapLoader.Load(map);
 
         UpdateLoadingScreen("Creating player...");
-        Camera.Instance = EntityManager.FindEntity("camera", true) as Camera ?? EntityManager.CreateEntity("camera") as Camera;
-        if (Camera.Instance != null)
+        Player.Instance = EntityManager.FindEntity("player", true) as Player ?? EntityManager.CreateEntity("player") as Player;
+        if (Player.Instance != null)
         {
-            Camera.Instance.AspectRatio = WindowWidth / (float)WindowHeight;
+            Player.Instance.AspectRatio = WindowWidth / (float)WindowHeight;
         }
 
         UpdateLoadingScreen("Finishing loading...");

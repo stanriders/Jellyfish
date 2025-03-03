@@ -23,8 +23,8 @@ public class EntityGizmosOverlay : IUiPanel
         if (!MainWindow.Loaded)
             return;
 
-        var camera = Camera.Instance;
-        if (camera == null)
+        var player = Player.Instance;
+        if (player == null)
             return;
 
         var windowFlags = ImGuiWindowFlags.NoDecoration |
@@ -47,8 +47,8 @@ public class EntityGizmosOverlay : IUiPanel
             ImGui.End();
         }
 
-        fixed (float* view = camera.GetViewMatrix().ToFloatArray())
-        fixed (float* proj = camera.GetProjectionMatrix().ToFloatArray())
+        fixed (float* view = player.GetViewMatrix().ToFloatArray())
+        fixed (float* proj = player.GetProjectionMatrix().ToFloatArray())
         {
             foreach (var entity in EntityManager.Entities.Where(x => x.DrawDevCone))
             {

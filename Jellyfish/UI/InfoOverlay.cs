@@ -51,15 +51,15 @@ public class InfoOverlay : IUiPanel
                 ImGui.Separator();
                 ImGui.Text($"{MainWindow.CurrentMap}");
 
-                if (Camera.Instance != null)
+                if (Player.Instance != null)
                 {
 
                     ImGui.Separator();
                     ImGui.Text(
-                        $"Position: {Camera.Instance.GetPropertyValue<OpenTK.Mathematics.Vector3>("Position"):N4}");
+                        $"Position: {Player.Instance.GetPropertyValue<OpenTK.Mathematics.Vector3>("Position"):N4}");
                     ImGui.Separator();
                     ImGui.Text(
-                        $"Rotation: {Camera.Instance.GetPropertyValue<OpenTK.Mathematics.Quaternion>("Rotation").ToEulerAngles().ToDegrees():N2}");
+                        $"Rotation: {Player.Instance.GetPropertyValue<OpenTK.Mathematics.Quaternion>("Rotation").ToEulerAngles().ToDegrees():N2}");
                 }
             }
 

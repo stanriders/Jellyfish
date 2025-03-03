@@ -7,8 +7,8 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace Jellyfish.Entities;
 
-[Entity("camera")]
-public class Camera : BaseEntity, IInputHandler
+[Entity("player")]
+public class Player : BaseEntity, IInputHandler
 {
     private Vector3 _front = -Vector3.UnitZ;
 
@@ -27,18 +27,18 @@ public class Camera : BaseEntity, IInputHandler
 
     public bool IsControllingCursor { get; set; }
 
-    private static Camera? camera;
-    public static Camera? Instance
+    private static Player? player;
+    public static Player? Instance
     {
         get
         {
-            if (camera != null) 
-                return camera;
+            if (player != null) 
+                return player;
 
-            camera = EntityManager.FindEntity("camera", true) as Camera;
-            return camera;
+            player = EntityManager.FindEntity("player", true) as Player;
+            return player;
         }
-        set => camera = value;
+        set => player = value;
     }
 
     public override void Load()

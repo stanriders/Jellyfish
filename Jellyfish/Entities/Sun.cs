@@ -40,9 +40,9 @@ public class Sun : BaseEntity, ILightSource
         {
             var position = new Vector3(0f, 4000f, 0f);
 
-            if (Camera.Instance != null)
+            if (Player.Instance != null)
             {
-                position = Camera.Instance.GetPropertyValue<Vector3>("Position") + GetPropertyValue<Vector3>("Position");
+                position = Player.Instance.GetPropertyValue<Vector3>("Position") + GetPropertyValue<Vector3>("Position");
             }
 
             var lightProjection = Matrix4.CreateOrthographic(10000, 10000, NearPlane, FarPlane);
