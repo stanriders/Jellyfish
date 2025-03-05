@@ -45,7 +45,7 @@ public class Spotlight : BaseEntity, ILightSource
     {
         get
         {
-            var lightProjection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(GetPropertyValue<float>("OuterCone")), 1.0f, NearPlane, FarPlane);
+            var lightProjection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(GetPropertyValue<float>("OuterCone")) * 2.0f, 1.0f, NearPlane, FarPlane);
             var lightView = Matrix4.LookAt(Position, Position + Vector3.Transform(-Vector3.UnitY, Rotation), Vector3.UnitY);
             return lightView * lightProjection;
         }
