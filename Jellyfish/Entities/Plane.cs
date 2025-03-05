@@ -11,7 +11,7 @@ namespace Jellyfish.Entities;
 public class Plane : BaseEntity
 {
     private Mesh? _plane;
-    private BodyID _physicsBodyId;
+    private BodyID? _physicsBodyId;
 
     public Plane()
     {
@@ -108,7 +108,8 @@ public class Plane : BaseEntity
         if (_plane != null)
             MeshManager.RemoveMesh(_plane);
 
-        PhysicsManager.RemoveObject(_physicsBodyId);
+        if (_physicsBodyId != null)
+            PhysicsManager.RemoveObject(_physicsBodyId.Value);
 
         base.Unload();
     }
