@@ -25,17 +25,10 @@ public static class LightManager
     {
         if (lights.Count < max_lights)
         {
-            var light = new Light
+            lights.Add(new Light
             {
                 Source = source
-            };
-
-            if (source.UseShadows)
-            {
-                CreateShadows(light);
-            }
-
-            lights.Add(light);
+            });
         }
     }
 
