@@ -1,0 +1,6 @@
+{
+  "Shader": "Main",
+  "Diffuse": "mud_albedo.png",
+  "Normal": "mud_normal-ogl.png",
+  "MetalRoughness": "mud_metallic.png"
+}

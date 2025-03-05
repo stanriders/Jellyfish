@@ -1,0 +1,6 @@
+{
+  "Shader": "Main",
+  "Diffuse": "tiles_albedo.png",
+  "Normal": "tiles_normal-ogl.png",
+  "MetalRoughness": "tiles_metallic.png"
+}

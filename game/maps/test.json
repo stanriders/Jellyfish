@@ -267,17 +267,20 @@
         {
           "Name": "Size",
           "Value": {
-            "X": 360,
-            "Y": 360
+            "X": 1000,
+            "Y": 1000
           }
         },
         {
           "Name": "Texture",
-          "Value": "tile.mat"
+          "Value": "mud.mat"
         },
         {
           "Name": "TextureScale",
-          "Value": 4
+          "Value": {
+            "X": 4,
+            "Y": 4
+          }
         }
       ]
     },
@@ -292,8 +295,8 @@
           "Name": "Position",
           "Value": {
             "X": 0,
-            "Y": 45,
-            "Z": -90
+            "Y": 90,
+            "Z": -500
           }
         },
         {
@@ -307,17 +310,20 @@
         {
           "Name": "Size",
           "Value": {
-            "X": 180,
-            "Y": 90
+            "X": 1000,
+            "Y": 180
           }
         },
         {
           "Name": "Texture",
-          "Value": "tile.mat"
+          "Value": "tile-pbr.mat"
         },
         {
           "Name": "TextureScale",
-          "Value": 4
+          "Value": {
+            "X": 5.55,
+            "Y": 1
+          }
         }
       ]
     },
@@ -331,8 +337,8 @@
         {
           "Name": "Position",
           "Value": {
-            "X": -90,
-            "Y": 45,
+            "X": -500,
+            "Y": 90,
             "Z": 0
           }
         },
@@ -347,17 +353,20 @@
         {
           "Name": "Size",
           "Value": {
-            "X": 180,
-            "Y": 90
+            "X": 1000,
+            "Y": 180
           }
         },
         {
           "Name": "Texture",
-          "Value": "tile.mat"
+          "Value": "tile-pbr.mat"
         },
         {
           "Name": "TextureScale",
-          "Value": 4
+          "Value": {
+            "X": 5.55,
+            "Y": 1
+          }
         }
       ]
     },
