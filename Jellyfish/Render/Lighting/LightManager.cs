@@ -74,7 +74,7 @@ public static class LightManager
 
         var shader = new Shadow(light.Source);
 
-        var rt = new RenderTarget($"_rt_Shadow{lights.Count}", light.Source.ShadowResolution, light.Source.ShadowResolution, PixelFormat.DepthComponent,
+        var rt = new RenderTarget($"_rt_Shadow{lights.IndexOf(light)}", light.Source.ShadowResolution, light.Source.ShadowResolution, PixelFormat.DepthComponent,
             FramebufferAttachment.DepthAttachment, PixelType.Float, TextureWrapMode.ClampToBorder, new[] { 1f, 1f, 1f, 1f });
         rt.Bind();
 
