@@ -32,8 +32,8 @@ public class Sun : BaseEntity, ILightSource
     public bool Enabled => GetPropertyValue<bool>("Enabled");
     public bool UseShadows => GetPropertyValue<bool>("Shadows");
     public float NearPlane => 1f;
-    public float FarPlane => 4100f;
-    public int ShadowResolution => 4096;
+    public float FarPlane => Position.Y * 1.5f;
+    public int ShadowResolution => 2048;
 
     public Matrix4 Projection
     {
@@ -46,7 +46,7 @@ public class Sun : BaseEntity, ILightSource
                 position = Player.Instance.GetPropertyValue<Vector3>("Position") + Vector3.Transform(GetPropertyValue<Vector3>("Position"), Rotation);
             }
 
-            var lightProjection = Matrix4.CreateOrthographic(position.Y, position.Y, NearPlane, position.Y * 1.5f);
+            var lightProjection = Matrix4.CreateOrthographic(position.Y * 1.5f, position.Y * 1.5f, NearPlane, FarPlane);
             var lightView = Matrix4.LookAt(position, position + Vector3.Transform(-Vector3.UnitY, Rotation), Vector3.UnitY);
             return lightView * lightProjection;
         }
