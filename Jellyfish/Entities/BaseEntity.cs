@@ -28,8 +28,8 @@ public abstract class BaseEntity
     protected BaseEntity()
     {
         AddProperty("Name", Guid.NewGuid().ToString("n")[..8], false);
-        AddProperty("Position", Vector3.Zero);
-        AddProperty("Rotation", Quaternion.Identity);
+        AddProperty("Position", Vector3.Zero, changeCallback: OnPositionChanged);
+        AddProperty("Rotation", Quaternion.Identity, changeCallback: OnRotationChanged);
 
         AddAction("Kill", () => EntityManager.KillEntity(this));
     }
@@ -67,9 +67,12 @@ public abstract class BaseEntity
 #endif
     }
 
-    protected void AddProperty<T>(string name, T defaultValue = default!, bool editable = true)
+    protected virtual void OnPositionChanged(Vector3 position) { }
+    protected virtual void OnRotationChanged(Quaternion rotation) { }
+
+    protected void AddProperty<T>(string name, T defaultValue = default!, bool editable = true, Action<T>? changeCallback = null)
     {
-        _entityProperties.Add(name, new EntityProperty<T>(name,defaultValue, editable));
+        _entityProperties.Add(name, new EntityProperty<T>(name, defaultValue, editable, changeCallback));
     }
 
     protected EntityProperty<T>? GetProperty<T>(string name)

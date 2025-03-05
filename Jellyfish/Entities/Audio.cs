@@ -14,8 +14,18 @@ public class Audio : BaseEntity
     {
         AddProperty<string>("Path", editable: false);
         AddProperty("Autoplay", false, false);
-        AddProperty("UseAirAbsorption", true);
-        AddProperty("Volume", 1.0f);
+
+        AddProperty("UseAirAbsorption", true, changeCallback: useAirAbsorption =>
+        {
+            if (_handle != null)
+                _handle.UseAirAbsorption = useAirAbsorption;
+        });
+
+        AddProperty("Volume", 1.0f, changeCallback: volume =>
+        {
+            if (_handle != null) 
+                _handle.Volume = volume;
+        });
 
         AddAction("Play", Play);
     }
@@ -53,16 +63,14 @@ public class Audio : BaseEntity
         base.Load();
     }
 
-    public override void Think()
+    protected override void OnPositionChanged(Vector3 position)
     {
         if (_handle != null)
         {
-            _handle.Position = GetPropertyValue<Vector3>("Position");
-            _handle.UseAirAbsorption = GetPropertyValue<bool>("UseAirAbsorption");
-            _handle.Volume = GetPropertyValue<float>("Volume");
+            _handle.Position = position;
         }
 
-        base.Think();
+        base.OnPositionChanged(position);
     }
 
     public override void Unload()

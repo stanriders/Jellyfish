@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
-using Jellyfish.Console;
 using Jellyfish.Render;
 using JoltPhysicsSharp;
 using OpenTK.Mathematics;
-using Serilog;
 
 namespace Jellyfish.Entities;
 
@@ -85,22 +83,35 @@ public class Plane : BaseEntity
                 },
             },
             Texture = texture
-        });
+        })
+        {
+            Position = GetPropertyValue<Vector3>("Position"),
+            Rotation = GetPropertyValue<Quaternion>("Rotation")
+        };
 
         MeshManager.AddMesh(_plane);
         _physicsBodyId = PhysicsManager.AddStaticObject(new []{ _plane.MeshPart }, this) ?? 0;
         base.Load();
     }
 
-    public override void Think()
+    protected override void OnPositionChanged(Vector3 position)
     {
         if (_plane != null)
         {
-            _plane.Position = GetPropertyValue<Vector3>("Position");
-            _plane.Rotation = GetPropertyValue<Quaternion>("Rotation");
+            _plane.Position = position;
         }
 
-        base.Think();
+        base.OnPositionChanged(position);
+    }
+
+    protected override void OnRotationChanged(Quaternion rotation)
+    {
+        if (_plane != null)
+        {
+            _plane.Rotation = rotation;
+        }
+
+        base.OnRotationChanged(rotation);
     }
 
     public override void Unload()

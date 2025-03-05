@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using JoltPhysicsSharp;
 using OpenTK.Mathematics;
@@ -10,11 +9,6 @@ namespace Jellyfish.Entities;
 public class DynamicModel : BaseModelEntity
 {
     private BodyID? _physicsBodyId;
-
-    // TODO: add property change callbacks
-    private Vector3? _previousPosition;
-    private Quaternion? _previousRotation;
-    private bool _previousEnablePhysics = true; 
 
     public enum BoundingBoxType
     {
@@ -30,7 +24,18 @@ public class DynamicModel : BaseModelEntity
     {
         AddProperty<string>("Model", editable: false);
         AddProperty<BoundingBoxType>("BoundingBox", editable: false);
-        AddProperty<bool>("EnablePhysics", true);
+        AddProperty("EnablePhysics", true, changeCallback: enablePhysics =>
+        {
+            if (enablePhysics)
+            {
+                _physicsBodyId = PhysicsManager.AddDynamicObject(CalculatePhysicsShape(), this) ?? 0;
+            }
+            else if (_physicsBodyId != null)
+            {
+                PhysicsManager.RemoveObject(_physicsBodyId!.Value);
+                _physicsBodyId = null;
+            }
+        });
     }
 
     public override void Load()
@@ -38,44 +43,28 @@ public class DynamicModel : BaseModelEntity
         ModelPath = $"models/{GetPropertyValue<string>("Model")}";
         base.Load();
 
-        _physicsBodyId = PhysicsManager.AddDynamicObject(CalculatePhysicsShape(), this) ?? 0;
+        if (GetPropertyValue<bool>("EnablePhysics"))
+            _physicsBodyId = PhysicsManager.AddDynamicObject(CalculatePhysicsShape(), this) ?? 0;
     }
 
-    public override void Think()
+    protected override void OnPositionChanged(Vector3 position)
     {
-        if (Model != null)
+        if (_physicsBodyId != null)
         {
-            Model.Position = GetPropertyValue<Vector3>("Position");
-            Model.Rotation = GetPropertyValue<Quaternion>("Rotation");
-
-            if (_physicsBodyId != null)
-            {
-                if (_previousPosition != Model.Position)
-                {
-                    PhysicsManager.SetPosition(_physicsBodyId.Value, Model.Position);
-                    _previousPosition = Model.Position;
-                }
-
-                if (_previousRotation != Model.Rotation)
-                {
-                    PhysicsManager.SetRotation(_physicsBodyId.Value, Model.Rotation);
-                    _previousRotation = Model.Rotation;
-                }
-            }
-
-            var enablePhysics = GetPropertyValue<bool>("EnablePhysics");
-            if (_previousEnablePhysics != enablePhysics)
-            {
-                if (enablePhysics)
-                    _physicsBodyId = PhysicsManager.AddDynamicObject(CalculatePhysicsShape(), this) ?? 0;
-                else
-                    PhysicsManager.RemoveObject(_physicsBodyId!.Value);
-
-                _previousEnablePhysics = enablePhysics;
-            }
+            PhysicsManager.SetPosition(_physicsBodyId.Value, position);
         }
 
-        base.Think();
+        base.OnPositionChanged(position);
+    }
+
+    protected override void OnRotationChanged(Quaternion rotation)
+    {
+        if (_physicsBodyId != null)
+        {
+            PhysicsManager.SetRotation(_physicsBodyId.Value, rotation);
+        }
+
+        base.OnRotationChanged(rotation);
     }
 
     public override void Unload()
