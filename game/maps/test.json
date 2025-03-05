@@ -209,9 +209,9 @@
         {
           "Name": "Rotation",
           "Value": {
-            "Pitch": 0.5,
-            "Yaw": -0.5,
-            "Roll": 0.3
+            "Pitch": -30.0,
+            "Yaw": 0.0,
+            "Roll": 0.0
           }
         },
         {

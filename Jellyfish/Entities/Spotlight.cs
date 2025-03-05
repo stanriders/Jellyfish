@@ -19,6 +19,7 @@ public class Spotlight : BaseEntity, ILightSource
         AddProperty("Constant", 0.05f);
         AddProperty("Cone", 12f);
         AddProperty("OuterCone", 25f);
+        AddProperty("FarPlane", 300f);
     }
 
     public override void Load()
@@ -39,8 +40,8 @@ public class Spotlight : BaseEntity, ILightSource
     public Color4<Rgba> Ambient => GetPropertyValue<Color4<Rgba>>("Ambient");
     public bool Enabled => GetPropertyValue<bool>("Enabled");
     public bool UseShadows => GetPropertyValue<bool>("Shadows");
-    public float NearPlane => 1f;
-    public float FarPlane => 300f;
+    public float NearPlane => 0.1f;
+    public float FarPlane => GetPropertyValue<float>("FarPlane");
     public Matrix4 Projection 
     {
         get

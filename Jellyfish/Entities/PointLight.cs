@@ -17,6 +17,7 @@ public class PointLight : BaseEntity, ILightSource
         AddProperty("Quadratic", 0.8f);
         AddProperty("Linear", 0.15f);
         AddProperty("Constant", 0.05f);
+        AddProperty("FarPlane", 500f);
     }
 
     public override void Load()
@@ -38,7 +39,7 @@ public class PointLight : BaseEntity, ILightSource
     public bool Enabled => GetPropertyValue<bool>("Enabled");
     public bool UseShadows => GetPropertyValue<bool>("Shadows");
     public float NearPlane => 0.1f;
-    public float FarPlane => 500f;
+    public float FarPlane => GetPropertyValue<float>("FarPlane");
 
     public Matrix4 Projection
     {
