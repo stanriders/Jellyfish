@@ -68,7 +68,7 @@ public class InfoOverlay : IUiPanel
             ImGui.SameLine();
             if (ImGui.Button("Load"))
             {
-                MainWindow.QueuedMap = _mapInput;
+                MainWindow.QueuedMap = $"maps/{_mapInput}.json";
             }
 
             ImGui.Separator();
