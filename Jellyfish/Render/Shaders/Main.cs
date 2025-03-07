@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Jellyfish.Entities;
 using Jellyfish.Render.Lighting;
@@ -13,6 +14,9 @@ public class Main : Shader
     private readonly Texture? _normal;
     private readonly Texture? _metRought;
     private readonly Texture _dummyShadow;
+
+    private const uint sun_shadow_unit = 3;
+    private const uint first_light_shadow_unit = 4;
 
     public Main(string diffusePath, string? normalPath = null, string? metroughPath = null) : 
         base("shaders/Main.vert", null, "shaders/Main.frag")
@@ -68,11 +72,17 @@ public class Main : Shader
         SetMatrix4("view", player.GetViewMatrix());
         SetMatrix4("projection", player.GetProjectionMatrix());
 
-        var lights = LightManager.Lights.Where(x=> x.Source.Enabled).OrderByDescending(x=> x.Source.UseShadows).ToArray(); // this is probably inefficient considering we're running this multiple times a frame
-        SetInt("lightSourcesCount", lights.Length);
-        for (uint i = 0; i < lights.Length; i++)
+        var unitsRequiringDummyShadows = new List<uint>();
+        var totalLights = LightManager.Lights.Count;
+        for (var i = 0; i < totalLights; i++)
         {
-            var light = lights[i].Source;
+            var light = LightManager.Lights[i].Source;
+            if (!light.Enabled)
+            {
+                unitsRequiringDummyShadows.Add(first_light_shadow_unit + (uint)i);
+                continue;
+            }
+
             SetVector3($"lightSources[{i}].position", light.Position);
 
             var rotationVector = Vector3.Transform(-Vector3.UnitY, light.Rotation);
@@ -106,12 +116,22 @@ public class Main : Shader
 
             SetMatrix4($"lightSources[{i}].lightSpaceMatrix", light.Projection);
 
-            if (light.UseShadows && lights[i].ShadowRt != null)
+            if (light.UseShadows && LightManager.Lights[i].ShadowRt != null)
             {
-                lights[i].ShadowRt!.Bind(4 + i);
+                LightManager.Lights[i].ShadowRt!.Bind(first_light_shadow_unit + (uint)i);
+            }
+            else
+            {
+                unitsRequiringDummyShadows.Add(first_light_shadow_unit + (uint)i);
             }
 
-            SetBool($"lightSources[{i}].hasShadows", light.UseShadows && lights[i].ShadowRt != null);
+            SetBool($"lightSources[{i}].hasShadows", light.UseShadows && LightManager.Lights[i].ShadowRt != null);
+        }
+        SetInt("lightSourcesCount", totalLights);
+
+        for (var i = totalLights; i < LightManager.max_lights; i++)
+        {
+            unitsRequiringDummyShadows.Add(first_light_shadow_unit + (uint)i);
         }
 
         if (LightManager.Sun != null && LightManager.Sun.Source.Enabled)
@@ -131,11 +151,11 @@ public class Main : Shader
 
         if (LightManager.Sun != null && LightManager.Sun.Source.Enabled && LightManager.Sun.Source.UseShadows)
         {
-            LightManager.Sun.ShadowRt!.Bind(3);
+            LightManager.Sun.ShadowRt!.Bind(sun_shadow_unit);
         }
         else
         {
-            _dummyShadow.Bind(3);
+            unitsRequiringDummyShadows.Add(sun_shadow_unit);
         }
         SetBool("sunEnabled", LightManager.Sun != null && LightManager.Sun.Source.Enabled);
 
@@ -146,10 +166,9 @@ public class Main : Shader
         _normal?.Bind(1);
         _metRought?.Bind(2);
 
-        var workingLights = (uint)lights.Count(x => x.Source.Enabled && x.Source.UseShadows && x.ShadowRt != null);
-        for (uint i = workingLights; i < LightManager.max_lights; i++)
+        foreach (var unit in unitsRequiringDummyShadows)
         {
-            _dummyShadow.Bind(4 + i);
+            _dummyShadow.Bind(unit);
         }
     }
 
