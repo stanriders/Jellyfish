@@ -16,6 +16,7 @@ public class OpenGLRender : IRender, IInputHandler
     private RenderTarget? _colorRenderTarget;
     private RenderTarget? _depthRenderTarget;
     private Sky? _sky;
+    private GBuffer? _gBuffer;
 
     private bool _wireframe;
 
@@ -43,11 +44,8 @@ public class OpenGLRender : IRender, IInputHandler
         _mainFramebuffer = new FrameBuffer();
         _mainFramebuffer.Bind();
 
-        _colorRenderTarget = new RenderTarget("_rt_Color", MainWindow.WindowWidth, MainWindow.WindowHeight, PixelFormat.Rgb,
-            FramebufferAttachment.ColorAttachment0, PixelType.UnsignedByte, TextureWrapMode.ClampToEdge);
-
-        _depthRenderTarget = new RenderTarget("_rt_Depth", MainWindow.WindowWidth, MainWindow.WindowHeight, PixelFormat.DepthComponent,
-            FramebufferAttachment.DepthAttachment, PixelType.UnsignedShort, TextureWrapMode.ClampToEdge);
+        _colorRenderTarget = new RenderTarget("_rt_Color", MainWindow.WindowWidth, MainWindow.WindowHeight, SizedInternalFormat.Rgb8, FramebufferAttachment.ColorAttachment0, TextureWrapMode.ClampToEdge);
+        _depthRenderTarget = new RenderTarget("_rt_Depth", MainWindow.WindowWidth, MainWindow.WindowHeight, SizedInternalFormat.DepthComponent24, FramebufferAttachment.DepthAttachment, TextureWrapMode.ClampToEdge);
 
         if (!_mainFramebuffer.Check())
         {
@@ -56,6 +54,7 @@ public class OpenGLRender : IRender, IInputHandler
 
         _mainFramebuffer.Unbind();
 
+        _gBuffer = new GBuffer(_depthRenderTarget);
         _sky = new Sky();
         _postProcessing = new PostProcessing(_colorRenderTarget, _depthRenderTarget);
 
@@ -81,6 +80,7 @@ public class OpenGLRender : IRender, IInputHandler
         GL.Enable(EnableCap.DepthTest);
         GL.DepthFunc(DepthFunction.Less);
 
+        _gBuffer?.GeometryPass();
         LightManager.DrawShadows();
 
         _mainFramebuffer?.Bind();

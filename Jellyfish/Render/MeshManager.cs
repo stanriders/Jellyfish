@@ -43,7 +43,6 @@ public static class MeshManager
     {
         drawing = true;
 
-
         foreach (var mesh in meshes)
         {
             if (mesh.IsDev && !drawDev)
@@ -60,6 +59,22 @@ public static class MeshManager
         }
 
         updateQueue.Clear();
+
+        drawing = false;
+    }
+
+    public static void DrawGBuffer(bool drawDev = false)
+    {
+        drawing = true;
+
+        foreach (var mesh in meshes)
+        {
+            if (mesh.IsDev && !drawDev)
+                continue;
+
+            if (mesh.ShouldDraw)
+                mesh.DrawGBuffer();
+        }
 
         drawing = false;
     }

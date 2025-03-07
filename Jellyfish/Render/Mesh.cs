@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Jellyfish.Console;
 using Jellyfish.Render.Buffers;
+using Jellyfish.Render.Shaders.Deferred;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
@@ -73,8 +74,10 @@ public class Mesh
     public Vector3 Scale = Vector3.One;
     public bool ShouldDraw { get; set; } = true;
     public bool IsDev { get; set; }
+    public Material? Material { get; set; }
 
     private Shader _shader = null!;
+    private GeometryPass _gBufferShader = null!;
     private VertexArray _vao = null!;
     private VertexBuffer _vbo = null!;
 
@@ -95,14 +98,15 @@ public class Mesh
         _vao.Unbind();
     }
 
-    public MeshPart MeshPart { get; private set; } = null!;
+    public MeshPart MeshPart { get; private set; }
 
     public virtual PrimitiveType PrimitiveType { get; set; } = PrimitiveType.Triangles;
 
     protected void AddMaterial(string path)
     {
-        var material = new Material(path);
-        _shader = material.GetShaderInstance();
+        Material = new Material(path);
+        _shader = Material.GetShaderInstance();
+        _gBufferShader = new GeometryPass(Material.Diffuse, Material.Normal);
     }
 
     protected void CreateBuffers()
@@ -129,6 +133,11 @@ public class Mesh
         GL.VertexArrayAttribBinding(_vao.Handle, vertexLocation, 0);
         GL.VertexArrayAttribBinding(_vao.Handle, texCoordLocation, 0);
         GL.VertexArrayAttribBinding(_vao.Handle, normalLocation, 0);
+    }
+
+    public void DrawGBuffer()
+    {
+        Draw(_gBufferShader);
     }
 
     public void Draw(Shader? shaderToUse = null)
