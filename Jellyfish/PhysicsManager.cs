@@ -152,8 +152,8 @@ public class PhysicsManager
 
         var charSettings = new CharacterVirtualSettings
         {
-            Shape = new CapsuleShape(48f, 10f),
-            Mass = 50f,
+            Shape = new CapsuleShape(55f, 10f),
+            Mass = 60f,
             Up = System.Numerics.Vector3.UnitY
         };
 
