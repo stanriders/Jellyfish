@@ -12,7 +12,7 @@ public static class TextureManager
     public static (Texture Texture, bool AlreadyExists) GetTexture(string name, TextureTarget type)
     {
         var existingTexture = _textures.FirstOrDefault(x => x.Path == name);
-        if (existingTexture != default)
+        if (existingTexture != null)
         {
             existingTexture.References++;
             return (existingTexture, true);
