@@ -10,7 +10,7 @@ public class RenderTarget
     public readonly Vector2 Size;
     private readonly Texture _texture;
 
-    public RenderTarget(string name, int width, int heigth, PixelFormat format, FramebufferAttachment attachment, PixelType pixelType, TextureWrapMode wrapMode, float[]? borderColor = null)
+    public RenderTarget(string name, int width, int heigth, SizedInternalFormat internalFormat, FramebufferAttachment attachment, TextureWrapMode wrapMode, float[]? borderColor = null, bool enableCompare = false)
     {
         Size = new Vector2(width, heigth);
 
@@ -18,16 +18,21 @@ public class RenderTarget
         TextureHandle = _texture.Handle;
         GL.BindTexture(TextureTarget.Texture2d, TextureHandle);
 
-        GL.TexImage2D(TextureTarget.Texture2d, 0, (InternalFormat)format, width, heigth, 0, format, pixelType, IntPtr.Zero);
-        GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMinFilter, new[] { (int)TextureMinFilter.Nearest });
-        GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureMagFilter, new[] { (int)TextureMinFilter.Nearest });
-        GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapS, new[] { (int)wrapMode });
-        GL.TexParameteri(TextureTarget.Texture2d, TextureParameterName.TextureWrapT, new[] { (int)wrapMode });
+        GL.TextureStorage2D(TextureHandle, 1, internalFormat, width, heigth);
+        GL.TextureParameteri(TextureHandle, TextureParameterName.TextureMinFilter, new[] { (int)TextureMinFilter.Nearest });
+        GL.TextureParameteri(TextureHandle, TextureParameterName.TextureMagFilter, new[] { (int)TextureMinFilter.Nearest });
+        GL.TextureParameteri(TextureHandle, TextureParameterName.TextureWrapS, new[] { (int)wrapMode });
+        GL.TextureParameteri(TextureHandle, TextureParameterName.TextureWrapT, new[] { (int)wrapMode });
+
+        if (enableCompare)
+        {
+            GL.TextureParameteri(TextureHandle, TextureParameterName.TextureCompareMode, (int)TextureCompareMode.CompareRefToTexture);
+            GL.TextureParameteri(TextureHandle, TextureParameterName.TextureCompareFunc, (int)DepthFunction.Lequal);
+        }
 
         if (borderColor != null)
         {
-            GL.TexParameterf(TextureTarget.Texture2d, TextureParameterName.TextureBorderColor,
-                new[] { 1.0f, 1.0f, 1.0f, 1.0f });
+            GL.TextureParameterf(TextureHandle, TextureParameterName.TextureBorderColor, borderColor);
         }
 
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, attachment, TextureTarget.Texture2d, TextureHandle, 0);
@@ -35,9 +40,9 @@ public class RenderTarget
         GL.BindTexture(TextureTarget.Texture2d, 0);
     }
 
-    public void Bind()
+    public void Bind(uint unit)
     {
-        GL.BindTexture(TextureTarget.Texture2d, TextureHandle);
+        GL.BindTextureUnit(unit, TextureHandle);
     }
 
     public void Unload()

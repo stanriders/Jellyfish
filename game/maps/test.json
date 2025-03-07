@@ -246,14 +246,14 @@
       "Properties": [
         {
           "Name": "Name",
-          "Value": "floor"
+          "Value": "floor_mud"
         },
         {
           "Name": "Position",
           "Value": {
             "X": 0,
             "Y": 0,
-            "Z": 0
+            "Z": 250
           }
         },
         {
@@ -268,12 +268,56 @@
           "Name": "Size",
           "Value": {
             "X": 1000,
-            "Y": 1000
+            "Y": 500
           }
         },
         {
           "Name": "Texture",
           "Value": "mud.mat"
+        },
+        {
+          "Name": "TextureScale",
+          "Value": {
+            "X": 4,
+            "Y": 4
+          }
+        }
+      ]
+    },
+    
+    {
+      "ClassName": "plane_flat",
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "floor_tile"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": 0,
+            "Y": 0,
+            "Z": -250
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 90,
+            "Yaw": 0,
+            "Roll": 0
+          }
+        },
+        {
+          "Name": "Size",
+          "Value": {
+            "X": 1000,
+            "Y": 500
+          }
+        },
+        {
+          "Name": "Texture",
+          "Value": "tile-pbr.mat"
         },
         {
           "Name": "TextureScale",
@@ -400,6 +444,15 @@
             "G": 220,
             "B": 150,
             "A": 200
+          }
+        },
+        {
+          "Name": "Ambient",
+          "Value": {
+            "R": 76,
+            "G": 66,
+            "B": 45,
+            "A": 0
           }
         },
         {

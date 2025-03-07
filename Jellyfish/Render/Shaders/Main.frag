@@ -12,10 +12,7 @@ layout(binding=0) uniform sampler2D diffuseSampler;
 layout(binding=1) uniform sampler2D normalSampler;
 layout(binding=2) uniform sampler2D metroughSampler;
 
-layout(binding=3) uniform sampler2D shadow1Sampler;
-layout(binding=4) uniform sampler2D shadow2Sampler;
-layout(binding=5) uniform sampler2D shadow3Sampler;
-layout(binding=6) uniform sampler2D shadow4Sampler;
+layout(binding=3) uniform sampler2DShadow shadowSamplers[4];
 
 struct Light {
     vec3 position;
@@ -41,7 +38,6 @@ uniform int lightSourcesCount;
 uniform bool useNormals;
 uniform bool usePbr;
 
-const float FLASHLIGHT_SHADOW_TEXTURE_RESOLUTION = 2048;
 const float PI = 3.14159265359;
 
 float DistributionGGX(vec3 N, vec3 H, float roughness)
@@ -81,38 +77,28 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 } 
 
-float SimpleShadow(sampler DepthSampler, vec3 projCoords, vec3 lightDir, vec3 normal)
+float SimpleShadow(sampler2DShadow DepthSampler, vec3 projCoords, vec3 lightDir, vec3 normal)
 {
-    float closestDepth = texture(DepthSampler, projCoords.xy).r; 
     float currentDepth = projCoords.z;
-    
-    float bias = 0f;
-    if (gl_FrontFacing)
-        bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
 
-    float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;  
+    float shadow = texture(DepthSampler, vec3(projCoords.xy, currentDepth));  
 
     return shadow;
 }  
 
-float SimplePCF(sampler DepthSampler, vec3 projCoords, vec3 lightDir, vec3 normal)
+float SimplePCF(sampler2DShadow DepthSampler, vec3 projCoords, vec3 lightDir, vec3 normal)
 {
     float currentDepth = projCoords.z;
 
-    float bias = 0f;
-    if (gl_FrontFacing)
-        bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
-
-    // PCF: percentage-closer filtering
-    float shadow = 0.0;
-    vec2 texelSize = vec2(1.0 / FLASHLIGHT_SHADOW_TEXTURE_RESOLUTION);
+    float shadow = 0.0f;
+    vec2 texelSize = vec2(1.0f / textureSize(DepthSampler, 0).x);
     const int halfkernelWidth = 3;
     for(int x = -halfkernelWidth; x <= halfkernelWidth; ++x)
     {
 	    for(int y = -halfkernelWidth; y <= halfkernelWidth; ++y)
 	    {
-		    float pcfDepth = texture(DepthSampler, projCoords.xy + vec2(x, y) * texelSize).r;
-		    shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
+		    float pcfDepth = texture(DepthSampler, vec3(projCoords.xy + vec2(x, y) * texelSize, currentDepth));
+		    shadow += pcfDepth;
 	    }
     }
     shadow /= ((halfkernelWidth*2+1)*(halfkernelWidth*2+1));
@@ -120,9 +106,9 @@ float SimplePCF(sampler DepthSampler, vec3 projCoords, vec3 lightDir, vec3 norma
     return shadow;
 }
 
-float DoShadowNvidiaPCF5x5GaussianPC( sampler DepthSampler, vec3 vProjCoords )
+float DoShadowNvidiaPCF5x5GaussianPC( sampler2DShadow DepthSampler, vec3 vProjCoords )
 {
-	float flTexelEpsilon    = 1.0f / FLASHLIGHT_SHADOW_TEXTURE_RESOLUTION;
+	float flTexelEpsilon    = 1.0f / textureSize(DepthSampler, 0).x;
 	float flTwoTexelEpsilon = 2.0f * flTexelEpsilon;
 
 	//float ooW = 1.0f / shadowMapPos.w;								// 1 / w
@@ -137,50 +123,50 @@ float DoShadowNvidiaPCF5x5GaussianPC( sampler DepthSampler, vec3 vProjCoords )
 	vec4 c3 = vec4( flTexelEpsilon, -flTexelEpsilon, flTwoTexelEpsilon, -flTwoTexelEpsilon );
 
 	vec4 vOneTaps;
-	vOneTaps.x = texture2DProj( DepthSampler, vec4( shadowMapCenter + c2.xx, objDepth, 1 ) ).x;	//  2  2
-	vOneTaps.y = texture2DProj( DepthSampler, vec4( shadowMapCenter + c2.yx, objDepth, 1 ) ).x;	// -2  2
-	vOneTaps.z = texture2DProj( DepthSampler, vec4( shadowMapCenter + c2.xy, objDepth, 1 ) ).x;	//  2 -2
-	vOneTaps.w = texture2DProj( DepthSampler, vec4( shadowMapCenter + c2.yy, objDepth, 1 ) ).x;	// -2 -2
+	vOneTaps.x = texture( DepthSampler, vec3( shadowMapCenter + c2.xx, objDepth) );	//  2  2
+	vOneTaps.y = texture( DepthSampler, vec3( shadowMapCenter + c2.yx, objDepth) );	// -2  2
+	vOneTaps.z = texture( DepthSampler, vec3( shadowMapCenter + c2.xy, objDepth) );	//  2 -2
+	vOneTaps.w = texture( DepthSampler, vec3( shadowMapCenter + c2.yy, objDepth) );	// -2 -2
 	float flSum = dot( vOneTaps, c0.xxxx );
 
 	vec4 vSevenTaps;
-	vSevenTaps.x = texture2DProj( DepthSampler, vec4( shadowMapCenter + c2.xz, objDepth, 1 ) ).x;	//  2 0
-	vSevenTaps.y = texture2DProj( DepthSampler, vec4( shadowMapCenter + c2.yz, objDepth, 1 ) ).x;	// -2 0
-	vSevenTaps.z = texture2DProj( DepthSampler, vec4( shadowMapCenter + c2.zx, objDepth, 1 ) ).x;	// 0 2
-	vSevenTaps.w = texture2DProj( DepthSampler, vec4( shadowMapCenter + c2.zy, objDepth, 1 ) ).x;	// 0 -2
+	vSevenTaps.x = texture( DepthSampler, vec3( shadowMapCenter + c2.xz, objDepth) );	//  2 0
+	vSevenTaps.y = texture( DepthSampler, vec3( shadowMapCenter + c2.yz, objDepth) );	// -2 0
+	vSevenTaps.z = texture( DepthSampler, vec3( shadowMapCenter + c2.zx, objDepth) );	// 0 2
+	vSevenTaps.w = texture( DepthSampler, vec3( shadowMapCenter + c2.zy, objDepth) );	// 0 -2
 	flSum += dot( vSevenTaps, c0.yyyy );
 
 	vec4 vFourTapsA, vFourTapsB;
-	vFourTapsA.x = texture2DProj( DepthSampler, vec4( shadowMapCenter + c2.xw, objDepth, 1 ) ).x;	// 2 1
-	vFourTapsA.y = texture2DProj( DepthSampler, vec4( shadowMapCenter + c2.wx, objDepth, 1 ) ).x;	// 1 2
-	vFourTapsA.z = texture2DProj( DepthSampler, vec4( shadowMapCenter + c3.yz, objDepth, 1 ) ).x;	// -1 2
-	vFourTapsA.w = texture2DProj( DepthSampler, vec4( shadowMapCenter + c3.wx, objDepth, 1 ) ).x;	// -2 1
-	vFourTapsB.x = texture2DProj( DepthSampler, vec4( shadowMapCenter + c3.wy, objDepth, 1 ) ).x;	// -2 -1
-	vFourTapsB.y = texture2DProj( DepthSampler, vec4( shadowMapCenter + c3.yw, objDepth, 1 ) ).x;	// -1 -2
-	vFourTapsB.z = texture2DProj( DepthSampler, vec4( shadowMapCenter + c3.xw, objDepth, 1 ) ).x;	// 1 -2
-	vFourTapsB.w = texture2DProj( DepthSampler, vec4( shadowMapCenter + c3.zy, objDepth, 1 ) ).x;	// 2 -1
+	vFourTapsA.x = texture( DepthSampler, vec3( shadowMapCenter + c2.xw, objDepth) );	// 2 1
+	vFourTapsA.y = texture( DepthSampler, vec3( shadowMapCenter + c2.wx, objDepth) );	// 1 2
+	vFourTapsA.z = texture( DepthSampler, vec3( shadowMapCenter + c3.yz, objDepth) );	// -1 2
+	vFourTapsA.w = texture( DepthSampler, vec3( shadowMapCenter + c3.wx, objDepth) );	// -2 1
+	vFourTapsB.x = texture( DepthSampler, vec3( shadowMapCenter + c3.wy, objDepth) );	// -2 -1
+	vFourTapsB.y = texture( DepthSampler, vec3( shadowMapCenter + c3.yw, objDepth) );	// -1 -2
+	vFourTapsB.z = texture( DepthSampler, vec3( shadowMapCenter + c3.xw, objDepth) );	// 1 -2
+	vFourTapsB.w = texture( DepthSampler, vec3( shadowMapCenter + c3.zy, objDepth) );	// 2 -1
 	flSum += dot( vFourTapsA, c0.zzzz );
 	flSum += dot( vFourTapsB, c0.zzzz );
 
 	vec4 v20Taps;
-	v20Taps.x = texture2DProj( DepthSampler, vec4( shadowMapCenter + c3.xx, objDepth, 1 ) ).x;	// 1 1
-	v20Taps.y = texture2DProj( DepthSampler, vec4( shadowMapCenter + c3.yx, objDepth, 1 ) ).x;	// -1 1
-	v20Taps.z = texture2DProj( DepthSampler, vec4( shadowMapCenter + c3.xy, objDepth, 1 ) ).x;	// 1 -1
-	v20Taps.w = texture2DProj( DepthSampler, vec4( shadowMapCenter + c3.yy, objDepth, 1 ) ).x;	// -1 -1
+	v20Taps.x = texture( DepthSampler, vec3( shadowMapCenter + c3.xx, objDepth) );	// 1 1
+	v20Taps.y = texture( DepthSampler, vec3( shadowMapCenter + c3.yx, objDepth) );	// -1 1
+	v20Taps.z = texture( DepthSampler, vec3( shadowMapCenter + c3.xy, objDepth) );	// 1 -1
+	v20Taps.w = texture( DepthSampler, vec3( shadowMapCenter + c3.yy, objDepth) );	// -1 -1
 	flSum += dot( v20Taps, c0.wwww );
 
 	vec4 v33Taps;
-	v33Taps.x = texture2DProj( DepthSampler, vec4( shadowMapCenter + c2.wz, objDepth, 1 ) ).x;	// 1 0
-	v33Taps.y = texture2DProj( DepthSampler, vec4( shadowMapCenter + c1.zw, objDepth, 1 ) ).x;	// -1 0
-	v33Taps.z = texture2DProj( DepthSampler, vec4( shadowMapCenter + c1.wz, objDepth, 1 ) ).x;	// 0 -1
-	v33Taps.w = texture2DProj( DepthSampler, vec4( shadowMapCenter + c2.zw, objDepth, 1 ) ).x;	// 0 1
+	v33Taps.x = texture( DepthSampler, vec3( shadowMapCenter + c2.wz, objDepth) );	// 1 0
+	v33Taps.y = texture( DepthSampler, vec3( shadowMapCenter + c1.zw, objDepth) );	// -1 0
+	v33Taps.z = texture( DepthSampler, vec3( shadowMapCenter + c1.wz, objDepth) );	// 0 -1
+	v33Taps.w = texture( DepthSampler, vec3( shadowMapCenter + c2.zw, objDepth) );	// 0 1
 	flSum += dot( v33Taps, c1.xxxx );
 
-	flSum += texture2DProj( DepthSampler, vec4( shadowMapCenter, objDepth, 1 ) ).x * c1.y;
+	flSum += texture( DepthSampler, vec3( shadowMapCenter, objDepth) ) * c1.y;
 	
 	flSum = pow( flSum, 1.4f );
 
-	return 1f - flSum;
+	return flSum;
 }
 
 float ShadowCalculation(int lightIndex, vec3 lightDir, vec3 normal)
@@ -193,30 +179,9 @@ float ShadowCalculation(int lightIndex, vec3 lightDir, vec3 normal)
     if(projCoords.z > 1.0)
         return 0.0;
         
-    if (lightIndex == 0)
-    {
-        //return SimplePCF(shadow1Sampler, projCoords, lightDir, normal);
-        //return SimpleShadow(shadow1Sampler, projCoords, lightDir, normal);
-        return DoShadowNvidiaPCF5x5GaussianPC(shadow1Sampler, projCoords);
-    } 
-    else if (lightIndex == 1) 
-    {
-        //return SimplePCF(shadow2Sampler, projCoords, lightDir, normal);
-        //return SimpleShadow(shadow2Sampler, projCoords, lightDir, normal);
-        return DoShadowNvidiaPCF5x5GaussianPC(shadow2Sampler, projCoords);
-    }
-    else if (lightIndex == 2) 
-    {
-        //return SimplePCF(shadow3Sampler, projCoords, lightDir, normal);
-        //return SimpleShadow(shadow3Sampler, projCoords, lightDir, normal);
-        return DoShadowNvidiaPCF5x5GaussianPC(shadow3Sampler, projCoords);
-    }
-    else if (lightIndex == 3) 
-    {
-        //return SimplePCF(shadow4Sampler, projCoords, lightDir, normal);
-        //return SimpleShadow(shadow4Sampler, projCoords, lightDir, normal);
-        return DoShadowNvidiaPCF5x5GaussianPC(shadow4Sampler, projCoords);
-    }
+    //return SimplePCF(shadowSamplers[lightIndex], projCoords, lightDir, normal, resolution);
+    //return SimpleShadow(shadowSamplers[lightIndex], projCoords, lightDir, normal);
+    return DoShadowNvidiaPCF5x5GaussianPC(shadowSamplers[lightIndex], projCoords);
 }  
 
 vec3 CalcPointLight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
@@ -235,15 +200,13 @@ vec3 CalcPointLight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
     ambient  *= attenuation;
     outdiffuse *= attenuation;
 
-    float shadow = 0f;
+    float shadow = 1f;
     if (light.hasShadows) 
     {
         shadow = ShadowCalculation(lightIndex, lightDir, normal);
     }
 
-    outdiffuse *= (1.0f - shadow);
-
-    return ambient + outdiffuse;
+    return ambient + outdiffuse * shadow;
 }
 
 vec3 CalcSpotlight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
@@ -270,15 +233,13 @@ vec3 CalcSpotlight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
     outdiffuse *= intensity;
     ambient *= intensity;
 
-    float shadow = 0f;
+    float shadow = 1f;
     if (light.hasShadows) 
     {
         shadow = ShadowCalculation(lightIndex, lightDir, normal);
     }
 
-    outdiffuse *= (1.0f - shadow);
-
-    return ambient + outdiffuse;
+    return ambient + outdiffuse * shadow;
 }
 
 vec3 CalcSun(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
@@ -288,15 +249,13 @@ vec3 CalcSun(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
 
     vec3 outdiffuse = light.diffuse * light.brightness;
 
-    float shadow = 0f;
+    float shadow = 1f;
     if (light.hasShadows) 
     {
         shadow = ShadowCalculation(lightIndex, lightDir, normal);
     }
 
-    outdiffuse *= (1.0f - shadow);
-
-    return light.ambient + outdiffuse;
+    return light.ambient + outdiffuse * shadow;
 }
 
 vec3 CalcLighting(vec3 normal, vec3 fragPos, vec3 viewDir)

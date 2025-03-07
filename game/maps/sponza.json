@@ -335,6 +335,15 @@
           }
         },
         {
+          "Name": "Ambient",
+          "Value": {
+            "R": 76,
+            "G": 66,
+            "B": 45,
+            "A": 0
+          }
+        },
+        {
           "Name": "Enabled",
           "Value": true
         }

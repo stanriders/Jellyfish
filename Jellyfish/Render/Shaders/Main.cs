@@ -12,6 +12,7 @@ public class Main : Shader
     private readonly Texture _diffuse;
     private readonly Texture? _normal;
     private readonly Texture? _metRought;
+    private readonly Texture _dummyShadow;
 
     public Main(string diffusePath, string? normalPath = null, string? metroughPath = null) : 
         base("shaders/Main.vert", null, "shaders/Main.frag")
@@ -26,6 +27,32 @@ public class Main : Shader
         if (!string.IsNullOrEmpty(metroughPath))
         {
             _metRought = TextureManager.GetTexture(metroughPath, TextureTarget.Texture2d).Texture;
+        }
+
+        var (dummyShadow, alreadyExists) = TextureManager.GetTexture("_rt_dummyShadow", TextureTarget.Texture2d);
+        _dummyShadow = dummyShadow;
+
+        if (!alreadyExists)
+        {
+            GL.BindTexture(TextureTarget.Texture2d, _dummyShadow.Handle);
+            GL.TextureStorage2D(_dummyShadow.Handle, 1, SizedInternalFormat.DepthComponent24, 1, 1);
+            GL.TextureParameteri(_dummyShadow.Handle, TextureParameterName.TextureMinFilter,
+                new[] { (int)TextureMinFilter.Nearest });
+            GL.TextureParameteri(_dummyShadow.Handle, TextureParameterName.TextureMagFilter,
+                new[] { (int)TextureMinFilter.Nearest });
+            GL.TextureParameteri(_dummyShadow.Handle, TextureParameterName.TextureWrapS,
+                new[] { (int)TextureWrapMode.ClampToBorder });
+            GL.TextureParameteri(_dummyShadow.Handle, TextureParameterName.TextureWrapT,
+                new[] { (int)TextureWrapMode.ClampToBorder });
+
+            GL.TextureParameteri(_dummyShadow.Handle, TextureParameterName.TextureCompareMode,
+                (int)TextureCompareMode.CompareRefToTexture);
+            GL.TextureParameteri(_dummyShadow.Handle, TextureParameterName.TextureCompareFunc,
+                (int)DepthFunction.Lequal);
+
+            GL.TextureParameterf(_dummyShadow.Handle, TextureParameterName.TextureBorderColor,
+                new[] { 1f, 1f, 1f, 1f });
+            GL.BindTexture(TextureTarget.Texture2d, 0);
         }
     }
 
@@ -81,13 +108,12 @@ public class Main : Shader
 
             SetMatrix4($"lightSources[{i}].lightSpaceMatrix", light.Projection);
 
-            if (light.UseShadows)
+            if (light.UseShadows && lights[i].ShadowRt != null)
             {
-                GL.ActiveTexture(TextureUnit.Texture3 + i);
-                lights[i].ShadowRt!.Bind();
+                lights[i].ShadowRt!.Bind(3 + i);
             }
 
-            SetBool($"lightSources[{i}].hasShadows", light.UseShadows);
+            SetBool($"lightSources[{i}].hasShadows", light.UseShadows && lights[i].ShadowRt != null);
         }
 
         SetBool("useNormals", _normal != null);
@@ -96,25 +122,23 @@ public class Main : Shader
         _diffuse.Bind(0);
         _normal?.Bind(1);
         _metRought?.Bind(2);
+
+        var workingLights = (uint)lights.Count(x => x.Source.Enabled && x.Source.UseShadows && x.ShadowRt != null);
+        for (uint i = workingLights; i < LightManager.max_lights; i++)
+        {
+            _dummyShadow.Bind(3 + i);
+        }
     }
 
     public override void Unbind()
     {
-        GL.ActiveTexture(TextureUnit.Texture0);
-        GL.BindTexture(TextureTarget.Texture2d, 0);
+        GL.BindTextureUnit(0, 0);
+        GL.BindTextureUnit(1, 0);
+        GL.BindTextureUnit(2, 0);
 
-        GL.ActiveTexture(TextureUnit.Texture1);
-        GL.BindTexture(TextureTarget.Texture2d, 0);
-
-        GL.ActiveTexture(TextureUnit.Texture2);
-        GL.BindTexture(TextureTarget.Texture2d, 0);
-
-        var lights = LightManager.Lights.Where(x => x.Source.Enabled).ToArray();
-        SetInt("lightSourcesCount", lights.Length);
-        for (uint i = 0; i < lights.Length; i++)
+        for (uint i = 0; i < LightManager.max_lights; i++)
         {
-            GL.ActiveTexture(TextureUnit.Texture3 + i);
-            GL.BindTexture(TextureTarget.Texture2d, 0);
+            GL.BindTextureUnit(3 + i, 0);
         }
 
         base.Unbind();

@@ -18,11 +18,8 @@ public class PostProcessing : Shader
     {
         base.Bind();
 
-        GL.ActiveTexture(TextureUnit.Texture0);
-        _rtColor.Bind();
-
-        GL.ActiveTexture(TextureUnit.Texture1);
-        _rtDepth.Bind();
+        _rtColor.Bind(0);
+        _rtDepth.Bind(1);
     }
 
     public override void Unload()

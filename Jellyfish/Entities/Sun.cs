@@ -33,7 +33,7 @@ public class Sun : BaseEntity, ILightSource
     public bool UseShadows => GetPropertyValue<bool>("Shadows");
     public float NearPlane => 1f;
     public float FarPlane => Position.Y * 1.5f;
-    public int ShadowResolution => 2048;
+    public int ShadowResolution => 4096;
 
     public Matrix4 Projection
     {

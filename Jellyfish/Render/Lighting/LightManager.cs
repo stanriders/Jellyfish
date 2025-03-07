@@ -18,7 +18,7 @@ public static class LightManager
 
     public static IReadOnlyList<Light> Lights => lights.AsReadOnly();
 
-    private const int max_lights = 4;
+    public const int max_lights = 4;
     private static readonly List<Light> lights = new(max_lights);
 
     public static void AddLight(ILightSource source)
@@ -47,7 +47,7 @@ public static class LightManager
 
     public static void DrawShadows()
     {
-        GL.Disable(EnableCap.CullFace);
+        GL.CullFace(TriangleFace.Front);
         foreach (var light in lights.Where(x=> x.Source.Enabled && x.Source.UseShadows))
         {
             if (light.Source.UseShadows && light.ShadowRt == null)
@@ -64,7 +64,8 @@ public static class LightManager
 
             light.ShadowFrameBuffer.Unbind();
         }
-        GL.Enable(EnableCap.CullFace);
+
+        GL.CullFace(TriangleFace.Back);
     }
 
     private static void CreateShadows(Light light)
@@ -74,9 +75,8 @@ public static class LightManager
 
         var shader = new Shadow(light.Source);
 
-        var rt = new RenderTarget($"_rt_Shadow{lights.IndexOf(light)}", light.Source.ShadowResolution, light.Source.ShadowResolution, PixelFormat.DepthComponent,
-            FramebufferAttachment.DepthAttachment, PixelType.Float, TextureWrapMode.ClampToBorder, new[] { 1f, 1f, 1f, 1f });
-        rt.Bind();
+        var rt = new RenderTarget($"_rt_Shadow{lights.IndexOf(light)}", light.Source.ShadowResolution, light.Source.ShadowResolution, SizedInternalFormat.DepthComponent24, FramebufferAttachment.DepthAttachment, TextureWrapMode.ClampToBorder, [1f, 1f, 1f, 1f], true);
+        rt.Bind(0);
 
         GL.DrawBuffer(DrawBufferMode.None);
         GL.ReadBuffer(ReadBufferMode.None);
