@@ -68,7 +68,7 @@ public class Main : Shader
         SetMatrix4("view", player.GetViewMatrix());
         SetMatrix4("projection", player.GetProjectionMatrix());
 
-        var lights = LightManager.Lights.Where(x=> x.Source.Enabled).ToArray();
+        var lights = LightManager.Lights.Where(x=> x.Source.Enabled).OrderByDescending(x=> x.Source.UseShadows).ToArray(); // this is probably inefficient considering we're running this multiple times a frame
         SetInt("lightSourcesCount", lights.Length);
         for (uint i = 0; i < lights.Length; i++)
         {
@@ -83,10 +83,8 @@ public class Main : Shader
             SetFloat($"lightSources[{i}].brightness", light.Color.W);
 
             var lightType = 0; // point
-            if (light is Sun)
+            if (light is Spotlight)
                 lightType = 1;
-            else if (light is Spotlight)
-                lightType = 2;
 
             SetInt($"lightSources[{i}].type", lightType);
 
@@ -110,11 +108,36 @@ public class Main : Shader
 
             if (light.UseShadows && lights[i].ShadowRt != null)
             {
-                lights[i].ShadowRt!.Bind(3 + i);
+                lights[i].ShadowRt!.Bind(4 + i);
             }
 
             SetBool($"lightSources[{i}].hasShadows", light.UseShadows && lights[i].ShadowRt != null);
         }
+
+        if (LightManager.Sun != null && LightManager.Sun.Source.Enabled)
+        {
+            var light = LightManager.Sun.Source;
+
+            var rotationVector = Vector3.Transform(-Vector3.UnitY, light.Rotation);
+            SetVector3("sun.direction", rotationVector);
+
+            SetVector3("sun.diffuse", new Vector3(light.Color.X, light.Color.Y, light.Color.Z));
+            SetVector3("sun.ambient", new Vector3(light.Ambient.X, light.Ambient.Y, light.Ambient.Z));
+            SetFloat("sun.brightness", light.Color.W);
+
+            SetMatrix4("sun.lightSpaceMatrix", light.Projection);
+            SetBool("sun.hasShadows", light.UseShadows && LightManager.Sun.ShadowRt != null);
+        }
+
+        if (LightManager.Sun != null && LightManager.Sun.Source.Enabled && LightManager.Sun.Source.UseShadows)
+        {
+            LightManager.Sun.ShadowRt!.Bind(3);
+        }
+        else
+        {
+            _dummyShadow.Bind(3);
+        }
+        SetBool("sunEnabled", LightManager.Sun != null && LightManager.Sun.Source.Enabled);
 
         SetBool("useNormals", _normal != null);
         SetBool("usePbr", _metRought != null);
@@ -126,7 +149,7 @@ public class Main : Shader
         var workingLights = (uint)lights.Count(x => x.Source.Enabled && x.Source.UseShadows && x.ShadowRt != null);
         for (uint i = workingLights; i < LightManager.max_lights; i++)
         {
-            _dummyShadow.Bind(3 + i);
+            _dummyShadow.Bind(4 + i);
         }
     }
 
@@ -136,9 +159,14 @@ public class Main : Shader
         GL.BindTextureUnit(1, 0);
         GL.BindTextureUnit(2, 0);
 
+        if (LightManager.Sun != null)
+        {
+            GL.BindTextureUnit(3, 0);
+        }
+
         for (uint i = 0; i < LightManager.max_lights; i++)
         {
-            GL.BindTextureUnit(3 + i, 0);
+            GL.BindTextureUnit(4 + i, 0);
         }
 
         base.Unbind();

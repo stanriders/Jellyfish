@@ -222,31 +222,31 @@
         {
           "Name": "Position",
           "Value": {
-            "X": -45,
-            "Y": 70,
-            "Z": -25
+            "X": -15,
+            "Y": 128,
+            "Z": 90
           }
         },
         {
           "Name": "Rotation",
           "Value": {
-            "Pitch": 0.5,
-            "Yaw": -0.5,
-            "Roll": 0.3
+            "Pitch": 40,
+            "Yaw": 0,
+            "Roll": 0
           }
         },
         {
           "Name": "Color",
           "Value": {
-            "R": 100,
-            "G": 255,
-            "B": 100,
-            "A": 200
+            "R": 255,
+            "G": 220,
+            "B": 200,
+            "A": 255
           }
         },
         {
           "Name": "Quadratic",
-          "Value": 0.05
+          "Value": 0.02
         },
         {
           "Name": "Cone",
@@ -254,7 +254,7 @@
         },
         {
           "Name": "OuterCone",
-          "Value": 50.0
+          "Value": 55.0
         },
         {
           "Name": "Enabled",
@@ -320,9 +320,9 @@
         {
           "Name": "Rotation",
           "Value": {
-            "Pitch": 6,
+            "Pitch": 15,
             "Yaw": 0,
-            "Roll": 0
+            "Roll": -20
           }
         },
         {

@@ -14,6 +14,7 @@ uniform mat4 rotation;
 out vec2 frag_texCoord;
 out vec3 frag_normal;
 out vec3 frag_position;
+out vec4 frag_position_sun;
 out vec4 frag_position_lightspace[4];
 
 struct Light {
@@ -37,6 +38,9 @@ struct Light {
 uniform Light lightSources[4];
 uniform int lightSourcesCount;
 
+uniform Light sun;
+uniform bool sunEnabled;
+
 void main(void)
 {
     frag_texCoord = aTexCoord;
@@ -51,6 +55,8 @@ void main(void)
     {
         frag_position_lightspace[i] = vec4(frag_position, 1.0) * lightSources[i].lightSpaceMatrix;
     }
+
+    frag_position_sun = vec4(frag_position, 1.0) * sun.lightSpaceMatrix;
 
     gl_Position = transformedPosition * view * projection;
 }

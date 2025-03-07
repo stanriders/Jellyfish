@@ -5,6 +5,7 @@ out vec4 outputColor;
 in vec2 frag_texCoord;
 in vec3 frag_normal;
 in vec3 frag_position;
+in vec4 frag_position_sun;
 in vec4 frag_position_lightspace[4];
 
 uniform vec3 cameraPos;
@@ -12,7 +13,8 @@ layout(binding=0) uniform sampler2D diffuseSampler;
 layout(binding=1) uniform sampler2D normalSampler;
 layout(binding=2) uniform sampler2D metroughSampler;
 
-layout(binding=3) uniform sampler2DShadow shadowSamplers[4];
+layout(binding=3) uniform sampler2DShadow sunShadowSampler;
+layout(binding=4) uniform sampler2DShadow shadowSamplers[4];
 
 struct Light {
     vec3 position;
@@ -34,6 +36,9 @@ struct Light {
 };
 uniform Light lightSources[4];
 uniform int lightSourcesCount;
+
+uniform Light sun;
+uniform bool sunEnabled;
 
 uniform bool useNormals;
 uniform bool usePbr;
@@ -225,7 +230,6 @@ vec3 CalcSpotlight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
     ambient  *= attenuation;
     outdiffuse  *= attenuation;
 
-
     float theta = dot(lightDir, normalize(-light.direction));
     float epsilon   = light.cone - light.outcone;
     float intensity = clamp((theta - light.outcone) / epsilon, 0.0, 1.0); 
@@ -242,49 +246,28 @@ vec3 CalcSpotlight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
     return ambient + outdiffuse * shadow;
 }
 
-vec3 CalcSun(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
+vec3 CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
 {
-    Light light = lightSources[lightIndex];
-    vec3 lightDir = normalize(-light.direction);
+    vec3 lightDir = normalize(-sun.direction);
 
-    vec3 outdiffuse = light.diffuse * light.brightness;
+    vec3 outdiffuse = sun.diffuse * sun.brightness;
 
     float shadow = 1f;
-    if (light.hasShadows) 
+    if (sun.hasShadows) 
     {
-        shadow = ShadowCalculation(lightIndex, lightDir, normal);
-    }
+        vec3 projCoords = frag_position_sun.xyz / frag_position_sun.w;
 
-    return light.ambient + outdiffuse * shadow;
-}
-
-vec3 CalcLighting(vec3 normal, vec3 fragPos, vec3 viewDir)
-{
-    vec3 result = vec3(0.0, 0.0, 0.0);
-
-    for(int i = 0; i < lightSourcesCount; i++)
-    {
-        switch(lightSources[i].type)
+        projCoords = projCoords * 0.5 + 0.5;
+    
+        if(projCoords.z < 1.0)
         {
-            case 0: // point
-            {
-              result += CalcPointLight(i, normal, fragPos, viewDir);
-              break;
-            }
-            case 1: // sun
-            {
-              result += CalcSun(i, normal, fragPos, viewDir);
-              break;
-            }
-            case 2: // spot
-            {
-              result += CalcSpotlight(i, normal, fragPos, viewDir);
-              break;
-            }
+            //return SimplePCF(sunShadowSampler, projCoords, lightDir, normal, resolution);
+            //return SimpleShadow(sunShadowSampler, projCoords, lightDir, normal);
+            shadow = DoShadowNvidiaPCF5x5GaussianPC(sunShadowSampler, projCoords);
         }
     }
 
-    return result;
+    return sun.ambient + outdiffuse * shadow;
 }
 
 mat3 GetTBN(vec3 fragPos, vec2 texCoord, vec3 worldNormal)
@@ -314,8 +297,8 @@ mat3 GetTBN(vec3 fragPos, vec2 texCoord, vec3 worldNormal)
 void main()
 {
     vec4 diffuseTex = texture(diffuseSampler, frag_texCoord * vec2(1.0, -1.0));
-    //if (diffuseTex.a < 0.01)
-    //    discard;
+    if (diffuseTex.a < 0.01)
+        discard;
 
     vec3 normal = normalize(frag_normal);
     if (useNormals)
@@ -375,17 +358,50 @@ void main()
               radiance = CalcPointLight(i, normal, frag_position, viewDir);
               break;
             }
-            case 1: // sun
-            {
-              radiance = CalcSun(i, normal, frag_position, viewDir);
-              break;
-            }
-            case 2: // spot
+            case 1: // spot
             {
               radiance = CalcSpotlight(i, normal, frag_position, viewDir);
               break;
             }
         }
+
+        if (usePbr)
+        {
+            // add to outgoing radiance Lo
+            vec3 diffuseBDR = diffuseTex.rgb;
+            lighting += max(vec3(0), (diffuseBDR + specular) * radiance * NdotL); 
+        }
+        else 
+        {
+            lighting += radiance * NdotL;
+        }
+    }
+
+    if (sunEnabled) 
+    {
+        vec3 lightDir = normalize(-sun.direction);
+        float NdotL = max(dot(normal, lightDir), 0.0);
+
+        vec3 specular = vec3(0);
+        vec3 kD = vec3(0);
+        if (usePbr)
+        {
+            // cook-torrance brdf
+            vec3 H = normalize(viewDir + lightDir);
+            float NDF = DistributionGGX(normal, H, roughness);
+            float G   = GeometrySmith(normal, viewDir, lightDir, roughness);
+            vec3 F    = fresnelSchlick(max(dot(H, viewDir), 0.0), dielectricCoefficient);
+
+            vec3 kS = F;
+            kD = vec3(1.0) - kS;
+            kD *= 1.0 - metalness;
+
+            vec3 numerator    = NDF * G * F;
+            float denominator = max(0.00001, 4.0 * max(dot(normal, viewDir), 0.0) * NdotL);
+            specular          = numerator / denominator; 
+        }
+
+        vec3 radiance = CalcSun(normal, frag_position, viewDir);
 
         if (usePbr)
         {

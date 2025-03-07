@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Jellyfish.Entities;
 using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Shaders;
 using OpenTK.Graphics.OpenGL;
@@ -17,12 +18,20 @@ public static class LightManager
     }
 
     public static IReadOnlyList<Light> Lights => lights.AsReadOnly();
+    public static Light? Sun { get; private set; }
 
     public const int max_lights = 4;
     private static readonly List<Light> lights = new(max_lights);
 
     public static void AddLight(ILightSource source)
     {
+        if (source is Sun)
+        {
+            Sun = new Light { Source = source };
+            CreateShadows(Sun);
+            return;
+        }
+
         if (lights.Count < max_lights)
         {
             lights.Add(new Light
@@ -34,6 +43,14 @@ public static class LightManager
 
     public static void RemoveLight(ILightSource source)
     {
+        if (source is Sun && Sun != null)
+        {
+            Sun.ShadowFrameBuffer?.Unload();
+            Sun.ShadowRt?.Unload();
+            Sun.ShadowShader?.Unload();
+            return;
+        }
+
         var light = lights.Find(x => x.Source == source);
         if (light != null)
         {
@@ -48,9 +65,21 @@ public static class LightManager
     public static void DrawShadows()
     {
         GL.CullFace(TriangleFace.Front);
+
+        if (Sun != null && Sun.Source.Enabled && Sun.Source.UseShadows)
+        {
+            Sun.ShadowFrameBuffer!.Bind();
+
+            GL.Viewport(0, 0, Sun.Source.ShadowResolution, Sun.Source.ShadowResolution);
+            GL.Clear(ClearBufferMask.DepthBufferBit);
+            MeshManager.Draw(false, Sun.ShadowShader);
+
+            Sun.ShadowFrameBuffer.Unbind();
+        }
+
         foreach (var light in lights.Where(x=> x.Source.Enabled && x.Source.UseShadows))
         {
-            if (light.Source.UseShadows && light.ShadowRt == null)
+            if (light.ShadowRt == null)
             {
                 // create shadows lazily
                 CreateShadows(light);
