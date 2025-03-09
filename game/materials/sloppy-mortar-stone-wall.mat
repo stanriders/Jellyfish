@@ -1,0 +1,6 @@
+{
+  "Shader": "Main",
+  "Diffuse": "sloppy-mortar-stone-wall_albedo.png",
+  "Normal": "sloppy-mortar-stone-wall_normal-ogl.png",
+  "MetalRoughness": "sloppy-mortar-stone-wall_metallic.png"
+}

@@ -1,0 +1,6 @@
+{
+  "Shader": "Main",
+  "Diffuse": "sloppy-brick-wall_albedo.png",
+  "Normal": "sloppy-brick-wall_normal-ogl.png",
+  "MetalRoughness": "sloppy-brick-wall_metallic.png"
+}

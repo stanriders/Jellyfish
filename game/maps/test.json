@@ -364,7 +364,7 @@
         },
         {
           "Name": "Texture",
-          "Value": "tile-pbr.mat"
+          "Value": "sloppy-brick-wall.mat"
         },
         {
           "Name": "TextureScale",
@@ -407,7 +407,7 @@
         },
         {
           "Name": "Texture",
-          "Value": "tile-pbr.mat"
+          "Value": "sloppy-mortar-stone-wall.mat"
         },
         {
           "Name": "TextureScale",
