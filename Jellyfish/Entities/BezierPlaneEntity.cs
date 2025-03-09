@@ -18,6 +18,7 @@ public class BezierPlaneEntity : BaseEntity
         AddProperty("Size", new Vector2(20, 20), false);
         AddProperty("QuadSize", 2, false);
         AddProperty("Texture", "test.png", false);
+        AddProperty("TextureScale", new Vector2(1.0f), false);
     }
 
     public override void Load()
@@ -92,7 +93,7 @@ public class BezierPlaneEntity : BaseEntity
         {
             for (var y = 0; y <= sizeY; y++)
             {
-                inPoints[x, y] = [x * quadSize - 0.5, y * quadSize - 0.5, (Random.Shared.Next() % 10000) / 5000.0 - 1];
+                inPoints[x, y] = [x * quadSize - 0.5, y * quadSize - 0.5, (Random.Shared.NextDouble() * quadSize) - (quadSize / 2.0)];
             }
         }
 
@@ -137,43 +138,46 @@ public class BezierPlaneEntity : BaseEntity
 
                 Vector3 normal = Vector3.Cross(u, v).Normalized();
 
+                var textureScale = GetPropertyValue<Vector2>("TextureScale");
+                var uvScale = new Vector2(size.X / quadSize * textureScale.X, size.Y / quadSize * textureScale.Y);
+
                 verticies.AddRange(new Vertex[]
                 {
                     new()
                     {
                         Coordinates = a,
                         Normal = normal,
-                        UV = new(1f, 1f)
+                        UV = new(uvScale.X, uvScale.Y)
                     },
                     new()
                     {
                         Coordinates = b,
                         Normal = normal,
-                        UV = new(-1f, 1f)
+                        UV = new(-uvScale.X, uvScale.Y)
                     },
                     new()
                     {
                         Coordinates = c,
                         Normal = normal,
-                        UV = new(-1f, -1f)
+                        UV = new(-uvScale.X, -uvScale.Y)
                     },
                     new()
                     {
                         Coordinates = a,
                         Normal = normal,
-                        UV = new(1f, 1f)
+                        UV = new(uvScale.X, uvScale.Y)
                     },
                     new()
                     {
                         Coordinates = c,
                         Normal = normal,
-                        UV = new(-1f, -1f)
+                        UV = new(-uvScale.X, -uvScale.Y)
                     },
                     new()
                     {
                         Coordinates = d,
                         Normal = normal,
-                        UV = new(1f, -1f)
+                        UV = new(uvScale.X, -uvScale.Y)
                     },
                 });
             }
