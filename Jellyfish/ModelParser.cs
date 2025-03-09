@@ -37,7 +37,7 @@ public static class ModelParser
                 {
                     Coordinates = coords[i],
                     Normal = normals[i],
-                    UV = uvs[i]
+                    UV = uvs.Length == coords.Length ? uvs[i] : new Vector2()
                 });
             }
 
