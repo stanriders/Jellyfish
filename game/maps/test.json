@@ -242,7 +242,7 @@
       ]
     },
     {
-      "ClassName": "plane_flat",
+      "ClassName": "plane_bezier",
       "Properties": [
         {
           "Name": "Name",
@@ -251,15 +251,15 @@
         {
           "Name": "Position",
           "Value": {
-            "X": 0,
+            "X": -500,
             "Y": 0,
-            "Z": 250
+            "Z": 500
           }
         },
         {
           "Name": "Rotation",
           "Value": {
-            "Pitch": 90,
+            "Pitch": -90,
             "Yaw": 0,
             "Roll": 0
           }
@@ -267,9 +267,13 @@
         {
           "Name": "Size",
           "Value": {
-            "X": 1000,
-            "Y": 500
+            "X": 40,
+            "Y": 10
           }
+        },
+        {
+          "Name": "QuadSize",
+          "Value": 25
         },
         {
           "Name": "Texture",
@@ -278,8 +282,8 @@
         {
           "Name": "TextureScale",
           "Value": {
-            "X": 4,
-            "Y": 4
+            "X": 0.125,
+            "Y": 0.5
           }
         }
       ]
@@ -297,7 +301,7 @@
           "Value": {
             "X": 0,
             "Y": 0,
-            "Z": -250
+            "Z": -125
           }
         },
         {
@@ -312,7 +316,7 @@
           "Name": "Size",
           "Value": {
             "X": 1000,
-            "Y": 500
+            "Y": 750
           }
         },
         {
@@ -323,7 +327,7 @@
           "Name": "TextureScale",
           "Value": {
             "X": 4,
-            "Y": 4
+            "Y": 3
           }
         }
       ]

@@ -267,7 +267,7 @@ vec3 CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
         }
     }
 
-    return sun.ambient + outdiffuse * shadow;
+    return outdiffuse * shadow;
 }
 
 mat3 GetTBN(vec3 fragPos, vec2 texCoord, vec3 worldNormal)
@@ -297,8 +297,8 @@ mat3 GetTBN(vec3 fragPos, vec2 texCoord, vec3 worldNormal)
 void main()
 {
     vec4 diffuseTex = texture(diffuseSampler, frag_texCoord * vec2(1.0, -1.0));
-    if (diffuseTex.a < 0.01)
-        discard;
+    //if (diffuseTex.a < 0.01)
+    //    discard;
 
     vec3 normal = normalize(frag_normal);
     if (useNormals)
@@ -407,10 +407,11 @@ void main()
         {
             // add to outgoing radiance Lo
             vec3 diffuseBDR = diffuseTex.rgb;
-            lighting += max(vec3(0), (diffuseBDR + specular) * radiance * NdotL); 
+            lighting += max(vec3(0), (diffuseBDR + specular) * (radiance * NdotL + sun.ambient)); 
         }
         else 
         {
+            lighting += sun.ambient;
             lighting += radiance * NdotL;
         }
     }

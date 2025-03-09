@@ -299,6 +299,13 @@
         {
           "Name": "Texture",
           "Value": "tile.mat"
+        },
+        {
+          "Name": "TextureScale",
+          "Value": {
+            "X": 0.01,
+            "Y": 0.01
+          }
         }
       ]
     },
@@ -337,9 +344,9 @@
         {
           "Name": "Ambient",
           "Value": {
-            "R": 76,
-            "G": 66,
-            "B": 45,
+            "R": 51,
+            "G": 44,
+            "B": 30,
             "A": 0
           }
         },
