@@ -79,7 +79,306 @@
         },
         {
           "Name": "BoundingBox",
-          "Value": "Cylinder"
+          "Value": "Box"
+        }
+      ]
+    },
+    {
+      "ClassName": "model_dynamic",
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "crate1"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": -150,
+            "Y": 20,
+            "Z": 0
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0,
+            "Yaw": 0,
+            "Roll": 0
+          }
+        },
+        {
+          "Name": "Model",
+          "Value": "wood_crate001a.smd"
+        },
+        {
+          "Name": "BoundingBox",
+          "Value": "Box"
+        }
+      ]
+    },
+    {
+      "ClassName": "model_dynamic",
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "crate2"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": -150,
+            "Y": 20,
+            "Z": 40
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0,
+            "Yaw": 0,
+            "Roll": 0
+          }
+        },
+        {
+          "Name": "Model",
+          "Value": "wood_crate001a.smd"
+        },
+        {
+          "Name": "BoundingBox",
+          "Value": "Box"
+        }
+      ]
+    },
+    {
+      "ClassName": "model_dynamic",
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "crate3"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": -150,
+            "Y": 20,
+            "Z": 80
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0,
+            "Yaw": 0,
+            "Roll": 0
+          }
+        },
+        {
+          "Name": "Model",
+          "Value": "wood_crate001a.smd"
+        },
+        {
+          "Name": "BoundingBox",
+          "Value": "Box"
+        }
+      ]
+    },
+    {
+      "ClassName": "model_dynamic",
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "crate4"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": -150,
+            "Y": 60,
+            "Z": 60
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0,
+            "Yaw": 0,
+            "Roll": 0
+          }
+        },
+        {
+          "Name": "Model",
+          "Value": "wood_crate001a.smd"
+        },
+        {
+          "Name": "BoundingBox",
+          "Value": "Box"
+        }
+      ]
+    },
+    {
+      "ClassName": "model_dynamic",
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "crate5"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": -150,
+            "Y": 60,
+            "Z": 20
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0,
+            "Yaw": 0,
+            "Roll": 0
+          }
+        },
+        {
+          "Name": "Model",
+          "Value": "wood_crate001a.smd"
+        },
+        {
+          "Name": "BoundingBox",
+          "Value": "Box"
+        }
+      ]
+    },
+    {
+      "ClassName": "model_dynamic",
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "crate6"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": -150,
+            "Y": 150,
+            "Z": 40
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0,
+            "Yaw": 0,
+            "Roll": 0
+          }
+        },
+        {
+          "Name": "Model",
+          "Value": "wood_crate001a.smd"
+        },
+        {
+          "Name": "BoundingBox",
+          "Value": "Box"
+        }
+      ]
+    },
+    {
+      "ClassName": "model_dynamic",
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "crate7"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": -150,
+            "Y": 250,
+            "Z": 40
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0,
+            "Yaw": 0,
+            "Roll": 0
+          }
+        },
+        {
+          "Name": "Model",
+          "Value": "wood_crate001a.smd"
+        },
+        {
+          "Name": "BoundingBox",
+          "Value": "Box"
+        }
+      ]
+    },
+
+    {
+      "ClassName": "model_dynamic",
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "crate8"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": -150,
+            "Y": 350,
+            "Z": 40
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0,
+            "Yaw": 0,
+            "Roll": 0
+          }
+        },
+        {
+          "Name": "Model",
+          "Value": "wood_crate001a.smd"
+        },
+        {
+          "Name": "BoundingBox",
+          "Value": "Box"
+        }
+      ]
+    },
+
+    {
+      "ClassName": "model_dynamic",
+      "Properties": [
+        {
+          "Name": "Name",
+          "Value": "crate9"
+        },
+        {
+          "Name": "Position",
+          "Value": {
+            "X": -150,
+            "Y": 450,
+            "Z": 40
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0,
+            "Yaw": 0,
+            "Roll": 0
+          }
+        },
+        {
+          "Name": "Model",
+          "Value": "wood_crate001a.smd"
+        },
+        {
+          "Name": "BoundingBox",
+          "Value": "Box"
         }
       ]
     },
