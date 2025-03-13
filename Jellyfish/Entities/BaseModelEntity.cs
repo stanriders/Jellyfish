@@ -1,4 +1,5 @@
-﻿using Jellyfish.Render;
+﻿using System.IO;
+using Jellyfish.Render;
 using OpenTK.Mathematics;
 
 namespace Jellyfish.Entities;
@@ -11,7 +12,7 @@ public abstract class BaseModelEntity : BaseEntity
 
     public override void Load()
     {
-        if (!string.IsNullOrEmpty(ModelPath))
+        if (!string.IsNullOrEmpty(ModelPath) && Path.Exists(ModelPath))
         {
             Model = new Model(ModelPath)
             {
