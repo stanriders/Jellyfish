@@ -106,15 +106,15 @@ public class DynamicModel : BaseModelEntity
                 maxY = coords.Y;
         }
 
-        var midX = (maxX - minX) / 2f;
-        var midY = (maxY - minY) / 2f;
-        var midZ = (maxZ - minZ) / 2f;
+        var midX = (maxX + minX) / 2f;
+        var midY = (maxY + minY) / 2f;
+        var midZ = (maxZ + minZ) / 2f;
 
         var middleCoord = new System.Numerics.Vector3(midX, midY, midZ);
 
-        var halfHeigth = midY;
-        var horizontalRadius = Math.Max(maxX - minX, maxZ - minZ) / 2f;
-        var radius = Math.Max(Math.Max(maxX - minX, maxZ - minZ), maxY - minY) / 2f;
+        var halfHeigth = maxY - midY;
+        var horizontalRadius = Math.Max(maxX + minX, maxZ + minZ) / 2f;
+        var radius = Math.Max(Math.Max(maxX + minX, maxZ + minZ), maxY + minY) / 2f;
 
         var type = GetPropertyValue<BoundingBoxType>("BoundingBox");
 
@@ -122,13 +122,13 @@ public class DynamicModel : BaseModelEntity
         {
             BoundingBoxType.Sphere => new SphereShapeSettings(radius),
             BoundingBoxType.Capsule => new CapsuleShapeSettings(radius, horizontalRadius),
-            BoundingBoxType.Box => new BoxShapeSettings(middleCoord),
+            BoundingBoxType.Box => new BoxShapeSettings(new System.Numerics.Vector3(maxX, maxY, maxZ)),
             BoundingBoxType.Cylinder => new CylinderShapeSettings(horizontalRadius, halfHeigth),
             _ => throw new ArgumentException("Unknown bounding box type"),
         };
 
         var rotation = GetPropertyValue<Quaternion>("Rotation");
 
-        return new RotatedTranslatedShapeSettings(new System.Numerics.Vector3(0, 0, midZ), rotation.ToNumericsQuaternion(), shape);
+        return new RotatedTranslatedShapeSettings(middleCoord, rotation.ToNumericsQuaternion(), shape);
     }
 }
