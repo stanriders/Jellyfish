@@ -6,26 +6,24 @@ public abstract class EntityProperty
 {
     public string Name { get; set; } = null!;
     public Type Type { get; set; } = null!;
-
-    private object? _value;
-    public object? Value
-    {
-        get => _value;
-        set
-        {
-            if (value != _value)
-            {
-                if (value != null && !value.Equals(_value))
-                    OnChangeAction?.Invoke(value);
-
-                _value = value;
-            }
-        }
-    }
-
+    public object? Value { get; private set; }
     public object? DefaultValue { get; set; }
     public bool Editable { get; set; } = true;
     public Action<object>? OnChangeAction { get; set; }
+
+    public void SetValue(object? value)
+    {
+        if (!Editable)
+            throw new Exception("Value isn't editable!");
+
+        if (value == Value)
+            return;
+
+        if (value != null && !value.Equals(Value))
+            OnChangeAction?.Invoke(value);
+
+        Value = value;
+    }
 }
 
 public class EntityProperty<T> : EntityProperty
@@ -34,7 +32,7 @@ public class EntityProperty<T> : EntityProperty
     {
         Name = name;
         Type = typeof(T);
-        Value = defaultValue;
+        SetValue(defaultValue);
         DefaultValue = defaultValue;
         Editable = editable;
 
