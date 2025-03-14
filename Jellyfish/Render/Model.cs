@@ -75,14 +75,14 @@ public class Model
     {
         get
         {
-            if (_meshes.Any())
+            if (_meshes.Count != 0)
                 return _meshes[0].Position;
 
             return Vector3.Zero;
         }
         set
         {
-            if (_meshes.Any())
+            if (_meshes.Count != 0)
             {
                 foreach (var mesh in _meshes)
                     mesh.Position = value;
@@ -94,14 +94,14 @@ public class Model
     {
         get
         {
-            if (_meshes.Any())
+            if (_meshes.Count != 0)
                 return _meshes[0].Rotation;
 
             return Quaternion.Identity;
         }
         set
         {
-            if (_meshes.Any())
+            if (_meshes.Count != 0)
             {
                 foreach (var mesh in _meshes)
                     mesh.Rotation = value;
@@ -113,14 +113,14 @@ public class Model
     {
         get
         {
-            if (_meshes.Any())
+            if (_meshes.Count != 0)
                 return _meshes[0].Scale;
 
             return Vector3.One;
         }
         set
         {
-            if (_meshes.Any())
+            if (_meshes.Count != 0)
             {
                 foreach (var mesh in _meshes)
                     mesh.Scale = value;

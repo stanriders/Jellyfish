@@ -67,6 +67,13 @@ public class DynamicModel : BaseModelEntity
         base.OnRotationChanged(rotation);
     }
 
+    // ReSharper disable once RedundantOverriddenMember
+    protected override void OnScaleChanged(Vector3 scale)
+    {
+        // TODO: support physics scale
+        base.OnScaleChanged(scale);
+    }
+
     public override void Unload()
     {
         if (_physicsBodyId != null)

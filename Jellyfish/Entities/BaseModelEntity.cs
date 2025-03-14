@@ -10,6 +10,11 @@ public abstract class BaseModelEntity : BaseEntity
 
     protected string? ModelPath { get; set; }
 
+    protected BaseModelEntity() : base()
+    {
+        AddProperty("Scale", Vector3.One, changeCallback: OnScaleChanged);
+    }
+
     public override void Load()
     {
         if (!string.IsNullOrEmpty(ModelPath) && Path.Exists(ModelPath))
@@ -49,5 +54,13 @@ public abstract class BaseModelEntity : BaseEntity
         }
 
         base.OnRotationChanged(rotation);
+    }
+
+    protected virtual void OnScaleChanged(Vector3 scale)
+    {
+        if (Model != null)
+        {
+            Model.Scale = scale;
+        }
     }
 }
