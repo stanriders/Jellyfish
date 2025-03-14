@@ -87,8 +87,24 @@ public class InfoOverlay : IUiPanel
             }
             ImGui.SameLine();
             ImGui.Checkbox("Editor mode", ref ConVarStorage.GetConVar<bool>("edt_enable")!.Value);
+            ImGui.End();
         }
 
-        ImGui.End();
+        if (ConVarStorage.Get<bool>("edt_enable"))
+        {
+            ImGui.SetNextWindowBgAlpha(0.2f);
+
+            if (ImGui.Begin("GizmosOverlay", windowFlags))
+            {
+                var editorWindowSize = ImGui.GetWindowSize();
+                var editorWindowPos = new Vector2(workPos.X + viewport.WorkSize.X - editorWindowSize.X - pad, workPos.Y + pad);
+                ImGui.SetWindowPos(editorWindowPos);
+
+                ImGui.Checkbox("Enable boxes", ref ConVarStorage.GetConVar<bool>("edt_showentityboxes")!.Value);
+                ImGui.Checkbox("Enable gizmos", ref ConVarStorage.GetConVar<bool>("edt_showentitygizmos")!.Value);
+                ImGui.Checkbox("Enable physics debug overlay", ref ConVarStorage.GetConVar<bool>("phys_debug")!.Value);
+                ImGui.End();
+            }
+        }
     }
 }

@@ -13,10 +13,6 @@ public class ShowGizmos() : ConVar<bool>("edt_showentitygizmos", false);
 
 public class EntityGizmosOverlay : IUiPanel
 {
-    private const float pad = 10.0f;
-    private const int overlay_height = 60;
-    private const int overlay_width = 150;
-
     public unsafe void Frame()
     {
         if (!ConVarStorage.Get<bool>("edt_enable"))
@@ -31,27 +27,6 @@ public class EntityGizmosOverlay : IUiPanel
         var player = Player.Instance;
         if (player == null)
             return;
-
-        var windowFlags = ImGuiWindowFlags.NoDecoration |
-                          ImGuiWindowFlags.AlwaysAutoResize |
-                          ImGuiWindowFlags.NoSavedSettings |
-                          ImGuiWindowFlags.NoFocusOnAppearing |
-                          ImGuiWindowFlags.NoNav |
-                          ImGuiWindowFlags.NoMove;
-
-        var viewport = ImGui.GetMainViewport();
-        var workPos = viewport.WorkPos;
-        var windowPos = new System.Numerics.Vector2(workPos.X + viewport.WorkSize.X - overlay_width - pad, workPos.Y + pad);
-        ImGui.SetNextWindowPos(windowPos, ImGuiCond.Always);
-        ImGui.SetNextWindowSize(new System.Numerics.Vector2(overlay_width, overlay_height));
-        ImGui.SetNextWindowBgAlpha(0.2f);
-
-        if (ImGui.Begin("GizmosOverlay", windowFlags))
-        {
-            ImGui.Checkbox("Enable boxes", ref ConVarStorage.GetConVar<bool>("edt_showentityboxes")!.Value);
-            ImGui.Checkbox("Enable gizmos", ref ConVarStorage.GetConVar<bool>("edt_showentitygizmos")!.Value);
-            ImGui.End();
-        }
 
         fixed (float* view = player.GetViewMatrix().ToFloatArray())
         fixed (float* proj = player.GetProjectionMatrix().ToFloatArray())
