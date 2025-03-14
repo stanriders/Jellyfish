@@ -1,4 +1,4 @@
-﻿//#define PHYSDEBUG // TODO: convars
+﻿#define PHYSDEBUG // TODO: convars
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -36,7 +36,7 @@ public class PhysicsManager
     private bool _shouldStop;
     private const int update_rate = (int)(1.0 / 120.0 * 1000);
 
-    private readonly Dictionary<BodyID, BaseEntity> _bodies = new();
+    private readonly Dictionary<BodyID, IPhysicsEntity> _bodies = new();
     private CharacterVirtual? _character;
 
     private readonly Queue<BodyID> _deletionQueue = new();
@@ -69,10 +69,16 @@ public class PhysicsManager
         return instance?.Gravity ?? System.Numerics.Vector3.Zero;
     }
 
-    public static BodyID? AddStaticObject(MeshPart[] meshes, BaseEntity entity)
+    public static BodyID? AddStaticObject(MeshPart[] meshes, IPhysicsEntity entity)
     {
-        var initialPosition = entity.GetPropertyValue<Vector3>("Position");
-        var initialRotation = entity.GetPropertyValue<Quaternion>("Rotation");
+        if (entity is not BaseEntity baseEntity)
+        {
+            Log.Context(nameof(PhysicsManager)).Error("Physics entity {entity} isn't inheriting BaseEntity!", entity);
+            return null;
+        }
+
+        var initialPosition = baseEntity.GetPropertyValue<Vector3>("Position");
+        var initialRotation = baseEntity.GetPropertyValue<Quaternion>("Rotation");
 
         var triangles = new List<Triangle>();
 
@@ -119,10 +125,16 @@ public class PhysicsManager
         return bodyId;
     }
 
-    public static BodyID? AddDynamicObject(ShapeSettings shape, BaseEntity entity)
+    public static BodyID? AddDynamicObject(ShapeSettings shape, IPhysicsEntity entity)
     {
-        var initialPosition = entity.GetPropertyValue<Vector3>("Position");
-        var initialRotation = entity.GetPropertyValue<Quaternion>("Rotation");
+        if (entity is not BaseEntity baseEntity)
+        {
+            Log.Context(nameof(PhysicsManager)).Error("Physics entity {entity} isn't inheriting BaseEntity!", entity);
+            return null;
+        }
+
+        var initialPosition = baseEntity.GetPropertyValue<Vector3>("Position");
+        var initialRotation = baseEntity.GetPropertyValue<Quaternion>("Rotation");
 
         using var bodySettings = new BodyCreationSettings(shape,
             initialPosition.ToNumericsVector(),
@@ -272,8 +284,8 @@ public class PhysicsManager
                     var position = _bodyInterface.GetPosition(bodyId).ToOpentkVector();
                     var rotation = _bodyInterface.GetRotation(bodyId).ToOpentkQuaternion();
 
-                    entity.SetPropertyValue("Position", position);
-                    entity.SetPropertyValue("Rotation", rotation);
+                    entity.OnPhysicsPositionChanged(position);
+                    entity.OnPhysicsRotationChanged(rotation);
                 }
             }
 

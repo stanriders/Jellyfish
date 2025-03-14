@@ -6,7 +6,7 @@ using OpenTK.Mathematics;
 namespace Jellyfish.Entities;
 
 [Entity("model_dynamic")]
-public class DynamicModel : BaseModelEntity
+public class DynamicModel : BaseModelEntity, IPhysicsEntity
 {
     private BodyID? _physicsBodyId;
 
@@ -132,14 +132,24 @@ public class DynamicModel : BaseModelEntity
         ShapeSettings shape = type switch
         {
             BoundingBoxType.Sphere => new SphereShapeSettings(radius),
-            BoundingBoxType.Capsule => new CapsuleShapeSettings(radius, horizontalRadius),
+            BoundingBoxType.Capsule => new CapsuleShapeSettings(halfHeigth, horizontalRadius),
             BoundingBoxType.Box => new BoxShapeSettings(new System.Numerics.Vector3(lengthX / 2f, lenghtY / 2f, lenghtZ / 2f)),
-            BoundingBoxType.Cylinder => new CylinderShapeSettings(horizontalRadius, halfHeigth),
+            BoundingBoxType.Cylinder => new CylinderShapeSettings(halfHeigth, horizontalRadius),
             _ => throw new ArgumentException("Unknown bounding box type"),
         };
 
         var rotation = GetPropertyValue<Quaternion>("Rotation");
 
         return new RotatedTranslatedShapeSettings(middleCoord, rotation.ToNumericsQuaternion(), shape);
+    }
+
+    public void OnPhysicsPositionChanged(Vector3 position)
+    {
+        SetPropertyValue("Position", position);
+    }
+
+    public void OnPhysicsRotationChanged(Quaternion rotation)
+    {
+        SetPropertyValue("Rotation", rotation);
     }
 }

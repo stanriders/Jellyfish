@@ -6,7 +6,7 @@ using OpenTK.Mathematics;
 namespace Jellyfish.Entities;
 
 [Entity("plane_flat")]
-public class Plane : BaseEntity
+public class Plane : BaseEntity, IPhysicsEntity
 {
     private Mesh? _plane;
     private BodyID? _physicsBodyId;
@@ -123,5 +123,13 @@ public class Plane : BaseEntity
             PhysicsManager.RemoveObject(_physicsBodyId.Value);
 
         base.Unload();
+    }
+
+    public void OnPhysicsPositionChanged(Vector3 position)
+    {
+    }
+
+    public void OnPhysicsRotationChanged(Quaternion rotation)
+    {
     }
 }

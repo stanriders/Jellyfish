@@ -5,7 +5,7 @@ using OpenTK.Mathematics;
 namespace Jellyfish.Entities;
 
 [Entity("model_static")]
-public class StaticModel : BaseModelEntity
+public class StaticModel : BaseModelEntity, IPhysicsEntity
 {
     private BodyID _physicsBodyId;
 
@@ -31,5 +31,13 @@ public class StaticModel : BaseModelEntity
     {
         PhysicsManager.RemoveObject(_physicsBodyId);
         base.Unload();
+    }
+
+    public void OnPhysicsPositionChanged(Vector3 position)
+    {
+    }
+
+    public void OnPhysicsRotationChanged(Quaternion rotation)
+    {
     }
 }

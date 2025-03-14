@@ -8,7 +8,7 @@ using JoltPhysicsSharp;
 namespace Jellyfish.Entities;
 
 [Entity("plane_bezier")]
-public class BezierPlaneEntity : BaseEntity
+public class BezierPlaneEntity : BaseEntity, IPhysicsEntity
 {
     private Mesh? _plane;
     private BodyID _physicsBodyId;
@@ -225,5 +225,13 @@ public class BezierPlaneEntity : BaseEntity
             blend *= (float)Math.Pow(1 - mu, n - k);
 
         return blend;
+    }
+
+    public void OnPhysicsPositionChanged(Vector3 position)
+    {
+    }
+
+    public void OnPhysicsRotationChanged(Quaternion rotation)
+    {
     }
 }
