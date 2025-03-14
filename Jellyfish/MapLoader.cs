@@ -43,14 +43,14 @@ public static class MapLoader
                     if (propertyToken != null)
                     {
                         var propertyValue = propertyToken.Value.ToObject(entityProperty.Type, deserializer);
-                        entityProperty.Value = propertyValue;
+                        entityProperty.SetValue(propertyValue);
                     }
                     else
                     {
                         if (entityProperty.Type == typeof(Quaternion))
                         {
                             // otherwise it initializes into NaNs
-                            entityProperty.Value = Quaternion.Identity;
+                            entityProperty.SetValue(Quaternion.Identity);
                         }
                     }
                 }
