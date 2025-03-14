@@ -37,7 +37,7 @@ public class PhysicsManager
     private BodyInterface _bodyInterface;
     private JobSystem _jobSystem = null!;
     private bool _shouldStop;
-    private const int update_rate = (int)(1.0 / 120.0 * 1000);
+    private const int update_rate = (int)(1.0 / 240.0 * 1000);
 
     private readonly Dictionary<BodyID, IPhysicsEntity> _bodies = new();
     private CharacterVirtual? _character;
@@ -141,6 +141,9 @@ public class PhysicsManager
             MotionType.Dynamic,
             Layers.Moving);
 
+        bodySettings.OverrideMassProperties = OverrideMassProperties.CalculateInertia;
+        bodySettings.MassPropertiesOverride = new MassProperties { Mass = 1f };
+
         var bodyId =
             instance?._bodyInterface.CreateAndAddBody(bodySettings, Activation.Activate);
 
@@ -150,6 +153,8 @@ public class PhysicsManager
         instance?._bodies.Add(bodyId.Value, entity);
 
         shape.Dispose();
+
+        instance?._physicsSystem.OptimizeBroadPhase();
 
         return bodyId;
     }
@@ -166,7 +171,7 @@ public class PhysicsManager
             Shape = new BoxShape(new System.Numerics.Vector3(15f, 65f, 15f)),
             Mass = 100f,
             Up = System.Numerics.Vector3.UnitY,
-            MaxSlopeAngle = 60,
+            MaxSlopeAngle = 60
         };
 
         instance._character = new CharacterVirtual(charSettings, initialPosition.ToNumericsVector(), System.Numerics.Quaternion.Identity, 0, instance._physicsSystem);
@@ -271,8 +276,6 @@ public class PhysicsManager
                 _bodies.Remove(bodyId);
             }
 
-            _character?.Update(update_rate / 1000f, Layers.Moving, _physicsSystem);
-
             foreach (var (bodyId, entity) in _bodies)
             {
                 if (_bodyInterface.IsActive(bodyId))
@@ -285,6 +288,7 @@ public class PhysicsManager
                 }
             }
 
+            _character?.ExtendedUpdate(update_rate / 1000f, new ExtendedUpdateSettings(), Layers.Moving, _physicsSystem);
             var error = _physicsSystem.Update(update_rate / 1000f, 1, _jobSystem);
             if (error != PhysicsUpdateError.None)
             {
@@ -293,7 +297,7 @@ public class PhysicsManager
 
             var drawSettings = new DrawSettings
             {
-                //DrawMassAndInertia = true,
+                DrawMassAndInertia = true,
                 DrawVelocity = true,
                 DrawShape = true,
                 DrawShapeColor = ShapeColor.MotionTypeColor
