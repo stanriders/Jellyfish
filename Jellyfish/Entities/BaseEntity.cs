@@ -157,7 +157,12 @@ public class EntityDevCone
     {
         _model.Position = _entity.GetPropertyValue<Vector3>("Position");
         _model.Rotation = _entity.GetPropertyValue<Quaternion>("Rotation");
-        _model.Scale = _entity.GetPropertyValue<Vector3>("Scale") * new Vector3(0.3f);
+
+        if (_entity is BaseModelEntity)
+            _model.Scale = _entity.GetPropertyValue<Vector3>("Scale") * new Vector3(0.3f);
+        else
+            _model.Scale = new Vector3(0.3f);
+
         _model.ShouldDraw = _entity.DrawDevCone;
     }
 
