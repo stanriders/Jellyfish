@@ -112,9 +112,13 @@ public class DynamicModel : BaseModelEntity
 
         var middleCoord = new System.Numerics.Vector3(midX, midY, midZ);
 
-        var halfHeigth = maxY - midY;
-        var horizontalRadius = Math.Max(maxX + minX, maxZ + minZ) / 2f;
-        var radius = Math.Max(Math.Max(maxX + minX, maxZ + minZ), maxY + minY) / 2f;
+        var lengthX = maxX - minX;
+        var lenghtY = maxY - minY;
+        var lenghtZ = maxZ - minZ;
+
+        var halfHeigth = lenghtY / 2f;
+        var horizontalRadius = Math.Max(lengthX, lenghtZ) / 2f;
+        var radius = Math.Max(Math.Max(lengthX, lenghtZ), lenghtY) / 2f;
 
         var type = GetPropertyValue<BoundingBoxType>("BoundingBox");
 
@@ -122,7 +126,7 @@ public class DynamicModel : BaseModelEntity
         {
             BoundingBoxType.Sphere => new SphereShapeSettings(radius),
             BoundingBoxType.Capsule => new CapsuleShapeSettings(radius, horizontalRadius),
-            BoundingBoxType.Box => new BoxShapeSettings(new System.Numerics.Vector3(maxX, maxY, maxZ)),
+            BoundingBoxType.Box => new BoxShapeSettings(new System.Numerics.Vector3(lengthX / 2f, lenghtY / 2f, lenghtZ / 2f)),
             BoundingBoxType.Cylinder => new CylinderShapeSettings(horizontalRadius, halfHeigth),
             _ => throw new ArgumentException("Unknown bounding box type"),
         };
