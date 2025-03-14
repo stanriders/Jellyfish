@@ -1,16 +1,19 @@
-﻿#define PHYSDEBUG // TODO: convars
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using ImGuiNET;
 using Jellyfish.Audio;
 using Jellyfish.Console;
 using Jellyfish.Entities;
 using Jellyfish.Render;
 using JoltPhysicsSharp;
 using OpenTK.Mathematics;
+using Mesh = Jellyfish.Render.Mesh;
+using Quaternion = OpenTK.Mathematics.Quaternion;
 
 namespace Jellyfish;
 
+public class EnableDebugRenderer() : ConVar<bool>("phys_debug", false);
 public class PhysicsManager
 {
     public bool ShouldSimulate { get; set; }
@@ -43,20 +46,16 @@ public class PhysicsManager
 
     private Sound? _impactSound;
 
-#if PHYSDEBUG
     private PhysicsDebugRenderer? _debugRenderer;
-    private PhysicsDebugDrawFilter _debugDrawFilter = null!;
     private readonly Mesh _debugMesh;
-#endif
+    private readonly PhysicsDebugDrawFilter _debugDrawFilter = new();
 
     private static PhysicsManager? instance;
 
     public PhysicsManager()
     {
-#if PHYSDEBUG
-        _debugMesh = new Mesh(new MeshPart { Name = "physdebug"}) { IsDev = true };
+        _debugMesh = new Mesh(new MeshPart { Name = "physdebug" }) { IsDev = true };
         MeshManager.AddMesh(_debugMesh);
-#endif
 
         var physicsThread = new Thread(Run) { Name = "Physics thread" };
         physicsThread.Start();
@@ -164,9 +163,10 @@ public class PhysicsManager
 
         var charSettings = new CharacterVirtualSettings
         {
-            Shape = new CapsuleShape(55f, 10f),
-            Mass = 60f,
-            Up = System.Numerics.Vector3.UnitY
+            Shape = new BoxShape(new System.Numerics.Vector3(15f, 65f, 15f)),
+            Mass = 100f,
+            Up = System.Numerics.Vector3.UnitY,
+            MaxSlopeAngle = 60,
         };
 
         instance._character = new CharacterVirtual(charSettings, initialPosition.ToNumericsVector(), System.Numerics.Quaternion.Identity, 0, instance._physicsSystem);
@@ -218,12 +218,8 @@ public class PhysicsManager
             return true;
         });
 
-#if PHYSDEBUG
-        _debugRenderer = new PhysicsDebugRenderer(_debugMesh);
-        _debugDrawFilter = new PhysicsDebugDrawFilter();
-#endif
-
         _jobSystem = new JobSystemThreadPool();
+        _debugRenderer = new PhysicsDebugRenderer(_debugMesh);
 
         // We use only 2 layers: one for non-moving objects and one for moving objects
         ObjectLayerPairFilterTable objectLayerPairFilter = new(2);
@@ -250,7 +246,7 @@ public class PhysicsManager
 
         _physicsSystem = new PhysicsSystem(settings);
         _bodyInterface = _physicsSystem.BodyInterface;
-        _physicsSystem.Gravity *= 100f;
+        _physicsSystem.Gravity *= 80f;
         _physicsSystem.OptimizeBroadPhase();
 
         _impactSound = AudioManager.AddSound("sounds/impact.wav");
@@ -295,16 +291,15 @@ public class PhysicsManager
                 Log.Context(this).Warning("Physics simulation reported error {Error}!", error);
             }
 
-#if PHYSDEBUG
             var drawSettings = new DrawSettings
             {
+                //DrawMassAndInertia = true,
+                DrawVelocity = true,
                 DrawShape = true,
                 DrawShapeColor = ShapeColor.MotionTypeColor
             };
-
             _physicsSystem.DrawBodies(drawSettings, _debugRenderer, _debugDrawFilter);
             _debugRenderer.Render();
-#endif
         }
 
         _jobSystem.Dispose();
@@ -327,7 +322,6 @@ public class PhysicsManager
         _shouldStop = true;
     }
 
-#if PHYSDEBUG
     public class PhysicsDebugRenderer : DebugRenderer
     {
         private readonly List<Vertex> _vertices = new();
@@ -345,6 +339,11 @@ public class PhysicsManager
 
         protected override void DrawText3D(System.Numerics.Vector3 position, string? text, JoltColor color, float height = 0.5f)
         {
+            RenderScheduler.Schedule(() =>
+            {
+                var drawList = ImGui.GetForegroundDrawList();
+                drawList.AddText(position.ToScreenspace(), uint.MaxValue, text);
+            });
         }
         
         protected override void DrawTriangle(System.Numerics.Vector3 v1, System.Numerics.Vector3 v2, System.Numerics.Vector3 v3, JoltColor color, CastShadow castShadow = CastShadow.Off)
@@ -373,8 +372,10 @@ public class PhysicsManager
     {
         protected override bool ShouldDraw(Body body)
         {
-            return body.ObjectLayer == Layers.Moving;
+            if (ConVarStorage.Get<bool>("edt_enable") && ConVarStorage.Get<bool>("phys_debug"))
+                return body.ObjectLayer == Layers.Moving;
+
+            return false;
         }
     }
-#endif
 }

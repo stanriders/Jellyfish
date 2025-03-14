@@ -1,4 +1,5 @@
 ﻿
+using Jellyfish.Entities;
 using OpenTK.Mathematics;
 
 namespace Jellyfish;
@@ -75,5 +76,45 @@ public static class MathExtensions
         return new Vector3(MathHelper.RadiansToDegrees(vector.X), 
             MathHelper.RadiansToDegrees(vector.Y),
             MathHelper.RadiansToDegrees(vector.Z));
+    }
+
+    public static Vector2 ToScreenspace(this Vector3 vector)
+    {
+        if (Player.Instance == null)
+            return Vector2.Zero;
+
+        var clipSpacePos = new Vector4(vector.X, vector.Y, vector.Z, 1.0f) * Player.Instance.GetViewMatrix() * Player.Instance.GetProjectionMatrix();
+
+        if (clipSpacePos.W != 0.0f)
+        {
+            clipSpacePos.X /= clipSpacePos.W;
+            clipSpacePos.Y /= clipSpacePos.W;
+            clipSpacePos.Z /= clipSpacePos.W;
+        }
+
+        float x = (clipSpacePos.X * 0.5f + 0.5f) * MainWindow.WindowWidth;
+        float y = (1.0f - (clipSpacePos.Y * 0.5f + 0.5f)) * MainWindow.WindowHeight;
+
+        return new Vector2(x, y);
+    }
+
+    public static System.Numerics.Vector2 ToScreenspace(this System.Numerics.Vector3 vector)
+    {
+        if (Player.Instance == null)
+            return System.Numerics.Vector2.Zero;
+
+        var clipSpacePos = new Vector4(vector.X, vector.Y, vector.Z, 1.0f) * Player.Instance.GetViewMatrix() * Player.Instance.GetProjectionMatrix();
+
+        if (clipSpacePos.W != 0.0f)
+        {
+            clipSpacePos.X /= clipSpacePos.W;
+            clipSpacePos.Y /= clipSpacePos.W;
+            clipSpacePos.Z /= clipSpacePos.W;
+        }
+
+        float x = (clipSpacePos.X * 0.5f + 0.5f) * MainWindow.WindowWidth;
+        float y = (1.0f - (clipSpacePos.Y * 0.5f + 0.5f)) * MainWindow.WindowHeight;
+
+        return new System.Numerics.Vector2(x, y);
     }
 }
