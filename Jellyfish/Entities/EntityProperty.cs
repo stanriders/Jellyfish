@@ -13,8 +13,9 @@ public abstract class EntityProperty
 
     public void SetValue(object? value)
     {
-        if (!Editable)
-            throw new Exception("Value isn't editable!");
+        // TODO: enable after excluding map loader
+        //if (!Editable)
+        //    throw new Exception("Value isn't editable!");
 
         if (value == Value)
             return;
