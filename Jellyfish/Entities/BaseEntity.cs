@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ImGuiNET;
+using Jellyfish.Console;
 using Jellyfish.Render;
 using OpenTK.Mathematics;
 using Serilog;
 using Log = Jellyfish.Console.Log;
 
 namespace Jellyfish.Entities;
+
+public class EnableDebugCones() : ConVar<bool>("edt_drawcones", true);
+public class EnableEntityNames() : ConVar<bool>("edt_drawnames", false);
 
 public abstract class BaseEntity
 {
@@ -65,6 +70,13 @@ public abstract class BaseEntity
 #if DEBUG
         _devCone?.Think();
 #endif
+
+        if (ConVarStorage.Get<bool>("edt_enable") && ConVarStorage.Get<bool>("edt_drawnames"))
+        {
+            var drawList = ImGui.GetBackgroundDrawList();
+            var screenspacePosition = GetPropertyValue<Vector3>("Position").ToNumericsVector().ToScreenspace();
+            drawList.AddText(screenspacePosition, uint.MaxValue, Name);
+        }
     }
 
     protected virtual void OnPositionChanged(Vector3 position) { }
@@ -156,14 +168,14 @@ public class EntityDevCone
     public void Think()
     {
         _model.Position = _entity.GetPropertyValue<Vector3>("Position");
-        _model.Rotation = _entity.GetPropertyValue<Quaternion>("Rotation");
+        _model.Rotation = _entity.GetPropertyValue<Quaternion>("Rotation") * new Quaternion(float.DegreesToRadians(90), 0, 0);
 
         if (_entity is BaseModelEntity)
             _model.Scale = _entity.GetPropertyValue<Vector3>("Scale") * new Vector3(0.3f);
         else
             _model.Scale = new Vector3(0.3f);
 
-        _model.ShouldDraw = _entity.DrawDevCone;
+        _model.ShouldDraw = _entity.DrawDevCone && ConVarStorage.Get<bool>("edt_enable") && ConVarStorage.Get<bool>("edt_drawcones");
     }
 
     public void Unload()

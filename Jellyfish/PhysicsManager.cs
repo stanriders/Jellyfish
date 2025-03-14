@@ -341,7 +341,7 @@ public class PhysicsManager
         {
             RenderScheduler.Schedule(() =>
             {
-                var drawList = ImGui.GetForegroundDrawList();
+                var drawList = ImGui.GetBackgroundDrawList();
                 drawList.AddText(position.ToScreenspace(), uint.MaxValue, text);
             });
         }

@@ -7,7 +7,12 @@ using Jellyfish.Entities;
 
 namespace Jellyfish.UI;
 
-public class EnableEditor() : ConVar<bool>("edt_enable", true);
+public class EnableEditor() : ConVar<bool>("edt_enable",
+#if DEBUG
+    true);
+#else
+    false);
+#endif
 
 public class InfoOverlay : IUiPanel
 {
@@ -102,6 +107,8 @@ public class InfoOverlay : IUiPanel
 
                 ImGui.Checkbox("Enable boxes", ref ConVarStorage.GetConVar<bool>("edt_showentityboxes")!.Value);
                 ImGui.Checkbox("Enable gizmos", ref ConVarStorage.GetConVar<bool>("edt_showentitygizmos")!.Value);
+                ImGui.Checkbox("Enable debug cones", ref ConVarStorage.GetConVar<bool>("edt_drawcones")!.Value);
+                ImGui.Checkbox("Show entity names", ref ConVarStorage.GetConVar<bool>("edt_drawnames")!.Value);
                 ImGui.Checkbox("Enable physics debug overlay", ref ConVarStorage.GetConVar<bool>("phys_debug")!.Value);
                 ImGui.End();
             }

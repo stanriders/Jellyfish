@@ -85,7 +85,7 @@ public static class MathExtensions
 
         var clipSpacePos = new Vector4(vector.X, vector.Y, vector.Z, 1.0f) * Player.Instance.GetViewMatrix() * Player.Instance.GetProjectionMatrix();
 
-        if (clipSpacePos.W != 0.0f)
+        if (clipSpacePos.W > 0.0f)
         {
             clipSpacePos.X /= clipSpacePos.W;
             clipSpacePos.Y /= clipSpacePos.W;
@@ -105,7 +105,7 @@ public static class MathExtensions
 
         var clipSpacePos = new Vector4(vector.X, vector.Y, vector.Z, 1.0f) * Player.Instance.GetViewMatrix() * Player.Instance.GetProjectionMatrix();
 
-        if (clipSpacePos.W != 0.0f)
+        if (clipSpacePos.W > 0.0f)
         {
             clipSpacePos.X /= clipSpacePos.W;
             clipSpacePos.Y /= clipSpacePos.W;
