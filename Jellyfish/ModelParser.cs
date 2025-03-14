@@ -4,8 +4,8 @@ using System.Linq;
 using Assimp;
 using Jellyfish.FileFormats.Models;
 using Jellyfish.Render;
-using Microsoft.VisualBasic;
 using OpenTK.Mathematics;
+using Quaternion = OpenTK.Mathematics.Quaternion;
 
 namespace Jellyfish;
 
@@ -13,7 +13,7 @@ public static class ModelParser
 {
     public static MeshPart[] Parse(string path)
     {
-        if (Path.GetExtension(path) == "mdl")
+        if (Path.GetExtension(path) == ".mdl")
             return MDL.Load(path[..^4]).Vtx.MeshParts.ToArray();
 
         var importer = new AssimpContext();
@@ -23,12 +23,20 @@ public static class ModelParser
                                               PostProcessSteps.OptimizeMeshes | 
                                               PostProcessSteps.OptimizeGraph);
 
+        var prerotate = Path.GetExtension(path) == ".smd";
+
         var mashParts = new List<MeshPart>();
         foreach (var mesh in scene.Meshes)
         {
             var coords = mesh.Vertices.Select(x => new Vector3(x.X, x.Y, x.Z)).ToArray();
             var uvs = mesh.TextureCoordinateChannels[0].Select(x => new Vector2(x.X, x.Y)).ToArray();
             var normals = mesh.Normals.Select(x=> new Vector3(x.X, x.Y, x.Z)).ToArray();
+
+            if (prerotate)
+            {
+                coords = coords.Select(x => Vector3.Transform(x, new Quaternion(MathHelper.DegreesToRadians(-90), 0, 0))).ToArray();
+                normals = normals.Select(x => Vector3.Transform(x, new Quaternion(MathHelper.DegreesToRadians(-90), 0, 0))).ToArray();
+            }
 
             var verticies = new List<Vertex>();
             for (var i = 0; i < coords.Length; i++)

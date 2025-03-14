@@ -18,7 +18,7 @@
         {
           "Name": "Rotation",
           "Value": {
-            "Pitch": -90,
+            "Pitch": 0,
             "Yaw": 0,
             "Roll": 0
           }
@@ -43,7 +43,7 @@
         {
           "Name": "Rotation",
           "Value": {
-            "Pitch": -90,
+            "Pitch": 0,
             "Yaw": 0,
             "Roll": 0
           }
@@ -68,7 +68,7 @@
         {
           "Name": "Rotation",
           "Value": {
-            "Pitch": -90,
+            "Pitch": 0,
             "Yaw": 0,
             "Roll": 0
           }
