@@ -2,21 +2,26 @@
 using System.Runtime.CompilerServices;
 using ImGuiNET;
 using ImGuizmoNET;
+using Jellyfish.Console;
 using Jellyfish.Entities;
 using OpenTK.Mathematics;
 
 namespace Jellyfish.UI;
 
-#if DEBUG
+public class ShowBoxes() : ConVar<bool>("edt_showentityboxes", true);
+public class ShowGizmos() : ConVar<bool>("edt_showentitygizmos", false);
+
 public class EntityGizmosOverlay : IUiPanel
 {
     private const float pad = 10.0f;
-    private const int overlay_height = 35;
+    private const int overlay_height = 60;
     private const int overlay_width = 150;
-    private bool _enableGizmos = false;
 
     public unsafe void Frame()
     {
+        if (!ConVarStorage.Get<bool>("edt_enable"))
+            return;
+
         if (EntityManager.Entities == null)
             return;
 
@@ -40,10 +45,11 @@ public class EntityGizmosOverlay : IUiPanel
         ImGui.SetNextWindowPos(windowPos, ImGuiCond.Always);
         ImGui.SetNextWindowSize(new System.Numerics.Vector2(overlay_width, overlay_height));
         ImGui.SetNextWindowBgAlpha(0.2f);
-        
+
         if (ImGui.Begin("GizmosOverlay", windowFlags))
         {
-            ImGui.Checkbox("Enable gizmos", ref _enableGizmos);
+            ImGui.Checkbox("Enable boxes", ref ConVarStorage.GetConVar<bool>("edt_showentityboxes")!.Value);
+            ImGui.Checkbox("Enable gizmos", ref ConVarStorage.GetConVar<bool>("edt_showentitygizmos")!.Value);
             ImGui.End();
         }
 
@@ -61,10 +67,13 @@ public class EntityGizmosOverlay : IUiPanel
                 {
                     ImGuizmo.Enable(true);
 
-                    ImGuizmo.DrawCubes(ref Unsafe.AsRef<float>(view), ref Unsafe.AsRef<float>(proj),
-                        ref Unsafe.AsRef<float>(transformArray), 1);
+                    if (ConVarStorage.Get<bool>("edt_showentityboxes"))
+                    {
+                        ImGuizmo.DrawCubes(ref Unsafe.AsRef<float>(view), ref Unsafe.AsRef<float>(proj),
+                            ref Unsafe.AsRef<float>(transformArray), 1);
+                    }
 
-                    if (_enableGizmos)
+                    if (ConVarStorage.Get<bool>("edt_showentitygizmos"))
                     {
                         if (ImGuizmo.Manipulate(ref Unsafe.AsRef<float>(view), ref Unsafe.AsRef<float>(proj),
                                 OPERATION.TRANSLATE | OPERATION.ROTATE, MODE.LOCAL, ref Unsafe.AsRef<float>(transformArray)))
@@ -78,4 +87,3 @@ public class EntityGizmosOverlay : IUiPanel
         }
     }
 }
-#endif

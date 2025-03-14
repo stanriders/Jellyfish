@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using ImGuiNET;
+using Jellyfish.Console;
 using Jellyfish.Entities;
 using OpenTK.Mathematics;
 
@@ -12,6 +13,9 @@ public class EntityListPanel : IUiPanel
 
     public void Frame()
     {
+        if (!ConVarStorage.Get<bool>("edt_enable"))
+            return;
+
         if (EntityManager.Entities == null || EntityManager.EntityClasses == null)
             return;
 

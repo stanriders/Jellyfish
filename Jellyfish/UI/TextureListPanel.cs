@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Numerics;
 using ImGuiNET;
+using Jellyfish.Console;
 using Jellyfish.Input;
 using Jellyfish.Render;
 using OpenTK.Windowing.GraphicsLibraryFramework;
@@ -20,6 +21,9 @@ public class TextureListPanel : IUiPanel, IInputHandler
 
     public void Frame()
     {
+        if (!ConVarStorage.Get<bool>("edt_enable"))
+            return;
+
         if (!_isEnabled)
             return;
         

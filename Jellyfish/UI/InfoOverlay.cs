@@ -2,9 +2,13 @@
 using System.Linq;
 using System.Numerics;
 using ImGuiNET;
+using Jellyfish.Console;
 using Jellyfish.Entities;
 
 namespace Jellyfish.UI;
+
+public class EnableEditor() : ConVar<bool>("edt_enable", true);
+
 public class InfoOverlay : IUiPanel
 {
     private const float pad = 10.0f;
@@ -81,6 +85,8 @@ public class InfoOverlay : IUiPanel
             {
                 MainWindow.ShouldQuit = true;
             }
+            ImGui.SameLine();
+            ImGui.Checkbox("Editor mode", ref ConVarStorage.GetConVar<bool>("edt_enable")!.Value);
         }
 
         ImGui.End();
