@@ -42,12 +42,14 @@ public class Texture
         using var image = new MagickImage(path);
         using var data = image.GetPixelsUnsafe(); // feels scary
 
-        var pixelFormat = PixelFormat.Rgba;
-        var internalPixelFormat = SizedInternalFormat.Rgba8;
-        if (image is { ChannelCount: 3, Depth: 8 })
+        var hasAlpha = image.ChannelCount == 4;
+
+        var pixelFormat = hasAlpha ? PixelFormat.Rgba : PixelFormat.Rgb;
+        var internalPixelFormat = hasAlpha ? SizedInternalFormat.Rgba8 : SizedInternalFormat.Rgb8;
+
+        if (image.Depth == 16)
         {
-            pixelFormat = PixelFormat.Rgb;
-            internalPixelFormat = SizedInternalFormat.Rgb8;
+            internalPixelFormat = hasAlpha ? SizedInternalFormat.Rgba16 : SizedInternalFormat.Rgb16;
         }
 
         GL.TextureParameteri(Handle, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
