@@ -1,5 +1,4 @@
-
-#version 330 core
+#version 460
 precision highp float;
 
 layout(location = 0) out float fragmentdepth;

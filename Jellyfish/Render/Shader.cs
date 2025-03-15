@@ -272,10 +272,23 @@ public abstract class Shader
         GL.GetProgrami(handle, ProgramProperty.ActiveUniforms, out var numberOfUniforms);
         for (uint i = 0; i < numberOfUniforms; i++)
         {
-            GL.GetActiveUniformName(handle, i, 128, out _, out var key);
+            GL.GetActiveUniform(handle, i, 128, out _, out var size, out var uniformType, out var key);
             var location = GL.GetUniformLocation(handle, key);
 
-            _uniforms.Add(key, new Uniform { Location = location, Name = key });
+            // what if it's not an array somehow?..
+            var nameWithoutArray = key[..^3];
+
+            if (size > 1)
+            {
+                for (var j = 0; j < size; j++)
+                {
+                    _uniforms.Add($"{nameWithoutArray}[{j}]", new Uniform { Location = location + j, Name = $"{nameWithoutArray}[{j}]" });
+                }
+            }
+            else
+            {
+                _uniforms.Add(key, new Uniform { Location = location, Name = key });
+            }
         }
 
         return handle;

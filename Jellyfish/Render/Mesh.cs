@@ -130,9 +130,19 @@ public class Mesh
         GL.EnableVertexArrayAttrib(_vao.Handle, normalLocation);
         GL.VertexArrayAttribFormat(_vao.Handle, normalLocation, 3, VertexAttribType.Float, false, 5 * sizeof(float));
 
+        var boneIdsLocation = _shader.GetAttribLocation("aBoneIDs");
+        GL.EnableVertexArrayAttrib(_vao.Handle, boneIdsLocation);
+        GL.VertexArrayAttribFormat(_vao.Handle, boneIdsLocation, 4, VertexAttribType.Float, false, 8 * sizeof(float));
+
+        var weightsLocation = _shader.GetAttribLocation("aWeights");
+        GL.EnableVertexArrayAttrib(_vao.Handle, weightsLocation);
+        GL.VertexArrayAttribFormat(_vao.Handle, weightsLocation, 4, VertexAttribType.Float, false, 12 * sizeof(float));
+
         GL.VertexArrayAttribBinding(_vao.Handle, vertexLocation, 0);
         GL.VertexArrayAttribBinding(_vao.Handle, texCoordLocation, 0);
         GL.VertexArrayAttribBinding(_vao.Handle, normalLocation, 0);
+        GL.VertexArrayAttribBinding(_vao.Handle, boneIdsLocation, 0);
+        GL.VertexArrayAttribBinding(_vao.Handle, weightsLocation, 0);
     }
 
     public void DrawGBuffer()
@@ -152,6 +162,13 @@ public class Mesh
 
         var rotation = Matrix4.Identity * Matrix4.CreateFromQuaternion(Rotation);
         drawShader.SetMatrix4("rotation", rotation);
+
+        drawShader.SetInt("boneCount", MeshPart.Bones.Count);
+
+        for (var i = 0; i < MeshPart.Bones.Count; i++)
+        {
+            drawShader.SetMatrix4($"bones[{i}]", Matrix4.Identity);
+        }
 
         if (_ibo != null)
             GL.DrawElements(PrimitiveType, MeshPart.Indices!.Count, DrawElementsType.UnsignedInt, 0);

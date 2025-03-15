@@ -51,7 +51,7 @@ public class VertexBuffer
         var coords = new List<float>();
         foreach (var vertex in vertices)
         {
-            // THIS IS UGLY
+            // THIS IS SUPER UGLY
 
             // vertex
             coords.Add(vertex.Coordinates.X);
@@ -64,9 +64,25 @@ public class VertexBuffer
             coords.Add(vertex.Normal.X);
             coords.Add(vertex.Normal.Y);
             coords.Add(vertex.Normal.Z);
+
+            for (var i = 0; i < 4; i++)
+            {
+                if (vertex.BoneLinks.Count > i)
+                    coords.Add(vertex.BoneLinks[i].Id);
+                else
+                    coords.Add(0);
+            }
+
+            for (var i = 0; i < 4; i++)
+            {
+                if (vertex.BoneLinks.Count > i)
+                    coords.Add(vertex.BoneLinks[i].Weigth);
+                else
+                    coords.Add(0f);
+            }
         }
 
-        Stride = 8 * sizeof(float);
+        Stride = 16 * sizeof(float);
         _size = coords.Count * sizeof(float);
         GL.NamedBufferData(Handle, _size, coords.ToArray(), _usage);
         Length = vertices.Length;
@@ -77,7 +93,7 @@ public class VertexBuffer
         var coords = new List<float>();
         foreach (var vertex in vertices)
         {
-            // THIS IS UGLY
+            // THIS IS SUPER UGLY
 
             // vertex
             coords.Add(vertex.Coordinates.X);
@@ -90,9 +106,25 @@ public class VertexBuffer
             coords.Add(vertex.Normal.X);
             coords.Add(vertex.Normal.Y);
             coords.Add(vertex.Normal.Z);
+
+            for (var i = 0; i < 4; i++)
+            {
+                if (vertex.BoneLinks.Count > i)
+                    coords.Add(vertex.BoneLinks[i].Id);
+                else
+                    coords.Add(0);
+            }
+
+            for (var i = 0; i < 4; i++)
+            {
+                if (vertex.BoneLinks.Count > i)
+                    coords.Add(vertex.BoneLinks[i].Weigth);
+                else
+                    coords.Add(0f);
+            }
         }
 
-        Stride = 8 * sizeof(float);
+        Stride = 16 * sizeof(float);
         _size = coords.Count * sizeof(float);
         GL.NamedBufferData(Handle, _size, coords.ToArray(), _usage);
         Length = vertices.Length;
