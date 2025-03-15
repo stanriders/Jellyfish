@@ -67,10 +67,14 @@ public class DynamicModel : BaseModelEntity, IPhysicsEntity
         base.OnRotationChanged(rotation);
     }
 
-    // ReSharper disable once RedundantOverriddenMember
     protected override void OnScaleChanged(Vector3 scale)
     {
-        // TODO: support physics scale
+        if (GetPropertyValue<bool>("EnablePhysics"))
+        {
+            // disable physics after scaling to make model not spazz out
+            SetPropertyValue("EnablePhysics", false);
+        }
+
         base.OnScaleChanged(scale);
     }
 
@@ -139,8 +143,9 @@ public class DynamicModel : BaseModelEntity, IPhysicsEntity
         };
 
         var rotation = GetPropertyValue<Quaternion>("Rotation");
+        var scale = GetPropertyValue<Vector3>("Scale");
 
-        return new RotatedTranslatedShapeSettings(middleCoord, rotation.ToNumericsQuaternion(), shape);
+        return new RotatedTranslatedShapeSettings(middleCoord, System.Numerics.Quaternion.Identity, new ScaledShapeSettings(shape, scale.ToNumericsVector()));
     }
 
     public void OnPhysicsPositionChanged(Vector3 position)

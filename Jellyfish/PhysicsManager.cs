@@ -78,6 +78,7 @@ public class PhysicsManager
 
         var initialPosition = baseEntity.GetPropertyValue<Vector3>("Position");
         var initialRotation = baseEntity.GetPropertyValue<Quaternion>("Rotation");
+        var initialScale = baseEntity is BaseModelEntity ? baseEntity.GetPropertyValue<Vector3>("Scale") : Vector3.One;
 
         var triangles = new List<Triangle>();
 
@@ -107,7 +108,7 @@ public class PhysicsManager
             }
         }
 
-        using var shapeSettings = new MeshShapeSettings(triangles.ToArray());
+        using var shapeSettings = new ScaledShape(new MeshShape(new MeshShapeSettings(triangles.ToArray())),initialScale.ToNumericsVector());
 
         using var bodySettings = new BodyCreationSettings(shapeSettings,
             initialPosition.ToNumericsVector(),

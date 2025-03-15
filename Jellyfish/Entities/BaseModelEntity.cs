@@ -22,7 +22,8 @@ public abstract class BaseModelEntity : BaseEntity
             Model = new Model(ModelPath)
             {
                 Position = GetPropertyValue<Vector3>("Position"),
-                Rotation = GetPropertyValue<Quaternion>("Rotation")
+                Rotation = GetPropertyValue<Quaternion>("Rotation"),
+                Scale = GetPropertyValue<Vector3>("Scale")
             };
         }
 
