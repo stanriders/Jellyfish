@@ -16,7 +16,7 @@ public interface ILightSource
     float NearPlane { get; }
     float FarPlane { get; }
 
-    Matrix4 Projection { get; }
+    Matrix4[] Projections { get; }
 
     int ShadowResolution => 2048;
 }

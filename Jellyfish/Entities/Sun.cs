@@ -35,7 +35,7 @@ public class Sun : BaseEntity, ILightSource
     public float FarPlane => Position.Y * 1.5f;
     public int ShadowResolution => 4096;
 
-    public Matrix4 Projection
+    public Matrix4[] Projections
     {
         get
         {
@@ -48,7 +48,7 @@ public class Sun : BaseEntity, ILightSource
 
             var lightProjection = Matrix4.CreateOrthographic(position.Y * 1.5f, position.Y * 1.5f, NearPlane, FarPlane);
             var lightView = Matrix4.LookAt(position, position + Vector3.Transform(-Vector3.UnitY, Rotation), Vector3.UnitY);
-            return lightView * lightProjection;
+            return [lightView * lightProjection];
         }
     }
 }

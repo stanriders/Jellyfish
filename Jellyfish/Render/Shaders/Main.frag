@@ -42,6 +42,7 @@ uniform bool sunEnabled;
 
 uniform bool useNormals;
 uniform bool usePbr;
+uniform bool alphaTest;
 
 const float PI = 3.14159265359;
 
@@ -297,8 +298,8 @@ mat3 GetTBN(vec3 fragPos, vec2 texCoord, vec3 worldNormal)
 void main()
 {
     vec4 diffuseTex = texture(diffuseSampler, frag_texCoord * vec2(1.0, -1.0));
-    //if (diffuseTex.a < 0.01)
-    //    discard;
+    if (alphaTest && diffuseTex.a < 0.5)
+        discard;
 
     vec3 normal = normalize(frag_normal);
     if (useNormals)

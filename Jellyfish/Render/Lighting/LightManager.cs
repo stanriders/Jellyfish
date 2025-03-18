@@ -3,6 +3,7 @@ using System.Linq;
 using Jellyfish.Entities;
 using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Shaders;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.Render.Lighting;
@@ -12,9 +13,15 @@ public static class LightManager
     public class Light
     {
         public ILightSource Source { get; set; } = null!;
-        public RenderTarget? ShadowRt { get; set; }
-        public FrameBuffer? ShadowFrameBuffer { get; set; }
-        public Shadow? ShadowShader { get; set; }
+        public List<Shadow> Shadows { get; set; } = new();
+
+        public class Shadow
+        {
+            public required RenderTarget RenderTarget { get; set; }
+            public required FrameBuffer FrameBuffer { get; set; }
+            public required Shaders.Shadow Shader { get; set; }
+        }
+
     }
 
     public static IReadOnlyList<Light> Lights => lights.AsReadOnly();
@@ -28,7 +35,9 @@ public static class LightManager
         if (source is Sun)
         {
             Sun = new Light { Source = source };
-            CreateShadows(Sun);
+            CreateShadow(Sun, "cascade1");
+            //CreateShadow(Sun, "cascade2");
+            //CreateShadow(Sun, "cascade3");
             return;
         }
 
@@ -45,18 +54,24 @@ public static class LightManager
     {
         if (source is Sun && Sun != null)
         {
-            Sun.ShadowFrameBuffer?.Unload();
-            Sun.ShadowRt?.Unload();
-            Sun.ShadowShader?.Unload();
+            foreach (var shadow in Sun.Shadows)
+            {
+                shadow.FrameBuffer.Unload();
+                shadow.RenderTarget.Unload();
+                shadow.Shader.Unload();
+            }
             return;
         }
 
         var light = lights.Find(x => x.Source == source);
         if (light != null)
         {
-            light.ShadowFrameBuffer?.Unload();
-            light.ShadowRt?.Unload();
-            light.ShadowShader?.Unload();
+            foreach (var shadow in light.Shadows)
+            {
+                shadow.FrameBuffer.Unload();
+                shadow.RenderTarget.Unload();
+                shadow.Shader.Unload();
+            }
 
             lights.Remove(light);
         }
@@ -68,52 +83,63 @@ public static class LightManager
 
         if (Sun != null && Sun.Source.Enabled && Sun.Source.UseShadows)
         {
-            Sun.ShadowFrameBuffer!.Bind();
+            foreach (var shadow in Sun.Shadows)
+            {
+                shadow.FrameBuffer.Bind();
 
-            GL.Viewport(0, 0, Sun.Source.ShadowResolution, Sun.Source.ShadowResolution);
-            GL.Clear(ClearBufferMask.DepthBufferBit);
-            MeshManager.Draw(false, Sun.ShadowShader);
+                GL.Viewport(0, 0, Sun.Source.ShadowResolution, Sun.Source.ShadowResolution);
+                GL.Clear(ClearBufferMask.DepthBufferBit);
+                MeshManager.Draw(false, shadow.Shader);
 
-            Sun.ShadowFrameBuffer.Unbind();
+                shadow.FrameBuffer.Unbind();
+            }
         }
 
         foreach (var light in lights.Where(x=> x.Source.Enabled && x.Source.UseShadows))
         {
-            if (light.ShadowRt == null)
+            // create shadows lazily
+            if (light.Shadows.Count == 0)
             {
-                // create shadows lazily
-                CreateShadows(light);
+                CreateShadow(light);
             }
 
-            light.ShadowFrameBuffer!.Bind();
+            foreach (var shadow in light.Shadows)
+            {
+                shadow.FrameBuffer.Bind();
 
-            GL.Viewport(0, 0, light.Source.ShadowResolution, light.Source.ShadowResolution);
-            GL.Clear(ClearBufferMask.DepthBufferBit);
-            MeshManager.Draw(false, light.ShadowShader);
+                GL.Viewport(0, 0, light.Source.ShadowResolution, light.Source.ShadowResolution);
+                GL.Clear(ClearBufferMask.DepthBufferBit);
+                MeshManager.Draw(false, shadow.Shader);
 
-            light.ShadowFrameBuffer.Unbind();
+                shadow.FrameBuffer.Unbind();
+            }
         }
 
         GL.CullFace(TriangleFace.Back);
     }
 
-    private static void CreateShadows(Light light)
+    private static void CreateShadow(Light light, string subname = "")
     {
         var framebuffer = new FrameBuffer();
         framebuffer.Bind();
 
-        var shader = new Shadow(light.Source);
+        var shader = new Shadow(light.Source, light.Shadows.Count);
 
-        var rt = new RenderTarget($"_rt_Shadow{lights.IndexOf(light)}", light.Source.ShadowResolution, light.Source.ShadowResolution, SizedInternalFormat.DepthComponent24, FramebufferAttachment.DepthAttachment, TextureWrapMode.ClampToBorder, [1f, 1f, 1f, 1f], true);
-        rt.Bind(0);
+        var rt = new RenderTarget($"_rt_Shadow{lights.IndexOf(light)}{subname}", light.Source.ShadowResolution, light.Source.ShadowResolution, 
+            SizedInternalFormat.DepthComponent24, FramebufferAttachment.DepthAttachment, TextureWrapMode.ClampToBorder, [1f, 1f, 1f, 1f], true);
+
+        GL.BindTexture(TextureTarget.Texture2d, rt.TextureHandle);
 
         GL.DrawBuffer(DrawBufferMode.None);
         GL.ReadBuffer(ReadBufferMode.None);
         framebuffer.Check();
         framebuffer.Unbind();
 
-        light.ShadowFrameBuffer = framebuffer;
-        light.ShadowShader = shader;
-        light.ShadowRt = rt;
+        light.Shadows.Add(new Light.Shadow
+        {
+            FrameBuffer = framebuffer,
+            Shader = shader,
+            RenderTarget = rt
+        });
     }
 }

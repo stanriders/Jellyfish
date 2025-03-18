@@ -11,6 +11,7 @@ public class Material
     public string Diffuse { get; set; } = null!;
     public string? Normal { get; set; }
     public string? MetalRoughness { get; set; }
+    public bool AlphaTest { get; set; }
 
     public Material() { }
 
@@ -26,7 +27,7 @@ public class Material
         if (!File.Exists(path))
             return;
 
-        var material = JsonConvert.DeserializeObject<Material>(File.ReadAllText(path));
+        var material = JsonConvert.DeserializeObject<Material>(File.ReadAllText(path), new JsonSerializerSettings { Error = (_,_) => {} });
         if (material != null)
         {
             var currentDirectory = Path.GetDirectoryName(path);
@@ -39,6 +40,8 @@ public class Material
 
             if (material.MetalRoughness != null)
                 MetalRoughness = $"{currentDirectory}/{material.MetalRoughness}";
+
+            AlphaTest = material.AlphaTest;
         }
         else
         {
@@ -55,7 +58,7 @@ public class Material
     public Shader GetShaderInstance()
     {
         if (Shader == "Main")
-            return new Main(Diffuse, Normal, MetalRoughness);
+            return new Main(Diffuse, Normal, MetalRoughness, AlphaTest);
 
         // todo: unlit shader
         if (Shader == "Simple")

@@ -41,13 +41,14 @@ public class PointLight : BaseEntity, ILightSource
     public float NearPlane => 0.1f;
     public float FarPlane => GetPropertyValue<float>("FarPlane");
 
-    public Matrix4 Projection
+    public Matrix4[] Projections
     {
         get
         {
-            var lightProjection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(90f), 1.0f, NearPlane, FarPlane);
+            var lightProjection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(160f), 1.0f, NearPlane, FarPlane);
             var lightView = Matrix4.LookAt(Position, Position + Vector3.Transform(-Vector3.UnitY, Rotation), Vector3.UnitY);
-            return lightView * lightProjection;
+
+            return [lightView * lightProjection];
         }
     }
 }

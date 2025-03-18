@@ -42,13 +42,14 @@ public class Spotlight : BaseEntity, ILightSource
     public bool UseShadows => GetPropertyValue<bool>("Shadows");
     public float NearPlane => 0.1f;
     public float FarPlane => GetPropertyValue<float>("FarPlane");
-    public Matrix4 Projection 
+
+    public Matrix4[] Projections
     {
         get
         {
             var lightProjection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(GetPropertyValue<float>("OuterCone")) * 2.0f, 1.0f, NearPlane, FarPlane);
             var lightView = Matrix4.LookAt(Position, Position + Vector3.Transform(-Vector3.UnitY, Rotation), Vector3.UnitY);
-            return lightView * lightProjection;
+            return [lightView * lightProjection];
         }
     }
 }

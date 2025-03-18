@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Jellyfish.Entities;
 using Jellyfish.Render.Lighting;
 using OpenTK.Graphics.OpenGL;
@@ -10,6 +9,7 @@ namespace Jellyfish.Render.Shaders;
 
 public class Main : Shader
 {
+    private readonly bool _alphaTest;
     private readonly Texture _diffuse;
     private readonly Texture? _normal;
     private readonly Texture? _metRought;
@@ -18,9 +18,10 @@ public class Main : Shader
     private const uint sun_shadow_unit = 3;
     private const uint first_light_shadow_unit = 4;
 
-    public Main(string diffusePath, string? normalPath = null, string? metroughPath = null) : 
+    public Main(string diffusePath, string? normalPath = null, string? metroughPath = null, bool alphaTest = false) : 
         base("shaders/Main.vert", null, "shaders/Main.frag")
     {
+        _alphaTest = alphaTest;
         _diffuse = TextureManager.GetTexture(diffusePath, TextureTarget.Texture2d).Texture;
 
         if (!string.IsNullOrEmpty(normalPath))
@@ -114,18 +115,18 @@ public class Main : Shader
                 SetFloat($"lightSources[{i}].outcone", (float)Math.Cos(MathHelper.DegreesToRadians(spot.GetPropertyValue<float>("OuterCone"))));
             }
 
-            SetMatrix4($"lightSources[{i}].lightSpaceMatrix", light.Projection);
+            SetMatrix4($"lightSources[{i}].lightSpaceMatrix", light.Projections[0]);
 
-            if (light.UseShadows && LightManager.Lights[i].ShadowRt != null)
+            if (light.UseShadows && LightManager.Lights[i].Shadows.Count > 0)
             {
-                LightManager.Lights[i].ShadowRt!.Bind(first_light_shadow_unit + (uint)i);
+                LightManager.Lights[i].Shadows[0].RenderTarget.Bind(first_light_shadow_unit + (uint)i);
             }
             else
             {
                 unitsRequiringDummyShadows.Add(first_light_shadow_unit + (uint)i);
             }
 
-            SetBool($"lightSources[{i}].hasShadows", light.UseShadows && LightManager.Lights[i].ShadowRt != null);
+            SetBool($"lightSources[{i}].hasShadows", light.UseShadows && LightManager.Lights[i].Shadows.Count > 0);
         }
         SetInt("lightSourcesCount", totalLights);
 
@@ -145,13 +146,13 @@ public class Main : Shader
             SetVector3("sun.ambient", new Vector3(light.Ambient.X, light.Ambient.Y, light.Ambient.Z));
             SetFloat("sun.brightness", light.Color.W);
 
-            SetMatrix4("sun.lightSpaceMatrix", light.Projection);
-            SetBool("sun.hasShadows", light.UseShadows && LightManager.Sun.ShadowRt != null);
+            SetMatrix4("sun.lightSpaceMatrix", light.Projections[0]);
+            SetBool("sun.hasShadows", light.UseShadows && LightManager.Sun.Shadows.Count > 0);
         }
 
         if (LightManager.Sun != null && LightManager.Sun.Source.Enabled && LightManager.Sun.Source.UseShadows)
         {
-            LightManager.Sun.ShadowRt!.Bind(sun_shadow_unit);
+            LightManager.Sun.Shadows[0].RenderTarget.Bind(sun_shadow_unit);
         }
         else
         {
@@ -161,6 +162,7 @@ public class Main : Shader
 
         SetBool("useNormals", _normal != null);
         SetBool("usePbr", _metRought != null);
+        SetBool("alphaTest", _alphaTest);
 
         _diffuse.Bind(0);
         _normal?.Bind(1);
