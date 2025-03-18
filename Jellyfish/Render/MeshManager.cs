@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Jellyfish.Audio;
+using Jellyfish.Entities;
+using OpenTK.Mathematics;
 
 namespace Jellyfish.Render;
 
@@ -43,7 +45,14 @@ public static class MeshManager
     {
         drawing = true;
 
-        foreach (var mesh in meshes)
+        var playerPosition = Player.Instance?.GetPropertyValue<Vector3>("Position");
+
+        var sortedMeshes = meshes.OrderByDescending(x => !(x.Material?.AlphaTest ?? false))
+            .ThenByDescending(x =>
+                ((x.Position + x.MeshPart.BoundingBox.Center) - playerPosition)?
+                .Length);
+
+        foreach (var mesh in sortedMeshes)
         {
             if (mesh.IsDev && !drawDev)
                 continue;

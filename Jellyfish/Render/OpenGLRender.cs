@@ -40,6 +40,9 @@ public class OpenGLRender : IRender, IInputHandler
     public void CreateBuffers()
     {
         GL.Enable(EnableCap.CullFace);
+        GL.Enable(EnableCap.Blend);
+        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+        GL.BlendEquation(BlendEquationMode.FuncAdd);
 
         _mainFramebuffer = new FrameBuffer();
         _mainFramebuffer.Bind();
@@ -91,8 +94,8 @@ public class OpenGLRender : IRender, IInputHandler
 
         GL.PolygonMode(TriangleFace.FrontAndBack, _wireframe ? PolygonMode.Line : PolygonMode.Fill);
 
-        MeshManager.Draw();
         _sky?.Draw();
+        MeshManager.Draw();
 
         _mainFramebuffer?.Unbind();
 

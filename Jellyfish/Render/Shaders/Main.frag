@@ -298,8 +298,8 @@ mat3 GetTBN(vec3 fragPos, vec2 texCoord, vec3 worldNormal)
 void main()
 {
     vec4 diffuseTex = texture(diffuseSampler, frag_texCoord * vec2(1.0, -1.0));
-    if (alphaTest && diffuseTex.a < 0.5)
-        discard;
+    //if (alphaTest && diffuseTex.a < 0.5)
+    //    discard;
 
     vec3 normal = normalize(frag_normal);
     if (useNormals)
@@ -424,6 +424,10 @@ void main()
         result *= diffuseTex.rgb;
     }
 
-    outputColor = vec4(result, 1.0);
+    if (!alphaTest)
+        outputColor = vec4(result, 1.0);
+    else
+        outputColor = vec4(result, diffuseTex.a);
+
 }
 
