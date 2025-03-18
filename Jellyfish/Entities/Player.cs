@@ -105,7 +105,7 @@ public class Player : BaseEntity, IInputHandler
 
     public Matrix4 GetProjectionMatrix()
     {
-        return Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, 0.05f, 10000f);
+        return Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, 0.05f, 100000f);
     }
 
     public override void Think()
