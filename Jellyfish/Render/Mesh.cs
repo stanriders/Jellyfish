@@ -15,6 +15,20 @@ public class MeshPart
     public List<Bone> Bones { get; set; } = new();
     public List<uint>? Indices { get; set; } // can be null
 
+    private BoundingBox? _boundingBox;
+    public BoundingBox BoundingBox
+    {
+        get
+        {
+            if (_boundingBox != null) 
+                return _boundingBox.Value;
+
+            _boundingBox = new BoundingBox(Vertices.ToArray());
+
+            return _boundingBox.Value;
+        }
+    }
+
     public override string ToString()
     {
         return Name;

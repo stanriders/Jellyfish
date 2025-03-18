@@ -88,48 +88,11 @@ public class DynamicModel : BaseModelEntity, IPhysicsEntity
 
     public virtual ShapeSettings CalculatePhysicsShape()
     {
-        var maxY = 0f;
-        var minY = 0f;
-        var maxX = 0f;
-        var minX = 0f;
-        var maxZ = 0f;
-        var minZ = 0f;
+        var boundingBox = new BoundingBox(Model!.Meshes.Select(x => x.MeshPart).Select(x => x.BoundingBox).ToArray());
 
-        foreach (var vertex in Model!.Meshes.Select(x => x.MeshPart).SelectMany(x => x.Vertices))
-        {
-            var coords = vertex.Coordinates;
-            if (coords.X < minX)
-                minX = coords.X;
-
-            if (coords.X > maxX)
-                maxX = coords.X;
-
-            if (coords.Z < minZ)
-                minZ = coords.Z;
-
-            if (coords.Z > maxZ)
-                maxZ = coords.Z;
-
-            if (coords.Y < minY)
-                minY = coords.Y;
-
-            if (coords.Y > maxY)
-                maxY = coords.Y;
-        }
-
-        var midX = (maxX + minX) / 2f;
-        var midY = (maxY + minY) / 2f;
-        var midZ = (maxZ + minZ) / 2f;
-
-        var middleCoord = new System.Numerics.Vector3(midX, midY, midZ);
-
-        var lengthX = maxX - minX;
-        var lenghtY = maxY - minY;
-        var lenghtZ = maxZ - minZ;
-
-        var halfHeigth = lenghtY / 2f;
-        var horizontalRadius = Math.Max(lengthX, lenghtZ) / 2f;
-        var radius = Math.Max(Math.Max(lengthX, lenghtZ), lenghtY) / 2f;
+        var halfHeigth = boundingBox.Size.Y / 2f;
+        var horizontalRadius = Math.Max(boundingBox.Size.X, boundingBox.Size.Z) / 2f;
+        var radius = Math.Max(Math.Max(boundingBox.Size.X, boundingBox.Size.Z), boundingBox.Size.Y) / 2f;
 
         var type = GetPropertyValue<BoundingBoxType>("BoundingBox");
 
@@ -137,7 +100,7 @@ public class DynamicModel : BaseModelEntity, IPhysicsEntity
         {
             BoundingBoxType.Sphere => new SphereShapeSettings(radius),
             BoundingBoxType.Capsule => new CapsuleShapeSettings(halfHeigth, horizontalRadius),
-            BoundingBoxType.Box => new BoxShapeSettings(new System.Numerics.Vector3(lengthX / 2f, lenghtY / 2f, lenghtZ / 2f)),
+            BoundingBoxType.Box => new BoxShapeSettings(new System.Numerics.Vector3(boundingBox.Size.X / 2f, boundingBox.Size.Y / 2f, boundingBox.Size.Z / 2f)),
             BoundingBoxType.Cylinder => new CylinderShapeSettings(halfHeigth, horizontalRadius),
             _ => throw new ArgumentException("Unknown bounding box type"),
         };
@@ -145,7 +108,7 @@ public class DynamicModel : BaseModelEntity, IPhysicsEntity
         var rotation = GetPropertyValue<Quaternion>("Rotation");
         var scale = GetPropertyValue<Vector3>("Scale");
 
-        return new RotatedTranslatedShapeSettings(middleCoord, System.Numerics.Quaternion.Identity, new ScaledShapeSettings(shape, scale.ToNumericsVector()));
+        return new RotatedTranslatedShapeSettings(boundingBox.Center.ToNumericsVector(), System.Numerics.Quaternion.Identity, new ScaledShapeSettings(shape, scale.ToNumericsVector()));
     }
 
     public void OnPhysicsPositionChanged(Vector3 position)
