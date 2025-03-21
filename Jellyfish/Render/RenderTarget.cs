@@ -1,5 +1,4 @@
-﻿using System;
-using OpenTK.Graphics.OpenGL;
+﻿using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
 namespace Jellyfish.Render;
@@ -8,11 +7,13 @@ public class RenderTarget
 {
     public readonly int TextureHandle;
     public readonly Vector2 Size;
+    public readonly int Levels;
     private readonly Texture _texture;
 
     public RenderTarget(string name, int width, int heigth, SizedInternalFormat internalFormat, FramebufferAttachment attachment, TextureWrapMode wrapMode, float[]? borderColor = null, bool enableCompare = false, int levels = 1)
     {
         Size = new Vector2(width, heigth);
+        Levels = levels;
 
         _texture = TextureManager.GetTexture(name, TextureTarget.Texture2d).Texture;
         TextureHandle = _texture.Handle;

@@ -1,22 +1,26 @@
 #version 460
+#include Fxaa.frag
+
 out vec4 FragColor;
   
 in vec2 TexCoords;
 
 uniform float exposure;
+uniform vec2 screenSize;
 uniform bool isEnabled;
+#define SourceSize vec4(screenSize, 1.0 / screenSize)
 
 layout(binding=0) uniform sampler2D screenTexture;
 
 void main()
 { 
-    vec3 screen = texture(screenTexture, TexCoords).rgb;
-
     if (!isEnabled)
     {
-        FragColor = vec4(screen, 1.0);
+        FragColor = vec4(texture(screenTexture, TexCoords).rgb, 1.0);
         return;
     }
+
+    vec3 screen = FxaaPixelShader(TexCoords, screenTexture, vec2(SourceSize.z, SourceSize.w));
 
     const float gamma = 2.2;
     vec3 mapped = vec3(1.0) - exp(-screen * exposure);
