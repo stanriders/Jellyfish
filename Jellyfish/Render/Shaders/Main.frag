@@ -112,69 +112,6 @@ float SimplePCF(sampler2DShadow DepthSampler, vec3 projCoords, vec3 lightDir, ve
     return shadow;
 }
 
-float DoShadowNvidiaPCF5x5GaussianPC( sampler2DShadow DepthSampler, vec3 vProjCoords )
-{
-	float flTexelEpsilon    = 1.0f / textureSize(DepthSampler, 0).x;
-	float flTwoTexelEpsilon = 2.0f * flTexelEpsilon;
-
-	//float ooW = 1.0f / shadowMapPos.w;								// 1 / w
-	vec3 shadowMapCenter_objDepth = vProjCoords;//shadowMapPos.xyz * ooW;		// Do both projections at once
-
-	vec2 shadowMapCenter = shadowMapCenter_objDepth.xy;			// Center of shadow filter
-	float objDepth = shadowMapCenter_objDepth.z;					// Object depth in shadow space
-
-	vec4 c0 = vec4( 1.0f / 331.0f, 7.0f / 331.0f, 4.0f / 331.0f, 20.0f / 331.0f );
-	vec4 c1 = vec4( 33.0f / 331.0f, 55.0f / 331.0f, -flTexelEpsilon, 0.0f );
-	vec4 c2 = vec4( flTwoTexelEpsilon, -flTwoTexelEpsilon, 0.0f, flTexelEpsilon );
-	vec4 c3 = vec4( flTexelEpsilon, -flTexelEpsilon, flTwoTexelEpsilon, -flTwoTexelEpsilon );
-
-	vec4 vOneTaps;
-	vOneTaps.x = texture( DepthSampler, vec3( shadowMapCenter + c2.xx, objDepth) );	//  2  2
-	vOneTaps.y = texture( DepthSampler, vec3( shadowMapCenter + c2.yx, objDepth) );	// -2  2
-	vOneTaps.z = texture( DepthSampler, vec3( shadowMapCenter + c2.xy, objDepth) );	//  2 -2
-	vOneTaps.w = texture( DepthSampler, vec3( shadowMapCenter + c2.yy, objDepth) );	// -2 -2
-	float flSum = dot( vOneTaps, c0.xxxx );
-
-	vec4 vSevenTaps;
-	vSevenTaps.x = texture( DepthSampler, vec3( shadowMapCenter + c2.xz, objDepth) );	//  2 0
-	vSevenTaps.y = texture( DepthSampler, vec3( shadowMapCenter + c2.yz, objDepth) );	// -2 0
-	vSevenTaps.z = texture( DepthSampler, vec3( shadowMapCenter + c2.zx, objDepth) );	// 0 2
-	vSevenTaps.w = texture( DepthSampler, vec3( shadowMapCenter + c2.zy, objDepth) );	// 0 -2
-	flSum += dot( vSevenTaps, c0.yyyy );
-
-	vec4 vFourTapsA, vFourTapsB;
-	vFourTapsA.x = texture( DepthSampler, vec3( shadowMapCenter + c2.xw, objDepth) );	// 2 1
-	vFourTapsA.y = texture( DepthSampler, vec3( shadowMapCenter + c2.wx, objDepth) );	// 1 2
-	vFourTapsA.z = texture( DepthSampler, vec3( shadowMapCenter + c3.yz, objDepth) );	// -1 2
-	vFourTapsA.w = texture( DepthSampler, vec3( shadowMapCenter + c3.wx, objDepth) );	// -2 1
-	vFourTapsB.x = texture( DepthSampler, vec3( shadowMapCenter + c3.wy, objDepth) );	// -2 -1
-	vFourTapsB.y = texture( DepthSampler, vec3( shadowMapCenter + c3.yw, objDepth) );	// -1 -2
-	vFourTapsB.z = texture( DepthSampler, vec3( shadowMapCenter + c3.xw, objDepth) );	// 1 -2
-	vFourTapsB.w = texture( DepthSampler, vec3( shadowMapCenter + c3.zy, objDepth) );	// 2 -1
-	flSum += dot( vFourTapsA, c0.zzzz );
-	flSum += dot( vFourTapsB, c0.zzzz );
-
-	vec4 v20Taps;
-	v20Taps.x = texture( DepthSampler, vec3( shadowMapCenter + c3.xx, objDepth) );	// 1 1
-	v20Taps.y = texture( DepthSampler, vec3( shadowMapCenter + c3.yx, objDepth) );	// -1 1
-	v20Taps.z = texture( DepthSampler, vec3( shadowMapCenter + c3.xy, objDepth) );	// 1 -1
-	v20Taps.w = texture( DepthSampler, vec3( shadowMapCenter + c3.yy, objDepth) );	// -1 -1
-	flSum += dot( v20Taps, c0.wwww );
-
-	vec4 v33Taps;
-	v33Taps.x = texture( DepthSampler, vec3( shadowMapCenter + c2.wz, objDepth) );	// 1 0
-	v33Taps.y = texture( DepthSampler, vec3( shadowMapCenter + c1.zw, objDepth) );	// -1 0
-	v33Taps.z = texture( DepthSampler, vec3( shadowMapCenter + c1.wz, objDepth) );	// 0 -1
-	v33Taps.w = texture( DepthSampler, vec3( shadowMapCenter + c2.zw, objDepth) );	// 0 1
-	flSum += dot( v33Taps, c1.xxxx );
-
-	flSum += texture( DepthSampler, vec3( shadowMapCenter, objDepth) ) * c1.y;
-	
-	flSum = pow( flSum, 1.4f );
-
-	return flSum;
-}
-
 float ShadowCalculation(int lightIndex, vec3 lightDir, vec3 normal)
 {
     vec4 fragPosLightSpace = frag_position_lightspace[lightIndex];
@@ -185,9 +122,8 @@ float ShadowCalculation(int lightIndex, vec3 lightDir, vec3 normal)
     if(projCoords.z > 1.0)
         return 0.0;
         
-    //return SimplePCF(shadowSamplers[lightIndex], projCoords, lightDir, normal, resolution);
+    return SimplePCF(shadowSamplers[lightIndex], projCoords, lightDir, normal);
     //return SimpleShadow(shadowSamplers[lightIndex], projCoords, lightDir, normal);
-    return DoShadowNvidiaPCF5x5GaussianPC(shadowSamplers[lightIndex], projCoords);
 }  
 
 vec3 CalcPointLight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
@@ -262,9 +198,8 @@ vec3 CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
     
         if(projCoords.z < 1.0)
         {
-            //return SimplePCF(sunShadowSampler, projCoords, lightDir, normal, resolution);
-            //return SimpleShadow(sunShadowSampler, projCoords, lightDir, normal);
-            shadow = DoShadowNvidiaPCF5x5GaussianPC(sunShadowSampler, projCoords);
+            shadow = SimplePCF(sunShadowSampler, projCoords, lightDir, normal);
+            //shadow = SimpleShadow(sunShadowSampler, projCoords, lightDir, normal);
         }
     }
 
