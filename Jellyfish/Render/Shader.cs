@@ -340,15 +340,31 @@ public abstract class Shader
         return (uint)GL.GetAttribLocation(_shaderHandle, attribName);
     }
 
-    private static string LoadSource(string path)
+    private string LoadSource(string path)
     {
         try
         {
+            var builder = new StringBuilder();
             using var sr = new StreamReader(path, Encoding.UTF8);
-            return sr.ReadToEnd();
+            while (!sr.EndOfStream)
+            {
+                var line = sr.ReadLine();
+                if (line == null)
+                    break;
+
+                if (line.StartsWith("#include"))
+                {
+                    var includedFile = File.ReadAllText(Path.Combine(Path.GetDirectoryName(path) ?? string.Empty, line.Replace("#include", "").Trim()));
+                    builder.AppendLine(includedFile);
+                    continue;
+                }
+                builder.AppendLine(line);
+            }
+            return builder.ToString();
         }
-        catch
+        catch (Exception ex)
         {
+            Log.Context(this).Error(ex, "Failed to load shader {Path}", path);
             return string.Empty;
         }
     }
