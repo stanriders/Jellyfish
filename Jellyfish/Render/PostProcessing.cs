@@ -72,7 +72,7 @@ public class PostProcessing : IInputHandler
         if (!double.IsNaN(lum))
         {
             sceneExposure = float.Lerp(sceneExposure, 0.5f / lum * 0.8f, adj_speed);
-            sceneExposure = Math.Clamp(sceneExposure, 0.01f, 1f);
+            sceneExposure = Math.Clamp(sceneExposure, 0.1f, 1f);
         }
 
         _shader.SetFloat("exposure", sceneExposure);
