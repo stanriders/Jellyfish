@@ -47,7 +47,7 @@ public class OpenGLRender : IRender, IInputHandler
         _mainFramebuffer = new FrameBuffer();
         _mainFramebuffer.Bind();
 
-        _colorRenderTarget = new RenderTarget("_rt_Color", MainWindow.WindowWidth, MainWindow.WindowHeight, SizedInternalFormat.Rgb8, FramebufferAttachment.ColorAttachment0, TextureWrapMode.ClampToEdge);
+        _colorRenderTarget = new RenderTarget("_rt_Color", MainWindow.WindowWidth, MainWindow.WindowHeight, SizedInternalFormat.Rgb16f, FramebufferAttachment.ColorAttachment0, TextureWrapMode.ClampToEdge, levels: 11);
         _depthRenderTarget = new RenderTarget("_rt_Depth", MainWindow.WindowWidth, MainWindow.WindowHeight, SizedInternalFormat.DepthComponent24, FramebufferAttachment.DepthAttachment, TextureWrapMode.ClampToEdge);
 
         if (!_mainFramebuffer.Check())
@@ -59,7 +59,7 @@ public class OpenGLRender : IRender, IInputHandler
 
         _gBuffer = new GBuffer(_depthRenderTarget);
         _sky = new Sky();
-        _postProcessing = new PostProcessing(_colorRenderTarget, _depthRenderTarget);
+        _postProcessing = new PostProcessing(_colorRenderTarget);
 
         InputManager.RegisterInputHandler(this);
     }

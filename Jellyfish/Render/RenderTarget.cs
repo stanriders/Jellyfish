@@ -10,7 +10,7 @@ public class RenderTarget
     public readonly Vector2 Size;
     private readonly Texture _texture;
 
-    public RenderTarget(string name, int width, int heigth, SizedInternalFormat internalFormat, FramebufferAttachment attachment, TextureWrapMode wrapMode, float[]? borderColor = null, bool enableCompare = false)
+    public RenderTarget(string name, int width, int heigth, SizedInternalFormat internalFormat, FramebufferAttachment attachment, TextureWrapMode wrapMode, float[]? borderColor = null, bool enableCompare = false, int levels = 1)
     {
         Size = new Vector2(width, heigth);
 
@@ -18,7 +18,7 @@ public class RenderTarget
         TextureHandle = _texture.Handle;
         GL.BindTexture(TextureTarget.Texture2d, TextureHandle);
 
-        GL.TextureStorage2D(TextureHandle, 1, internalFormat, width, heigth);
+        GL.TextureStorage2D(TextureHandle, levels, internalFormat, width, heigth);
         GL.TextureParameteri(TextureHandle, TextureParameterName.TextureMinFilter, new[] { (int)TextureMinFilter.Nearest });
         GL.TextureParameteri(TextureHandle, TextureParameterName.TextureMagFilter, new[] { (int)TextureMinFilter.Nearest });
         GL.TextureParameteri(TextureHandle, TextureParameterName.TextureWrapS, new[] { (int)wrapMode });

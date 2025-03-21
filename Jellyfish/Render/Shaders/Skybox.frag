@@ -7,6 +7,7 @@ out vec4 FragColor;
 in vec3 TexCoords;
 
 uniform vec3 uSunPos;
+uniform float uSunIntensity;
 
 #define PI 3.141592
 #define iSteps 16
@@ -122,7 +123,7 @@ void main()
         normalize(TexCoords),           // normalized ray direction
         vec3(0,6372e3,0),               // ray origin
         uSunPos,                        // position of the sun
-        22.0,                           // intensity of the sun
+        uSunIntensity,                  // intensity of the sun
         6371e3,                         // radius of the planet in meters
         6471e3,                         // radius of the atmosphere in meters
         vec3(5.5e-6, 13.0e-6, 22.4e-6), // Rayleigh scattering coefficient
@@ -131,9 +132,6 @@ void main()
         1.2e3,                          // Mie scale height
         0.758                           // Mie preferred scattering direction
     );
-
-    // Apply exposure.
-    color = 1.0 - exp(-1.0 * color);
 
     FragColor = vec4(color, 1);
 }
