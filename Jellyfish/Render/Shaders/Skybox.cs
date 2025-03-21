@@ -35,7 +35,7 @@ public class Skybox : Shader
 
         var rotationVector = Vector3.Transform(Vector3.UnitY, _sun!.GetPropertyValue<Quaternion>("Rotation"));
         SetVector3("uSunPos", rotationVector);
-        SetFloat("uSunIntensity", _sun.Color.W * 10);
+        SetFloat("uSunIntensity", _sun.Brightness * 10f);
 
         var proj = player.GetProjectionMatrix();
         proj.Transpose();

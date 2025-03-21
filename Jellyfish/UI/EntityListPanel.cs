@@ -137,6 +137,15 @@ public class EntityListPanel : IUiPanel
 
             entity.SetPropertyValue(propertyName, new Color4<Rgba>(val.X, val.Y, val.Z, val.W));
         }
+        else if (entityProperty.Type == typeof(Color3<Rgb>))
+        {
+            var valueCasted = (Color3<Rgb>)entityProperty.Value!;
+
+            var val = new System.Numerics.Vector3(valueCasted.X, valueCasted.Y, valueCasted.Z);
+            ImGui.DragFloat3(elementLabel, ref val, 0.01f, 0.0f, 1.0f);
+
+            entity.SetPropertyValue(propertyName, new Color3<Rgb>(val.X, val.Y, val.Z));
+        }
         else if (entityProperty.Type == typeof(Quaternion))
         {
             var valueCasted = (Quaternion)entityProperty.Value!;

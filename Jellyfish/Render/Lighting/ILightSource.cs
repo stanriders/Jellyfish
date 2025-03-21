@@ -7,8 +7,9 @@ public interface ILightSource
     Vector3 Position { get; }
     Quaternion Rotation { get; }
 
-    Color4<Rgba> Color { get; }
-    Color4<Rgba> Ambient { get; }
+    Color3<Rgb> Color { get; }
+    Color3<Rgb> Ambient { get; }
+    float Brightness { get; }
 
     bool Enabled { get; }
     bool UseShadows { get; }

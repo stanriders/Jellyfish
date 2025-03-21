@@ -91,7 +91,7 @@ public class Main : Shader
 
             SetVector3($"lightSources[{i}].diffuse", new Vector3(light.Color.X, light.Color.Y, light.Color.Z));
             SetVector3($"lightSources[{i}].ambient", new Vector3(light.Ambient.X, light.Ambient.Y, light.Ambient.Z));
-            SetFloat($"lightSources[{i}].brightness", light.Color.W);
+            SetFloat($"lightSources[{i}].brightness", light.Brightness);
 
             var lightType = 0; // point
             if (light is Spotlight)
@@ -144,7 +144,7 @@ public class Main : Shader
 
             SetVector3("sun.diffuse", new Vector3(light.Color.X, light.Color.Y, light.Color.Z));
             SetVector3("sun.ambient", new Vector3(light.Ambient.X, light.Ambient.Y, light.Ambient.Z));
-            SetFloat("sun.brightness", light.Color.W);
+            SetFloat("sun.brightness", light.Brightness);
 
             SetMatrix4("sun.lightSpaceMatrix", light.Projections[0]);
             SetBool("sun.hasShadows", light.UseShadows && LightManager.Sun.Shadows.Count > 0);

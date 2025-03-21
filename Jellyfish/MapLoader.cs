@@ -17,10 +17,11 @@ public static class MapLoader
 
         var mapString = File.ReadAllText(path);
         var deserializer = JsonSerializer.CreateDefault();
-        deserializer.Converters.Add(new ColorConverter());
+        deserializer.Converters.Add(new Color4Converter());
+        deserializer.Converters.Add(new Color3Converter());
         deserializer.Converters.Add(new RotationConverter());
 
-        var map = JsonConvert.DeserializeObject<Map>(mapString, new ColorConverter());
+        var map = JsonConvert.DeserializeObject<Map>(mapString, new Color4Converter(), new Color3Converter());
         if (map == null)
         {
             Log.Context("MapLoader").Error("Couldn't parse map {Path}!", path);
@@ -61,7 +62,7 @@ public static class MapLoader
 
         Log.Context("MapLoader").Information("Finished parsing map");
     }
-    public class ColorConverter : JsonConverter
+    public class Color4Converter : JsonConverter
     {
         public override bool CanConvert(Type objectType)
         {
@@ -109,6 +110,54 @@ public static class MapLoader
             }
 
             return new Color4<Rgba>(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
+        }
+
+        public override bool CanRead => true;
+        public override bool CanWrite => false;
+    }
+
+    public class Color3Converter : JsonConverter
+    {
+        public override bool CanConvert(Type objectType)
+        {
+            return objectType == typeof(Color3<Rgb>);
+        }
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+        {
+            throw new NotImplementedException();
+        }
+        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue,
+            JsonSerializer serializer)
+        {
+            byte r = 0, g = 0, b = 0;
+
+            while (reader.Read())
+            {
+                var token = reader.Path;
+                switch (token)
+                {
+                    case "R":
+                    {
+                        reader.Read();
+                        r = Convert.ToByte(reader.Value);
+                        break;
+                    }
+                    case "G":
+                    {
+                        reader.Read();
+                        g = Convert.ToByte(reader.Value);
+                        break;
+                    }
+                    case "B":
+                    {
+                        reader.Read();
+                        b = Convert.ToByte(reader.Value);
+                        break;
+                    }
+                }
+            }
+
+            return new Color3<Rgb>(r / 255.0f, g / 255.0f, b / 255.0f);
         }
 
         public override bool CanRead => true;
