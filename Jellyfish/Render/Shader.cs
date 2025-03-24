@@ -465,7 +465,7 @@ public abstract class Shader
     /// <param name="data">The data to set</param>
     /// <param name="transpose"></param>
     /// <param name="bind"></param>
-    public void SetMatrix4(string name, Matrix4 data, bool transpose = true, bool bind = false)
+    public void SetMatrix4(string name, Matrix4 data, bool transpose = false, bool bind = false)
     {
         var uniform = SetUniform(name, data, bind);
         if (uniform != null)

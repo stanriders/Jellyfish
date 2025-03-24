@@ -226,8 +226,8 @@ public sealed class ImguiController : IDisposable, IInputHandler
             1.0f);
 
         _shader.Bind();
-        _shader.SetMatrix4("projection_matrix", mvp, false, false);
-        _shader.SetInt("in_fontTexture", 0, false);
+        _shader.SetMatrix4("projection_matrix", mvp);
+        _shader.SetInt("in_fontTexture", 0);
         CheckGlError("Projection");
 
         _vao.Bind();

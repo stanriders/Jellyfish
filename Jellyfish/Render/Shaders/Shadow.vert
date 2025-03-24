@@ -19,10 +19,10 @@ void main()
     boneTransform += bones[int(floor(aBoneIDs[2]))] * aWeights[2];
     boneTransform += bones[int(floor(aBoneIDs[3]))] * aWeights[3];
 
-    vec4 transformedPosition = vec4(aPosition, 1.0) * rotation * transform;
+    vec4 transformedPosition = transform * rotation * vec4(aPosition, 1.0);
     if (boneCount > 0)
     {
-        transformedPosition *= boneTransform;
+        transformedPosition = boneTransform * transformedPosition;
     }
-    gl_Position = transformedPosition * lightSpaceMatrix;
+    gl_Position = lightSpaceMatrix * transformedPosition;
 } 

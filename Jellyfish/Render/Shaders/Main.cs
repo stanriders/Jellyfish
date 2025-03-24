@@ -182,12 +182,12 @@ public class Main : Shader
 
         if (LightManager.Sun != null)
         {
-            GL.BindTextureUnit(3, 0);
+            GL.BindTextureUnit(sun_shadow_unit, 0);
         }
 
         for (uint i = 0; i < LightManager.max_lights; i++)
         {
-            GL.BindTextureUnit(4 + i, 0);
+            GL.BindTextureUnit(first_light_shadow_unit + i, 0);
         }
 
         base.Unbind();

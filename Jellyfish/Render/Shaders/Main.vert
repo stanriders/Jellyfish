@@ -53,23 +53,23 @@ void main(void)
     boneTransform += bones[int(floor(aBoneIDs[2]))] * aWeights[2];
     boneTransform += bones[int(floor(aBoneIDs[3]))] * aWeights[3];
 
-    vec4 transformedNormal = vec4(aNormal, 1.0) * rotation;
+    vec4 transformedNormal = rotation * vec4(aNormal, 1.0);
     frag_normal = transformedNormal.xyz;
 
-    vec4 transformedPosition = vec4(aPosition, 1.0) * rotation * transform;
+    vec4 transformedPosition = transform * rotation * vec4(aPosition, 1.0);
     if (boneCount > 0)
     {
-        transformedPosition *= boneTransform;
+        transformedPosition = boneTransform * transformedPosition;
     }
 
     frag_position = transformedPosition.xyz;
     
     for (int i = 0; i < lightSourcesCount; i++)
     {
-        frag_position_lightspace[i] = vec4(frag_position, 1.0) * lightSources[i].lightSpaceMatrix;
+        frag_position_lightspace[i] = lightSources[i].lightSpaceMatrix * vec4(frag_position, 1.0);
     }
 
-    frag_position_sun = vec4(frag_position, 1.0) * sun.lightSpaceMatrix;
+    frag_position_sun = sun.lightSpaceMatrix * vec4(frag_position, 1.0);
 
-    gl_Position = transformedPosition * view * projection;
+    gl_Position = projection * view * transformedPosition;
 }
