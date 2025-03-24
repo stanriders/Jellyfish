@@ -29,6 +29,9 @@ public abstract class Shader
     private readonly string? _compPath;
 
     private readonly List<FileSystemWatcher> _watchers = new();
+    private bool _reloading;
+
+    private bool _complainedAboutMissingUniforms;
 
     protected Shader(string vertPath, string? geomPath, string fragPath, string? tessControlPath = null,
         string? tessEvalPath = null, string? compPath = null)
@@ -105,17 +108,34 @@ public abstract class Shader
 
     private void OnChanged(object sender, FileSystemEventArgs e)
     {
+        if (_reloading)
+            return;
+
+        _reloading = true;
+
+        Log.Context(this).Information("Reloading shader {File}...", e.Name);
         RenderScheduler.Schedule(() =>
         {
-            var newHandle = LoadShader();
-            var oldHandle = _shaderHandle;
-
-            _shaderHandle = newHandle;
-
-            if (oldHandle != 0)
+            try
             {
-                GL.UseProgram(0);
-                GL.DeleteProgram(oldHandle);
+                var newHandle = LoadShader();
+                var oldHandle = _shaderHandle;
+
+                _shaderHandle = newHandle;
+
+                if (oldHandle != 0)
+                {
+                    GL.UseProgram(0);
+                    GL.DeleteProgram(oldHandle);
+                }
+            }
+            catch (Exception exception)
+            {
+                Log.Context(this).Error(exception.ToString());
+            }
+            finally
+            {
+                _reloading = false;
             }
         });
     }
@@ -291,6 +311,8 @@ public abstract class Shader
             }
         }
 
+        _complainedAboutMissingUniforms = false;
+
         return handle;
     }
 
@@ -345,7 +367,8 @@ public abstract class Shader
         try
         {
             var builder = new StringBuilder();
-            using var sr = new StreamReader(path, Encoding.UTF8);
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using var sr = new StreamReader(stream, Encoding.UTF8);
             while (!sr.EndOfStream)
             {
                 var line = sr.ReadLine();
@@ -373,7 +396,12 @@ public abstract class Shader
     {
         if (!_uniforms.TryGetValue(name, out var uniform))
         {
-            Log.Context(this).Error("Uniform {Name} isn't found!", name);
+            if (!_complainedAboutMissingUniforms)
+            {
+                Log.Context(this).Error("Uniform {Name} isn't found!", name);
+                _complainedAboutMissingUniforms = true;
+            }
+
             return null;
         }
 
