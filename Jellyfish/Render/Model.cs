@@ -25,7 +25,6 @@ public class Model
         }
     }
 
-
     public Model(string path, bool isDev = false)
     {
         var meshParts = ModelParser.Parse(path);
@@ -63,6 +62,13 @@ public class Model
 
         foreach (var mesh in _meshes)
             MeshManager.AddMesh(mesh);
+    }
+
+    public Model(Mesh mesh, bool isDev = false)
+    {
+        mesh.IsDev = isDev;
+        _meshes.Add(mesh);
+        MeshManager.AddMesh(mesh);
     }
 
     public void Unload()

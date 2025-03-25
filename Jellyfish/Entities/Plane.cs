@@ -6,9 +6,8 @@ using OpenTK.Mathematics;
 namespace Jellyfish.Entities;
 
 [Entity("plane_flat")]
-public class Plane : BaseEntity, IPhysicsEntity
+public class Plane : BaseModelEntity, IPhysicsEntity
 {
-    private Mesh? _plane;
     private BodyID? _physicsBodyId;
 
     public Plane()
@@ -40,7 +39,7 @@ public class Plane : BaseEntity, IPhysicsEntity
         var texture = $"materials/{textureProperty}";
         var textureScale = GetPropertyValue<Vector2>("TextureScale");
 
-        _plane = new Mesh(new MeshPart
+        var meshPart = new MeshPart
         {
             Name = "plane_flat",
             Vertices = new List<Vertex>
@@ -83,42 +82,20 @@ public class Plane : BaseEntity, IPhysicsEntity
                 },
             },
             Texture = texture
-        })
+        };
+
+        Model = new Model(new Mesh(meshPart))
         {
             Position = GetPropertyValue<Vector3>("Position"),
             Rotation = GetPropertyValue<Quaternion>("Rotation")
         };
 
-        MeshManager.AddMesh(_plane);
-        _physicsBodyId = PhysicsManager.AddStaticObject(new []{ _plane.MeshPart }, this) ?? 0;
+        _physicsBodyId = PhysicsManager.AddStaticObject([meshPart], this) ?? 0;
         base.Load();
-    }
-
-    protected override void OnPositionChanged(Vector3 position)
-    {
-        if (_plane != null)
-        {
-            _plane.Position = position;
-        }
-
-        base.OnPositionChanged(position);
-    }
-
-    protected override void OnRotationChanged(Quaternion rotation)
-    {
-        if (_plane != null)
-        {
-            _plane.Rotation = rotation;
-        }
-
-        base.OnRotationChanged(rotation);
     }
 
     public override void Unload()
     {
-        if (_plane != null)
-            MeshManager.RemoveMesh(_plane);
-
         if (_physicsBodyId != null)
             PhysicsManager.RemoveObject(_physicsBodyId.Value);
 

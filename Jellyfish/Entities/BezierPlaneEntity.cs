@@ -8,9 +8,8 @@ using JoltPhysicsSharp;
 namespace Jellyfish.Entities;
 
 [Entity("plane_bezier")]
-public class BezierPlaneEntity : BaseEntity, IPhysicsEntity
+public class BezierPlaneEntity : BaseModelEntity, IPhysicsEntity
 {
-    private Mesh? _plane;
     private BodyID _physicsBodyId;
 
     public BezierPlaneEntity()
@@ -30,42 +29,20 @@ public class BezierPlaneEntity : BaseEntity, IPhysicsEntity
             return;
         }
 
-        _plane = new Mesh(GenerateRandom(GetPropertyValue<Vector2>("Size"), texture, GetPropertyValue<int>("QuadSize")))
+        var meshPart = GenerateRandom(GetPropertyValue<Vector2>("Size"), texture, GetPropertyValue<int>("QuadSize"));
+
+        Model = new Model(new Mesh(meshPart))
         {
             Position = GetPropertyValue<Vector3>("Position"),
             Rotation = GetPropertyValue<Quaternion>("Rotation")
         };
 
-        MeshManager.AddMesh(_plane);
-        _physicsBodyId = PhysicsManager.AddStaticObject(new[] { _plane.MeshPart }, this) ?? 0;
+        _physicsBodyId = PhysicsManager.AddStaticObject([meshPart], this) ?? 0;
         base.Load();
-    }
-
-    protected override void OnPositionChanged(Vector3 position)
-    {
-        if (_plane != null)
-        {
-            _plane.Position = position;
-        }
-
-        base.OnPositionChanged(position);
-    }
-
-    protected override void OnRotationChanged(Quaternion rotation)
-    {
-        if (_plane != null)
-        {
-            _plane.Rotation = rotation;
-        }
-
-        base.OnRotationChanged(rotation);
     }
 
     public override void Unload()
     {
-        if (_plane != null)
-            MeshManager.RemoveMesh(_plane);
-
         PhysicsManager.RemoveObject(_physicsBodyId);
 
         base.Unload();
