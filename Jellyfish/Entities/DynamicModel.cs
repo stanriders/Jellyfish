@@ -2,6 +2,7 @@
 using System.Linq;
 using JoltPhysicsSharp;
 using OpenTK.Mathematics;
+using BoundingBox = Jellyfish.Utils.BoundingBox;
 
 namespace Jellyfish.Entities;
 

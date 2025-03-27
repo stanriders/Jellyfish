@@ -1,9 +1,9 @@
 ﻿using Jellyfish.Render;
 using OpenTK.Mathematics;
 
-namespace Jellyfish;
+namespace Jellyfish.Utils;
 
-public struct BoundingBox
+public readonly struct BoundingBox
 {
     public Vector3 Center { get; }
     public Vector3 Size { get; }
@@ -91,5 +91,39 @@ public struct BoundingBox
         Size = new Vector3(maxX - minX, maxY - minY, maxZ - minZ);
         Max = new Vector3(maxX, maxY, maxZ);
         Min = new Vector3(minX, minY, minZ);
+    }
+
+    public BoundingBox(Vector3 max, Vector3 min)
+    {
+        var midX = (max.X + min.X) / 2f;
+        var midY = (max.Y + min.Y) / 2f;
+        var midZ = (max.Z + min.Z) / 2f;
+
+        Center = new Vector3(midX, midY, midZ);
+        Size = new Vector3(max.X - min.X, max.Y - min.Y, max.Z - min.Z);
+        Min = min;
+        Max = max;
+    }
+
+    public BoundingBox Translate(Matrix4 transform)
+    {
+        var transformedMax = Vector3.TransformVector(Max, transform);
+        var transformedMin = Vector3.TransformVector(Min, transform);
+
+        var newMax = new Vector3(transformedMin.X > transformedMax.X ? transformedMin.X : transformedMax.X, 
+            transformedMin.Y > transformedMax.Y ? transformedMin.Y : transformedMax.Y, 
+            transformedMin.Z > transformedMax.Z ? transformedMin.Z : transformedMax.Z);
+
+        var newMin = new Vector3(transformedMin.X < transformedMax.X ? transformedMin.X : transformedMax.X,
+            transformedMin.Y < transformedMax.Y ? transformedMin.Y : transformedMax.Y,
+            transformedMin.Z < transformedMax.Z ? transformedMin.Z : transformedMax.Z);
+
+        return new BoundingBox(newMax, newMin);
+    }
+
+    public bool IsPointInside(Vector3 point)
+    {
+        return point.X < Max.X && point.Y < Max.Y && point.Z < Max.Z &&
+               point.X > Min.X && point.Y > Min.Y && point.Z > Min.Z;
     }
 }

@@ -122,6 +122,29 @@ public class EntityManager
         return null;
     }
 
+    public static BaseEntity? FindEntityByName(string? name, bool silent = false)
+    {
+        if (instance == null)
+        {
+            Log.Context("EntityManager").Information("Entity manager doesn't exist");
+            return null;
+        }
+
+        if (name == null)
+            return null;
+
+        var entity = instance._entityList.FirstOrDefault(x => x.Name == name);
+        if (entity != null)
+        {
+            return entity;
+        }
+
+        if (!silent)
+            Log.Context("EntityManager").Error("Entity {Name} wasn't found", name);
+
+        return null;
+    }
+
     public static void KillEntity(BaseEntity entity)
     {
         if (instance == null)

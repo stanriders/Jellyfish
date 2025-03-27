@@ -2,6 +2,7 @@
 using Jellyfish.Console;
 using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Shaders.Deferred;
+using Jellyfish.Utils;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
@@ -86,6 +87,9 @@ public class Mesh
     public Vector3 Position = Vector3.Zero;
     public Quaternion Rotation = Quaternion.Identity;
     public Vector3 Scale = Vector3.One;
+
+    public BoundingBox BoundingBox => MeshPart.BoundingBox.Translate(Matrix4.Identity * Matrix4.CreateScale(Scale) *
+                                                                     Matrix4.CreateFromQuaternion(Rotation));
     public bool ShouldDraw { get; set; } = true;
     public bool IsDev { get; set; }
     public Material? Material { get; set; }

@@ -1,8 +1,10 @@
 ﻿using System;
+using Jellyfish.Console;
 using Jellyfish.Input;
 using JoltPhysicsSharp;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using Ray = Jellyfish.Utils.Ray;
 
 namespace Jellyfish.Entities;
 
@@ -105,9 +107,26 @@ public class Player : BaseEntity, IInputHandler
 
     public Matrix4 GetProjectionMatrix()
     {
-        return Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, 0.05f, 100000f);
+        return Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, 1f, 10000f);
     }
 
+    public Ray GetCameraToViewportRay(Vector2 screenPosition)
+    {
+        var inverseVp = (GetViewMatrix() * GetProjectionMatrix()).Inverted();
+
+        var ndc = new Vector2(2.0f * screenPosition.X - 1.0f, 2.0f * (1.0f - screenPosition.Y) - 1f);
+        var clip = new Vector4(ndc, -1.0f, 1.0f);
+
+        var view = clip * inverseVp;
+        view /= view.W;
+
+        var nearPointWorld = new Vector3(view.X, view.Y, view.Z);
+        var rayOrigin = GetPropertyValue<Vector3>("Position");
+        var rayDirection = Vector3.Normalize(nearPointWorld - rayOrigin);
+
+        return new Ray(rayOrigin, rayDirection);
+    }
+        
     public override void Think()
     {
         UpdateVectors();
@@ -129,25 +148,28 @@ public class Player : BaseEntity, IInputHandler
 
     public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
     {
+        _noclip = ConVarStorage.Get<bool>("edt_enable");
+
+        return !_noclip ? PhysicsMove(keyboardState, mouseState, frameTime) : NoclipMove(keyboardState, mouseState, frameTime);
+    }
+
+    private bool PhysicsMove(KeyboardState keyboardState, MouseState mouseState, float frameTime)
+    {
         var inputHandled = false;
 
-        if (keyboardState.IsKeyPressed(Keys.V))
+        if (_physCharacter != null)
         {
-            _noclip = !_noclip;
-            inputHandled = true;
-        }
-        
-        var cameraSpeed = keyboardState.IsKeyDown(Keys.LeftShift) ? camera_speed * 4 : camera_speed;
+            var cameraSpeed = keyboardState.IsKeyDown(Keys.LeftShift) ? camera_speed * 4 : camera_speed;
 
-        if (_physCharacter != null && !_noclip)
-        {
             SetPropertyValue("Position", _physCharacter.Position.ToOpentkVector());
 
             bool playerControlsHorizontalVelocity = _physCharacter.IsSupported;
 
-            var verticalVelocity = (Vector3.Dot(_physCharacter.LinearVelocity.ToOpentkVector(), Vector3.UnitY) * Vector3.UnitY).ToNumericsVector();
+            var verticalVelocity =
+                (Vector3.Dot(_physCharacter.LinearVelocity.ToOpentkVector(), Vector3.UnitY) * Vector3.UnitY)
+                .ToNumericsVector();
 
-            var desiredVelocity = new System.Numerics.Vector3();
+            var desiredVelocity = System.Numerics.Vector3.Zero;
             var newVelocity = verticalVelocity;
 
             if (_physCharacter.GroundState != GroundState.InAir)
@@ -155,32 +177,23 @@ public class Player : BaseEntity, IInputHandler
                 newVelocity = _physCharacter.GroundVelocity;
             }
 
-            if (mouseState.IsButtonDown(MouseButton.Left))
-            {
-                if (keyboardState.IsKeyDown(Keys.W))
-                    desiredVelocity += new System.Numerics.Vector3(Front.X, 0, Front.Z) * cameraSpeed;  // Forward 
-                if (keyboardState.IsKeyDown(Keys.S))
-                    desiredVelocity -= new System.Numerics.Vector3(Front.X, 0, Front.Z) * cameraSpeed; // Backwards
-                if (keyboardState.IsKeyDown(Keys.A))
-                    desiredVelocity -= new System.Numerics.Vector3(Right.X, 0, Right.Z) * cameraSpeed; // Left
-                if (keyboardState.IsKeyDown(Keys.D))
-                    desiredVelocity += new System.Numerics.Vector3(Right.X, 0, Right.Z) * cameraSpeed; // Right
+            if (keyboardState.IsKeyDown(Keys.W))
+                desiredVelocity += new System.Numerics.Vector3(Front.X, 0, Front.Z) * cameraSpeed; // Forward 
+            if (keyboardState.IsKeyDown(Keys.S))
+                desiredVelocity -= new System.Numerics.Vector3(Front.X, 0, Front.Z) * cameraSpeed; // Backwards
+            if (keyboardState.IsKeyDown(Keys.A))
+                desiredVelocity -= new System.Numerics.Vector3(Right.X, 0, Right.Z) * cameraSpeed; // Left
+            if (keyboardState.IsKeyDown(Keys.D))
+                desiredVelocity += new System.Numerics.Vector3(Right.X, 0, Right.Z) * cameraSpeed; // Right
 
-                // jump
-                if (keyboardState.IsKeyDown(Keys.Space) && _physCharacter.GroundState != GroundState.InAir)
-                    desiredVelocity += System.Numerics.Vector3.UnitY * jump_velocity;
+            // jump
+            if (keyboardState.IsKeyDown(Keys.Space) && _physCharacter.GroundState != GroundState.InAir)
+                desiredVelocity += System.Numerics.Vector3.UnitY * jump_velocity;
 
-                Yaw += mouseState.Delta.X * sensitivity;
-                Pitch -= mouseState.Delta.Y * sensitivity;
+            Yaw += mouseState.Delta.X * sensitivity;
+            Pitch -= mouseState.Delta.Y * sensitivity;
 
-                inputHandled = true;
-
-                if (!IsControllingCursor)
-                {
-                    InputManager.CaptureInput(this);
-                    IsControllingCursor = true;
-                }
-            }
+            inputHandled = desiredVelocity != System.Numerics.Vector3.Zero || mouseState.Delta != Vector2.Zero;
 
             newVelocity += (System.Numerics.Vector3.UnitY * PhysicsManager.GetGravity()) * frameTime;
 
@@ -196,54 +209,61 @@ public class Player : BaseEntity, IInputHandler
             }
 
             _physCharacter.LinearVelocity = newVelocity;
+
+            IsControllingCursor = true;
         }
-        else
+
+        return inputHandled;
+    }
+
+    private bool NoclipMove(KeyboardState keyboardState, MouseState mouseState, float frameTime)
+    {
+        var cameraSpeed = keyboardState.IsKeyDown(Keys.LeftShift) ? camera_speed * 4 : camera_speed;
+
+        if (mouseState.IsButtonDown(MouseButton.Right))
         {
-            if (mouseState.IsButtonDown(MouseButton.Left))
+            var position = GetPropertyValue<Vector3>("Position");
+            var prevPosition = new Vector3(position.X, position.Y, position.Z);
+
+            if (keyboardState.IsKeyDown(Keys.W))
+                position += Front * cameraSpeed * frameTime; // Forward 
+            if (keyboardState.IsKeyDown(Keys.S))
+                position -= Front * cameraSpeed * frameTime; // Backwards
+            if (keyboardState.IsKeyDown(Keys.A))
+                position -= Right * cameraSpeed * frameTime; // Left
+            if (keyboardState.IsKeyDown(Keys.D))
+                position += Right * cameraSpeed * frameTime; // Right
+            if (keyboardState.IsKeyDown(Keys.Space))
+                position += Up * cameraSpeed * frameTime; // Up 
+            if (keyboardState.IsKeyDown(Keys.LeftControl))
+                position -= Up * cameraSpeed * frameTime; // Down
+
+            SetPropertyValue("Position", position);
+
+            if (_physCharacter != null)
             {
-                var position = GetPropertyValue<Vector3>("Position");
-                var prevPosition = new Vector3(position.X, position.Y, position.Z);
-
-                if (keyboardState.IsKeyDown(Keys.W))
-                    position += Front * cameraSpeed * frameTime; // Forward 
-                if (keyboardState.IsKeyDown(Keys.S))
-                    position -= Front * cameraSpeed * frameTime; // Backwards
-                if (keyboardState.IsKeyDown(Keys.A))
-                    position -= Right * cameraSpeed * frameTime; // Left
-                if (keyboardState.IsKeyDown(Keys.D))
-                    position += Right * cameraSpeed * frameTime; // Right
-                if (keyboardState.IsKeyDown(Keys.Space))
-                    position += Up * cameraSpeed * frameTime; // Up 
-                if (keyboardState.IsKeyDown(Keys.LeftControl))
-                    position -= Up * cameraSpeed * frameTime; // Down
-
-                SetPropertyValue("Position", position);
-
-                if (_physCharacter != null)
-                {
-                    _physCharacter.Position = position.ToNumericsVector();
-                    _physCharacter.LinearVelocity = (position - prevPosition).ToNumericsVector();
-                }
-
-                Yaw += mouseState.Delta.X * sensitivity;
-                Pitch -= mouseState.Delta.Y * sensitivity;
-
-                if (!IsControllingCursor)
-                {
-                    InputManager.CaptureInput(this);
-                    IsControllingCursor = true;
-                }
-
-                inputHandled = true;
+                _physCharacter.Position = position.ToNumericsVector();
+                _physCharacter.LinearVelocity = (position - prevPosition).ToNumericsVector();
             }
+
+            Yaw += mouseState.Delta.X * sensitivity;
+            Pitch -= mouseState.Delta.Y * sensitivity;
+
+            if (!IsControllingCursor)
+            {
+                InputManager.CaptureInput(this);
+                IsControllingCursor = true;
+            }
+
+            return true;
         }
 
-        if (IsControllingCursor && !inputHandled)
+        if (IsControllingCursor)
         {
             InputManager.ReleaseInput(this);
             IsControllingCursor = false;
         }
 
-        return inputHandled;
+        return false;
     }
 }

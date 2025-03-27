@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using Jellyfish.Console;
+using Jellyfish.Utils;
 using OpenTK.Mathematics;
 
 namespace Jellyfish.Render;
@@ -133,4 +134,6 @@ public class Model
             }
         }
     }
+
+    public BoundingBox BoundingBox => new BoundingBox(_meshes.Select(x => x.BoundingBox).ToArray());
 }

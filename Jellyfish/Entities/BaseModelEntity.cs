@@ -1,12 +1,13 @@
 ﻿using System.IO;
 using Jellyfish.Render;
+using Jellyfish.Utils;
 using OpenTK.Mathematics;
 
 namespace Jellyfish.Entities;
 
 public abstract class BaseModelEntity : BaseEntity
 {
-    protected Model? Model { get; private set; }
+    protected Model? Model { get; set; }
 
     protected string? ModelPath { get; set; }
 
@@ -64,4 +65,17 @@ public abstract class BaseModelEntity : BaseEntity
             Model.Scale = scale;
         }
     }
+
+    public override bool IsPointWithinBoundingBox(Vector3 point)
+    {
+        if (Model != null)
+        {
+            var modelSpacePoint = point - Model.Position;
+            return Model.BoundingBox.IsPointInside(modelSpacePoint);
+        }
+
+        return false;
+    }
+
+    public override BoundingBox? BoundingBox => Model?.BoundingBox;
 }

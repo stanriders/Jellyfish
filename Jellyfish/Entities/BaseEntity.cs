@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ImGuiNET;
 using Jellyfish.Console;
 using Jellyfish.Render;
+using Jellyfish.Utils;
 using OpenTK.Mathematics;
 using Serilog;
 using Log = Jellyfish.Console.Log;
@@ -73,9 +73,7 @@ public abstract class BaseEntity
 
         if (ConVarStorage.Get<bool>("edt_enable") && ConVarStorage.Get<bool>("edt_drawnames"))
         {
-            var drawList = ImGui.GetBackgroundDrawList();
-            var screenspacePosition = GetPropertyValue<Vector3>("Position").ToNumericsVector().ToScreenspace();
-            drawList.AddText(screenspacePosition, uint.MaxValue, Name);
+            Debug.DrawText(GetPropertyValue<Vector3>("Position"), Name ?? "null");
         }
     }
 
@@ -152,6 +150,18 @@ public abstract class BaseEntity
     {
         return Log.Context(Name ?? GetType().Name);
     }
+
+    public virtual bool IsPointWithinBoundingBox(Vector3 point)
+    {
+        return DrawDevCone && (_devCone?.IsPointWithinBoundingBox(point) ?? false);
+    }
+
+    public virtual BoundingBox? BoundingBox => DrawDevCone ? _devCone?.BoundingBox : null;
+
+    public override string ToString()
+    {
+        return Name ?? GetType().Name;
+    }
 }
 
 public class EntityDevCone
@@ -182,4 +192,11 @@ public class EntityDevCone
     {
         _model.Unload();
     }
+
+    public bool IsPointWithinBoundingBox(Vector3 point)
+    {
+        return _model.BoundingBox.IsPointInside(point);
+    }
+
+    public BoundingBox BoundingBox => _model.BoundingBox;
 }
