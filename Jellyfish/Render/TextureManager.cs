@@ -24,6 +24,18 @@ public static class TextureManager
         return (texture, false);
     }
 
+    public static Texture? GetTexture(string name)
+    {
+        var existingTexture = _textures.FirstOrDefault(x => x.Path == name);
+        if (existingTexture != null)
+        {
+            existingTexture.References++;
+            return existingTexture;
+        }
+
+        return null;
+    }
+
     public static void RemoveTexture(Texture texture)
     {
         texture.References--;
