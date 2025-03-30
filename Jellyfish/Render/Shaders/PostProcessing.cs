@@ -5,7 +5,7 @@ public class PostProcessing : Shader
     private readonly RenderTarget _rtColor;
 
     public PostProcessing(RenderTarget color) : 
-        base("shaders/PostProcessing.vert", null, "shaders/PostProcessing.frag")
+        base("shaders/Screenspace.vert", null, "shaders/PostProcessing.frag")
     {
         _rtColor = color;
     }
