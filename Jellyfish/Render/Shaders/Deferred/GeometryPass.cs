@@ -10,11 +10,11 @@ public class GeometryPass : Shader
 
     public GeometryPass(string diffusePath, string? normalPath = null) : base("shaders/Main.vert", null, "shaders/GeometryPass.frag")
     {
-        _diffuse = TextureManager.GetTexture(diffusePath, TextureTarget.Texture2d).Texture;
+        _diffuse = TextureManager.GetTexture(diffusePath, TextureTarget.Texture2d, true).Texture;
 
         if (!string.IsNullOrEmpty(normalPath))
         {
-            _normal = TextureManager.GetTexture(normalPath, TextureTarget.Texture2d).Texture;
+            _normal = TextureManager.GetTexture(normalPath, TextureTarget.Texture2d, false).Texture;
         }
     }
 

@@ -9,7 +9,7 @@ public static class TextureManager
     private static List<Texture> _textures { get; } = new();
     public static IReadOnlyList<Texture> Textures { get; } = _textures.AsReadOnly();
 
-    public static (Texture Texture, bool AlreadyExists) GetTexture(string name, TextureTarget type)
+    public static (Texture Texture, bool AlreadyExists) GetTexture(string name, TextureTarget type, bool srgb)
     {
         var existingTexture = _textures.FirstOrDefault(x => x.Path == name);
         if (existingTexture != null)
@@ -18,7 +18,7 @@ public static class TextureManager
             return (existingTexture, true);
         }
 
-        var texture = new Texture(name, type);
+        var texture = new Texture(name, type, srgb);
         _textures.Add(texture);
 
         return (texture, false);

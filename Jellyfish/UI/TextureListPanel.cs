@@ -40,7 +40,7 @@ public class TextureListPanel : IUiPanel, IInputHandler
 
                 ImGui.PushTextWrapPos(ImGui.GetCursorPos().X + item_width);
                 if (expanded)
-                    ImGui.Text($"{texture.Path}: {texture.References} references, {texture.Levels} levels, {texture.Format}");
+                    ImGui.Text($"{texture.Path}: {(texture.Srgb ? "[SRGB] " : "")}{texture.References} references, {texture.Levels} levels, {texture.Format}");
                 else
                     ImGui.Text($"{texture.Path} ({texture.References} references)");
                 ImGui.PopTextWrapPos();

@@ -100,7 +100,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
         var mips = (int)Math.Floor(Math.Log(Math.Max(width, height), 2));
 
-        (var fontTexture, var alreadyExists) = TextureManager.GetTexture("_imgui_Fonts", TextureTarget.Texture2d);
+        (var fontTexture, var alreadyExists) = TextureManager.GetTexture("_imgui_Fonts", TextureTarget.Texture2d, false);
         _fontTexture = fontTexture.Handle;
 
         if (!alreadyExists)

@@ -133,5 +133,8 @@ void main()
         0.758                           // Mie preferred scattering direction
     );
 
+    const float gamma = 2.2;
+    color = pow(color, vec3(gamma));
+
     FragColor = vec4(color, 1);
 }

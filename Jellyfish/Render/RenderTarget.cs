@@ -15,7 +15,7 @@ public class RenderTarget
         Size = new Vector2(width, heigth);
         Levels = levels;
 
-        _texture = TextureManager.GetTexture(name, TextureTarget.Texture2d).Texture;
+        _texture = TextureManager.GetTexture(name, TextureTarget.Texture2d, false).Texture;
         TextureHandle = _texture.Handle;
         GL.BindTexture(TextureTarget.Texture2d, TextureHandle);
 

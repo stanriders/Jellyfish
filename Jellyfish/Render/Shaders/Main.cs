@@ -22,19 +22,19 @@ public class Main : Shader
         base("shaders/Main.vert", null, "shaders/Main.frag")
     {
         _alphaTest = alphaTest;
-        _diffuse = TextureManager.GetTexture(diffusePath, TextureTarget.Texture2d).Texture;
+        _diffuse = TextureManager.GetTexture(diffusePath, TextureTarget.Texture2d, true).Texture;
 
         if (!string.IsNullOrEmpty(normalPath))
         {
-            _normal = TextureManager.GetTexture(normalPath, TextureTarget.Texture2d).Texture;
+            _normal = TextureManager.GetTexture(normalPath, TextureTarget.Texture2d, false).Texture;
         }
 
         if (!string.IsNullOrEmpty(metroughPath))
         {
-            _metRought = TextureManager.GetTexture(metroughPath, TextureTarget.Texture2d).Texture;
+            _metRought = TextureManager.GetTexture(metroughPath, TextureTarget.Texture2d, false).Texture;
         }
 
-        var (dummyShadow, alreadyExists) = TextureManager.GetTexture("_rt_dummyShadow", TextureTarget.Texture2d);
+        var (dummyShadow, alreadyExists) = TextureManager.GetTexture("_rt_dummyShadow", TextureTarget.Texture2d, false);
         _dummyShadow = dummyShadow;
 
         if (!alreadyExists)

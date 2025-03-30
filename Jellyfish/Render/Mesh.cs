@@ -15,10 +15,7 @@ public struct Bone
     public string Name { get; set; } = null!;
     public int? Parent { get; set; } = null;
 
-    public override string ToString()
-    {
-        return $"{Id} - {Name}";
-    }
+    public override string ToString() => $"{Id} - {Name}";
 
     public Bone()
     {
@@ -30,10 +27,7 @@ public struct BoneLink
     public int Id {get; set; }
     public float Weigth { get; set; }
 
-    public override string ToString()
-    {
-        return $"{Id} - {Weigth}";
-    }
+    public override string ToString() => $"{Id} - {Weigth}";
 }
 
 public struct Vertex
@@ -47,10 +41,7 @@ public struct Vertex
     {
     }
 
-    public override string ToString()
-    {
-        return Coordinates.ToString();
-    }
+    public override string ToString() => Coordinates.ToString();
 }
 
 public class Mesh

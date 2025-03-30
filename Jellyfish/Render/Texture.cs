@@ -13,14 +13,16 @@ public class Texture
     public int References { get; set; } = 1;
     public int Levels { get; set; }
     public string Format { get; set; } = string.Empty;
+    public bool Srgb { get; set; }
 
     private readonly bool _isError;
 
     public const string error_texture = "materials/error.png";
 
-    public Texture(string path, TextureTarget type)
+    public Texture(string path, TextureTarget type, bool srgb)
     {
         Path = path;
+        Srgb = srgb;
 
         if (string.IsNullOrEmpty(path))
             return;
@@ -43,12 +45,21 @@ public class Texture
             _isError = true;
 
         using var image = new MagickImage(path);
+
+        // downsample sRGB-expected textures since ogl doesn't support 16-bit sRGB
+        if (image.Depth == 16 && srgb)
+        {
+            image.Depth = 8;
+        }
+
         using var data = image.GetPixelsUnsafe(); // feels scary
 
         var hasAlpha = image.ChannelCount == 4;
 
         var pixelFormat = hasAlpha ? PixelFormat.Rgba : PixelFormat.Rgb;
-        var internalPixelFormat = hasAlpha ? SizedInternalFormat.Rgba8 : SizedInternalFormat.Rgb8;
+        var internalPixelFormat = hasAlpha ?
+            srgb ? SizedInternalFormat.Srgb8Alpha8 : SizedInternalFormat.Rgba8 :
+            srgb ? SizedInternalFormat.Srgb8 : SizedInternalFormat.Rgb8;
 
         if (image.Depth == 16)
         {

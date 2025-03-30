@@ -40,7 +40,7 @@ public class OpenGLRender : IRender, IInputHandler
     public void CreateBuffers()
     {
         GL.Enable(EnableCap.CullFace);
-        GL.Enable(EnableCap.Blend);
+        GL.Enable(EnableCap.FramebufferSrgb);
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         GL.BlendEquation(BlendEquationMode.FuncAdd);
 
@@ -56,6 +56,8 @@ public class OpenGLRender : IRender, IInputHandler
         }
 
         _mainFramebuffer.Unbind();
+
+        GL.Disable(EnableCap.FramebufferSrgb);
 
         _gBuffer = new GBuffer(_depthRenderTarget);
         _sky = new Sky();
@@ -87,6 +89,7 @@ public class OpenGLRender : IRender, IInputHandler
         LightManager.DrawShadows();
 
         _mainFramebuffer?.Bind();
+        GL.Enable(EnableCap.Blend);
 
         GL.Viewport(0, 0, MainWindow.WindowWidth, MainWindow.WindowHeight);
         GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -97,6 +100,7 @@ public class OpenGLRender : IRender, IInputHandler
         _sky?.Draw();
         MeshManager.Draw();
 
+        GL.Disable(EnableCap.Blend);
         _mainFramebuffer?.Unbind();
 
         _postProcessing?.Draw();
