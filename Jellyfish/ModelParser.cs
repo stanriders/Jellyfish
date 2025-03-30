@@ -5,16 +5,17 @@ using Assimp;
 using Jellyfish.FileFormats.Models;
 using Jellyfish.Render;
 using OpenTK.Mathematics;
+using Mesh = Jellyfish.Render.Mesh;
 using Quaternion = OpenTK.Mathematics.Quaternion;
 
 namespace Jellyfish;
 
 public static class ModelParser
 {
-    public static MeshPart[] Parse(string path)
+    public static Mesh[] Parse(string path)
     {
         if (Path.GetExtension(path) == ".mdl")
-            return MDL.Load(path[..^4]).Vtx.MeshParts.ToArray();
+            return MDL.Load(path[..^4]).Vtx.Meshes.ToArray();
 
         var importer = new AssimpContext();
         var scene = importer.ImportFile(path, PostProcessSteps.Triangulate | 
@@ -25,7 +26,7 @@ public static class ModelParser
 
         var prerotate = Path.GetExtension(path) == ".smd";
 
-        var mashParts = new List<MeshPart>();
+        var mashes = new List<Mesh>();
         foreach (var mesh in scene.Meshes)
         {
             var coords = mesh.Vertices.Select(x => new Vector3(x.X, x.Y, x.Z)).ToArray();
@@ -61,16 +62,13 @@ public static class ModelParser
                 }
             }
             
-            mashParts.Add(new MeshPart
-            {
-                Name = Path.GetFileNameWithoutExtension(path),
-                Vertices = verticies,
-                Indices = mesh.GetUnsignedIndices().ToList(),
-                Texture = scene.Materials[mesh.MaterialIndex].TextureDiffuse.FilePath,
-                Bones = bones
-            });
+            mashes.Add(new Mesh(Path.GetFileNameWithoutExtension(path), 
+                verticies, 
+                mesh.GetUnsignedIndices().ToList(), 
+                bones, 
+                scene.Materials[mesh.MaterialIndex].TextureDiffuse.FilePath ?? scene.Materials[mesh.MaterialIndex].Name));
         }
 
-        return mashParts.ToArray();
+        return mashes.ToArray();
     }
 }

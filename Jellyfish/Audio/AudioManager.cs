@@ -65,7 +65,7 @@ namespace Jellyfish.Audio
             return null;
         }
         
-        public static void AddMesh(MeshPart mesh)
+        public static void AddMesh(Mesh mesh)
         {
             if (instance == null)
                 return;

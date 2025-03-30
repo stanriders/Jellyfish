@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using Jellyfish.Console;
 using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Shaders.Deferred;
@@ -7,34 +8,6 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
 namespace Jellyfish.Render;
-
-public class MeshPart
-{
-    public required string Name { get; set; }
-    public string? Texture { get; set; }
-    public List<Vertex> Vertices { get; set; } = new();
-    public List<Bone> Bones { get; set; } = new();
-    public List<uint>? Indices { get; set; } // can be null
-
-    private BoundingBox? _boundingBox;
-    public BoundingBox BoundingBox
-    {
-        get
-        {
-            if (_boundingBox != null) 
-                return _boundingBox.Value;
-
-            _boundingBox = new BoundingBox(Vertices.ToArray());
-
-            return _boundingBox.Value;
-        }
-    }
-
-    public override string ToString()
-    {
-        return Name;
-    }
-}
 
 public struct Bone
 {
@@ -83,56 +56,107 @@ public struct Vertex
 public class Mesh
 {
     private IndexBuffer? _ibo;
-    
+    private VertexArray _vao = null!;
+    private VertexBuffer _vbo = null!;
+
+    private Shader _shader = null!;
+    private GeometryPass _gBufferShader = null!;
+
     public Vector3 Position = Vector3.Zero;
     public Quaternion Rotation = Quaternion.Identity;
     public Vector3 Scale = Vector3.One;
 
-    public BoundingBox BoundingBox => MeshPart.BoundingBox.Translate(Matrix4.Identity * Matrix4.CreateScale(Scale) *
-                                                                     Matrix4.CreateFromQuaternion(Rotation));
+    public string Name { get; set; }
     public bool ShouldDraw { get; set; } = true;
     public bool IsDev { get; set; }
-    public Material? Material { get; set; }
+    public Material? Material { get; private set; }
+    public List<Vertex> Vertices { get; private set; }
+    public List<Bone> Bones { get; private set; }
+    public List<uint>? Indices { get; private set; }
+    public override string ToString() => Name;
 
-    private Shader _shader = null!;
-    private GeometryPass _gBufferShader = null!;
-    private VertexArray _vao = null!;
-    private VertexBuffer _vbo = null!;
-
-    public Mesh(MeshPart mesh)
+    private BoundingBox? _boundingBox;
+    public BoundingBox BoundingBox
     {
-        MeshPart = mesh;
-        if (mesh.Texture != null)
+        get
         {
-            AddMaterial(mesh.Texture);
+            _boundingBox ??= new BoundingBox(Vertices.ToArray());
+
+            return _boundingBox.Value.Translate(Matrix4.Identity * Matrix4.CreateScale(Scale) *
+                                                Matrix4.CreateFromQuaternion(Rotation));
+        }
+    }
+
+    public Mesh(string name, List<Vertex>? vertices = null, List<uint>? indices = null, List<Bone>? bones = null, string? texture = null)
+    {
+        Name = name;
+        Vertices = vertices ?? new List<Vertex>();
+        Indices = indices;
+        Bones = bones ?? new List<Bone>();
+
+        // TODO: this should be handled by the material itself
+        if (texture != null)
+        {
+            var modelFolder = $"materials/models/{name}";
+
+            var matPath = $"{modelFolder}/{Path.GetFileNameWithoutExtension(texture)}.mat";
+            if (!File.Exists(matPath))
+            {
+                matPath = $"{modelFolder}/{Path.GetFileName(texture)}";
+                if (!File.Exists(matPath))
+                {
+                    matPath = texture;
+                }
+            }
+
+            texture = matPath;
         }
         else
         {
-            Log.Context(this).Warning("Mesh {Name} doesn't have a texture!", mesh.Name);
+            Log.Context(this).Warning("Mesh {Name} has no texture data!!", name);
+
+            var modelFolder = $"materials/models/{name}";
+
+            var matPath = $"{modelFolder}/{name}.mat";
+            if (!File.Exists(matPath))
+                matPath = null;
+
+            texture = matPath;
+        }
+
+        if (texture != null)
+        {
+            AddMaterial(texture);
+        }
+        else
+        {
+            Log.Context(this).Warning("Mesh {Name} doesn't have a texture!", name);
             AddMaterial("materials/error.mat");
         }
-        CreateBuffers();
-
-        _vao.Unbind();
     }
 
-    public MeshPart MeshPart { get; private set; }
+    public void Load()
+    {
+        CreateBuffers();
+    }
 
     public virtual PrimitiveType PrimitiveType { get; set; } = PrimitiveType.Triangles;
+    public VertexBufferObjectUsage Usage { get; set; } = VertexBufferObjectUsage.StaticDraw;
 
     protected void AddMaterial(string path)
     {
         Material = new Material(path);
+
         _shader = Material.GetShaderInstance();
         _gBufferShader = new GeometryPass(Material.Diffuse, Material.Normal);
     }
 
     protected void CreateBuffers()
     {
-        _vbo = new VertexBuffer(MeshPart.Vertices.ToArray());
+        _vbo = new VertexBuffer(Vertices.ToArray(), Usage);
 
-        if (MeshPart.Indices != null && MeshPart.Indices.Count > 0)
-            _ibo = new IndexBuffer(MeshPart.Indices.ToArray());
+        if (Indices != null && Indices.Count > 0)
+            _ibo = new IndexBuffer(Indices.ToArray());
 
         _vao = new VertexArray(_vbo, _ibo);
 
@@ -161,6 +185,8 @@ public class Mesh
         GL.VertexArrayAttribBinding(_vao.Handle, normalLocation, 0);
         GL.VertexArrayAttribBinding(_vao.Handle, boneIdsLocation, 0);
         GL.VertexArrayAttribBinding(_vao.Handle, weightsLocation, 0);
+
+        _vao.Unbind();
     }
 
     public void DrawGBuffer()
@@ -181,15 +207,15 @@ public class Mesh
         var rotation = Matrix4.Identity * Matrix4.CreateFromQuaternion(Rotation);
         drawShader.SetMatrix4("rotation", rotation);
 
-        drawShader.SetInt("boneCount", MeshPart.Bones.Count);
+        drawShader.SetInt("boneCount", Bones.Count);
 
-        for (var i = 0; i < MeshPart.Bones.Count; i++)
+        for (var i = 0; i < Bones.Count; i++)
         {
             drawShader.SetMatrix4($"bones[{i}]", Matrix4.Identity);
         }
 
         if (_ibo != null)
-            GL.DrawElements(PrimitiveType, MeshPart.Indices!.Count, DrawElementsType.UnsignedInt, 0);
+            GL.DrawElements(PrimitiveType, Indices!.Count, DrawElementsType.UnsignedInt, 0);
         else
             GL.DrawArrays(PrimitiveType, 0, _vbo.Length);
 
@@ -197,10 +223,15 @@ public class Mesh
         _vao.Unbind();
     }
 
-    public void SetMeshPart(MeshPart part)
+    public void Update(List<Vertex> vertices, List<uint>? indices = null)
     {
-        _vbo.UpdateData(part.Vertices.ToArray());
-        MeshPart = part;
+        _vbo.UpdateData(vertices.ToArray());
+        Vertices = vertices;
+        if (indices != null) 
+        { 
+            //_ibo.UpdateData(indices.ToArray());
+            Indices = indices;
+        }
     }
 
     public void Unload()

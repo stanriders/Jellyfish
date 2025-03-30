@@ -39,58 +39,53 @@ public class Plane : BaseModelEntity, IPhysicsEntity
         var texture = $"materials/{textureProperty}";
         var textureScale = GetPropertyValue<Vector2>("TextureScale");
 
-        var meshPart = new MeshPart
+        var mesh = new Mesh("plane_flat", new List<Vertex>
         {
-            Name = "plane_flat",
-            Vertices = new List<Vertex>
+            new()
             {
-                new()
-                {
-                    Coordinates = a,
-                    Normal = normal,
-                    UV = new(0, 0)
-                },
-                new()
-                {
-                    Coordinates = b,
-                    Normal = normal,
-                    UV = new(textureScale.X, 0)
-                },
-                new()
-                {
-                    Coordinates = c,
-                    Normal = normal,
-                    UV = new(textureScale.X, textureScale.Y)
-                },
-                new()
-                {
-                    Coordinates = d,
-                    Normal = normal,
-                    UV = new(0, textureScale.Y)
-                },
-                new()
-                {
-                    Coordinates = a,
-                    Normal = normal,
-                    UV = new(0, 0)
-                },
-                new()
-                {
-                    Coordinates = c,
-                    Normal = normal,
-                    UV = new(textureScale.X, textureScale.Y)
-                },
+                Coordinates = a,
+                Normal = normal,
+                UV = new(0, 0)
             },
-            Texture = texture
-        };
+            new()
+            {
+                Coordinates = b,
+                Normal = normal,
+                UV = new(textureScale.X, 0)
+            },
+            new()
+            {
+                Coordinates = c,
+                Normal = normal,
+                UV = new(textureScale.X, textureScale.Y)
+            },
+            new()
+            {
+                Coordinates = d,
+                Normal = normal,
+                UV = new(0, textureScale.Y)
+            },
+            new()
+            {
+                Coordinates = a,
+                Normal = normal,
+                UV = new(0, 0)
+            },
+            new()
+            {
+                Coordinates = c,
+                Normal = normal,
+                UV = new(textureScale.X, textureScale.Y)
+            },
+        }, texture: texture);
 
-        Model = new Model(new Mesh(meshPart))
+        Model = new Model(mesh)
         {
             Position = GetPropertyValue<Vector3>("Position"),
             Rotation = GetPropertyValue<Quaternion>("Rotation")
         };
 
-        _physicsBodyId = PhysicsManager.AddStaticObject([meshPart], this) ?? 0;
+        _physicsBodyId = PhysicsManager.AddStaticObject([mesh], this) ?? 0;
         base.Load();
     }
 

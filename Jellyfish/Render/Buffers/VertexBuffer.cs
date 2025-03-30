@@ -21,7 +21,7 @@ public class VertexBuffer
         }
     }
 
-    private readonly VertexBufferObjectUsage _usage;
+    private VertexBufferObjectUsage _usage;
 
     public VertexBuffer(int size = 10000, VertexBufferObjectUsage usage = VertexBufferObjectUsage.StaticDraw)
     {
@@ -88,8 +88,13 @@ public class VertexBuffer
         Length = vertices.Length;
     }
 
-    public void UpdateData(Vertex[] vertices)
+    public void UpdateData(Vertex[] vertices, VertexBufferObjectUsage? usage = null)
     {
+        if (usage != null)
+        {
+            _usage = usage.Value;
+        }
+
         var coords = new List<float>();
         foreach (var vertex in vertices)
         {
@@ -109,7 +114,7 @@ public class VertexBuffer
 
             for (var i = 0; i < 4; i++)
             {
-                if (vertex.BoneLinks.Count > i)
+                if (vertex.BoneLinks?.Count > i)
                     coords.Add(vertex.BoneLinks[i].Id);
                 else
                     coords.Add(0);
@@ -117,7 +122,7 @@ public class VertexBuffer
 
             for (var i = 0; i < 4; i++)
             {
-                if (vertex.BoneLinks.Count > i)
+                if (vertex.BoneLinks?.Count > i)
                     coords.Add(vertex.BoneLinks[i].Weigth);
                 else
                     coords.Add(0f);

@@ -24,7 +24,7 @@ public class StaticModel : BaseModelEntity, IPhysicsEntity
     {
         ModelPath = $"models/{GetPropertyValue<string>("Model")}";
         base.Load();
-        _physicsBodyId = PhysicsManager.AddStaticObject(Model!.Meshes.Select(x => x.MeshPart).ToArray(), this) ?? 0;
+        _physicsBodyId = PhysicsManager.AddStaticObject(Model!.Meshes.ToArray(), this) ?? 0;
     }
 
     public override void Unload()

@@ -89,7 +89,7 @@ public class DynamicModel : BaseModelEntity, IPhysicsEntity
 
     public virtual ShapeSettings CalculatePhysicsShape()
     {
-        var boundingBox = new BoundingBox(Model!.Meshes.Select(x => x.MeshPart).Select(x => x.BoundingBox).ToArray());
+        var boundingBox = new BoundingBox(Model!.Meshes.Select(x => x.BoundingBox).ToArray());
 
         var halfHeigth = boundingBox.Size.Y / 2f;
         var horizontalRadius = Math.Max(boundingBox.Size.X, boundingBox.Size.Z) / 2f;

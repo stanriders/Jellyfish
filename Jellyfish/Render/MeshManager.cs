@@ -9,16 +9,17 @@ namespace Jellyfish.Render;
 public static class MeshManager
 {
     private static readonly List<Mesh> meshes = new();
-    private static readonly List<(Mesh, MeshPart)> updateQueue = new();
+    private static readonly List<(Mesh, List<Vertex>)> updateQueue = new();
 
     private static bool drawing;
 
     public static void AddMesh(Mesh mesh)
     {
+        mesh.Load();
         meshes.Add(mesh);
 
         if (!mesh.IsDev)
-            AudioManager.AddMesh(mesh.MeshPart);
+            AudioManager.AddMesh(mesh);
     }
 
     public static void RemoveMesh(Mesh mesh)
@@ -32,12 +33,12 @@ public static class MeshManager
         mesh.Unload();
     }
 
-    public static void UpdateMesh(Mesh mesh, MeshPart part)
+    public static void UpdateMesh(Mesh mesh, List<Vertex> vertices)
     {
         if (!drawing)
         {
             if (!updateQueue.Any(x=> x.Item1 == mesh))
-                updateQueue.Add((mesh, part));
+                updateQueue.Add((mesh, vertices));
         }
     }
 
@@ -49,7 +50,7 @@ public static class MeshManager
 
         var sortedMeshes = meshes.OrderByDescending(x => !(x.Material?.AlphaTest ?? false))
             .ThenByDescending(x =>
-                ((x.Position + x.MeshPart.BoundingBox.Center) - playerPosition)?
+                ((x.Position + x.BoundingBox.Center) - playerPosition)?
                 .Length);
 
         foreach (var mesh in sortedMeshes)
@@ -64,7 +65,7 @@ public static class MeshManager
         // ensures that all VBO updates happen post-rendering
         foreach (var update in updateQueue)
         {
-            update.Item1.SetMeshPart(update.Item2);
+            update.Item1.Update(update.Item2);
         }
 
         updateQueue.Clear();

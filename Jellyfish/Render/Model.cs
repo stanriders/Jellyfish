@@ -37,28 +37,8 @@ public class Model
 
         foreach (var meshPart in meshParts)
         {
-            if (meshPart.Texture != null)
-            {
-                var modelFolder = $"materials/models/{meshPart.Name}";
-                var matPath = $"{modelFolder}/{Path.GetFileNameWithoutExtension(meshPart.Texture)}.mat";
-                if (!File.Exists(matPath))
-                    matPath = $"{modelFolder}/{Path.GetFileName(meshPart.Texture)}";
-
-                meshPart.Texture = matPath;
-            }
-            else
-            {
-                Log.Context(this).Warning("Mesh {Name} has no texture data!!", meshPart.Name);
-
-                var modelFolder = $"materials/models/{meshPart.Name}";
-                var matPath = $"{modelFolder}/{meshPart.Name}.mat";
-                if (!File.Exists(matPath))
-                    matPath = null;
-
-                meshPart.Texture = matPath;
-            }
-
-            _meshes.Add(new Mesh(meshPart) {IsDev = isDev});
+            meshPart.IsDev = isDev;
+            _meshes.Add(meshPart);
         }
 
         foreach (var mesh in _meshes)

@@ -7,6 +7,7 @@ using Jellyfish.Console;
 using Jellyfish.Entities;
 using Jellyfish.Render;
 using JoltPhysicsSharp;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using Mesh = Jellyfish.Render.Mesh;
 using Quaternion = OpenTK.Mathematics.Quaternion;
@@ -54,7 +55,11 @@ public class PhysicsManager
 
     public PhysicsManager()
     {
-        _debugMesh = new Mesh(new MeshPart { Name = "physdebug" }) { IsDev = true };
+        _debugMesh = new Mesh("physdebug", texture: "materials/error.mat")
+        {
+            IsDev = true, 
+            Usage = VertexBufferObjectUsage.StreamDraw
+        };
         MeshManager.AddMesh(_debugMesh);
 
         var physicsThread = new Thread(Run) { Name = "Physics thread" };
@@ -68,7 +73,7 @@ public class PhysicsManager
         return instance?.Gravity ?? System.Numerics.Vector3.Zero;
     }
 
-    public static BodyID? AddStaticObject(MeshPart[] meshes, IPhysicsEntity entity)
+    public static BodyID? AddStaticObject(Mesh[] meshes, IPhysicsEntity entity)
     {
         if (entity is not BaseEntity baseEntity)
         {
@@ -272,6 +277,16 @@ public class PhysicsManager
         {
             Thread.Sleep(update_rate);
 
+            var drawSettings = new DrawSettings
+            {
+                DrawMassAndInertia = true,
+                DrawVelocity = true,
+                DrawShape = true,
+                DrawShapeColor = ShapeColor.MotionTypeColor
+            };
+            _physicsSystem.DrawBodies(drawSettings, _debugRenderer, _debugDrawFilter);
+            _debugRenderer.Render();
+
             if (!ShouldSimulate)
                 continue;
 
@@ -300,16 +315,6 @@ public class PhysicsManager
             {
                 Log.Context(this).Warning("Physics simulation reported error {Error}!", error);
             }
-
-            var drawSettings = new DrawSettings
-            {
-                DrawMassAndInertia = true,
-                DrawVelocity = true,
-                DrawShape = true,
-                DrawShapeColor = ShapeColor.MotionTypeColor
-            };
-            _physicsSystem.DrawBodies(drawSettings, _debugRenderer, _debugDrawFilter);
-            _debugRenderer.Render();
         }
 
         _jobSystem.Dispose();
@@ -364,12 +369,7 @@ public class PhysicsManager
 
         public void Render()
         {
-            MeshManager.UpdateMesh(_mesh, new MeshPart
-            {
-                Name = "physdebug",
-                Vertices = _vertices.ToList(),
-                Texture = "materials/error.mat"
-            });
+            MeshManager.UpdateMesh(_mesh, _vertices.ToList());
 
             _vertices.Clear();
         }

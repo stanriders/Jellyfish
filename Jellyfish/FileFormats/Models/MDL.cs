@@ -314,10 +314,10 @@ public class VTX
     public List<BodyPartHeader_t> BodyParts { get; set; } = new();
     public List<ModelHeader_t> Models { get; set; } = new();
     public List<ModelLODHeader_t> Lods { get; set; } = new();
-    public List<MeshHeader_t> Meshes { get; set; } = new();
+    public List<MeshHeader_t> RawMeshes { get; set; } = new();
     public List<StripGroupHeader_t> VertexStrips { get; set; } = new();
 
-    public List<MeshPart> MeshParts { get; set; } = new();
+    public List<Mesh> Meshes { get; set; } = new();
 
     public static VTX Load(string path)
     {
@@ -349,12 +349,12 @@ public class VTX
                     var lodsoffset = model.lodOffset * (k + 1);
                     var lod = res.Lods[i + j + k];
 
-                    res.Meshes.AddRange(DeserializeMeshHeader_t(file,
+                    res.RawMeshes.AddRange(DeserializeMeshHeader_t(file,
                         bpoffset + modelsoffset + lodsoffset + lod.meshOffset, lod.numMeshes));
                     for (var l = 0; l < lod.numMeshes; l++)
                     {
                         var meshessoffset = lod.meshOffset * (l + 1);
-                        var mesh = res.Meshes[i + j + k + l];
+                        var mesh = res.RawMeshes[i + j + k + l];
 
                         res.VertexStrips.AddRange(DeserializeStripGroupHeader_t(file,
                             bpoffset + modelsoffset + lodsoffset + meshessoffset + mesh.stripGroupHeaderOffset));
@@ -400,12 +400,7 @@ public class VTX
                                 indOffset += sizeof(ushort);
                             }
 
-                            res.MeshParts.Add(new MeshPart
-                            {
-                                Name = Path.GetFileNameWithoutExtension(path),
-                                Vertices = vertices,
-                                Indices = indices
-                            });
+                            res.Meshes.Add(new Mesh(Path.GetFileNameWithoutExtension(path), vertices, indices));
                         }
                     }
                 }

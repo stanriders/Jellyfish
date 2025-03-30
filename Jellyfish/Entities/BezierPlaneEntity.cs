@@ -29,15 +29,15 @@ public class BezierPlaneEntity : BaseModelEntity, IPhysicsEntity
             return;
         }
 
-        var meshPart = GenerateRandom(GetPropertyValue<Vector2>("Size"), texture, GetPropertyValue<int>("QuadSize"));
+        var mesh = GenerateRandom(GetPropertyValue<Vector2>("Size"), texture, GetPropertyValue<int>("QuadSize"));
 
-        Model = new Model(new Mesh(meshPart))
+        Model = new Model(mesh)
         {
             Position = GetPropertyValue<Vector3>("Position"),
             Rotation = GetPropertyValue<Quaternion>("Rotation")
         };
 
-        _physicsBodyId = PhysicsManager.AddStaticObject([meshPart], this) ?? 0;
+        _physicsBodyId = PhysicsManager.AddStaticObject([mesh], this) ?? 0;
         base.Load();
     }
 
@@ -51,7 +51,7 @@ public class BezierPlaneEntity : BaseModelEntity, IPhysicsEntity
     /// <summary>
     /// https://github.com/tugbadogan/opengl-bezier-surface/tree/master
     /// </summary>
-    private MeshPart GenerateRandom(Vector2 size, string texture, int quadSize)
+    private Mesh GenerateRandom(Vector2 size, string texture, int quadSize)
     {
         List<Vertex> verticies = new();
 
@@ -163,12 +163,7 @@ public class BezierPlaneEntity : BaseModelEntity, IPhysicsEntity
         watch.Stop();
         EntityLog().Information("Took {Elapsed} time to create a plane", watch.Elapsed);
 
-        return new MeshPart
-        {
-            Name = "randombezierplane",
-            Vertices = verticies,
-            Texture = $"materials/{texture}"
-        };
+        return new Mesh("randombezierplane", verticies, texture: $"materials/{texture}");
     }
 
     private float BezierBlend(int k, float mu, int n)
