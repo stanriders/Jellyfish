@@ -33,6 +33,10 @@ public class StaticModel : BaseModelEntity, IPhysicsEntity
         base.Unload();
     }
 
+    public void ResetVelocity()
+    {
+    }
+
     public void OnPhysicsPositionChanged(Vector3 position)
     {
     }

@@ -28,6 +28,8 @@ public class Editor : IUiPanel, IInputHandler
     private BaseEntity? _selectedEntity;
     private string? _selectedEntityType;
 
+    private bool _usingGizmo = false;
+
     public Editor()
     {
         InputManager.RegisterInputHandler(this);
@@ -127,8 +129,23 @@ public class Editor : IUiPanel, IInputHandler
                                 OPERATION.TRANSLATE | OPERATION.ROTATE, MODE.WORLD,
                                 ref Unsafe.AsRef<float>(transformArray)))
                         {
+                            _usingGizmo = true;
                             _selectedEntity.SetPropertyValue("Position", transform.ToMatrix().ExtractTranslation());
                             _selectedEntity.SetPropertyValue("Rotation", transform.ToMatrix().ExtractRotation());
+
+                            if (_selectedEntity is IPhysicsEntity physicsEntity)
+                            {
+                                physicsEntity.ResetVelocity();
+                            }
+                        }
+                        else
+                        {
+                            if (_usingGizmo && _selectedEntity is IPhysicsEntity physicsEntity)
+                            {
+                                physicsEntity.ResetVelocity();
+                            }
+
+                            _usingGizmo = false;
                         }
                     }
                 }
@@ -195,6 +212,9 @@ public class Editor : IUiPanel, IInputHandler
         var player = Player.Instance;
         if (player == null)
             return false;
+
+        if (_usingGizmo)
+            return true;
 
         if (mouseState.IsButtonDown(MouseButton.Left))
         {

@@ -112,6 +112,12 @@ public class DynamicModel : BaseModelEntity, IPhysicsEntity
         return new RotatedTranslatedShapeSettings(boundingBox.Center.ToNumericsVector(), System.Numerics.Quaternion.Identity, new ScaledShapeSettings(shape, scale.ToNumericsVector()));
     }
 
+    public void ResetVelocity()
+    {
+        if (_physicsBodyId != null)
+            PhysicsManager.SetVelocity(_physicsBodyId.Value, Vector3.Zero);
+    }
+
     public void OnPhysicsPositionChanged(Vector3 position)
     {
         SetPropertyValue("Position", position);

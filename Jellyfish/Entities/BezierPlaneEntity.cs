@@ -204,6 +204,10 @@ public class BezierPlaneEntity : BaseModelEntity, IPhysicsEntity
         return blend;
     }
 
+    public void ResetVelocity()
+    {
+    }
+
     public void OnPhysicsPositionChanged(Vector3 position)
     {
     }

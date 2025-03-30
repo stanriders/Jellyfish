@@ -223,7 +223,6 @@ public class Player : BaseEntity, IInputHandler
         if (mouseState.IsButtonDown(MouseButton.Right))
         {
             var position = GetPropertyValue<Vector3>("Position");
-            var prevPosition = new Vector3(position.X, position.Y, position.Z);
 
             if (keyboardState.IsKeyDown(Keys.W))
                 position += Front * cameraSpeed * frameTime; // Forward 
@@ -243,7 +242,7 @@ public class Player : BaseEntity, IInputHandler
             if (_physCharacter != null)
             {
                 _physCharacter.Position = position.ToNumericsVector();
-                _physCharacter.LinearVelocity = (position - prevPosition).ToNumericsVector();
+                _physCharacter.LinearVelocity = System.Numerics.Vector3.Zero;
             }
 
             Yaw += mouseState.Delta.X * sensitivity;

@@ -197,7 +197,12 @@ public class PhysicsManager
     {
         instance?._bodyInterface.SetRotation(bodyId, newRotation.ToNumericsQuaternion(), Activation.Activate);
     }
-    
+
+    public static void SetVelocity(BodyID bodyId, Vector3 newVelocity)
+    {
+        instance?._bodyInterface.SetLinearVelocity(bodyId, newVelocity.ToNumericsVector());
+    }
+
     public static void RemoveObject(BodyID body)
     {
         instance?._deletionQueue.Enqueue(body);
