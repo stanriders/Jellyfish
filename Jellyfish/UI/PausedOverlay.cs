@@ -1,4 +1,6 @@
-﻿using ImGuiNET;
+﻿using System.Numerics;
+using ImGuiNET;
+using Jellyfish.Console;
 
 namespace Jellyfish.UI;
 
@@ -16,7 +18,16 @@ public class PausedOverlay : IUiPanel
         if (MainWindow.Paused && ImGui.Begin("PausedOverlay", windowFlags))
         {
             var viewport = ImGui.GetMainViewport();
-            ImGui.SetWindowPos(viewport.Size / 2);
+
+            // show paused text in the corner when in editor mode
+            if (ConVarStorage.Get<bool>("edt_enable"))
+            {
+                var panelSize = ImGui.GetWindowSize();
+                ImGui.SetWindowPos(new Vector2(10, viewport.Size.Y - panelSize.Y - 10));
+            }
+            else
+                ImGui.SetWindowPos(viewport.Size / 2);
+
             ImGui.Text("Paused");
             ImGui.End();
         }

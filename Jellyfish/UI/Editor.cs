@@ -226,7 +226,20 @@ public class Editor : IUiPanel, IInputHandler
 
         if (keyboardState.IsKeyPressed(Keys.V))
         {
-            ConVarStorage.Set("edt_enable", !ConVarStorage.Get<bool>("edt_enable"));
+            var enable = !ConVarStorage.Get<bool>("edt_enable");
+            ConVarStorage.Set("edt_enable", enable);
+
+            // unpause if going from editor to game mode
+            if (!enable && MainWindow.Paused)
+            {
+                MainWindow.Paused = false;
+            }
+
+            // pause if going from game to editor mode
+            if (enable && !MainWindow.Paused)
+            {
+                MainWindow.Paused = true;
+            }
             return true;
         }
 
