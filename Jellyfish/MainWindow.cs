@@ -117,6 +117,7 @@ public class MainWindow : GameWindow, IInputHandler
         if (QueuedMap != null)
         {
             LoadMap(QueuedMap);
+            _loadingStep = 0;
             QueuedMap = null;
         }
 
