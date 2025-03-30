@@ -325,7 +325,7 @@ public class Editor : IUiPanel, IInputHandler
         else if (entityProperty.Type == typeof(float))
         {
             var val = (float)entityProperty.Value!;
-            var speed = val > 1.0f ? 1.0f : 0.01f;
+            var speed = val > 10.0f ? 1.0f : val > 1.0f ? 0.1f : 0.01f;
             ImGui.DragFloat(elementLabel, ref val, speed);
             entity.SetPropertyValue(propertyName, val);
         }

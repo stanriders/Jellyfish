@@ -3,7 +3,6 @@ using System.Linq;
 using Jellyfish.Entities;
 using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Shaders;
-using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.Render.Lighting;
@@ -60,6 +59,8 @@ public static class LightManager
                 shadow.RenderTarget.Unload();
                 shadow.Shader.Unload();
             }
+
+            Sun = null;
             return;
         }
 

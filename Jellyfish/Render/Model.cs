@@ -53,7 +53,7 @@ public class Model
                 var modelFolder = $"materials/models/{meshPart.Name}";
                 var matPath = $"{modelFolder}/{meshPart.Name}.mat";
                 if (!File.Exists(matPath))
-                    matPath = $"{modelFolder}/{Path.GetFileName(meshPart.Texture)}";
+                    matPath = null;
 
                 meshPart.Texture = matPath;
             }
