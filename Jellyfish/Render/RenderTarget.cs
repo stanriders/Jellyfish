@@ -39,6 +39,9 @@ public class RenderTarget
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, attachment, TextureTarget.Texture2d, TextureHandle, 0);
 
         GL.BindTexture(TextureTarget.Texture2d, 0);
+
+        _texture.Levels = levels;
+        _texture.Format = internalFormat.ToString();
     }
 
     public void Bind(uint unit)

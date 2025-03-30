@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using ImageMagick;
 using Jellyfish.Console;
 using OpenTK.Graphics.OpenGL;
@@ -10,7 +11,9 @@ public class Texture
     public string Path { get; }
     public int Handle { get; }
     public int References { get; set; } = 1;
-    
+    public int Levels { get; set; }
+    public string Format { get; set; }
+
     private readonly bool _isError;
 
     public const string error_texture = "materials/error.png";
@@ -52,16 +55,21 @@ public class Texture
             internalPixelFormat = hasAlpha ? SizedInternalFormat.Rgba16 : SizedInternalFormat.Rgb16;
         }
 
+        var levels = Math.Clamp(Math.Min((int)image.Width, (int)image.Height) / 16, 1, 8);
+
         GL.TextureParameteri(Handle, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
         GL.TextureParameteri(Handle, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
         GL.TextureParameteri(Handle, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
         GL.TextureParameteri(Handle, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
 
-        GL.TextureStorage2D(Handle, 8, internalPixelFormat, (int)image.Width, (int)image.Height);
+        GL.TextureStorage2D(Handle, levels, internalPixelFormat, (int)image.Width, (int)image.Height);
         GL.TextureSubImage2D(Handle, 0, 0, 0, (int)image.Width, (int)image.Height, pixelFormat, PixelType.UnsignedByte,
             data.GetAreaPointer(0, 0, image.Width, image.Height));
 
         GL.GenerateTextureMipmap(Handle);
+
+        Levels = levels;
+        Format = internalPixelFormat.ToString();
     }
 
     public void Bind(uint unit)
@@ -77,4 +85,6 @@ public class Texture
         if (!_isError && Handle != 0)
             TextureManager.RemoveTexture(this);
     }
+
+    public override string ToString() => Path;
 }

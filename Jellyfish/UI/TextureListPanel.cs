@@ -36,11 +36,15 @@ public class TextureListPanel : IUiPanel, IInputHandler
             {
                 var texture = TextureManager.Textures.ElementAt(i);
                 ImGui.BeginGroup();
+                var expanded = _expandedTexture == i;
+
                 ImGui.PushTextWrapPos(ImGui.GetCursorPos().X + item_width);
-                ImGui.Text($"{texture.Path} ({texture.References} references)");
+                if (expanded)
+                    ImGui.Text($"{texture.Path}: {texture.References} references, {texture.Levels} levels, {texture.Format}");
+                else
+                    ImGui.Text($"{texture.Path} ({texture.References} references)");
                 ImGui.PopTextWrapPos();
 
-                var expanded = _expandedTexture == i;
                 var size = expanded ? item_width * 2 : item_width;
                 bool pressed;
                 // flip RTs upside down

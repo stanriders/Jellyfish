@@ -39,8 +39,11 @@ public class Main : Shader
 
         if (!alreadyExists)
         {
+            const SizedInternalFormat format = SizedInternalFormat.DepthComponent24;
+            const int levels = 1;
+
             GL.BindTexture(TextureTarget.Texture2d, _dummyShadow.Handle);
-            GL.TextureStorage2D(_dummyShadow.Handle, 1, SizedInternalFormat.DepthComponent24, 1, 1);
+            GL.TextureStorage2D(_dummyShadow.Handle, levels, format, 1, 1);
             GL.TextureParameteri(_dummyShadow.Handle, TextureParameterName.TextureMinFilter,
                 new[] { (int)TextureMinFilter.Nearest });
             GL.TextureParameteri(_dummyShadow.Handle, TextureParameterName.TextureMagFilter,
@@ -58,6 +61,9 @@ public class Main : Shader
             GL.TextureParameterf(_dummyShadow.Handle, TextureParameterName.TextureBorderColor,
                 new[] { 1f, 1f, 1f, 1f });
             GL.BindTexture(TextureTarget.Texture2d, 0);
+
+            dummyShadow.Levels = levels;
+            dummyShadow.Format = format.ToString();
         }
     }
 
