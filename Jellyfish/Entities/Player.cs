@@ -155,6 +155,12 @@ public class Player : BaseEntity, IInputHandler
 
     private bool PhysicsMove(KeyboardState keyboardState, MouseState mouseState, float frameTime)
     {
+        if (MainWindow.Paused)
+        {
+            IsControllingCursor = false;
+            return false;
+        }
+
         var inputHandled = false;
 
         if (_physCharacter != null)

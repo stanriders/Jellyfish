@@ -9,10 +9,11 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using System.Threading;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace Jellyfish;
 
-public class MainWindow : GameWindow
+public class MainWindow : GameWindow, IInputHandler
 {
     private readonly OpenGLRender _render;
     private InputManager _inputHandler = null!;
@@ -51,12 +52,16 @@ public class MainWindow : GameWindow
     public static string? CurrentMap { get; private set; }
     public static bool Loaded => CurrentMap != null;
 
+    public static bool Paused { get; set; }
+
     protected override void OnLoad()
     {
         Log.Context(this).Information("Loading..."); 
 
         _inputHandler = new InputManager();
         _imguiController = new ImguiController();
+
+        InputManager.RegisterInputHandler(this);
 
         UpdateLoadingScreen("Loading UI...");
         _uiManager = new UiManager();
@@ -126,15 +131,6 @@ public class MainWindow : GameWindow
             return;
         }
 
-        if (!IsFocused)
-        {
-            _physicsManager.ShouldSimulate = false;
-            return;
-        }
-
-        _physicsManager.ShouldSimulate = true;
-        _entityManager.Frame();
-
         var config = Settings.Instance.Video;
         if (config.WindowSize != ClientSize)
         {
@@ -153,8 +149,20 @@ public class MainWindow : GameWindow
         {
             WindowState = WindowState.Normal;
         }
-
         CursorState = !Player.Instance?.IsControllingCursor ?? false ? CursorState.Normal : CursorState.Grabbed;
+
+        if (!IsFocused && !Paused)
+            Paused = true;
+
+        if (Paused)
+        {
+            _physicsManager.ShouldSimulate = false;
+            base.OnUpdateFrame(e);
+            return;
+        }
+
+        _physicsManager.ShouldSimulate = true;
+        _entityManager.Frame();
 
         base.OnUpdateFrame(e);
     }
@@ -255,5 +263,16 @@ public class MainWindow : GameWindow
 
         _render.IsReady = true;
         _physicsManager.ShouldSimulate = true;
+    }
+
+    public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
+    {
+        if (keyboardState.IsKeyPressed(Keys.Escape))
+        {
+            Paused = !Paused;
+            return true;
+        }
+
+        return false;
     }
 }
