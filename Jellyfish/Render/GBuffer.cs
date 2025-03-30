@@ -16,7 +16,7 @@ public class GBuffer
 
         for (uint i = 0; i < (uint)GBufferType.Count; i++)
         {
-            _renderTargets.Add(new RenderTarget($"_rt_{(GBufferType)i}", MainWindow.WindowWidth, MainWindow.WindowHeight, SizedInternalFormat.Rgb8, FramebufferAttachment.ColorAttachment0 + i, 
+            _renderTargets.Add(new RenderTarget($"_rt_{(GBufferType)i}", MainWindow.WindowWidth, MainWindow.WindowHeight, SizedInternalFormat.Rgb16f, FramebufferAttachment.ColorAttachment0 + i, 
                 TextureWrapMode.ClampToEdge));
         }
 

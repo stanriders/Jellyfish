@@ -12,7 +12,7 @@ public class Texture
     public int Handle { get; }
     public int References { get; set; } = 1;
     public int Levels { get; set; }
-    public string Format { get; set; }
+    public string Format { get; set; } = string.Empty;
 
     private readonly bool _isError;
 

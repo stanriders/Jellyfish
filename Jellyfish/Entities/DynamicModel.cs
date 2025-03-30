@@ -44,7 +44,7 @@ public class DynamicModel : BaseModelEntity, IPhysicsEntity
         ModelPath = $"models/{GetPropertyValue<string>("Model")}";
         base.Load();
 
-        if (GetPropertyValue<bool>("EnablePhysics"))
+        if (GetPropertyValue<bool>("EnablePhysics") && Model != null)
             _physicsBodyId = PhysicsManager.AddDynamicObject(CalculatePhysicsShape(), this) ?? 0;
     }
 
