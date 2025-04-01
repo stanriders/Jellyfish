@@ -81,9 +81,9 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 vec3 fresnelSchlick(float cosTheta, vec3 F0)
 {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
-} 
+}
 
-float SimpleShadow(sampler2DShadow DepthSampler, vec3 projCoords, vec3 lightDir, vec3 normal)
+float SimpleShadow(sampler2DShadow DepthSampler, vec3 projCoords)
 {
     float currentDepth = projCoords.z;
 
@@ -92,7 +92,7 @@ float SimpleShadow(sampler2DShadow DepthSampler, vec3 projCoords, vec3 lightDir,
     return shadow;
 }  
 
-float SimplePCF(sampler2DShadow DepthSampler, vec3 projCoords, vec3 lightDir, vec3 normal)
+float SimplePCF(sampler2DShadow DepthSampler, vec3 projCoords)
 {
     float currentDepth = projCoords.z;
 
@@ -122,8 +122,8 @@ float ShadowCalculation(int lightIndex, vec3 lightDir, vec3 normal)
     if(projCoords.z > 1.0)
         return 0.0;
         
-    return SimplePCF(shadowSamplers[lightIndex], projCoords, lightDir, normal);
-    //return SimpleShadow(shadowSamplers[lightIndex], projCoords, lightDir, normal);
+    //return SimplePCF(shadowSamplers[lightIndex], projCoords);
+    return SimpleShadow(shadowSamplers[lightIndex], projCoords);
 }  
 
 vec3 CalcPointLight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
@@ -198,8 +198,8 @@ vec3 CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
     
         if(projCoords.z < 1.0)
         {
-            shadow = SimplePCF(sunShadowSampler, projCoords, lightDir, normal);
-            //shadow = SimpleShadow(sunShadowSampler, projCoords, lightDir, normal);
+            //shadow = SimplePCF(sunShadowSampler, projCoords);
+            shadow = SimpleShadow(sunShadowSampler, projCoords);
         }
     }
 
