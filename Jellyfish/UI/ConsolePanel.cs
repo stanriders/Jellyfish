@@ -72,6 +72,8 @@ namespace Jellyfish.UI
             if (keyboardState.IsKeyPressed(Keys.GraveAccent))
             {
                 _isEnabled = !_isEnabled;
+                if (_isEnabled && !MainWindow.Paused)
+                    MainWindow.Paused = true;
                 return true;
             }
 

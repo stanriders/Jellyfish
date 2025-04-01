@@ -216,7 +216,9 @@ public class Editor : IUiPanel, IInputHandler
         if (_usingGizmo)
             return true;
 
-        if (mouseState.IsButtonDown(MouseButton.Left))
+        var enabled = ConVarStorage.Get<bool>("edt_enable");
+
+        if (enabled && mouseState.IsButtonDown(MouseButton.Left))
         {
             var screenspacePosition = new OpenTK.Mathematics.Vector2(mouseState.Position.X / MainWindow.WindowWidth, mouseState.Y / MainWindow.WindowHeight);
             var ray = player.GetCameraToViewportRay(screenspacePosition);
@@ -226,17 +228,16 @@ public class Editor : IUiPanel, IInputHandler
 
         if (keyboardState.IsKeyPressed(Keys.V))
         {
-            var enable = !ConVarStorage.Get<bool>("edt_enable");
-            ConVarStorage.Set("edt_enable", enable);
+            ConVarStorage.Set("edt_enable", !enabled);
 
             // unpause if going from editor to game mode
-            if (!enable && MainWindow.Paused)
+            if (enabled && MainWindow.Paused)
             {
                 MainWindow.Paused = false;
             }
 
             // pause if going from game to editor mode
-            if (enable && !MainWindow.Paused)
+            if (!enabled && !MainWindow.Paused)
             {
                 MainWindow.Paused = true;
             }
