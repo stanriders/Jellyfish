@@ -3,6 +3,7 @@ using System.Linq;
 using System.Numerics;
 using ImGuiNET;
 using Jellyfish.Entities;
+using Jellyfish.Render;
 
 namespace Jellyfish.UI;
 
@@ -52,16 +53,10 @@ public class InfoOverlay : IUiPanel
                 ImGui.Separator();
                 ImGui.Text($"{MainWindow.CurrentMap}");
 
-                if (Player.Instance != null)
-                {
-
-                    ImGui.Separator();
-                    ImGui.Text(
-                        $"Position: {Player.Instance.GetPropertyValue<OpenTK.Mathematics.Vector3>("Position"):N4}");
-                    ImGui.Separator();
-                    ImGui.Text(
-                        $"Rotation: {Player.Instance.GetPropertyValue<OpenTK.Mathematics.Quaternion>("Rotation").ToEulerAngles().ToDegrees():N2}");
-                }
+                ImGui.Separator();
+                ImGui.Text($"Position: {Camera.Instance.Position:N4}");
+                ImGui.Separator();
+                ImGui.Text($"Rotation: {Camera.Instance.Rotation.ToEulerAngles().ToDegrees():N2}");
             }
 
             ImGui.Separator();

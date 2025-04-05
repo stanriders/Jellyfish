@@ -17,6 +17,7 @@ public class OpenGLRender : IRender, IInputHandler
     private RenderTarget? _depthRenderTarget;
     private Sky? _sky;
     private GBuffer? _gBuffer;
+    private readonly Camera _camera;
 
     private bool _wireframe;
 
@@ -35,6 +36,8 @@ public class OpenGLRender : IRender, IInputHandler
 #endif
         GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+        _camera = new Camera();
     }
 
     public void CreateBuffers()
@@ -81,6 +84,8 @@ public class OpenGLRender : IRender, IInputHandler
 
             return;
         }
+
+        _camera.Think();
 
         GL.Enable(EnableCap.DepthTest);
         GL.DepthFunc(DepthFunction.Less);

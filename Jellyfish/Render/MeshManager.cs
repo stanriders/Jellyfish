@@ -46,12 +46,10 @@ public static class MeshManager
     {
         drawing = true;
 
-        var playerPosition = Player.Instance?.GetPropertyValue<Vector3>("Position");
+        var playerPosition = Camera.Instance.Position;
 
         var sortedMeshes = meshes.OrderByDescending(x => !(x.Material?.AlphaTest ?? false))
-            .ThenByDescending(x =>
-                ((x.Position + x.BoundingBox.Center) - playerPosition)?
-                .Length);
+            .ThenByDescending(x => (x.Position + x.BoundingBox.Center - playerPosition).Length);
 
         foreach (var mesh in sortedMeshes)
         {

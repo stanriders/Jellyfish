@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Jellyfish.Console;
 using Jellyfish.Entities;
+using Jellyfish.Render;
 using ManagedBass;
 using OpenTK.Mathematics;
 using SteamAudio;
@@ -144,17 +145,13 @@ namespace Jellyfish.Audio
                 Playing = false;
             }
 
-            var player = Player.Instance;
-            if (player == null)
-                return;
-
-            var playerPosition = player.GetPropertyValue<Vector3>("Position");
+            var camera = Camera.Instance;
 
             var direction = IPL.CalculateRelativeDirection(iplContext,
                 Position.ToIplVector(),
-                playerPosition.ToIplVector(),
-                player.Front.ToIplVector(),
-                player.Up.ToIplVector());
+                camera.Position.ToIplVector(),
+                camera.Front.ToIplVector(),
+                camera.Up.ToIplVector());
 
             var binauralEffectParams = new IPL.BinauralEffectParams
             {

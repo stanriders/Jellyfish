@@ -30,6 +30,9 @@ public class Editor : IUiPanel, IInputHandler
 
     private bool _usingGizmo = false;
 
+    private const float camera_speed = 120.0f;
+    private const float sensitivity = 0.2f;
+
     public Editor()
     {
         InputManager.RegisterInputHandler(this);
@@ -44,10 +47,6 @@ public class Editor : IUiPanel, IInputHandler
             return;
 
         if (!MainWindow.Loaded)
-            return;
-
-        var player = Player.Instance;
-        if (player == null)
             return;
 
         var windowFlags = ImGuiWindowFlags.NoDecoration |
@@ -109,8 +108,8 @@ public class Editor : IUiPanel, IInputHandler
 
             if (_selectedEntity != null)
             {
-                fixed (float* view = player.GetViewMatrix().ToFloatArray())
-                fixed (float* proj = player.GetProjectionMatrix().ToFloatArray())
+                fixed (float* view = Camera.Instance.GetViewMatrix().ToFloatArray())
+                fixed (float* proj = Camera.Instance.GetProjectionMatrix().ToFloatArray())
                 {
                     ImGuizmo.SetID(_selectedEntity.GetHashCode());
 
@@ -209,21 +208,23 @@ public class Editor : IUiPanel, IInputHandler
 
     public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
     {
-        var player = Player.Instance;
-        if (player == null)
-            return false;
-
         if (_usingGizmo)
             return true;
 
         var enabled = ConVarStorage.Get<bool>("edt_enable");
 
-        if (enabled && mouseState.IsButtonDown(MouseButton.Left))
+        if (enabled)
         {
-            var screenspacePosition = new OpenTK.Mathematics.Vector2(mouseState.Position.X / MainWindow.WindowWidth, mouseState.Y / MainWindow.WindowHeight);
-            var ray = player.GetCameraToViewportRay(screenspacePosition);
+            if (NoclipMove(keyboardState, mouseState, frameTime))
+                return true;
 
-            _selectedEntity = Trace.IntersectsEntity(ray);
+            if (mouseState.IsButtonDown(MouseButton.Left))
+            {
+                var screenspacePosition = new OpenTK.Mathematics.Vector2(mouseState.Position.X / MainWindow.WindowWidth, mouseState.Y / MainWindow.WindowHeight);
+                var ray = Camera.Instance.GetCameraToViewportRay(screenspacePosition);
+
+                _selectedEntity = Trace.IntersectsEntity(ray);
+            }
         }
 
         if (keyboardState.IsKeyPressed(Keys.V))
@@ -346,5 +347,48 @@ public class Editor : IUiPanel, IInputHandler
         {
             ImGui.Text($"{entityProperty.Name}: {entityProperty.Value}");
         }
+    }
+
+    private bool NoclipMove(KeyboardState keyboardState, MouseState mouseState, float frameTime)
+    {
+        var cameraSpeed = keyboardState.IsKeyDown(Keys.LeftShift) ? camera_speed * 4 : camera_speed;
+
+        if (mouseState.IsButtonDown(MouseButton.Right))
+        {
+            var position = Camera.Instance.Position;
+
+            if (keyboardState.IsKeyDown(Keys.W))
+                position += Camera.Instance.Front * cameraSpeed * frameTime; // Forward 
+            if (keyboardState.IsKeyDown(Keys.S))
+                position -= Camera.Instance.Front * cameraSpeed * frameTime; // Backwards
+            if (keyboardState.IsKeyDown(Keys.A))
+                position -= Camera.Instance.Right * cameraSpeed * frameTime; // Left
+            if (keyboardState.IsKeyDown(Keys.D))
+                position += Camera.Instance.Right * cameraSpeed * frameTime; // Right
+            if (keyboardState.IsKeyDown(Keys.Space))
+                position += Camera.Instance.Up * cameraSpeed * frameTime; // Up 
+            if (keyboardState.IsKeyDown(Keys.LeftControl))
+                position -= Camera.Instance.Up * cameraSpeed * frameTime; // Down
+
+            Camera.Instance.Position = position;
+            Camera.Instance.Yaw += mouseState.Delta.X * sensitivity;
+            Camera.Instance.Pitch -= mouseState.Delta.Y * sensitivity;
+
+            if (!Camera.Instance.IsControllingCursor)
+            {
+                InputManager.CaptureInput(this);
+                Camera.Instance.IsControllingCursor = true;
+            }
+
+            return true;
+        }
+
+        if (Camera.Instance.IsControllingCursor)
+        {
+            InputManager.ReleaseInput(this);
+            Camera.Instance.IsControllingCursor = false;
+        }
+
+        return false;
     }
 }

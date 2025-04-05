@@ -20,14 +20,10 @@ public class GeometryPass : Shader
 
     public override void Bind()
     {
-        var player = Player.Instance;
-        if (player == null)
-            return;
-
         base.Bind();
 
-        SetMatrix4("view", player.GetViewMatrix());
-        SetMatrix4("projection", player.GetProjectionMatrix());
+        SetMatrix4("view", Camera.Instance.GetViewMatrix());
+        SetMatrix4("projection", Camera.Instance.GetProjectionMatrix());
 
         _diffuse.Bind(0);
         _normal?.Bind(1);

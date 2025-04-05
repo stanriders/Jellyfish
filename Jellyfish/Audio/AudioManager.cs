@@ -184,18 +184,14 @@ namespace Jellyfish.Audio
                 if (_sounds.Count(x=> x.Playing) == 0)
                     continue;
 
-                var player = Player.Instance;
-                if (player == null)
-                    return;
-
-                var cameraPosition = player.GetPropertyValue<Vector3>("Position");
+                var camera = Camera.Instance;
 
                 var listener = new IPL.CoordinateSpace3
                 {
-                    Ahead = player.Front.ToIplVector(),
-                    Up = player.Up.ToIplVector(),
-                    Right = player.Right.ToIplVector(),
-                    Origin = cameraPosition.ToIplVector()
+                    Ahead = camera.Front.ToIplVector(),
+                    Up = camera.Up.ToIplVector(),
+                    Right = camera.Right.ToIplVector(),
+                    Origin = camera.Position.ToIplVector()
                 };
                 
                 IPL.SimulatorSetSharedInputs(_iplSimulator, IPL.SimulationFlags.Direct, new IPL.SimulationSharedInputs

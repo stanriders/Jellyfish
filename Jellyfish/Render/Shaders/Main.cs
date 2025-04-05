@@ -69,15 +69,11 @@ public class Main : Shader
 
     public override void Bind()
     {
-        var player = Player.Instance;
-        if (player == null)
-            return;
-
         base.Bind();
 
-        SetVector3("cameraPos", player.GetPropertyValue<Vector3>("Position"));
-        SetMatrix4("view", player.GetViewMatrix());
-        SetMatrix4("projection", player.GetProjectionMatrix());
+        SetVector3("cameraPos", Camera.Instance.Position);
+        SetMatrix4("view", Camera.Instance.GetViewMatrix());
+        SetMatrix4("projection", Camera.Instance.GetProjectionMatrix());
 
         var unitsRequiringDummyShadows = new List<uint>();
         var totalLights = LightManager.Lights.Count;

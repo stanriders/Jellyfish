@@ -13,10 +13,6 @@ public class Skybox : Shader
 
     public override void Bind()
     {
-        var player = Player.Instance;
-        if (player == null)
-            return;
-
         if (_sun == null)
         {
             _sun = EntityManager.FindEntity("light_sun") as Sun;
@@ -37,7 +33,7 @@ public class Skybox : Shader
         SetVector3("uSunPos", rotationVector);
         SetFloat("uSunIntensity", _sun.Brightness * 5f);
 
-        SetMatrix4("view", player.GetViewMatrix().ClearTranslation());
-        SetMatrix4("projection", player.GetProjectionMatrix());
+        SetMatrix4("view", Camera.Instance.GetViewMatrix().ClearTranslation());
+        SetMatrix4("projection", Camera.Instance.GetProjectionMatrix());
     }
 }

@@ -1,5 +1,6 @@
 ﻿
 using Jellyfish.Entities;
+using Jellyfish.Render;
 using OpenTK.Mathematics;
 
 namespace Jellyfish;
@@ -46,10 +47,10 @@ public static class MathExtensions
         return new System.Numerics.Quaternion(v.X, v.Y, v.Z, v.W);
     }
 
-    public static Matrix4 ToOpentkMatrix(this Assimp.Matrix4x4 mat)
+    /*public static Matrix4 ToOpentkMatrix(this Assimp.Matrix4x4 mat)
     {
         return new Matrix4(mat.A1, mat.A2, mat.A3, mat.A4, mat.B1, mat.B2, mat.B3, mat.B4, mat.C1, mat.C2, mat.C3, mat.C4, mat.D1, mat.D2, mat.D3, mat.D4);
-    }
+    }*/
 
     public static float[] ToFloatArray(this Matrix4 mat)
     {
@@ -80,10 +81,7 @@ public static class MathExtensions
 
     public static Vector2 ToScreenspace(this Vector3 vector)
     {
-        if (Player.Instance == null)
-            return Vector2.Zero;
-
-        var clipSpacePos = new Vector4(vector.X, vector.Y, vector.Z, 1.0f) * Player.Instance.GetViewMatrix() * Player.Instance.GetProjectionMatrix();
+        var clipSpacePos = new Vector4(vector.X, vector.Y, vector.Z, 1.0f) * Camera.Instance.GetViewMatrix() * Camera.Instance.GetProjectionMatrix();
 
         if (clipSpacePos.W > 0.0f)
         {
@@ -100,10 +98,7 @@ public static class MathExtensions
 
     public static System.Numerics.Vector2 ToScreenspace(this System.Numerics.Vector3 vector)
     {
-        if (Player.Instance == null)
-            return System.Numerics.Vector2.Zero;
-
-        var clipSpacePos = new Vector4(vector.X, vector.Y, vector.Z, 1.0f) * Player.Instance.GetViewMatrix() * Player.Instance.GetProjectionMatrix();
+        var clipSpacePos = new Vector4(vector.X, vector.Y, vector.Z, 1.0f) * Camera.Instance.GetViewMatrix() * Camera.Instance.GetProjectionMatrix();
 
         if (clipSpacePos.W > 0.0f)
         {
