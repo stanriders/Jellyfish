@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Jellyfish.Console;
 using Jellyfish.Entities;
 using Newtonsoft.Json;
@@ -11,15 +13,14 @@ namespace Jellyfish;
 
 public static class MapLoader
 {
+    private static readonly JsonConverter[] Converters = [new Color4Converter(), new Color3Converter(), new RotationConverter(), new Vector2Converter(), new Vector3Converter()];
+
     public static void Load(string path)
     {
         Log.Context("MapLoader").Information("Parsing map {Path}...", path);
 
         var mapString = File.ReadAllText(path);
-        var deserializer = JsonSerializer.CreateDefault();
-        deserializer.Converters.Add(new Color4Converter());
-        deserializer.Converters.Add(new Color3Converter());
-        deserializer.Converters.Add(new RotationConverter());
+        var deserializer = JsonSerializer.CreateDefault(new JsonSerializerSettings {Converters = Converters});
 
         var map = JsonConvert.DeserializeObject<Map>(mapString, new Color4Converter(), new Color3Converter());
         if (map == null)
@@ -62,6 +63,50 @@ public static class MapLoader
 
         Log.Context("MapLoader").Information("Finished parsing map");
     }
+
+    public static void Save(string path)
+    {
+        var serializer = JsonSerializer.CreateDefault(new JsonSerializerSettings { Converters = Converters });
+
+        var entities = new List<Map.Entity>();
+        foreach (var entity in EntityManager.Entities!)
+        {
+            var entityAttribute = entity.GetType().GetCustomAttribute<EntityAttribute>();
+            if (entityAttribute == null)
+            {
+                continue;
+            }
+
+            var properties = new List<Map.Property>();
+
+            foreach (var entityProperty in entity.EntityProperties)
+            {
+                if (entityProperty.Value != entityProperty.DefaultValue)
+                {
+                    properties.Add(new Map.Property
+                    {
+                        Name = entityProperty.Name,
+                        Value = JToken.FromObject(entityProperty.Value!, serializer)
+                    });
+                }
+            }
+
+            entities.Add(new Map.Entity
+            {
+                ClassName = entityAttribute.ClassName,
+                Properties = properties.ToArray()
+            });
+        }
+
+        var map = new Map
+        {
+            Entities = entities.ToArray()
+        };
+
+        var json = JsonConvert.SerializeObject(map, Formatting.Indented, Converters);
+        File.WriteAllText(path, json);
+    }
+
     public class Color4Converter : JsonConverter
     {
         public override bool CanConvert(Type objectType)
@@ -70,7 +115,16 @@ public static class MapLoader
         }
         public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
-            throw new NotImplementedException();
+            if (value is not Color4<Rgba> color)
+                return;
+
+            new JObject
+            {
+                { "R", (int)(color.X * 255) },
+                { "G", (int)(color.Y * 255) },
+                { "B", (int)(color.Z * 255) },
+                { "A", (int)(color.W * 255) }
+            }.WriteTo(writer);
         }
         public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue,
             JsonSerializer serializer)
@@ -113,7 +167,7 @@ public static class MapLoader
         }
 
         public override bool CanRead => true;
-        public override bool CanWrite => false;
+        public override bool CanWrite => true;
     }
 
     public class Color3Converter : JsonConverter
@@ -124,7 +178,15 @@ public static class MapLoader
         }
         public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
-            throw new NotImplementedException();
+            if (value is not Color3<Rgb> color)
+                return;
+
+            new JObject
+            {
+                { "R", (int)(color.X * 255) },
+                { "G", (int)(color.Y * 255) },
+                { "B", (int)(color.Z * 255) },
+            }.WriteTo(writer);
         }
         public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue,
             JsonSerializer serializer)
@@ -161,7 +223,7 @@ public static class MapLoader
         }
 
         public override bool CanRead => true;
-        public override bool CanWrite => false;
+        public override bool CanWrite => true;
     }
 
     public class RotationConverter : JsonConverter
@@ -172,7 +234,17 @@ public static class MapLoader
         }
         public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
-            throw new NotImplementedException();
+            if (value is not Quaternion quaternion)
+                return;
+
+            var euler = quaternion.ToEulerAngles();
+
+            new JObject
+            {
+                { "Pitch", MathHelper.RadiansToDegrees(euler.X) },
+                { "Yaw", MathHelper.RadiansToDegrees(euler.Y) },
+                { "Roll", MathHelper.RadiansToDegrees(euler.Z) }
+            }.WriteTo(writer);
         }
         public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue,
             JsonSerializer serializer)
@@ -209,7 +281,112 @@ public static class MapLoader
         }
 
         public override bool CanRead => true;
-        public override bool CanWrite => false;
+        public override bool CanWrite => true;
+    }
+
+    public class Vector2Converter : JsonConverter
+    {
+        public override bool CanConvert(Type objectType)
+        {
+            return objectType == typeof(Vector2);
+        }
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+        {
+            if (value is not Vector2 vector)
+                return;
+
+            new JObject
+            {
+                { "X", vector.X },
+                { "Y", vector.Y },
+            }.WriteTo(writer);
+        }
+        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue,
+            JsonSerializer serializer)
+        {
+            float x = 0, y = 0;
+
+            while (reader.Read())
+            {
+                var token = reader.Path;
+                switch (token)
+                {
+                    case "X":
+                    {
+                        reader.Read();
+                        x = Convert.ToSingle(reader.Value);
+                        break;
+                    }
+                    case "Y":
+                    {
+                        reader.Read();
+                        y = Convert.ToSingle(reader.Value);
+                        break;
+                    }
+                }
+            }
+
+            return new Vector2(x, y);
+        }
+
+        public override bool CanRead => true;
+        public override bool CanWrite => true;
+    }
+
+    public class Vector3Converter : JsonConverter
+    {
+        public override bool CanConvert(Type objectType)
+        {
+            return objectType == typeof(Vector3);
+        }
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+        {
+            if (value is not Vector3 vector)
+                return;
+
+            new JObject
+            {
+                { "X", vector.X },
+                { "Y", vector.Y },
+                { "Z", vector.Z }
+            }.WriteTo(writer);
+        }
+        public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue,
+            JsonSerializer serializer)
+        {
+            float x = 0, y = 0, z = 0;
+
+            while (reader.Read())
+            {
+                var token = reader.Path;
+                switch (token)
+                {
+                    case "X":
+                        {
+                            reader.Read();
+                            x = Convert.ToSingle(reader.Value);
+                            break;
+                        }
+                    case "Y":
+                        {
+                            reader.Read();
+                            y = Convert.ToSingle(reader.Value);
+                            break;
+                        }
+                    case "Z":
+                        {
+                            reader.Read();
+                            z = Convert.ToSingle(reader.Value);
+                            break;
+                        }
+                }
+            }
+
+            return new Vector3(x, y, z);
+        }
+
+        public override bool CanRead => true;
+        public override bool CanWrite => true;
     }
 
     private class Map

@@ -125,7 +125,7 @@ public class Editor : IUiPanel, IInputHandler
                             ref Unsafe.AsRef<float>(transformArray), 1);
 
                         if (ImGuizmo.Manipulate(ref Unsafe.AsRef<float>(view), ref Unsafe.AsRef<float>(proj),
-                                OPERATION.TRANSLATE | OPERATION.ROTATE, MODE.WORLD,
+                                OPERATION.TRANSLATE | OPERATION.ROTATE, MODE.LOCAL,
                                 ref Unsafe.AsRef<float>(transformArray)))
                         {
                             _usingGizmo = true;
@@ -200,6 +200,13 @@ public class Editor : IUiPanel, IInputHandler
                         _selectedEntity = EntityManager.CreateEntity(_selectedEntityType);
                     }
                 }
+            }
+
+            ImGui.Separator();
+
+            if (ImGui.Button("Save map"))
+            {
+                MapLoader.Save($"{MainWindow.CurrentMap}");
             }
 
             ImGui.End();
