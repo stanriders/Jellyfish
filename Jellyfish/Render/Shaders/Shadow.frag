@@ -1,9 +1,10 @@
 #version 460
 precision highp float;
 
-layout(location = 0) out float fragmentdepth;
+#define BIAS 0.005
 
 void main()
 {
-    fragmentdepth = gl_FragCoord.z;
+    gl_FragDepth = gl_FragCoord.z;
+    gl_FragDepth += gl_FrontFacing ? BIAS : 0.0;
 }

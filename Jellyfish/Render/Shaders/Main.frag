@@ -6,7 +6,7 @@ in vec2 frag_texCoord;
 in vec3 frag_normal;
 in vec3 frag_position;
 in vec4 frag_position_sun;
-in vec4 frag_position_lightspace[4];
+in vec4 frag_position_lightspace[12];
 
 uniform vec3 cameraPos;
 layout(binding=0) uniform sampler2D diffuseSampler;
@@ -14,7 +14,7 @@ layout(binding=1) uniform sampler2D normalSampler;
 layout(binding=2) uniform sampler2D metroughSampler;
 
 layout(binding=3) uniform sampler2DShadow sunShadowSampler;
-layout(binding=4) uniform sampler2DShadow shadowSamplers[4];
+layout(binding=4) uniform sampler2DShadow shadowSamplers[12];
 
 struct Light {
     vec3 position;
@@ -34,7 +34,7 @@ struct Light {
     vec3 diffuse;
     bool hasShadows;
 };
-uniform Light lightSources[4];
+uniform Light lightSources[12];
 uniform int lightSourcesCount;
 
 uniform Light sun;

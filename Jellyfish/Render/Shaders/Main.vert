@@ -5,7 +5,7 @@ out vec2 frag_texCoord;
 out vec3 frag_normal;
 out vec3 frag_position;
 out vec4 frag_position_sun;
-out vec4 frag_position_lightspace[4];
+out vec4 frag_position_lightspace[12];
 
 struct Light {
     vec3 position;
@@ -25,7 +25,7 @@ struct Light {
     vec3 diffuse;
     bool hasShadows;
 };
-uniform Light lightSources[4];
+uniform Light lightSources[12];
 uniform int lightSourcesCount;
 
 uniform Light sun;

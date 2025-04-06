@@ -26,7 +26,7 @@ public static class LightManager
     public static IReadOnlyList<Light> Lights => lights.AsReadOnly();
     public static Light? Sun { get; private set; }
 
-    public const int max_lights = 4;
+    public const int max_lights = 12;
     private static readonly List<Light> lights = new(max_lights);
 
     public static void AddLight(ILightSource source)
@@ -80,6 +80,7 @@ public static class LightManager
 
     public static void DrawShadows()
     {
+        GL.Disable(EnableCap.CullFace);
         GL.CullFace(TriangleFace.Front);
 
         if (Sun != null && Sun.Source.Enabled && Sun.Source.UseShadows)
@@ -117,6 +118,7 @@ public static class LightManager
         }
 
         GL.CullFace(TriangleFace.Back);
+        GL.Enable(EnableCap.CullFace);
     }
 
     private static void CreateShadow(Light light, string subname = "")
