@@ -23,12 +23,10 @@ public abstract class BaseEntity
 
     public string? Name => _entityProperties["Name"].Value as string;
     
-#if DEBUG
     public virtual bool DrawDevCone { get; set; }
-    private EntityDevCone? _devCone;
-#endif
 
     public bool Loaded { get; private set; }
+    public bool MarkedForDeath { get; private set; }
 
     protected BaseEntity()
     {
@@ -47,34 +45,16 @@ public abstract class BaseEntity
             return;
         }
 
-#if DEBUG
-        if (DrawDevCone)
-            _devCone = new EntityDevCone(this);
-#endif
         Loaded = true;
     }
 
     public virtual void Unload()
     {
-#if DEBUG
-        if (DrawDevCone && _devCone != null)
-        {
-            _devCone.Unload();
-            _devCone = null;
-        }
-#endif
+        MarkedForDeath = true;
     }
 
     public virtual void Think()
     {
-#if DEBUG
-        _devCone?.Think();
-#endif
-
-        if (ConVarStorage.Get<bool>("edt_enable") && ConVarStorage.Get<bool>("edt_drawnames"))
-        {
-            Debug.DrawText(GetPropertyValue<Vector3>("Position"), Name ?? "null");
-        }
     }
 
     protected virtual void OnPositionChanged(Vector3 position) { }
@@ -153,50 +133,13 @@ public abstract class BaseEntity
 
     public virtual bool IsPointWithinBoundingBox(Vector3 point)
     {
-        return DrawDevCone && (_devCone?.IsPointWithinBoundingBox(point) ?? false);
+        return DrawDevCone && EntityManager.EntityDevCone.BoundingBox.IsPointInside(point);
     }
 
-    public virtual BoundingBox? BoundingBox => DrawDevCone ? _devCone?.BoundingBox : null;
+    public virtual BoundingBox? BoundingBox => DrawDevCone ? EntityManager.EntityDevCone.BoundingBox : null;
 
     public override string ToString()
     {
         return Name ?? GetType().Name;
     }
-}
-
-public class EntityDevCone
-{
-    private readonly BaseEntity _entity;
-    private readonly Model _model;
-
-    public EntityDevCone(BaseEntity entity)
-    {
-        _entity = entity;
-        _model = new Model("models/spot_reference.smd", true);
-    }
-
-    public void Think()
-    {
-        _model.Position = _entity.GetPropertyValue<Vector3>("Position");
-        _model.Rotation = _entity.GetPropertyValue<Quaternion>("Rotation") * new Quaternion(float.DegreesToRadians(90), 0, 0);
-
-        if (_entity is BaseModelEntity)
-            _model.Scale = _entity.GetPropertyValue<Vector3>("Scale") * new Vector3(0.3f);
-        else
-            _model.Scale = new Vector3(0.3f);
-
-        _model.ShouldDraw = _entity.DrawDevCone && ConVarStorage.Get<bool>("edt_enable") && ConVarStorage.Get<bool>("edt_drawcones");
-    }
-
-    public void Unload()
-    {
-        _model.Unload();
-    }
-
-    public bool IsPointWithinBoundingBox(Vector3 point)
-    {
-        return _model.BoundingBox.IsPointInside(point);
-    }
-
-    public BoundingBox BoundingBox => _model.BoundingBox;
 }

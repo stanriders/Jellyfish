@@ -93,6 +93,7 @@ public class MainWindow : GameWindow, IInputHandler
 
 #if DEBUG
         QueuedMap = "maps/test.json";
+        Paused = true;
 #endif
     }
 
@@ -155,14 +156,7 @@ public class MainWindow : GameWindow, IInputHandler
         if (!IsFocused && !Paused)
             Paused = true;
 
-        if (Paused)
-        {
-            _physicsManager.ShouldSimulate = false;
-            base.OnUpdateFrame(e);
-            return;
-        }
-
-        _physicsManager.ShouldSimulate = true;
+        _physicsManager.ShouldSimulate = !Paused;
         _entityManager.Frame();
 
         base.OnUpdateFrame(e);

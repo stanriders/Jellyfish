@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Jellyfish.Console;
+using Jellyfish.Render;
+using Jellyfish.Utils;
+using OpenTK.Mathematics;
 
 namespace Jellyfish.Entities;
 
@@ -16,6 +19,8 @@ public class EntityManager
     public static IReadOnlyList<string>? EntityClasses => instance?._entityClassDictionary.Keys.ToList().AsReadOnly();
 
     private static EntityManager? instance;
+
+    private readonly List<EntityDevCone> _devCones = new();
 
     public EntityManager()
     {
@@ -53,9 +58,15 @@ public class EntityManager
     {
         foreach (var entity in _entityList)
         {
+            if (entity.DrawDevCone)
+            {
+                var cone = _devCones.FirstOrDefault(x => x.Entity == entity);
+                cone?.Unload();
+            }
             entity.Unload();
         }
 
+        _devCones.Clear();
         _entityList.Clear();
     }
 
@@ -66,12 +77,33 @@ public class EntityManager
             var entity = _killQueue.Dequeue();
 
             Log.Context(this).Information("Destroying entity {Name}...", entity.GetPropertyValue<string>("Name"));
+
+            if (entity.DrawDevCone)
+            {
+                var cone = _devCones.FirstOrDefault(x => x.Entity == entity);
+                cone?.Unload();
+            }
+
             entity.Unload();
             _entityList.Remove(entity);
         }
 
-        foreach (var entity in _entityList)
-            entity.Think();
+        if (ConVarStorage.Get<bool>("edt_enable") && ConVarStorage.Get<bool>("edt_drawnames"))
+        {
+            foreach (var entity in _entityList)
+                Debug.DrawText(entity.GetPropertyValue<Vector3>("Position"), entity.Name ?? "null");
+        }
+
+        foreach (var devCone in _devCones)
+        {
+            devCone.Think();
+        }
+
+        if (!MainWindow.Paused)
+        {
+            foreach (var entity in _entityList)
+                entity.Think();
+        }
     }
 
     public static BaseEntity? CreateEntity(string className)
@@ -88,6 +120,10 @@ public class EntityManager
             if (Activator.CreateInstance(type) is BaseEntity entity)
             {
                 instance._entityList.Add(entity);
+
+                if (entity.DrawDevCone)
+                    instance._devCones.Add(new EntityDevCone(entity));
+
                 return entity;
             }
         }
@@ -161,5 +197,38 @@ public class EntityManager
         
         // there are some entity list enumerations that run every frame so we want to kill entities on the start of the frame instead of the middle of it
         instance._killQueue.Enqueue(entity);
+    }
+
+    public class EntityDevCone
+    {
+        public BaseEntity Entity { get; }
+
+        private readonly Model _model;
+
+        public static BoundingBox BoundingBox = new(new Vector3(5), new Vector3(-5));
+
+        public EntityDevCone(BaseEntity entity)
+        {
+            Entity = entity;
+            _model = new Model("models/spot_reference.smd", true);
+        }
+
+        public void Think()
+        {
+            _model.Position = Entity.GetPropertyValue<Vector3>("Position");
+            _model.Rotation = Entity.GetPropertyValue<Quaternion>("Rotation") * new Quaternion(float.DegreesToRadians(90), 0, 0);
+
+            if (Entity is BaseModelEntity)
+                _model.Scale = Entity.GetPropertyValue<Vector3>("Scale") * new Vector3(0.3f);
+            else
+                _model.Scale = new Vector3(0.3f);
+
+            _model.ShouldDraw = Entity.DrawDevCone && ConVarStorage.Get<bool>("edt_enable") && ConVarStorage.Get<bool>("edt_drawcones");
+        }
+
+        public void Unload()
+        {
+            _model.Unload();
+        }
     }
 }

@@ -49,6 +49,9 @@ public class Editor : IUiPanel, IInputHandler
         if (!MainWindow.Loaded)
             return;
 
+        if (_selectedEntity?.MarkedForDeath ?? false)
+            _selectedEntity = null;
+
         var windowFlags = ImGuiWindowFlags.NoDecoration |
                           ImGuiWindowFlags.AlwaysAutoResize |
                           ImGuiWindowFlags.NoSavedSettings |
