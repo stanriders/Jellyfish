@@ -39,7 +39,7 @@ public class Main : Shader
 
         if (!alreadyExists)
         {
-            const SizedInternalFormat format = SizedInternalFormat.DepthComponent24;
+            const SizedInternalFormat format = SizedInternalFormat.DepthComponent16;
             const int levels = 1;
 
             GL.BindTexture(TextureTarget.Texture2d, _dummyShadow.Handle);
