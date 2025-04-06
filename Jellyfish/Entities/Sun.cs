@@ -17,7 +17,7 @@ public class Sun : LightEntity
             var position = Camera.Instance.Position + Vector3.Transform(GetPropertyValue<Vector3>("Position"), Rotation);
             
             var lightProjection = Matrix4.CreateOrthographic(position.Y * 1.5f, position.Y * 1.5f, NearPlane, FarPlane);
-            var lightView = Matrix4.LookAt(position, position + Vector3.Transform(-Vector3.UnitY, Rotation), Vector3.UnitY);
+            var lightView = Matrix4.LookAt(position, position + Vector3.Transform(-Vector3.UnitY, Rotation), Vector3.UnitZ);
             return [lightView * lightProjection];
         }
     }

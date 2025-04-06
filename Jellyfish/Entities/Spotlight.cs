@@ -27,7 +27,7 @@ public class Spotlight : LightEntity
         get
         {
             var lightProjection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(Math.Min(90, GetPropertyValue<float>("OuterCone"))) * 2.0f, 1.0f, NearPlane, FarPlane);
-            var lightView = Matrix4.LookAt(Position, Position + Vector3.Transform(-Vector3.UnitY, Rotation), Vector3.UnitY);
+            var lightView = Matrix4.LookAt(Position, Position + Vector3.Transform(-Vector3.UnitY, Rotation), Vector3.UnitZ);
             return [lightView * lightProjection];
         }
     }
