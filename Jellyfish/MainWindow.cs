@@ -9,6 +9,7 @@ using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using System.Threading;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace Jellyfish;
@@ -246,10 +247,12 @@ public class MainWindow : GameWindow, IInputHandler
 
         UpdateLoadingScreen("Creating player...");
 
-        if (EntityManager.FindEntity("player") == null)
-            EntityManager.CreateEntity("player");
+        var player = EntityManager.FindEntity("player");
+        if (player == null)
+            player = EntityManager.CreateEntity("player");
 
         Camera.Instance.AspectRatio = WindowWidth / (float)WindowHeight;
+        Camera.Instance.Position = player?.GetPropertyValue<Vector3>("Position") ?? Vector3.Zero;
 
         UpdateLoadingScreen("Finishing loading...");
 
