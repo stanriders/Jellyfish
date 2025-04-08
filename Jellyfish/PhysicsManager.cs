@@ -165,7 +165,7 @@ public class PhysicsManager
         return bodyId;
     }
 
-    public static CharacterVirtual? AddPlayerController(BaseEntity entity)
+    public static CharacterVirtual? AddPlayerController(BaseEntity entity, BoxShape shape)
     {
         if (instance == null)
             return null;
@@ -174,7 +174,7 @@ public class PhysicsManager
 
         var charSettings = new CharacterVirtualSettings
         {
-            Shape = new BoxShape(new System.Numerics.Vector3(15f, 65f, 15f)),
+            Shape = shape,
             Mass = 100f,
             Up = System.Numerics.Vector3.UnitY,
             MaxSlopeAngle = 60

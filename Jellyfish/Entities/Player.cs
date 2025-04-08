@@ -4,6 +4,7 @@ using Jellyfish.Render;
 using JoltPhysicsSharp;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using BoundingBox = Jellyfish.Utils.BoundingBox;
 
 namespace Jellyfish.Entities;
 
@@ -18,9 +19,15 @@ public class Player : BaseEntity, IInputHandler
     private const float jump_velocity = 170.0f;
     private const float sensitivity = 0.2f;
 
+    private const float height = 65;
+    private const float width = 30;
+
+    public override BoundingBox? BoundingBox { get; } =
+        new BoundingBox(new Vector3(width / 2, height / 2, width / 2), new Vector3(-width / 2, -height / 2, -width / 2));
+
     public override void Think()
     {
-        Camera.Instance.Position = GetPropertyValue<Vector3>("Position");
+        Camera.Instance.Position = GetPropertyValue<Vector3>("Position") + new Vector3(0, height / 2, 0);
         Camera.Instance.Rotation = GetPropertyValue<Quaternion>("Rotation");
 
         base.Think();
@@ -28,7 +35,7 @@ public class Player : BaseEntity, IInputHandler
 
     public override void Load()
     {
-        _physCharacter = PhysicsManager.AddPlayerController(this);
+        _physCharacter = PhysicsManager.AddPlayerController(this, new BoxShape((BoundingBox!.Value.Size / 2).ToNumericsVector()));
         InputManager.RegisterInputHandler(this);
 
         base.Load();
