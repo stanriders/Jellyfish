@@ -272,14 +272,14 @@ public class Editor : IUiPanel, IInputHandler
         var propertyName = entityProperty.Name;
         var elementLabel = propertyName;
 
-        if (entityProperty.Type == typeof(Vector2))
+        if (entityProperty.Type == typeof(OpenTK.Mathematics.Vector2))
         {
-            var valueCasted = (Vector2)entityProperty.Value!;
+            var valueCasted = (OpenTK.Mathematics.Vector2)entityProperty.Value!;
 
-            var val = new System.Numerics.Vector2(valueCasted.X, valueCasted.Y);
+            var val = new Vector2(valueCasted.X, valueCasted.Y);
             ImGui.DragFloat2(elementLabel, ref val);
 
-            entity.SetPropertyValue(propertyName, new Vector2(val.X, val.Y));
+            entity.SetPropertyValue(propertyName, new OpenTK.Mathematics.Vector2(val.X, val.Y));
         }
         else if (entityProperty.Type == typeof(Vector3))
         {
