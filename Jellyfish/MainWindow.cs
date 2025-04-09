@@ -241,6 +241,7 @@ public class MainWindow : GameWindow, IInputHandler
 
         UpdateLoadingScreen("Cleaning up entities...");
         _entityManager.Unload();
+        _audioManager.ClearScene();
 
         UpdateLoadingScreen($"Loading map '{map}'...");
         MapLoader.Load(map);

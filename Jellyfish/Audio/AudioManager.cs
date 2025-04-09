@@ -1,5 +1,4 @@
-﻿using Jellyfish.Entities;
-using ManagedBass;
+﻿using ManagedBass;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +21,7 @@ namespace Jellyfish.Audio
         private static AudioManager? instance;
 
         private readonly List<Sound> _sounds = new();
+        private readonly List<IPL.StaticMesh> _meshes = new();
 
         private bool _shouldStop;
 
@@ -70,6 +70,9 @@ namespace Jellyfish.Audio
             if (instance == null)
                 return;
 
+            var transformationMatrix = mesh.GetTransformationMatrix();
+            var tranformedVertices = mesh.Vertices.Select(meshVertex => Vector3.TransformVector(meshVertex.Coordinates, transformationMatrix).ToIplVector()).ToList();
+
             var triangles = new List<IPL.Triangle>();
             for (var i = 0; i < mesh.Vertices.Count; i += 3)
             {
@@ -94,14 +97,14 @@ namespace Jellyfish.Audio
 
             var materialsList = new[] { material };
 
-            fixed (IPL.Vector3* verts = mesh.Vertices.Select(v => v.Coordinates.ToIplVector()).ToArray())
+            fixed (IPL.Vector3* verts = tranformedVertices.ToArray())
             fixed (IPL.Triangle* indicies = triangles.ToArray())
             fixed (IPL.Material* materials = materialsList)
             fixed (int* materialIndicies = Enumerable.Repeat(0, triangles.Count).ToArray())
             {
                 IPL.StaticMeshCreate(instance._iplScene, new IPL.StaticMeshSettings
                 {
-                    NumVertices = mesh.Vertices.Count,
+                    NumVertices = tranformedVertices.Count,
                     NumTriangles = triangles.Count,
                     NumMaterials = materialsList.Length,
                     Vertices = (nint)verts,
@@ -112,7 +115,31 @@ namespace Jellyfish.Audio
 
                 IPL.StaticMeshAdd(iplMesh, instance._iplScene);
                 IPL.SceneCommit(instance._iplScene);
+
+                instance._meshes.Add(iplMesh);
             }
+        }
+
+        public void ClearScene()
+        {
+            foreach (var mesh in _meshes)
+            {
+                IPL.StaticMeshRemove(mesh, _iplScene);
+            }
+            IPL.SceneCommit(_iplScene);
+            _meshes.Clear();
+
+            var removedSounds = new List<Sound>();
+            foreach (var sound in _sounds.Where(x => !x.Persistent))
+            {
+                // TODO: this just crashes
+                //IPL.SourceRemove(sound.Source, _iplSimulator);
+                //sound.Dispose();
+                sound.Stop();
+                removedSounds.Add(sound);
+            }
+
+            _sounds.RemoveAll(removedSounds.Contains);
         }
 
         public void Unload()

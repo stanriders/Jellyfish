@@ -266,6 +266,7 @@ public class PhysicsManager
         _physicsSystem.OptimizeBroadPhase();
 
         _impactSound = AudioManager.AddSound("sounds/impact.wav");
+        _impactSound!.Persistent = true;
         _impactSound!.Volume = 0.5f;
 
         _physicsSystem.OnContactAdded += OnContactAdded;

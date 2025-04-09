@@ -225,6 +225,11 @@ public class Mesh
         }
     }
 
+    public Matrix4 GetTransformationMatrix() => Matrix4.Identity * 
+                                                Matrix4.CreateScale(Scale) *
+                                                Matrix4.CreateTranslation(Position) *
+                                                Matrix4.CreateFromQuaternion(Rotation);
+
     public void Unload()
     {
         _vbo.Unload();

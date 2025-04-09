@@ -3,7 +3,6 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Jellyfish.Console;
-using Jellyfish.Entities;
 using Jellyfish.Render;
 using ManagedBass;
 using OpenTK.Mathematics;
@@ -14,6 +13,7 @@ namespace Jellyfish.Audio
     public sealed class Sound : IDisposable
     {
         public bool Playing { get; private set; }
+        public bool Persistent { get; set; }
         public IPL.Source Source { get; }
         public Vector3 Position
         {
@@ -130,6 +130,15 @@ namespace Jellyfish.Audio
             }
         }
 
+        public void Stop()
+        {
+            if (Playing)
+            {
+                Playing = false;
+                Bass.ChannelStop(_stream);
+            }
+        }
+
         public unsafe void Update(IPL.Context iplContext, IPL.Hrtf iplHrtf)
         {
             if (!Playing)
@@ -199,7 +208,7 @@ namespace Jellyfish.Audio
         public void Dispose()
         {
             if (Playing)
-                Playing = false;
+                Stop();
 
             Marshal.FreeHGlobal(_inBuffer);
             Marshal.FreeHGlobal(_outBuffer);
