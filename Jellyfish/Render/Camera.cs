@@ -88,6 +88,11 @@ namespace Jellyfish.Render
             return Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, 1f, 10000f);
         }
 
+        public Frustum GetFrustum()
+        {
+            return new Frustum(GetViewMatrix() * GetProjectionMatrix());
+        }
+
         public Ray GetCameraToViewportRay(Vector2 screenPosition)
         {
             var inverseVp = (GetViewMatrix() * GetProjectionMatrix()).Inverted();

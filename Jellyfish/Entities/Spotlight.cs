@@ -1,10 +1,11 @@
 ﻿using System;
+using Jellyfish.Utils;
 using OpenTK.Mathematics;
 
 namespace Jellyfish.Entities;
 
 [Entity("light_spot")]
-public class Spotlight : LightEntity
+public class Spotlight : LightEntity, IHaveFrustum
 {
     public override bool DrawDevCone { get; set; } = true;
 
@@ -32,4 +33,8 @@ public class Spotlight : LightEntity
         }
     }
 
+    public Frustum GetFrustum()
+    {
+        return new Frustum(Projections[0]);
+    }
 }

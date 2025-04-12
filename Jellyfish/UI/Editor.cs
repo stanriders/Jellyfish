@@ -155,6 +155,9 @@ public class Editor : IUiPanel, IInputHandler
                 if (_selectedEntity.BoundingBox != null)
                     Debug.DrawBoundingBox(_selectedEntity.GetPropertyValue<Vector3>("Position"), _selectedEntity.BoundingBox.Value);
 
+                if (_selectedEntity is IHaveFrustum frustumEntity)
+                    Debug.DrawFrustum(frustumEntity.GetFrustum());
+
                 foreach (var entityProperty in _selectedEntity.EntityProperties)
                 {
                     AddProperty(_selectedEntity, entityProperty);

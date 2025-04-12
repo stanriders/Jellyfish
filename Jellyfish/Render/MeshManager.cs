@@ -56,7 +56,7 @@ public static class MeshManager
             if (mesh.IsDev && !drawDev)
                 continue;
 
-            if (mesh.ShouldDraw)
+            if (mesh.ShouldDraw && Camera.Instance.GetFrustum().IsInside(mesh.Position, mesh.BoundingBox.Length))
                 mesh.Draw(shaderToUse);
         }
 
@@ -80,7 +80,7 @@ public static class MeshManager
             if (mesh.IsDev && !drawDev)
                 continue;
 
-            if (mesh.ShouldDraw)
+            if (mesh.ShouldDraw && Camera.Instance.GetFrustum().IsInside(mesh.Position, mesh.BoundingBox.Length))
                 mesh.DrawGBuffer();
         }
 

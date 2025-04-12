@@ -9,6 +9,7 @@ public readonly struct BoundingBox
     public Vector3 Size { get; }
     public Vector3 Max { get; }
     public Vector3 Min { get; }
+    public float Length { get; }
 
     public BoundingBox(Vertex[] vertices)
     {
@@ -49,6 +50,7 @@ public readonly struct BoundingBox
         Size = new Vector3(maxX - minX, maxY - minY, maxZ - minZ);
         Max = new Vector3(maxX, maxY, maxZ);
         Min = new Vector3(minX, minY, minZ);
+        Length = (Max - Min).Length;
     }
 
     public BoundingBox(BoundingBox[] boxes)
@@ -91,6 +93,7 @@ public readonly struct BoundingBox
         Size = new Vector3(maxX - minX, maxY - minY, maxZ - minZ);
         Max = new Vector3(maxX, maxY, maxZ);
         Min = new Vector3(minX, minY, minZ);
+        Length = (Max - Min).Length;
     }
 
     public BoundingBox(Vector3 max, Vector3 min)
@@ -103,6 +106,7 @@ public readonly struct BoundingBox
         Size = new Vector3(max.X - min.X, max.Y - min.Y, max.Z - min.Z);
         Min = min;
         Max = max;
+        Length = (Max - Min).Length;
     }
 
     public BoundingBox Translate(Matrix4 transform)

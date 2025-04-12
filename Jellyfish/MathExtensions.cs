@@ -81,7 +81,7 @@ public static class MathExtensions
 
     public static Vector2 ToScreenspace(this Vector3 vector)
     {
-        var clipSpacePos = new Vector4(vector.X, vector.Y, vector.Z, 1.0f) * Camera.Instance.GetViewMatrix() * Camera.Instance.GetProjectionMatrix();
+        var clipSpacePos = new Vector4(vector, 1.0f) * Camera.Instance.GetViewMatrix() * Camera.Instance.GetProjectionMatrix();
 
         if (clipSpacePos.W > 0.0f)
         {
@@ -98,7 +98,7 @@ public static class MathExtensions
 
     public static System.Numerics.Vector2 ToScreenspace(this System.Numerics.Vector3 vector)
     {
-        var clipSpacePos = new Vector4(vector.X, vector.Y, vector.Z, 1.0f) * Camera.Instance.GetViewMatrix() * Camera.Instance.GetProjectionMatrix();
+        var clipSpacePos = new Vector4(vector.ToOpentkVector(), 1.0f) * Camera.Instance.GetViewMatrix() * Camera.Instance.GetProjectionMatrix();
 
         if (clipSpacePos.W > 0.0f)
         {
