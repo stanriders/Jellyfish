@@ -66,16 +66,5 @@ public abstract class BaseModelEntity : BaseEntity
         }
     }
 
-    public override bool IsPointWithinBoundingBox(Vector3 point)
-    {
-        if (Model != null)
-        {
-            var modelSpacePoint = point - Model.Position;
-            return Model.BoundingBox.IsPointInside(modelSpacePoint);
-        }
-
-        return false;
-    }
-
     public override BoundingBox? BoundingBox => Model?.BoundingBox;
 }

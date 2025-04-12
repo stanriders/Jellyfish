@@ -133,7 +133,8 @@ public abstract class BaseEntity
 
     public virtual bool IsPointWithinBoundingBox(Vector3 point)
     {
-        return DrawDevCone && EntityManager.EntityDevCone.BoundingBox.IsPointInside(point);
+        var position = GetPropertyValue<Vector3>("Position");
+        return BoundingBox?.IsPointInside(point - position) ?? false;
     }
 
     public virtual BoundingBox? BoundingBox => DrawDevCone ? EntityManager.EntityDevCone.BoundingBox : null;
