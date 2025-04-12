@@ -94,7 +94,6 @@ public class OpenGLRender : IRender, IInputHandler
         LightManager.DrawShadows();
 
         _mainFramebuffer?.Bind();
-        GL.Enable(EnableCap.Blend);
 
         GL.Viewport(0, 0, MainWindow.WindowWidth, MainWindow.WindowHeight);
         GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -103,9 +102,11 @@ public class OpenGLRender : IRender, IInputHandler
         GL.PolygonMode(TriangleFace.FrontAndBack, _wireframe ? PolygonMode.Line : PolygonMode.Fill);
 
         _sky?.Draw();
-        MeshManager.Draw();
 
+        GL.Enable(EnableCap.Blend);
+        MeshManager.Draw();
         GL.Disable(EnableCap.Blend);
+
         _mainFramebuffer?.Unbind();
 
         _postProcessing?.Draw();
