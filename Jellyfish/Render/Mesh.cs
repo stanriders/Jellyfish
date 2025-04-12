@@ -144,7 +144,7 @@ public class Mesh
 
     protected void CreateBuffers()
     {
-        _vbo = new VertexBuffer(Vertices.ToArray(), Usage);
+        _vbo = new VertexBuffer(Name, Vertices.ToArray(), Usage);
 
         if (Indices != null && Indices.Count > 0)
             _ibo = new IndexBuffer(Indices.ToArray());

@@ -23,30 +23,33 @@ public class VertexBuffer
 
     private VertexBufferObjectUsage _usage;
 
-    public VertexBuffer(int size = 10000, VertexBufferObjectUsage usage = VertexBufferObjectUsage.StaticDraw)
+    public VertexBuffer(string name, int size = 10000, VertexBufferObjectUsage usage = VertexBufferObjectUsage.StaticDraw)
     {
         _size = size;
         _usage = usage;
 
         GL.CreateBuffer(out Handle);
+        GL.ObjectLabel(ObjectIdentifier.Buffer, (uint)Handle, name.Length, name);
         GL.NamedBufferData(Handle, _size, IntPtr.Zero, _usage);
     }
 
-    public VertexBuffer(float[] data, int stride, VertexBufferObjectUsage usage = VertexBufferObjectUsage.StaticDraw)
+    public VertexBuffer(string name, float[] data, int stride, VertexBufferObjectUsage usage = VertexBufferObjectUsage.StaticDraw)
     {
         _size = data.Length * sizeof(float);
         _usage = usage;
         Stride = stride;
 
         GL.CreateBuffer(out Handle);
+        GL.ObjectLabel(ObjectIdentifier.Buffer, (uint)Handle, name.Length, name);
         GL.NamedBufferData(Handle, _size, data, _usage);
     }
 
-    public VertexBuffer(Vertex[] vertices, VertexBufferObjectUsage usage = VertexBufferObjectUsage.StaticDraw)
+    public VertexBuffer(string name, Vertex[] vertices, VertexBufferObjectUsage usage = VertexBufferObjectUsage.StaticDraw)
     {
         _usage = usage;
 
         GL.CreateBuffer(out Handle);
+        GL.ObjectLabel(ObjectIdentifier.Buffer, (uint)Handle, name.Length, name);
 
         var coords = new List<float>();
         foreach (var vertex in vertices)

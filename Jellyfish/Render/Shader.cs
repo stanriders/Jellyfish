@@ -165,6 +165,8 @@ public abstract class Shader
         if (handle == 0)
             return 0;
 
+        GL.ObjectLabel(ObjectIdentifier.Program, (uint)handle, GetType().Name.Length, GetType().Name);
+
         // compile shaders
         var vertexShader = 0;
         if (!string.IsNullOrEmpty(_vertPath))

@@ -59,7 +59,7 @@ namespace Jellyfish.Render
 
         public Sky()
         {
-            _vbo = new VertexBuffer(_skyboxVertices, 3 * sizeof(float));
+            _vbo = new VertexBuffer("Skybox", _skyboxVertices, 3 * sizeof(float));
             _vao = new VertexArray(_vbo, null);
             _shader = new Skybox();
 

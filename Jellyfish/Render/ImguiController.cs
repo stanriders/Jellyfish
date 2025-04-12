@@ -63,7 +63,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
     public void CreateDeviceResources()
     {
-        _vbo = new VertexBuffer(usage: VertexBufferObjectUsage.DynamicDraw)
+        _vbo = new VertexBuffer("Imgui", usage: VertexBufferObjectUsage.DynamicDraw)
         {
             Stride = Unsafe.SizeOf<ImDrawVert>()
         };
