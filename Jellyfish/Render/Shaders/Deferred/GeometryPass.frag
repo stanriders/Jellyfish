@@ -5,7 +5,7 @@ in vec3 frag_normal;
 in vec3 frag_position;
 
 layout (location = 0) out vec3 WorldPosOut;
-layout (location = 1) out vec3 DiffuseOut;
+layout (location = 1) out vec4 DiffuseOut;
 layout (location = 2) out vec3 NormalOut;
 layout (location = 3) out vec3 TexCoordOut;
 
@@ -46,7 +46,7 @@ void main()
     tangentSpaceNormal = normalize(tbn * tangentSpaceNormal);  
 
     WorldPosOut = frag_position;
-    DiffuseOut = diffuseTex.rgb;
+    DiffuseOut = diffuseTex;
     NormalOut = tangentSpaceNormal;
     TexCoordOut = vec3(frag_texCoord, 0.0);
 }

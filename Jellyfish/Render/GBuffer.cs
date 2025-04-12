@@ -16,7 +16,12 @@ public class GBuffer
 
         for (uint i = 0; i < (uint)GBufferType.Count; i++)
         {
-            _renderTargets.Add(new RenderTarget($"_rt_{(GBufferType)i}", MainWindow.WindowWidth, MainWindow.WindowHeight, SizedInternalFormat.Rgb16f, FramebufferAttachment.ColorAttachment0 + i, 
+            // diffuse is special because we want to pass alpha too
+            var format = (GBufferType)i == GBufferType.Diffuse
+                ? SizedInternalFormat.Rgba16f
+                : SizedInternalFormat.Rgb16f;
+
+            _renderTargets.Add(new RenderTarget($"_rt_{(GBufferType)i}", MainWindow.WindowWidth, MainWindow.WindowHeight, format, FramebufferAttachment.ColorAttachment0 + i, 
                 TextureWrapMode.ClampToEdge));
         }
 

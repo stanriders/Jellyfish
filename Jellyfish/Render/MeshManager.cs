@@ -71,7 +71,7 @@ public static class MeshManager
         drawing = false;
     }
 
-    public static void DrawGBuffer(bool drawDev = false)
+    public static void DrawGBuffer(bool drawDev = true)
     {
         drawing = true;
 

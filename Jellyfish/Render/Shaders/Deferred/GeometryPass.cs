@@ -1,5 +1,4 @@
-﻿using Jellyfish.Entities;
-using OpenTK.Graphics.OpenGL;
+﻿using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.Render.Shaders.Deferred;
 
@@ -31,11 +30,8 @@ public class GeometryPass : Shader
 
     public override void Unbind()
     {
-        GL.ActiveTexture(TextureUnit.Texture0);
-        GL.BindTexture(TextureTarget.Texture2d, 0);
-
-        GL.ActiveTexture(TextureUnit.Texture1);
-        GL.BindTexture(TextureTarget.Texture2d, 0);
+        GL.BindTextureUnit(0, 0);
+        GL.BindTextureUnit(1, 0);
 
         base.Unbind();
     }
