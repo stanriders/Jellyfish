@@ -1,4 +1,6 @@
-﻿namespace Jellyfish.Render.Shaders;
+﻿using OpenTK.Mathematics;
+
+namespace Jellyfish.Render.Shaders;
 
 public class PostProcessing : Shader
 {
@@ -14,6 +16,7 @@ public class PostProcessing : Shader
     {
         base.Bind();
         _rtColor.Bind(0);
+        SetVector2("screenSize", new Vector2(MainWindow.WindowWidth, MainWindow.WindowHeight));
     }
 
     public override void Unload()
