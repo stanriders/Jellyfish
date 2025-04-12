@@ -2,6 +2,7 @@
 using System.Linq;
 using Jellyfish.Audio;
 using Jellyfish.Entities;
+using Jellyfish.Utils;
 using OpenTK.Mathematics;
 
 namespace Jellyfish.Render;
@@ -42,7 +43,7 @@ public static class MeshManager
         }
     }
 
-    public static void Draw(bool drawDev = true, Shader? shaderToUse = null)
+    public static void Draw(bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null)
     {
         drawing = true;
 
@@ -56,7 +57,8 @@ public static class MeshManager
             if (mesh.IsDev && !drawDev)
                 continue;
 
-            if (mesh.ShouldDraw && Camera.Instance.GetFrustum().IsInside(mesh.Position, mesh.BoundingBox.Length))
+            var frustumToUse = frustum ?? Camera.Instance.GetFrustum();
+            if (mesh.ShouldDraw && frustumToUse.IsInside(mesh.Position, mesh.BoundingBox.Length))
                 mesh.Draw(shaderToUse);
         }
 

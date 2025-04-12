@@ -3,6 +3,7 @@ using System.Linq;
 using Jellyfish.Entities;
 using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Shaders;
+using Jellyfish.Utils;
 using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.Render.Lighting;
@@ -91,7 +92,7 @@ public static class LightManager
 
                 GL.Viewport(0, 0, Sun.Source.ShadowResolution, Sun.Source.ShadowResolution);
                 GL.Clear(ClearBufferMask.DepthBufferBit);
-                MeshManager.Draw(false, shadow.Shader);
+                MeshManager.Draw(false, shadow.Shader, new Frustum(Sun.Source.Projections[0]));
 
                 shadow.FrameBuffer.Unbind();
             }
@@ -111,7 +112,12 @@ public static class LightManager
 
                 GL.Viewport(0, 0, light.Source.ShadowResolution, light.Source.ShadowResolution);
                 GL.Clear(ClearBufferMask.DepthBufferBit);
-                MeshManager.Draw(false, shadow.Shader);
+
+                Frustum? frustum = null;
+                if (light.Source is IHaveFrustum frustumEntity)
+                    frustum = frustumEntity.GetFrustum();
+
+                MeshManager.Draw(false, shadow.Shader, frustum);
 
                 shadow.FrameBuffer.Unbind();
             }
