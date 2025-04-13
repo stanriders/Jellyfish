@@ -108,6 +108,9 @@ public static class LightManager
 
             foreach (var shadow in light.Shadows)
             {
+                if (!Camera.Instance.GetFrustum().IsInside(light.Source.Position, light.Source.FarPlane))
+                    continue;
+
                 shadow.FrameBuffer.Bind();
 
                 GL.Viewport(0, 0, light.Source.ShadowResolution, light.Source.ShadowResolution);
