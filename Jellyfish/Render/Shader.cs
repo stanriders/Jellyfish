@@ -118,6 +118,8 @@ public abstract class Shader
         {
             try
             {
+                ShaderManager.RemoveShader(e.FullPath.Replace(@"\", "/"));
+
                 var newHandle = LoadShader();
                 var oldHandle = _shaderHandle;
 
@@ -168,127 +170,62 @@ public abstract class Shader
         GL.ObjectLabel(ObjectIdentifier.Program, (uint)handle, GetType().Name.Length, GetType().Name);
 
         // compile shaders
-        var vertexShader = 0;
-        if (!string.IsNullOrEmpty(_vertPath))
-        {
-            vertexShader = GL.CreateShader(ShaderType.VertexShader);
-            if (vertexShader != 0)
-            {
-                GL.ShaderSource(vertexShader, LoadSource(_vertPath));
-                CompileShader(vertexShader);
-            }
-        }
+        var vertexShader = ShaderManager.GetShader(_vertPath, ShaderType.VertexShader);
+        var geometryShader = ShaderManager.GetShader(_geomPath, ShaderType.GeometryShader);
+        var fragmentShader = ShaderManager.GetShader(_fragPath, ShaderType.FragmentShader);
+        var tesselationControlShader = ShaderManager.GetShader(_tessControlPath, ShaderType.TessControlShader);
+        var tesselationEvaluationShader = ShaderManager.GetShader(_tessEvalPath, ShaderType.TessEvaluationShader);
+        var computeShader = ShaderManager.GetShader(_compPath, ShaderType.ComputeShader);
 
-        var geometryShader = 0;
-        if (!string.IsNullOrEmpty(_geomPath))
-        {
-            geometryShader = GL.CreateShader(ShaderType.GeometryShader);
-            if (geometryShader != 0)
-            {
-                GL.ShaderSource(geometryShader, LoadSource(_geomPath));
-                CompileShader(geometryShader);
-            }
-        }
+        if (vertexShader != null)
+            GL.AttachShader(handle, vertexShader.Value);
 
-        var fragmentShader = 0;
-        if (!string.IsNullOrEmpty(_fragPath))
-        {
-            fragmentShader = GL.CreateShader(ShaderType.FragmentShader);
-            if (fragmentShader != 0)
-            {
-                GL.ShaderSource(fragmentShader, LoadSource(_fragPath));
-                CompileShader(fragmentShader);
-            }
-        }
+        if (geometryShader != null)
+            GL.AttachShader(handle, geometryShader.Value);
 
-        var tesselationControlShader = 0;
-        if (!string.IsNullOrEmpty(_tessControlPath))
-        {
-            tesselationControlShader = GL.CreateShader(ShaderType.TessControlShader);
-            if (tesselationControlShader != 0)
-            {
-                GL.ShaderSource(tesselationControlShader, LoadSource(_tessControlPath));
-                CompileShader(tesselationControlShader);
-            }
-        }
+        if (fragmentShader != null)
+            GL.AttachShader(handle, fragmentShader.Value);
 
-        var tesselationEvaluationShader = 0;
-        if (!string.IsNullOrEmpty(_tessEvalPath))
-        {
-            tesselationEvaluationShader = GL.CreateShader(ShaderType.TessEvaluationShader);
-            if (tesselationEvaluationShader != 0)
-            {
-                GL.ShaderSource(tesselationEvaluationShader, LoadSource(_tessEvalPath));
-                CompileShader(tesselationEvaluationShader);
-            }
-        }
+        if (tesselationControlShader != null)
+            GL.AttachShader(handle, tesselationControlShader.Value);
 
-        var computeShader = 0;
-        if (!string.IsNullOrEmpty(_compPath))
-        {
-            computeShader = GL.CreateShader(ShaderType.ComputeShader);
-            if (computeShader != 0)
-            {
-                GL.ShaderSource(computeShader, LoadSource(_compPath));
-                CompileShader(computeShader);
-            }
-        }
+        if (tesselationEvaluationShader != null)
+            GL.AttachShader(handle, tesselationEvaluationShader.Value);
 
-        if (vertexShader != 0)
-            GL.AttachShader(handle, vertexShader);
-
-        if (geometryShader != 0)
-            GL.AttachShader(handle, geometryShader);
-
-        if (fragmentShader != 0)
-            GL.AttachShader(handle, fragmentShader);
-
-        if (tesselationControlShader != 0)
-            GL.AttachShader(handle, tesselationControlShader);
-
-        if (tesselationEvaluationShader != 0)
-            GL.AttachShader(handle, tesselationEvaluationShader);
-
-        if (computeShader != 0)
-            GL.AttachShader(handle, computeShader);
+        if (computeShader != null)
+            GL.AttachShader(handle, computeShader.Value);
 
         LinkProgram(handle);
 
         // remove singular shaders
-        if (vertexShader != 0)
+        if (vertexShader != null)
         {
-            GL.DetachShader(handle, vertexShader);
-            GL.DeleteShader(vertexShader);
+            GL.DetachShader(handle, vertexShader.Value);
         }
 
-        if (geometryShader != 0)
+        if (geometryShader != null)
         {
-            GL.DetachShader(handle, geometryShader);
-            GL.DeleteShader(geometryShader);
+            GL.DetachShader(handle, geometryShader.Value);
         }
 
-        if (fragmentShader != 0)
+        if (fragmentShader != null)
         {
-            GL.DetachShader(handle, fragmentShader);
-            GL.DeleteShader(fragmentShader);
+            GL.DetachShader(handle, fragmentShader.Value);
         }
 
-        if (tesselationControlShader != 0)
+        if (tesselationControlShader != null)
         {
-            GL.DetachShader(handle, tesselationControlShader);
-            GL.DeleteShader(tesselationControlShader);
+            GL.DetachShader(handle, tesselationControlShader.Value);
         }
 
-        if (tesselationEvaluationShader != 0)
+        if (tesselationEvaluationShader != null)
         {
-            GL.DetachShader(handle, tesselationEvaluationShader);
-            GL.DeleteShader(tesselationEvaluationShader);
+            GL.DetachShader(handle, tesselationEvaluationShader.Value);
         }
 
-        if (computeShader != 0)
+        if (computeShader != null)
         {
-            GL.DetachShader(handle, computeShader);
-            GL.DeleteShader(computeShader);
+            GL.DetachShader(handle, computeShader.Value);
         }
 
         GL.GetProgrami(handle, ProgramProperty.ActiveUniforms, out var numberOfUniforms);
@@ -316,18 +253,6 @@ public abstract class Shader
         _complainedAboutMissingUniforms = false;
 
         return handle;
-    }
-
-    private static void CompileShader(int shader)
-    {
-        GL.CompileShader(shader);
-
-        GL.GetShaderi(shader, ShaderParameterName.CompileStatus, out var code);
-        if (code != (int)All.True)
-        {
-            GL.GetShaderInfoLog(shader, out var error);
-            throw new Exception($"Cant compile shader, {error}");
-        }
     }
 
     private static void LinkProgram(int program)
@@ -362,36 +287,6 @@ public abstract class Shader
     public uint GetAttribLocation(string attribName)
     {
         return (uint)GL.GetAttribLocation(_shaderHandle, attribName);
-    }
-
-    private string LoadSource(string path)
-    {
-        try
-        {
-            var builder = new StringBuilder();
-            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            using var sr = new StreamReader(stream, Encoding.UTF8);
-            while (!sr.EndOfStream)
-            {
-                var line = sr.ReadLine();
-                if (line == null)
-                    break;
-
-                if (line.StartsWith("#include"))
-                {
-                    var includedFile = File.ReadAllText(Path.Combine(Path.GetDirectoryName(path) ?? string.Empty, line.Replace("#include", "").Trim()));
-                    builder.AppendLine(includedFile);
-                    continue;
-                }
-                builder.AppendLine(line);
-            }
-            return builder.ToString();
-        }
-        catch (Exception ex)
-        {
-            Log.Context(this).Error(ex, "Failed to load shader {Path}", path);
-            return string.Empty;
-        }
     }
 
     private Uniform? SetUniform<T>(string name, T data, bool bind = false)
@@ -538,6 +433,4 @@ public abstract class Shader
         if (uniform != null)
             GL.Uniform4f(uniform.Location, data[0], data[1], data[2], data[3]);
     }
-
-
 }
