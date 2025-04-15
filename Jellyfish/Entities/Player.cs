@@ -1,6 +1,7 @@
 ﻿using Jellyfish.Console;
 using Jellyfish.Input;
 using Jellyfish.Render;
+using Jellyfish.Utils;
 using JoltPhysicsSharp;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
@@ -9,7 +10,7 @@ using BoundingBox = Jellyfish.Utils.BoundingBox;
 namespace Jellyfish.Entities;
 
 [Entity("player")]
-public class Player : BaseEntity, IInputHandler
+public class Player : BaseEntity, IInputHandler, IHaveFrustum
 {
     private bool _noclip;
 
@@ -123,5 +124,12 @@ public class Player : BaseEntity, IInputHandler
         }
 
         return inputHandled;
+    }
+
+    public Frustum GetFrustum()
+    {
+        var cameraPosition = GetPropertyValue<Vector3>("Position") + new Vector3(0, height / 2, 0);
+        var view = Matrix4.LookAt(cameraPosition, cameraPosition - Vector3.UnitZ, Vector3.UnitY);
+        return new Frustum(view * Camera.Instance.GetProjectionMatrix());
     }
 }
