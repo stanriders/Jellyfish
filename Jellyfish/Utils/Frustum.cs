@@ -1,7 +1,6 @@
 ﻿
 using OpenTK.Mathematics;
 using System;
-using System.Linq;
 
 namespace Jellyfish.Utils
 {
@@ -14,14 +13,14 @@ namespace Jellyfish.Utils
 
         private static readonly Vector3[] ClipCorners =
         [
-            new Vector3(-1, -1, -1),
-            new Vector3(+1, -1, -1),
-            new Vector3(-1, +1, -1),
-            new Vector3(+1, +1, -1),
-            new Vector3(-1, -1, +1),
-            new Vector3(+1, -1, +1),
-            new Vector3(-1, +1, +1),
-            new Vector3(+1, +1, +1),
+            new(-1, -1, -1),
+            new(+1, -1, -1),
+            new(-1, +1, -1),
+            new(+1, +1, -1),
+            new(-1, -1, +1),
+            new(+1, -1, +1),
+            new(-1, +1, +1),
+            new(+1, +1, +1),
         ];
 
         public Frustum(Matrix4 viewProjectionMatrix)
@@ -81,10 +80,8 @@ namespace Jellyfish.Utils
 
         public bool IsInside(Vector3 center, float radius)
         {
-            for (var i = 0; i < Planes.Length; i++)
+            foreach (var plane in Planes)
             {
-                var plane = Planes[i];
-
                 // Distance from plane to sphere center:
                 var distance = plane.X * center.X + plane.Y * center.Y + plane.Z * center.Z + plane.W;
 
@@ -98,11 +95,8 @@ namespace Jellyfish.Utils
 
         public bool IsInside(BoundingBox box)
         {
-            for (var p = 0; p < Planes.Length; p++)
+            foreach (var (a, b, c, d) in Planes)
             {
-                var (a, b, c, d) = Planes[p];
-
-                // Pick the "most positive" corner in the direction of (A,B,C)
                 var px = (a >= 0) ? box.Max.X : box.Min.X;
                 var py = (b >= 0) ? box.Max.Y : box.Min.Y;
                 var pz = (c >= 0) ? box.Max.Z : box.Min.Z;

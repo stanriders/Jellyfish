@@ -83,14 +83,14 @@ namespace Jellyfish.Render
             return Matrix4.LookAt(Position, Position + _front, Up);
         }
 
-        public Matrix4 GetProjectionMatrix()
+        public Matrix4 GetProjectionMatrix(float nearPlane = 1f, float farPlane = 10000f)
         {
-            return Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, 1f, 10000f);
+            return Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, nearPlane, farPlane);
         }
 
-        public Frustum GetFrustum()
+        public Frustum GetFrustum(float nearPlane = 1f, float farPlane = 10000f)
         {
-            return new Frustum(GetViewMatrix() * GetProjectionMatrix());
+            return new Frustum(GetViewMatrix() * GetProjectionMatrix(nearPlane, farPlane));
         }
 
         public Ray GetCameraToViewportRay(Vector2 screenPosition)
