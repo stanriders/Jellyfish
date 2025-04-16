@@ -35,9 +35,10 @@ public static class LightManager
         if (source is Sun)
         {
             Sun = new Light { Source = source };
-            CreateShadow(Sun, "cascade1");
-            //CreateShadow(Sun, "cascade2");
-            //CreateShadow(Sun, "cascade3");
+            for (var i = 0; i < Entities.Sun.cascades; i++)
+            {
+                CreateShadow(Sun, $"cascade{i}");
+            }
             return;
         }
 
@@ -86,13 +87,14 @@ public static class LightManager
 
         if (Sun != null && Sun.Source.Enabled && Sun.Source.UseShadows)
         {
-            foreach (var shadow in Sun.Shadows)
+            for (var i = 0; i < Sun.Shadows.Count; i++)
             {
+                var shadow = Sun.Shadows[i];
                 shadow.FrameBuffer.Bind();
 
                 GL.Viewport(0, 0, Sun.Source.ShadowResolution, Sun.Source.ShadowResolution);
                 GL.Clear(ClearBufferMask.DepthBufferBit);
-                MeshManager.Draw(false, shadow.Shader, new Frustum(Sun.Source.Projections[0]));
+                MeshManager.Draw(false, shadow.Shader, new Frustum(Sun.Source.Projections[i]));
 
                 shadow.FrameBuffer.Unbind();
             }

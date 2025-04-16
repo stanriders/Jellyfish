@@ -16,7 +16,7 @@ public class Main : Shader
     private readonly Texture _dummyShadow;
 
     private const uint sun_shadow_unit = 3;
-    private const uint first_light_shadow_unit = 4;
+    private const uint first_light_shadow_unit = sun_shadow_unit + Sun.cascades + 1;
 
     public Main(string diffusePath, string? normalPath = null, string? metroughPath = null, bool alphaTest = false) : 
         base("shaders/Main.vert", null, "shaders/Main.frag")
@@ -139,26 +139,36 @@ public class Main : Shader
 
         if (LightManager.Sun != null && LightManager.Sun.Source.Enabled)
         {
-            var light = LightManager.Sun.Source;
+            var sun = LightManager.Sun.Source;
 
-            var rotationVector = Vector3.Transform(-Vector3.UnitY, light.Rotation);
+            var rotationVector = Vector3.Transform(-Vector3.UnitY, sun.Rotation);
             SetVector3("sun.direction", rotationVector);
 
-            SetVector3("sun.diffuse", new Vector3(light.Color.X, light.Color.Y, light.Color.Z));
-            SetVector3("sun.ambient", new Vector3(light.Ambient.X, light.Ambient.Y, light.Ambient.Z));
-            SetFloat("sun.brightness", light.Brightness);
+            SetVector3("sun.diffuse", new Vector3(sun.Color.X, sun.Color.Y, sun.Color.Z));
+            SetVector3("sun.ambient", new Vector3(sun.Ambient.X, sun.Ambient.Y, sun.Ambient.Z));
+            SetFloat("sun.brightness", sun.Brightness);
 
-            SetMatrix4("sun.lightSpaceMatrix", light.Projections[0]);
-            SetBool("sun.hasShadows", light.UseShadows && LightManager.Sun.Shadows.Count > 0);
+            for (var i = 0; i < sun.Projections.Length; i++)
+            {
+                SetMatrix4($"sun.lightSpaceMatrix[{i}]", sun.Projections[i]);
+                SetFloat($"sun.cascadeRanges[{i}]", Sun.CascadeRanges[i].Far);
+            }
+            SetBool("sun.hasShadows", sun.UseShadows && LightManager.Sun.Shadows.Count > 0);
         }
 
         if (LightManager.Sun != null && LightManager.Sun.Source.Enabled && LightManager.Sun.Source.UseShadows)
         {
-            LightManager.Sun.Shadows[0].RenderTarget.Bind(sun_shadow_unit);
+            for (uint i = 0; i < Sun.cascades; i++)
+            {
+                LightManager.Sun.Shadows[(int)i].RenderTarget.Bind(sun_shadow_unit + i);
+            }
         }
         else
         {
-            unitsRequiringDummyShadows.Add(sun_shadow_unit);
+            for (uint i = 0; i < Sun.cascades; i++)
+            {
+                unitsRequiringDummyShadows.Add(sun_shadow_unit + i);
+            }
         }
         SetBool("sunEnabled", LightManager.Sun != null && LightManager.Sun.Source.Enabled);
 
@@ -184,7 +194,10 @@ public class Main : Shader
 
         if (LightManager.Sun != null)
         {
-            GL.BindTextureUnit(sun_shadow_unit, 0);
+            for (uint i = 0; i < Sun.cascades; i++)
+            {
+                GL.BindTextureUnit(sun_shadow_unit + i, 0);
+            }
         }
 
         for (uint i = 0; i < LightManager.max_lights; i++)

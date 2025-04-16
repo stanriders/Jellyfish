@@ -2,19 +2,23 @@
 
 out vec4 outputColor;
 
+#define MAX_LIGHTS 12
+#define CSM_CASCADES 4
+#define SUN_SAMPLER_BINDING 3
+//#define CSM_DEBUG
+
 in vec2 frag_texCoord;
 in vec3 frag_normal;
 in vec3 frag_position;
-in vec4 frag_position_sun;
-in vec4 frag_position_lightspace[12];
+in vec4 frag_position_lightspace[MAX_LIGHTS];
+in float frag_clipspaceZ;
 
-uniform vec3 cameraPos;
 layout(binding=0) uniform sampler2D diffuseSampler;
 layout(binding=1) uniform sampler2D normalSampler;
 layout(binding=2) uniform sampler2D metroughSampler;
 
-layout(binding=3) uniform sampler2DShadow sunShadowSampler;
-layout(binding=4) uniform sampler2DShadow shadowSamplers[12];
+layout(binding=SUN_SAMPLER_BINDING) uniform sampler2DShadow sunShadowSampler[CSM_CASCADES];
+layout(binding=SUN_SAMPLER_BINDING + CSM_CASCADES + 1) uniform sampler2DShadow shadowSamplers[MAX_LIGHTS];
 
 struct Light {
     vec3 position;
@@ -34,12 +38,26 @@ struct Light {
     vec3 diffuse;
     bool hasShadows;
 };
-uniform Light lightSources[12];
+uniform Light lightSources[MAX_LIGHTS];
 uniform int lightSourcesCount;
 
-uniform Light sun;
+struct Sun {
+    vec3 direction;
+    mat4 lightSpaceMatrix[4];
+
+    float brightness;
+    float cascadeRanges[4];
+
+    vec3 ambient;
+    vec3 diffuse;
+    bool hasShadows;
+};
+
+uniform Sun sun;
 uniform bool sunEnabled;
 
+uniform mat4 view;
+uniform vec3 cameraPos;
 uniform bool useNormals;
 uniform bool usePbr;
 uniform bool alphaTest;
@@ -192,14 +210,43 @@ vec3 CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
     float shadow = 1f;
     if (sun.hasShadows) 
     {
+        vec4 fragPosViewSpace = view * vec4(frag_position, 1.0);
+        float depthValue = frag_clipspaceZ;
+
+        int layer = -1;
+        for (int i = 0; i < CSM_CASCADES; ++i)
+        {
+            if (depthValue < sun.cascadeRanges[i])
+            {
+                layer = i;
+                break;
+            }
+        }
+
+        if (layer == -1)
+        {
+            layer = CSM_CASCADES;
+        }
+
+        vec4 frag_position_sun = sun.lightSpaceMatrix[layer] * vec4(frag_position, 1.0);
         vec3 projCoords = frag_position_sun.xyz / frag_position_sun.w;
 
         projCoords = projCoords * 0.5 + 0.5;
-    
+
         if(projCoords.z < 1.0)
         {
             //shadow = SimplePCF(sunShadowSampler, projCoords);
-            shadow = SimpleShadow(sunShadowSampler, projCoords);
+            shadow *= SimpleShadow(sunShadowSampler[layer], projCoords);
+#ifdef CSM_DEBUG
+            if (layer == 0)
+                outdiffuse *= vec3(0,10,0);
+            else if (layer == 1)
+                outdiffuse *= vec3(10,0,0);
+            else if (layer == 2)
+                outdiffuse *= vec3(0,0,10);
+            else if (layer == 3)
+                outdiffuse *= vec3(10,10,10);
+#endif
         }
     }
 
@@ -262,8 +309,6 @@ void main()
     {
         Light light = lightSources[i];
         vec3 lightDir = normalize(light.position - frag_position);
-        if (lightSources[i].type == 1) // sun
-            lightDir = normalize(-light.direction);
 
         float NdotL = max(dot(normal, lightDir), 0.0);    
 
