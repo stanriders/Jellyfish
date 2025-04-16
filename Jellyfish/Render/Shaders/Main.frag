@@ -16,8 +16,8 @@ layout(binding=0) uniform sampler2D diffuseSampler;
 layout(binding=1) uniform sampler2D normalSampler;
 layout(binding=2) uniform sampler2D metroughSampler;
 
-layout(binding=SUN_SAMPLER_BINDING) uniform sampler2DShadow sunShadowSampler[CSM_CASCADES];
-layout(binding=SUN_SAMPLER_BINDING + CSM_CASCADES + 1) uniform sampler2DShadow shadowSamplers[MAX_LIGHTS];
+layout(binding=SUN_SAMPLER_BINDING) uniform sampler2D sunShadowSampler[CSM_CASCADES];
+layout(binding=SUN_SAMPLER_BINDING + CSM_CASCADES + 1) uniform sampler2D shadowSamplers[MAX_LIGHTS];
 
 struct Light {
     vec3 position;
@@ -100,16 +100,16 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
-float SimpleShadow(sampler2DShadow DepthSampler, vec3 projCoords)
+float SimpleShadow(sampler2D DepthSampler, vec3 projCoords)
 {
     float currentDepth = projCoords.z;
 
-    float shadow = texture(DepthSampler, vec3(projCoords.xy, currentDepth));  
+    float shadow = texture(DepthSampler, projCoords.xy).r;  
 
-    return shadow;
+    return currentDepth < shadow ? 1.0 : 0.0;
 }  
 
-float SimplePCF(sampler2DShadow DepthSampler, vec3 projCoords)
+float SimplePCF(sampler2D DepthSampler, vec3 projCoords)
 {
     float currentDepth = projCoords.z;
 
@@ -120,8 +120,8 @@ float SimplePCF(sampler2DShadow DepthSampler, vec3 projCoords)
     {
 	    for(int y = -halfkernelWidth; y <= halfkernelWidth; ++y)
 	    {
-		    float pcfDepth = texture(DepthSampler, vec3(projCoords.xy + vec2(x, y) * texelSize, currentDepth));
-		    shadow += pcfDepth;
+		    float pcfDepth = texture(DepthSampler, vec2(projCoords.xy + vec2(x, y) * texelSize)).r;
+		    shadow += currentDepth < pcfDepth ? 1.0 : 0.0;
 	    }
     }
     shadow /= ((halfkernelWidth*2+1)*(halfkernelWidth*2+1));
@@ -234,7 +234,7 @@ vec3 CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
 
         if(projCoords.z < 1.0)
         {
-            //shadow = SimplePCF(sunShadowSampler, projCoords);
+            //shadow = SimplePCF(sunShadowSampler[layer], projCoords);
             shadow *= SimpleShadow(sunShadowSampler[layer], projCoords);
 #ifdef CSM_DEBUG
             if (layer == 0)
