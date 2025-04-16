@@ -71,7 +71,7 @@ namespace Jellyfish.Audio
                 return;
 
             var transformationMatrix = mesh.GetTransformationMatrix();
-            var tranformedVertices = mesh.Vertices.Select(meshVertex => Vector3.TransformVector(meshVertex.Coordinates, transformationMatrix).ToIplVector()).ToList();
+            var tranformedVertices = mesh.Vertices.Select(meshVertex => Vector3.TransformPosition(meshVertex.Coordinates, transformationMatrix).ToIplVector()).ToList();
 
             var triangles = new List<IPL.Triangle>();
             for (var i = 0; i < mesh.Vertices.Count; i += 3)
