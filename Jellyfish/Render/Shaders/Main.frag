@@ -10,7 +10,6 @@ out vec4 outputColor;
 in vec2 frag_texCoord;
 in vec3 frag_normal;
 in vec3 frag_position;
-in vec4 frag_position_lightspace[MAX_LIGHTS];
 in float frag_clipspaceZ;
 
 layout(binding=0) uniform sampler2D diffuseSampler;
@@ -132,7 +131,7 @@ float SimplePCF(sampler2DShadow DepthSampler, vec3 projCoords)
 
 float ShadowCalculation(int lightIndex, vec3 lightDir, vec3 normal)
 {
-    vec4 fragPosLightSpace = frag_position_lightspace[lightIndex];
+    vec4 fragPosLightSpace = lightSources[lightIndex].lightSpaceMatrix * vec4(frag_position, 1.0);
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 
     projCoords = projCoords * 0.5 + 0.5;

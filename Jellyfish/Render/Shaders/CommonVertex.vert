@@ -10,8 +10,8 @@ uniform mat4 projection;
 uniform mat4 transform;
 uniform mat4 rotation;
 
-const int MAX_BONES = 200;
-uniform mat4 bones[200];
+#define MAX_BONES 200
+uniform mat4 bones[MAX_BONES];
 uniform int boneCount;
 
 mat4 boneTransform()
