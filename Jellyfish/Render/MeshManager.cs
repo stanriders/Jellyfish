@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Jellyfish.Audio;
-using Jellyfish.Entities;
 using Jellyfish.Utils;
-using OpenTK.Mathematics;
 
 namespace Jellyfish.Render;
 
@@ -12,12 +10,16 @@ public static class MeshManager
     private static readonly List<Mesh> meshes = new();
     private static readonly List<(Mesh, List<Vertex>)> updateQueue = new();
 
+    public static BoundingBox SceneBoundingBox { get; private set; }
+
     private static bool drawing;
 
     public static void AddMesh(Mesh mesh)
     {
         mesh.Load();
         meshes.Add(mesh);
+
+        SceneBoundingBox = new BoundingBox([SceneBoundingBox, mesh.BoundingBox]);
 
         if (!mesh.IsDev)
             AudioManager.AddMesh(mesh);
@@ -32,6 +34,9 @@ public static class MeshManager
 
         meshes.Remove(mesh);
         mesh.Unload();
+
+        // sounds expensive?
+        SceneBoundingBox = new BoundingBox(meshes.Select(x => x.BoundingBox).ToArray());
     }
 
     public static void UpdateMesh(Mesh mesh, List<Vertex> vertices)
