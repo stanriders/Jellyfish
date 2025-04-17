@@ -68,7 +68,11 @@ namespace Jellyfish.Render
 
                     if (line.StartsWith("#include"))
                     {
-                        var includedFile = File.ReadAllText(Path.Combine(Path.GetDirectoryName(path) ?? string.Empty, line.Replace("#include", "").Trim()));
+                        var includePath = Path.Combine(Path.GetDirectoryName(path) ?? string.Empty, line.Replace("#include", "").Trim());
+                        if (!File.Exists(includePath))
+                            throw new FileNotFoundException();
+
+                        var includedFile = File.ReadAllText(includePath);
                         builder.AppendLine(includedFile);
                         continue;
                     }
