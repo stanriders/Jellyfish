@@ -32,7 +32,7 @@ public class PostProcessing : IInputHandler
     public PostProcessing(RenderTarget color)
     {
         _rtColor = color;
-        _vertexBuffer = new VertexBuffer(_quad, 4 * sizeof(float));
+        _vertexBuffer = new VertexBuffer("PostProcessingQuad", _quad, 4 * sizeof(float));
         _vertexArray = new VertexArray(_vertexBuffer, null);
 
         _shader = new Shaders.PostProcessing(color);
@@ -67,12 +67,13 @@ public class PostProcessing : IInputHandler
         var luminescence = new Span<float>(new float[128]); // can't allocate less than 128
         GL.GetTextureImage(_rtColor.TextureHandle, _rtColor.Levels - 1, PixelFormat.Rgb, PixelType.Float, luminescence.Length, luminescence);
 
-        var lum = 0.2126f * luminescence[0] + 0.7152f * luminescence[1] + 0.0722f * luminescence[2]; // Calculate a weighted average
-        lum = Math.Max(lum, 0.00001f);
+        // TODO: histogram-based luminance
+        var luminance = 0.2126f * luminescence[0] + 0.7152f * luminescence[1] + 0.0722f * luminescence[2]; // Calculate a weighted average
+        luminance = Math.Max(luminance, 0.00001f);
 
-        if (!double.IsNaN(lum))
+        if (!double.IsNaN(luminance))
         {
-            sceneExposure = float.Lerp(sceneExposure, 0.5f / lum * 0.2f, adj_speed);
+            sceneExposure = float.Lerp(sceneExposure, 0.5f / luminance * 0.5f, adj_speed);
             sceneExposure = Math.Clamp(sceneExposure, 0.1f, 1f);
         }
 
