@@ -12,6 +12,7 @@ namespace Jellyfish.Entities
             AddProperty("Brightness", 1f);
             AddProperty("Enabled", true);
             AddProperty("Shadows", true);
+            AddProperty("PCSS", false);
         }
 
         public override void Load()
@@ -33,6 +34,7 @@ namespace Jellyfish.Entities
         public float Brightness => GetPropertyValue<float>("Brightness");
         public bool Enabled => GetPropertyValue<bool>("Enabled");
         public bool UseShadows => GetPropertyValue<bool>("Shadows");
+        public bool UsePcss => GetPropertyValue<bool>("PCSS");
         public abstract float NearPlane { get; }
         public abstract float FarPlane { get; }
         public abstract Matrix4[] Projections { get; }

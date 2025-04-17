@@ -20,7 +20,7 @@ public class Spotlight : LightEntity, IHaveFrustum
     }
 
     public override int ShadowResolution => 1024;
-    public override float NearPlane => 0.1f;
+    public override float NearPlane => 1f;
     public override float FarPlane => GetPropertyValue<float>("FarPlane");
 
     public override Matrix4[] Projections

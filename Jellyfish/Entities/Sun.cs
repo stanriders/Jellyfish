@@ -2,16 +2,46 @@
 using System.Collections.Generic;
 using System.Linq;
 using Jellyfish.Render;
+using Jellyfish.Render.Lighting;
 using OpenTK.Mathematics;
 
 namespace Jellyfish.Entities;
 
 [Entity("light_sun")]
-public class Sun : LightEntity
+public class Sun : BaseEntity, ILightSource
 {
-    public override float NearPlane => 1f;
-    public override float FarPlane => 10000f;
-    public override int ShadowResolution => 4096;
+    public Sun()
+    {
+        AddProperty("Color", new Color3<Rgb>(1, 1, 1));
+        AddProperty("Ambient", new Color3<Rgb>(0.1f, 0.1f, 0.1f));
+        AddProperty("Brightness", 1f);
+        AddProperty("Enabled", true);
+        AddProperty("Shadows", true);
+    }
+
+    public override void Load()
+    {
+        base.Load();
+        LightManager.AddLight(this);
+    }
+
+    public override void Unload()
+    {
+        LightManager.RemoveLight(this);
+        base.Unload();
+    }
+
+    public Vector3 Position => Vector3.Zero;
+    public Quaternion Rotation => GetPropertyValue<Quaternion>("Rotation");
+    public Color3<Rgb> Color => GetPropertyValue<Color3<Rgb>>("Color");
+    public Color3<Rgb> Ambient => GetPropertyValue<Color3<Rgb>>("Ambient");
+    public float Brightness => GetPropertyValue<float>("Brightness");
+    public bool Enabled => GetPropertyValue<bool>("Enabled");
+    public bool UseShadows => GetPropertyValue<bool>("Shadows");
+    public float NearPlane => 0;
+    public float FarPlane => 0;
+    public bool UsePcss => false;
+    public int ShadowResolution => 2048;
 
     public const int cascades = 4;
 
@@ -23,7 +53,7 @@ public class Sun : LightEntity
         (3000, 10000)
     ];
 
-    public override Matrix4[] Projections
+    public Matrix4[] Projections
     {
         get
         {
@@ -57,24 +87,10 @@ public class Sun : LightEntity
                     maxZ = Math.Max(maxZ, trf.Z);
                 }
 
-                // Tune this parameter according to the scene
+                // pullback factor
                 const float zMult = 10.0f;
-                if (minZ < 0)
-                {
-                    minZ *= zMult;
-                }
-                else
-                {
-                    minZ /= zMult;
-                }
-                if (maxZ < 0)
-                {
-                    maxZ /= zMult;
-                }
-                else
-                {
-                    maxZ *= zMult;
-                }
+                minZ = minZ < 0 ? minZ * zMult : minZ / zMult;
+                maxZ = maxZ < 0 ? maxZ / zMult : maxZ * zMult;
 
                 var lightProjection = Matrix4.CreateOrthographicOffCenter(minX, maxX, minY, maxY, minZ, maxZ);
                 projections.Add(lightView * lightProjection);

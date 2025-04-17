@@ -19,5 +19,7 @@ public interface ILightSource
 
     Matrix4[] Projections { get; }
 
+    bool UsePcss { get; }
+
     int ShadowResolution => 2048;
 }

@@ -81,6 +81,9 @@ public class Main : Shader
                 SetFloat($"lightSources[{i}].outcone", (float)Math.Cos(MathHelper.DegreesToRadians(spot.GetPropertyValue<float>("OuterCone"))));
             }
 
+            SetFloat($"lightSources[{i}].near", light.NearPlane);
+            SetFloat($"lightSources[{i}].far", light.FarPlane);
+
             SetMatrix4($"lightSources[{i}].lightSpaceMatrix", light.Projections[0]);
 
             if (light.UseShadows && LightManager.Lights[i].Shadows.Count > 0)
@@ -89,6 +92,7 @@ public class Main : Shader
             }
 
             SetBool($"lightSources[{i}].hasShadows", light.UseShadows && LightManager.Lights[i].Shadows.Count > 0);
+            SetBool($"lightSources[{i}].usePcss", light.UseShadows && light.UsePcss);
         }
         SetInt("lightSourcesCount", totalLights);
 
@@ -106,7 +110,7 @@ public class Main : Shader
             for (var i = 0; i < sun.Projections.Length; i++)
             {
                 SetMatrix4($"sun.lightSpaceMatrix[{i}]", sun.Projections[i]);
-                SetFloat($"sun.cascadeRanges[{i}]", Sun.CascadeRanges[i].Far);
+                SetFloat($"sun.cascadeFar[{i}]", Sun.CascadeRanges[i].Far);
             }
             SetBool("sun.hasShadows", sun.UseShadows && LightManager.Sun.Shadows.Count > 0);
         }
