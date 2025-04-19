@@ -53,7 +53,7 @@ public abstract class BaseEntity
         MarkedForDeath = true;
     }
 
-    public virtual void Think()
+    public virtual void Think(float frameTime)
     {
     }
 

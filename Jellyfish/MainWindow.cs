@@ -158,7 +158,7 @@ public class MainWindow : GameWindow, IInputHandler
             Paused = true;
 
         _physicsManager.ShouldSimulate = !Paused;
-        _entityManager.Frame();
+        _entityManager.Frame((float)e.Time);
 
         base.OnUpdateFrame(e);
     }

@@ -70,7 +70,7 @@ public class EntityManager
         _entityList.Clear();
     }
 
-    public void Frame()
+    public void Frame(float frameTime)
     {
         while (_killQueue.Count > 0)
         {
@@ -102,7 +102,7 @@ public class EntityManager
         if (!MainWindow.Paused)
         {
             foreach (var entity in _entityList)
-                entity.Think();
+                entity.Think(frameTime);
         }
     }
 
