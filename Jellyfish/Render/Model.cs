@@ -29,7 +29,7 @@ public class Model
     public Model(string path, bool isDev = false)
     {
         var meshParts = ModelParser.Parse(path);
-        if (meshParts == null)
+        if (meshParts.Length <= 0)
         {
             Log.Context(this).Error("Failed to create Model!");
             return;
