@@ -28,6 +28,8 @@ public class Model
 
     public Model(string path, bool isDev = false)
     {
+        Log.Context(this).Information("Loading model {Path}...", path);
+
         var meshParts = ModelParser.Parse(path);
         if (meshParts.Length <= 0)
         {

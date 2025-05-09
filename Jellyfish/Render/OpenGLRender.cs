@@ -140,6 +140,9 @@ public class OpenGLRender : IRender, IInputHandler
         if (length <= 0)
             return;
 
+        if (id == 131169 || id == 131185 || id == 131218 || id == 131204) 
+            return;
+
         var decodedMessage = Encoding.UTF8.GetString(new Span<byte>(message.ToPointer(), length));
         switch (severity)
         {
