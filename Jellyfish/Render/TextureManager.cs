@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Jellyfish.Render.Shaders;
 using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.Render;
@@ -9,9 +8,6 @@ public static class TextureManager
 {
     private static List<Texture> _textures { get; } = new();
     public static IReadOnlyList<Texture> Textures { get; } = _textures.AsReadOnly();
-
-    public static Texture ErrorTexture => GetTexture(Texture.error_texture, TextureTarget.Texture2d, false).Texture;
-    public static Material ErrorMaterial => new(new Main(ErrorTexture));
 
     public static (Texture Texture, bool AlreadyExists) GetTexture(string name, TextureTarget type, bool srgb)
     {

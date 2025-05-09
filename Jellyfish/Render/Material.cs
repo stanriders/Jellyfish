@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Jellyfish.Console;
 using Jellyfish.Render.Shaders;
@@ -9,19 +10,13 @@ namespace Jellyfish.Render;
 
 public class Material
 {
-    public Dictionary<string, string> Params { get; } = new();
     public string? Directory { get; }
     public Shader? Shader { get; }
 
-    public Material(Shader shader)
-    {
-        Shader = shader;
-    }
+    private readonly Dictionary<string, object> _params = new();
 
     public Material(string? path, string? modelName = null)
     {
-        Shader = TextureManager.ErrorMaterial.Shader;
-
         var isModel = modelName != null;
         var originalPath = path;
 
@@ -66,7 +61,7 @@ public class Material
         if (!File.Exists(path))
         {
             Log.Context(this).Warning("Material {Path} doesn't exist!", originalPath);
-            return;
+            path = "materials/error.mat";
         }
 
         if (!path.EndsWith(".mat"))
@@ -74,26 +69,29 @@ public class Material
             Log.Context(this)
                 .Warning("Material {Path} isn't a valid material type, trying to use it as a diffuse texture...", path);
 
-            Params = new Dictionary<string, string>
+            _params = new Dictionary<string, object>
             {
                 { "Shader", "Main" },
                 { "Diffuse", path }
             };
         }
-
-        var materialParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(path),
-            new JsonSerializerSettings { Error = (_, _) => { } });
-
-        if (materialParams == null)
+        else
         {
-            Log.Context(this).Error("Material {Path} couldn't be parsed!!", path);
-            return;
+            var materialParams = JsonConvert.DeserializeObject<Dictionary<string, object>>(File.ReadAllText(path),
+                new JsonSerializerSettings { Error = (_, _) => { } });
+
+            if (materialParams == null)
+            {
+                Log.Context(this).Error("Material {Path} couldn't be parsed!!", path);
+                return;
+            }
+
+            _params = materialParams;
         }
 
-        Params = materialParams;
         Directory = Path.GetDirectoryName(path);
 
-        var shader = Params.GetValueOrDefault("Shader");
+        var shader = (string?)_params.GetValueOrDefault("Shader");
         if (shader == "Main")
         {
             Shader = new Main(this);
@@ -101,7 +99,7 @@ public class Material
         else if (shader == "Simple")
         {
             // todo: unlit shader
-            Params.TryGetValue("Diffuse", out var diffusePath);
+            _params.TryGetValue("Diffuse", out var diffusePath);
             Shader = new Main(TextureManager.GetTexture($"{Directory}/{diffusePath}", TextureTarget.Texture2d, true).Texture);
         }
         else
@@ -110,6 +108,32 @@ public class Material
         }
     }
 
+    public T? GetParam<T>(string name)
+    {
+        var value = _params.GetValueOrDefault(name);
+        if (value == null)
+            return default;
+
+        if (value is not T valueCasted)
+            throw new Exception("Incorrect material param type");
+
+        return valueCasted;
+    }
+
+    public bool TryGetParam<T>(string name, out T? value)
+    {
+        if (_params.TryGetValue(name, out var valueObject))
+        {
+            if (valueObject is not T valueCasted)
+                throw new Exception("Incorrect material param type");
+
+            value = valueCasted;
+            return true;
+        }
+
+        value = default;
+        return false;
+    }
     public void Unload()
     {
         Shader?.Unload();

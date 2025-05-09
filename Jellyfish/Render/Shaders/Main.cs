@@ -18,17 +18,17 @@ public class Main : Shader
 
     public Main(Material material) : base("shaders/Main.vert", null, "shaders/Main.frag")
     {
-        if (material.Params.TryGetValue("Diffuse", out var diffusePath))
+        if (material.TryGetParam<string>("Diffuse", out var diffusePath))
             _diffuse = TextureManager.GetTexture($"{material.Directory}/{diffusePath}", TextureTarget.Texture2d, true).Texture;
 
-        if (material.Params.TryGetValue("Normal", out var normalPath))
+        if (material.TryGetParam<string>("Normal", out var normalPath))
             _normal = TextureManager.GetTexture($"{material.Directory}/{normalPath}", TextureTarget.Texture2d, false).Texture;
 
-        if (material.Params.TryGetValue("MetalRoughness", out var metroughtPath))
+        if (material.TryGetParam<string>("MetalRoughness", out var metroughtPath))
             _metRought = TextureManager.GetTexture($"{material.Directory}/{metroughtPath}", TextureTarget.Texture2d, false).Texture;
 
-        if (material.Params.TryGetValue("AlphaTest", out var alphatestString))
-            _alphaTest = bool.Parse(alphatestString);
+        if (material.TryGetParam<bool>("AlphaTest", out var alphatest))
+            _alphaTest = alphatest;
     }
 
     public Main(Texture diffuse) : base("shaders/Main.vert", null, "shaders/Main.frag")
