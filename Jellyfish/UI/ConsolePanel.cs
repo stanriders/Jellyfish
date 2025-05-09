@@ -21,6 +21,13 @@ namespace Jellyfish.UI
         {
             if (_isEnabled && ImGui.Begin("Console"))
             {
+                var currentSize = ImGui.GetWindowSize();
+                if (currentSize is { X: 32, Y: 41 }) // default size
+                {
+                    var viewport = ImGui.GetMainViewport();
+                    ImGui.SetWindowSize(new Vector2(viewport.Size.X * 0.75f, viewport.Size.Y * 0.75f));
+                }
+
                 if (ImGui.BeginChild("ScrollingRegion", new Vector2(0, 0), true, ImGuiWindowFlags.NavFlattened | ImGuiWindowFlags.NoMove))
                 {
                     ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(4, 2));
