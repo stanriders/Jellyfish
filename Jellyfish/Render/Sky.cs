@@ -64,9 +64,12 @@ namespace Jellyfish.Render
             _shader = new Skybox();
 
             var vertexLocation = _shader.GetAttribLocation("aPosition");
-            GL.EnableVertexArrayAttrib(_vao.Handle, vertexLocation);
-            GL.VertexArrayAttribFormat(_vao.Handle, vertexLocation, 3, VertexAttribType.Float, false, 0);
-            GL.VertexArrayAttribBinding(_vao.Handle, vertexLocation, 0);
+            if (vertexLocation != null)
+            {
+                GL.EnableVertexArrayAttrib(_vao.Handle, vertexLocation.Value);
+                GL.VertexArrayAttribFormat(_vao.Handle, vertexLocation.Value, 3, VertexAttribType.Float, false, 0);
+                GL.VertexArrayAttribBinding(_vao.Handle, vertexLocation.Value, 0);
+            }
         }
 
         public void Draw()

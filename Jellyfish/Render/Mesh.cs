@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.IO;
-using Jellyfish.Console;
 using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Shaders.Deferred;
 using Jellyfish.Utils;
@@ -50,7 +48,7 @@ public class Mesh
     private VertexArray _vao = null!;
     private VertexBuffer _vbo = null!;
 
-    private Shader _shader = null!;
+    private Shader? _shader;
     private GeometryPass _gBufferShader = null!;
 
     public Vector3 Position = Vector3.Zero;
@@ -81,49 +79,11 @@ public class Mesh
     public Mesh(string name, List<Vertex>? vertices = null, List<uint>? indices = null, List<Bone>? bones = null, string? texture = null)
     {
         Name = name;
-        Vertices = vertices ?? new List<Vertex>();
+        Vertices = vertices ?? [];
         Indices = indices;
-        Bones = bones ?? new List<Bone>();
+        Bones = bones ?? [];
 
-        // TODO: this should be handled by the material itself
-        if (texture != null)
-        {
-            var modelFolder = $"materials/models/{name}";
-
-            var matPath = $"{modelFolder}/{Path.GetFileNameWithoutExtension(texture)}.mat";
-            if (!File.Exists(matPath))
-            {
-                matPath = $"{modelFolder}/{Path.GetFileName(texture)}";
-                if (!File.Exists(matPath))
-                {
-                    matPath = texture;
-                }
-            }
-
-            texture = matPath;
-        }
-        else
-        {
-            Log.Context(this).Warning("Mesh {Name} has no texture data!!", name);
-
-            var modelFolder = $"materials/models/{name}";
-
-            var matPath = $"{modelFolder}/{name}.mat";
-            if (!File.Exists(matPath))
-                matPath = null;
-
-            texture = matPath;
-        }
-
-        if (texture != null)
-        {
-            AddMaterial(texture);
-        }
-        else
-        {
-            Log.Context(this).Warning("Mesh {Name} doesn't have a texture!", name);
-            AddMaterial("materials/error.mat");
-        }
+        AddMaterial(texture);
     }
 
     public void Load()
@@ -134,12 +94,11 @@ public class Mesh
     public virtual PrimitiveType PrimitiveType { get; set; } = PrimitiveType.Triangles;
     public VertexBufferObjectUsage Usage { get; set; } = VertexBufferObjectUsage.StaticDraw;
 
-    protected void AddMaterial(string path)
+    protected void AddMaterial(string? path)
     {
-        Material = new Material(path);
-
-        _shader = Material.GetShaderInstance();
-        _gBufferShader = new GeometryPass(Material.Diffuse, Material.Normal);
+        Material = new Material(path, Name);
+        _shader = Material.Shader;
+        _gBufferShader = new GeometryPass(Material);
     }
 
     protected void CreateBuffers()
@@ -151,31 +110,45 @@ public class Mesh
 
         _vao = new VertexArray(_vbo, _ibo);
 
-        var vertexLocation = _shader.GetAttribLocation("aPosition");
-        GL.EnableVertexArrayAttrib(_vao.Handle, vertexLocation);
-        GL.VertexArrayAttribFormat(_vao.Handle, vertexLocation, 3, VertexAttribType.Float, false, 0);
+        var vertexLocation = _shader?.GetAttribLocation("aPosition");
+        if (vertexLocation != null)
+        {
+            GL.EnableVertexArrayAttrib(_vao.Handle, vertexLocation.Value);
+            GL.VertexArrayAttribFormat(_vao.Handle, vertexLocation.Value, 3, VertexAttribType.Float, false, 0);
+            GL.VertexArrayAttribBinding(_vao.Handle, vertexLocation.Value, 0);
+        }
 
-        var texCoordLocation = _shader.GetAttribLocation("aTexCoord");
-        GL.EnableVertexArrayAttrib(_vao.Handle, texCoordLocation);
-        GL.VertexArrayAttribFormat(_vao.Handle, texCoordLocation, 2, VertexAttribType.Float, false, 3 * sizeof(float));
+        var texCoordLocation = _shader?.GetAttribLocation("aTexCoord");
+        if (texCoordLocation != null)
+        {
+            GL.EnableVertexArrayAttrib(_vao.Handle, texCoordLocation.Value);
+            GL.VertexArrayAttribFormat(_vao.Handle, texCoordLocation.Value, 2, VertexAttribType.Float, false, 3 * sizeof(float));
+            GL.VertexArrayAttribBinding(_vao.Handle, texCoordLocation.Value, 0);
+        }
 
-        var normalLocation = _shader.GetAttribLocation("aNormal");
-        GL.EnableVertexArrayAttrib(_vao.Handle, normalLocation);
-        GL.VertexArrayAttribFormat(_vao.Handle, normalLocation, 3, VertexAttribType.Float, false, 5 * sizeof(float));
+        var normalLocation = _shader?.GetAttribLocation("aNormal");
+        if (normalLocation != null)
+        {
+            GL.EnableVertexArrayAttrib(_vao.Handle, normalLocation.Value);
+            GL.VertexArrayAttribFormat(_vao.Handle, normalLocation.Value, 3, VertexAttribType.Float, false, 5 * sizeof(float));
+            GL.VertexArrayAttribBinding(_vao.Handle, normalLocation.Value, 0);
+        }
 
-        var boneIdsLocation = _shader.GetAttribLocation("aBoneIDs");
-        GL.EnableVertexArrayAttrib(_vao.Handle, boneIdsLocation);
-        GL.VertexArrayAttribFormat(_vao.Handle, boneIdsLocation, 4, VertexAttribType.Float, false, 8 * sizeof(float));
+        var boneIdsLocation = _shader?.GetAttribLocation("aBoneIDs");
+        if (boneIdsLocation != null)
+        {
+            GL.EnableVertexArrayAttrib(_vao.Handle, boneIdsLocation.Value);
+            GL.VertexArrayAttribFormat(_vao.Handle, boneIdsLocation.Value, 4, VertexAttribType.Float, false, 8 * sizeof(float));
+            GL.VertexArrayAttribBinding(_vao.Handle, boneIdsLocation.Value, 0);
+        }
 
-        var weightsLocation = _shader.GetAttribLocation("aWeights");
-        GL.EnableVertexArrayAttrib(_vao.Handle, weightsLocation);
-        GL.VertexArrayAttribFormat(_vao.Handle, weightsLocation, 4, VertexAttribType.Float, false, 12 * sizeof(float));
-
-        GL.VertexArrayAttribBinding(_vao.Handle, vertexLocation, 0);
-        GL.VertexArrayAttribBinding(_vao.Handle, texCoordLocation, 0);
-        GL.VertexArrayAttribBinding(_vao.Handle, normalLocation, 0);
-        GL.VertexArrayAttribBinding(_vao.Handle, boneIdsLocation, 0);
-        GL.VertexArrayAttribBinding(_vao.Handle, weightsLocation, 0);
+        var weightsLocation = _shader?.GetAttribLocation("aWeights");
+        if (weightsLocation != null)
+        {
+            GL.EnableVertexArrayAttrib(_vao.Handle, weightsLocation.Value);
+            GL.VertexArrayAttribFormat(_vao.Handle, weightsLocation.Value, 4, VertexAttribType.Float, false, 12 * sizeof(float));
+            GL.VertexArrayAttribBinding(_vao.Handle, weightsLocation.Value, 0);
+        }
 
         _vao.Unbind();
     }
@@ -188,6 +161,8 @@ public class Mesh
     public void Draw(Shader? shaderToUse = null)
     {
         var drawShader = shaderToUse ?? _shader;
+        if (drawShader == null)
+            return;
 
         drawShader.Bind();
         _vao.Bind();
@@ -235,7 +210,8 @@ public class Mesh
         _vbo.Unload();
         _ibo?.Unload();
         _vao.Unload();
-        _shader.Unload();
         _gBufferShader.Unload();
+
+        Material?.Unload();
     }
 }

@@ -54,7 +54,7 @@ public static class MeshManager
 
         var playerPosition = Camera.Instance.Position;
 
-        var sortedMeshes = meshes.OrderByDescending(x => !(x.Material?.AlphaTest ?? false))
+        var sortedMeshes = meshes.OrderByDescending(x => x.Material?.Params.GetValueOrDefault("AlphaTest"))
             .ThenByDescending(x => (x.Position + x.BoundingBox.Center - playerPosition).Length);
 
         foreach (var mesh in sortedMeshes)

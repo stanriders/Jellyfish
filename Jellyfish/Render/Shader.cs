@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using Jellyfish.Console;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
@@ -284,9 +283,13 @@ public abstract class Shader
         GL.UseProgram(0);
     }
 
-    public uint GetAttribLocation(string attribName)
+    public uint? GetAttribLocation(string attribName)
     {
-        return (uint)GL.GetAttribLocation(_shaderHandle, attribName);
+        var attrib = GL.GetAttribLocation(_shaderHandle, attribName);
+        if (attrib == -1)
+            return null;
+
+        return (uint)attrib;
     }
 
     private Uniform? SetUniform<T>(string name, T data, bool bind = false)

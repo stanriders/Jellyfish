@@ -1,69 +1,117 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using Jellyfish.Console;
 using Jellyfish.Render.Shaders;
 using Newtonsoft.Json;
+using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.Render;
 
 public class Material
 {
-    public string? Shader { get; set; }
-    public string Diffuse { get; set; } = null!;
-    public string? Normal { get; set; }
-    public string? MetalRoughness { get; set; }
-    public bool AlphaTest { get; set; }
+    public Dictionary<string, string> Params { get; } = new();
+    public string? Directory { get; }
+    public Shader? Shader { get; }
 
-    public Material() { }
-
-    public Material(string path)
+    public Material(Shader shader)
     {
-        if (!path.EndsWith(".mat"))
+        Shader = shader;
+    }
+
+    public Material(string? path, string? modelName = null)
+    {
+        Shader = TextureManager.ErrorMaterial.Shader;
+
+        var isModel = modelName != null;
+        var originalPath = path;
+
+        if (path != null)
         {
-            Log.Context(this).Warning("Material {Path} isn't a valid material type, trying to use it as a diffuse texture...", path);
-            LoadTextureWithoutMaterial(path);
-            return;
-        }
+            var folder = isModel ? $"materials/models/{modelName}" : "materials";
 
-        if (!File.Exists(path))
-            return;
+            var matPath = $"{folder}/{Path.GetFileNameWithoutExtension(path)}.mat";
+            if (!File.Exists(matPath))
+            {
+                matPath = $"{folder}/{Path.GetFileName(path)}";
+                if (!File.Exists(matPath))
+                {
+                    matPath = path;
+                    if (!File.Exists(matPath))
+                    {
+                        matPath = null;
+                    }
+                }
+            }
 
-        var material = JsonConvert.DeserializeObject<Material>(File.ReadAllText(path), new JsonSerializerSettings { Error = (_,_) => {} });
-        if (material != null)
-        {
-            var currentDirectory = Path.GetDirectoryName(path);
-
-            Shader = material.Shader;
-
-            Diffuse = $"{currentDirectory}/{material.Diffuse}";
-            if (material.Normal != null) 
-                Normal = $"{currentDirectory}/{material.Normal}";
-
-            if (material.MetalRoughness != null)
-                MetalRoughness = $"{currentDirectory}/{material.MetalRoughness}";
-
-            AlphaTest = material.AlphaTest;
+            path = matPath;
         }
         else
         {
+            if (isModel)
+            {
+                Log.Context(this).Warning("Mesh {Name} has no texture data!!", modelName);
+
+                var folder = $"materials/models/{modelName}";
+
+                var matPath = $"{folder}/{modelName}.mat";
+                if (!File.Exists(matPath))
+                {
+                    matPath = null;
+                }
+
+                path = matPath;
+            }
+        }
+
+        if (!File.Exists(path))
+        {
+            Log.Context(this).Warning("Material {Path} doesn't exist!", originalPath);
+            return;
+        }
+
+        if (!path.EndsWith(".mat"))
+        {
+            Log.Context(this)
+                .Warning("Material {Path} isn't a valid material type, trying to use it as a diffuse texture...", path);
+
+            Params = new Dictionary<string, string>
+            {
+                { "Shader", "Main" },
+                { "Diffuse", path }
+            };
+        }
+
+        var materialParams = JsonConvert.DeserializeObject<Dictionary<string, string>>(File.ReadAllText(path),
+            new JsonSerializerSettings { Error = (_, _) => { } });
+
+        if (materialParams == null)
+        {
             Log.Context(this).Error("Material {Path} couldn't be parsed!!", path);
+            return;
+        }
+
+        Params = materialParams;
+        Directory = Path.GetDirectoryName(path);
+
+        var shader = Params.GetValueOrDefault("Shader");
+        if (shader == "Main")
+        {
+            Shader = new Main(this);
+        }
+        else if (shader == "Simple")
+        {
+            // todo: unlit shader
+            Params.TryGetValue("Diffuse", out var diffusePath);
+            Shader = new Main(TextureManager.GetTexture($"{Directory}/{diffusePath}", TextureTarget.Texture2d, true).Texture);
+        }
+        else
+        {
+            Log.Context(this).Error("No shader defined for material {Path}!", path);
         }
     }
 
-    private void LoadTextureWithoutMaterial(string path)
+    public void Unload()
     {
-        Shader = "Main";
-        Diffuse = path;
-    }
-
-    public Shader GetShaderInstance()
-    {
-        if (Shader == "Main")
-            return new Main(Diffuse, Normal, MetalRoughness, AlphaTest);
-
-        // todo: unlit shader
-        if (Shader == "Simple")
-            return new Main(Diffuse);
-
-        return new Main("materials/error.png");
+        Shader?.Unload();
     }
 }

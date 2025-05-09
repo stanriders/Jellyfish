@@ -38,15 +38,21 @@ public class PostProcessing : IInputHandler
         _shader = new Shaders.PostProcessing(color);
 
         var vertexLocation = _shader.GetAttribLocation("aPos");
-        GL.EnableVertexArrayAttrib(_vertexArray.Handle, vertexLocation);
-        GL.VertexArrayAttribFormat(_vertexArray.Handle, vertexLocation, 2, VertexAttribType.Float, false, 0);
+        if (vertexLocation != null)
+        {
+            GL.EnableVertexArrayAttrib(_vertexArray.Handle, vertexLocation.Value);
+            GL.VertexArrayAttribFormat(_vertexArray.Handle, vertexLocation.Value, 2, VertexAttribType.Float, false, 0);
+            GL.VertexArrayAttribBinding(_vertexArray.Handle, vertexLocation.Value, 0);
+        }
 
         var texCoordLocation = _shader.GetAttribLocation("aTexCoords");
-        GL.EnableVertexArrayAttrib(_vertexArray.Handle, texCoordLocation);
-        GL.VertexArrayAttribFormat(_vertexArray.Handle, texCoordLocation, 2, VertexAttribType.Float, false, 2 * sizeof(float));
-
-        GL.VertexArrayAttribBinding(_vertexArray.Handle, vertexLocation, 0);
-        GL.VertexArrayAttribBinding(_vertexArray.Handle, texCoordLocation, 0);
+        if (texCoordLocation != null)
+        {
+            GL.EnableVertexArrayAttrib(_vertexArray.Handle, texCoordLocation.Value);
+            GL.VertexArrayAttribFormat(_vertexArray.Handle, texCoordLocation.Value, 2, VertexAttribType.Float, false,
+                2 * sizeof(float));
+            GL.VertexArrayAttribBinding(_vertexArray.Handle, texCoordLocation.Value, 0);
+        }
 
         InputManager.RegisterInputHandler(this);
     }
