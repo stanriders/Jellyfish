@@ -11,13 +11,14 @@ using Jellyfish.Input;
 using System.Collections.Generic;
 using ImGuizmoNET;
 using Jellyfish.Console;
+using Vector2 = System.Numerics.Vector2;
 
 namespace Jellyfish.Render;
 
 public sealed class ImguiController : IDisposable, IInputHandler
 {
     private bool _frameBegun;
-    private int _fontTexture;
+    private Texture? _fontTexture;
 
     private Imgui _shader = null!;
     private VertexArray _vao = null!;
@@ -100,28 +101,30 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
         var mips = (int)Math.Floor(Math.Log(Math.Max(width, height), 2));
 
-        (var fontTexture, var alreadyExists) = TextureManager.GetTexture("_imgui_Fonts", TextureTarget.Texture2d, false);
-        _fontTexture = fontTexture.Handle;
+        _fontTexture?.Unload();
+
+        var (fontTexture, alreadyExists) = TextureManager.GetTexture("_imgui_Fonts", TextureTarget.Texture2d, false);
+        _fontTexture = fontTexture;
 
         if (!alreadyExists)
         {
-            GL.TextureStorage2D(_fontTexture, mips, SizedInternalFormat.Rgba8, width, height);
+            GL.TextureStorage2D(_fontTexture.Handle, mips, SizedInternalFormat.Rgba8, width, height);
 
-            GL.TextureSubImage2D(_fontTexture, 0, 0, 0, width, height, PixelFormat.Bgra, PixelType.UnsignedByte,
+            GL.TextureSubImage2D(_fontTexture.Handle, 0, 0, 0, width, height, PixelFormat.Bgra, PixelType.UnsignedByte,
                 pixels);
 
-            GL.GenerateTextureMipmap(_fontTexture);
+            GL.GenerateTextureMipmap(_fontTexture.Handle);
 
-            GL.TextureParameteri(_fontTexture, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-            GL.TextureParameteri(_fontTexture, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+            GL.TextureParameteri(_fontTexture.Handle, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            GL.TextureParameteri(_fontTexture.Handle, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
 
-            GL.TextureParameteri(_fontTexture, TextureParameterName.TextureMaxLevel, mips - 1);
+            GL.TextureParameteri(_fontTexture.Handle, TextureParameterName.TextureMaxLevel, mips - 1);
 
-            GL.TextureParameteri(_fontTexture, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-            GL.TextureParameteri(_fontTexture, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+            GL.TextureParameteri(_fontTexture.Handle, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+            GL.TextureParameteri(_fontTexture.Handle, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         }
 
-        io.Fonts.SetTexID(_fontTexture);
+        io.Fonts.SetTexID(_fontTexture.Handle);
 
         io.Fonts.ClearTexData();
     }
@@ -132,7 +135,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
         _windowHeight = windowHeigth;
 
         var io = ImGui.GetIO();
-        io.DisplaySize = new System.Numerics.Vector2(_windowWidth, _windowHeight);
+        io.DisplaySize = new Vector2(_windowWidth, _windowHeight);
         io.DeltaTime = (float)MainWindow.Frametime;
 
         if (_frameBegun)
@@ -143,6 +146,9 @@ public sealed class ImguiController : IDisposable, IInputHandler
         ImGui.NewFrame();
         ImGuizmo.BeginFrame();
         ImGuizmo.SetRect(0, 0, io.DisplaySize.X, io.DisplaySize.Y);
+
+        var scale = new Vector2(_windowWidth / 1920f, _windowHeight / 1080f);
+        io.FontGlobalScale = Math.Max(0.6f, Math.Max(scale.X, scale.Y));
         _frameBegun = true;
     }
 
@@ -344,7 +350,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
         _ibo.Unload();
         _shader.Unload();
 
-        GL.DeleteTexture(_fontTexture);
+        _fontTexture?.Unload();
     }
 
     public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)

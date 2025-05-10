@@ -1,4 +1,5 @@
-﻿using ImGuiNET;
+﻿using System;
+using ImGuiNET;
 using Jellyfish.Audio;
 using Jellyfish.Console;
 using Jellyfish.Entities;
@@ -135,7 +136,10 @@ public class MainWindow : GameWindow, IInputHandler
         }
 
         var config = Settings.Instance.Video;
-        if (config.WindowSize != ClientSize)
+        // allow some tolerance because graphics apis are funny
+        // TODO: signal from the config that we need a resolution change instead of testing every frame
+        if (Math.Abs(config.WindowSize.X - ClientSize.X) > 20 ||
+            Math.Abs(config.WindowSize.Y - ClientSize.Y) > 20)
         {
             ClientSize = config.WindowSize;
             WindowHeight = config.WindowSize.Y;
