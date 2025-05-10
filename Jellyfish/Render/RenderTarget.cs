@@ -1,5 +1,6 @@
 ﻿using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
+using System;
 
 namespace Jellyfish.Render;
 
@@ -13,13 +14,13 @@ public class RenderTarget
     public RenderTarget(string name, int width, int heigth, SizedInternalFormat internalFormat, FramebufferAttachment attachment, TextureWrapMode wrapMode, float[]? borderColor = null, bool enableCompare = false, int levels = 1, TextureMinFilter filtering = TextureMinFilter.Nearest)
     {
         Size = new Vector2(width, heigth);
-        Levels = levels;
+        Levels = Math.Clamp(Math.Min(width, heigth) / 64, 1, levels);
 
         _texture = TextureManager.GetTexture(name, TextureTarget.Texture2d, false).Texture;
         TextureHandle = _texture.Handle;
         GL.BindTexture(TextureTarget.Texture2d, TextureHandle);
 
-        GL.TextureStorage2D(TextureHandle, levels, internalFormat, width, heigth);
+        GL.TextureStorage2D(TextureHandle, Levels, internalFormat, width, heigth);
         GL.TextureParameteri(TextureHandle, TextureParameterName.TextureMinFilter, new[] { (int)filtering });
         GL.TextureParameteri(TextureHandle, TextureParameterName.TextureMagFilter, new[] { (int)filtering });
         GL.TextureParameteri(TextureHandle, TextureParameterName.TextureWrapS, new[] { (int)wrapMode });
@@ -40,7 +41,7 @@ public class RenderTarget
 
         GL.BindTexture(TextureTarget.Texture2d, 0);
 
-        _texture.Levels = levels;
+        _texture.Levels = Levels;
         _texture.Format = internalFormat.ToString();
     }
 

@@ -119,6 +119,7 @@ public class OpenGLRender : IRender, IInputHandler
         _sky?.Unload();
         _postProcessing?.Unload();
 
+        _gBuffer?.Unload();
         _colorRenderTarget?.Unload();
         _depthRenderTarget?.Unload();
         _mainFramebuffer?.Unload();
@@ -168,6 +169,7 @@ public class OpenGLRender : IRender, IInputHandler
         _sky?.Unload();
         _postProcessing?.Unload();
 
+        _gBuffer?.Unload();
         _colorRenderTarget?.Unload();
         _depthRenderTarget?.Unload();
         _mainFramebuffer?.Unload();

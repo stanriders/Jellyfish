@@ -57,6 +57,16 @@ public class GBuffer
     {
         _buffer.Unbind();
     }
+
+    public void Unload()
+    {
+        foreach (var renderTarget in _renderTargets)
+        {
+            renderTarget.Unload();
+        }
+
+        _buffer.Unload();
+    }
 }
 
 public enum GBufferType
