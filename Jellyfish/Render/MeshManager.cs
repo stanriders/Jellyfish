@@ -2,6 +2,7 @@
 using System.Linq;
 using Jellyfish.Audio;
 using Jellyfish.Utils;
+using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.Render;
 
@@ -54,18 +55,24 @@ public static class MeshManager
 
         var playerPosition = Camera.Instance.Position;
 
-        var sortedMeshes = meshes.OrderByDescending(x => !(x.Material?.GetParam<bool>("AlphaTest") ?? false))
-            .ThenByDescending(x => (x.Position + x.BoundingBox.Center - playerPosition).Length);
+        var opaqueObjects = meshes.Where(x => !(x.Material?.GetParam<bool>("AlphaTest") ?? false)).ToArray();
+        var transluscentObjects = meshes.Where(x => !opaqueObjects.Contains(x))
+            .OrderByDescending(x => ((x.Position + x.BoundingBox.Center) - playerPosition).Length)
+            .ToArray();
 
-        foreach (var mesh in sortedMeshes)
-        {
-            if (mesh.IsDev && !drawDev)
-                continue;
+        foreach (var mesh in opaqueObjects)
+            DrawMesh(mesh, drawDev, shaderToUse, frustum);
 
-            var frustumToUse = frustum ?? Camera.Instance.GetFrustum();
-            if (mesh.ShouldDraw && frustumToUse.IsInside(mesh.Position, mesh.BoundingBox.Length))
-                mesh.Draw(shaderToUse);
-        }
+        GL.DepthMask(false);
+        GL.Enable(EnableCap.Blend);
+        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+        GL.BlendEquation(BlendEquationMode.FuncAdd);
+
+        foreach (var mesh in transluscentObjects)
+            DrawMesh(mesh, drawDev, shaderToUse, frustum);
+
+        GL.Disable(EnableCap.Blend);
+        GL.DepthMask(true);
 
         // ensures that all VBO updates happen post-rendering
         foreach (var update in updateQueue)
@@ -92,6 +99,16 @@ public static class MeshManager
         }
 
         drawing = false;
+    }
+
+    private static void DrawMesh(Mesh mesh, bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null)
+    {
+        if (mesh.IsDev && !drawDev)
+            return;
+
+        var frustumToUse = frustum ?? Camera.Instance.GetFrustum();
+        if (mesh.ShouldDraw && frustumToUse.IsInside(mesh.Position, mesh.BoundingBox.Length))
+            mesh.Draw(shaderToUse);
     }
 
     public static void Unload()

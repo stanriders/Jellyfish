@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Xml.Linq;
 using Jellyfish.Console;
 using Jellyfish.Render.Shaders;
 using Newtonsoft.Json;
@@ -10,6 +11,7 @@ namespace Jellyfish.Render;
 
 public class Material
 {
+    public string? Name { get; }
     public string? Directory { get; }
     public Shader? Shader { get; }
 
@@ -89,6 +91,7 @@ public class Material
             _params = materialParams;
         }
 
+        Name = Path.GetFileName(path);
         Directory = Path.GetDirectoryName(path);
 
         var shader = (string?)_params.GetValueOrDefault("Shader");
