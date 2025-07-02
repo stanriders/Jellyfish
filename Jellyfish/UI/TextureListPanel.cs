@@ -19,7 +19,7 @@ public class TextureListPanel : IUiPanel, IInputHandler
         InputManager.RegisterInputHandler(this);
     }
 
-    public void Frame()
+    public void Frame(double timeElapsed)
     {
         if (!ConVarStorage.Get<bool>("edt_enable"))
             return;

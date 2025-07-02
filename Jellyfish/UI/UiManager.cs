@@ -34,11 +34,11 @@ public class UiManager
         }
     }
 
-    public void Frame()
+    public void Frame(double timeElapsed)
     {
         foreach (var panel in _panels)
         {
-            panel.Frame();
+            panel.Frame(timeElapsed);
         }
     }
 }

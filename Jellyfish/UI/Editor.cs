@@ -38,7 +38,7 @@ public class Editor : IUiPanel, IInputHandler
         InputManager.RegisterInputHandler(this);
     }
 
-    public unsafe void Frame()
+    public unsafe void Frame(double timeElapsed)
     {
         if (!ConVarStorage.Get<bool>("edt_enable"))
             return;
@@ -153,10 +153,10 @@ public class Editor : IUiPanel, IInputHandler
                 }
 
                 if (_selectedEntity.BoundingBox != null)
-                    Debug.DrawBoundingBox(_selectedEntity.GetPropertyValue<Vector3>("Position"), _selectedEntity.BoundingBox.Value);
+                    DebugRender.DrawBoundingBox(_selectedEntity.GetPropertyValue<Vector3>("Position"), _selectedEntity.BoundingBox.Value);
 
                 if (_selectedEntity is IHaveFrustum frustumEntity)
-                    Debug.DrawFrustum(frustumEntity.GetFrustum());
+                    DebugRender.DrawFrustum(frustumEntity.GetFrustum());
 
                 foreach (var entityProperty in _selectedEntity.EntityProperties)
                 {

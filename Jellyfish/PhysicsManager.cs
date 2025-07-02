@@ -351,12 +351,12 @@ public class PhysicsManager
 
         protected override void DrawLine(System.Numerics.Vector3 from, System.Numerics.Vector3 to, JoltColor color)
         {
-            Debug.DrawLine(from.ToOpentkVector(), to.ToOpentkVector());
+            DebugRender.DrawLine(from.ToOpentkVector(), to.ToOpentkVector());
         }
 
         protected override void DrawText3D(System.Numerics.Vector3 position, string? text, JoltColor color, float height = 0.5f)
         {
-            Debug.DrawText(position.ToOpentkVector(), text ?? "");
+            DebugRender.DrawText(position.ToOpentkVector(), text ?? "");
         }
         
         protected override void DrawTriangle(System.Numerics.Vector3 v1, System.Numerics.Vector3 v2, System.Numerics.Vector3 v3, JoltColor color, CastShadow castShadow = CastShadow.Off)

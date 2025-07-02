@@ -16,7 +16,7 @@ namespace Jellyfish.UI
             new Settings.Integer2Serializable(640, 480)
         };
 
-        public void Frame()
+        public void Frame(double timeElapsed)
         {
             var config = Settings.Instance;
 

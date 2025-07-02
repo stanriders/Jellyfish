@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using ImGuiNET;
 using Jellyfish.Audio;
 using Jellyfish.Console;
@@ -9,6 +10,7 @@ using Jellyfish.UI;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using System.Threading;
+using Jellyfish.Debug;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
@@ -101,14 +103,20 @@ public class MainWindow : GameWindow, IInputHandler
 
     protected override void OnRenderFrame(FrameEventArgs e)
     {
+        var stopwatch = Stopwatch.StartNew();
+
         RenderScheduler.Run();
         Render();
 
         base.OnRenderFrame(e);
+
+        PerformanceMeasurment.Add("RenderTotal", stopwatch.Elapsed.TotalMilliseconds);
     }
 
     protected override void OnUpdateFrame(FrameEventArgs e)
     {
+        var stopwatch = Stopwatch.StartNew();
+
         Frametime = e.Time;
 
         if (ShouldQuit)
@@ -126,7 +134,7 @@ public class MainWindow : GameWindow, IInputHandler
 
         // we want to update ui regardless of focus otherwise it disappears
         _imguiController?.Update(WindowWidth, WindowHeight);
-        _uiManager.Frame();
+        _uiManager.Frame(e.Time);
         _inputHandler.Frame(KeyboardState, MouseState, (float)e.Time);
 
         if (!Loaded)
@@ -165,6 +173,8 @@ public class MainWindow : GameWindow, IInputHandler
         _entityManager.Frame((float)e.Time);
 
         base.OnUpdateFrame(e);
+
+        PerformanceMeasurment.Add("UpdateTotal", stopwatch.Elapsed.TotalMilliseconds);
     }
 
     protected override void OnResize(ResizeEventArgs e)

@@ -17,7 +17,7 @@ namespace Jellyfish.UI
             InputManager.RegisterInputHandler(this);
         }
 
-        public void Frame()
+        public void Frame(double timeElapsed)
         {
             if (_isEnabled && ImGui.Begin("Console"))
             {

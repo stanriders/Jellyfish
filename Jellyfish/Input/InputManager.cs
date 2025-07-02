@@ -1,6 +1,8 @@
-﻿using System;
+﻿using OpenTK.Windowing.GraphicsLibraryFramework;
+using System;
 using System.Collections.Generic;
-using OpenTK.Windowing.GraphicsLibraryFramework;
+using System.Diagnostics;
+using Jellyfish.Debug;
 
 namespace Jellyfish.Input;
 
@@ -47,18 +49,22 @@ public class InputManager
 
     public void Frame(KeyboardState keyboardState, MouseState mouseState, float frameTime)
     {
+        var stopwatch = Stopwatch.StartNew();
         if (_inputCaptured)
         {
             _capturer?.HandleInput(keyboardState, mouseState, frameTime);
-            return;
         }
-
-        foreach (var inputHandler in _inputHandlers)
+        else
         {
-            if (inputHandler.HandleInput(keyboardState, mouseState, frameTime))
+            foreach (var inputHandler in _inputHandlers)
             {
-                return;
+                if (inputHandler.HandleInput(keyboardState, mouseState, frameTime))
+                {
+                    break;
+                }
             }
         }
+
+        PerformanceMeasurment.Add("InputManager.Frame", stopwatch.Elapsed.TotalMilliseconds);
     }
 }

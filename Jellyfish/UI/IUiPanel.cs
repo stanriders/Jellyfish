@@ -2,5 +2,5 @@
 
 public interface IUiPanel
 {
-    void Frame();
+    void Frame(double timeElapsed);
 }

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Jellyfish.Console;
+using Jellyfish.Debug;
 using Jellyfish.Render;
 using Jellyfish.Utils;
 using OpenTK.Mathematics;
@@ -72,6 +74,7 @@ public class EntityManager
 
     public void Frame(float frameTime)
     {
+        var stopwatch = Stopwatch.StartNew();
         while (_killQueue.Count > 0)
         {
             var entity = _killQueue.Dequeue();
@@ -91,7 +94,7 @@ public class EntityManager
         if (ConVarStorage.Get<bool>("edt_enable") && ConVarStorage.Get<bool>("edt_drawnames"))
         {
             foreach (var entity in _entityList)
-                Debug.DrawText(entity.GetPropertyValue<Vector3>("Position"), entity.Name ?? "null");
+                DebugRender.DrawText(entity.GetPropertyValue<Vector3>("Position"), entity.Name ?? "null");
         }
 
         foreach (var devCone in _devCones)
@@ -104,6 +107,8 @@ public class EntityManager
             foreach (var entity in _entityList)
                 entity.Think(frameTime);
         }
+
+        PerformanceMeasurment.Add("EntityManager.Frame", stopwatch.Elapsed.TotalMilliseconds);
     }
 
     public static BaseEntity? CreateEntity(string className)

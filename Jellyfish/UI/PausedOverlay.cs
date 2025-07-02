@@ -6,7 +6,7 @@ namespace Jellyfish.UI;
 
 public class PausedOverlay : IUiPanel
 {
-    public void Frame()
+    public void Frame(double timeElapsed)
     {
         var windowFlags = ImGuiWindowFlags.NoDecoration |
                           ImGuiWindowFlags.AlwaysAutoResize |

@@ -5,7 +5,7 @@ using OpenTK.Mathematics;
 
 namespace Jellyfish.Render;
 
-public static class Debug
+public static class DebugRender
 {
     public static void DrawBoundingBox(Vector3 position, BoundingBox box)
     {

@@ -17,7 +17,7 @@ public class InfoOverlay : IUiPanel
 
     private string _mapInput = string.Empty;
 
-    public void Frame()
+    public void Frame(double timeElapsed)
     {
         // smoothing out frametime a bit
         if (_lastFewFrametimes.Count > frametime_buffer_size)
