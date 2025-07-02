@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ImGuiNET;
 using Jellyfish.Utils;
 using OpenTK.Mathematics;
@@ -105,6 +106,33 @@ public static class DebugRender
 
                 drawList.AddLine(start, end, uint.MaxValue);
             }
+        });
+
+        DrawMesh(new Mesh($"frustum_{Random.Shared.Next()}", 
+        [
+            new() { Coordinates = frustum.NearCorners[0], Normal = new Vector3(1), UV = new Vector2(0, 1) },
+            new() { Coordinates = frustum.NearCorners[1], Normal = new Vector3(1), UV = new Vector2(0, 1) },
+            new() { Coordinates = frustum.NearCorners[3], Normal = new Vector3(1), UV = new Vector2(0, 1) },
+
+            new() { Coordinates = frustum.NearCorners[2], Normal = new Vector3(1), UV = new Vector2(0, 1) },
+            new() { Coordinates = frustum.NearCorners[0], Normal = new Vector3(1), UV = new Vector2(0, 1) },
+            new() { Coordinates = frustum.NearCorners[3], Normal = new Vector3(1), UV = new Vector2(0, 1) },
+
+            new() { Coordinates = frustum.FarCorners[0], Normal = new Vector3(1), UV = new Vector2(0, 1) },
+            new() { Coordinates = frustum.FarCorners[1], Normal = new Vector3(1), UV = new Vector2(0, 1) },
+            new() { Coordinates = frustum.FarCorners[3], Normal = new Vector3(1), UV = new Vector2(0, 1) },
+
+            new() { Coordinates = frustum.FarCorners[2], Normal = new Vector3(1), UV = new Vector2(0, 1) },
+            new() { Coordinates = frustum.FarCorners[0], Normal = new Vector3(1), UV = new Vector2(0, 1) },
+            new() { Coordinates = frustum.FarCorners[3], Normal = new Vector3(1), UV = new Vector2(0, 1) },
+        ], texture: "materials/error.mat") {IsDev = true});
+    }
+
+    public static void DrawMesh(Mesh mesh)
+    {
+        RenderScheduler.Schedule(() =>
+        {
+            MeshManager.AddMesh(mesh, true);
         });
     }
 }

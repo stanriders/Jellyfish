@@ -9,16 +9,19 @@ namespace Jellyfish.Render;
 public static class MeshManager
 {
     private static readonly List<Mesh> meshes = new();
+    private static readonly List<Mesh> singleFrameMeshes = new();
     private static readonly List<(Mesh, List<Vertex>)> updateQueue = new();
 
     public static BoundingBox SceneBoundingBox { get; private set; }
 
     private static bool drawing;
 
-    public static void AddMesh(Mesh mesh)
+    public static void AddMesh(Mesh mesh, bool singleFrame = false)
     {
         mesh.Load();
         meshes.Add(mesh);
+        if (singleFrame)
+            singleFrameMeshes.Add(mesh);
 
         SceneBoundingBox = new BoundingBox([SceneBoundingBox, mesh.BoundingBox]);
 
@@ -83,6 +86,16 @@ public static class MeshManager
         updateQueue.Clear();
 
         drawing = false;
+
+        if (drawDev)
+        {
+            foreach (var singleFrameMesh in singleFrameMeshes)
+            {
+                RemoveMesh(singleFrameMesh);
+            }
+
+            singleFrameMeshes.Clear();
+        }
     }
 
     public static void DrawGBuffer(bool drawDev = true)
