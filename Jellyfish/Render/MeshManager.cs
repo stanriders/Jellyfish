@@ -89,7 +89,13 @@ public static class MeshManager
     {
         drawing = true;
 
-        foreach (var mesh in meshes)
+        var playerPosition = Camera.Instance.Position;
+        var opaqueObjects = meshes.Where(x => !(x.Material?.GetParam<bool>("AlphaTest") ?? false)).ToArray();
+        var transluscentObjects = meshes.Where(x => !opaqueObjects.Contains(x))
+            .OrderByDescending(x => ((x.Position + x.BoundingBox.Center) - playerPosition).Length)
+            .ToArray();
+
+        foreach (var mesh in opaqueObjects)
         {
             if (mesh.IsDev && !drawDev)
                 continue;
@@ -97,6 +103,23 @@ public static class MeshManager
             if (mesh.ShouldDraw && Camera.Instance.GetFrustum().IsInside(mesh.Position, mesh.BoundingBox.Length))
                 mesh.DrawGBuffer();
         }
+
+        GL.DepthMask(false);
+        GL.Enable(EnableCap.Blend);
+        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+        GL.BlendEquation(BlendEquationMode.FuncAdd);
+
+        foreach (var mesh in transluscentObjects)
+        {
+            if (mesh.IsDev && !drawDev)
+                continue;
+
+            if (mesh.ShouldDraw && Camera.Instance.GetFrustum().IsInside(mesh.Position, mesh.BoundingBox.Length))
+                mesh.DrawGBuffer();
+        }
+
+        GL.Disable(EnableCap.Blend);
+        GL.DepthMask(true);
 
         drawing = false;
     }
