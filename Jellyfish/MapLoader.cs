@@ -19,6 +19,12 @@ public static class MapLoader
     {
         Log.Context("MapLoader").Information("Parsing map {Path}...", path);
 
+        if (!File.Exists(path))
+        {
+            Log.Context("MapLoader").Error("Map {Path} doesn't exist!", path);
+            return;
+        }
+
         var mapString = File.ReadAllText(path);
         var deserializer = JsonSerializer.CreateDefault(new JsonSerializerSettings {Converters = Converters});
 
