@@ -1,17 +1,19 @@
-﻿using Jellyfish.Console;
-using Jellyfish.Input;
-using ImGuiNET;
-using OpenTK.Windowing.GraphicsLibraryFramework;
-using Jellyfish.Entities;
+﻿using ImGuiNET;
 using ImGuizmoNET;
+using Jellyfish.Console;
+using Jellyfish.Entities;
+using Jellyfish.Input;
+using Jellyfish.Render;
+using ManagedBass;
 using OpenTK.Mathematics;
+using OpenTK.Windowing.GraphicsLibraryFramework;
+using System;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Quaternion = OpenTK.Mathematics.Quaternion;
 using Vector2 = System.Numerics.Vector2;
 using Vector3 = OpenTK.Mathematics.Vector3;
-using System;
-using Jellyfish.Render;
 
 namespace Jellyfish.UI;
 
@@ -330,7 +332,7 @@ public class Editor : IUiPanel, IInputHandler
             var valueCasted = (Color4<Rgba>)entityProperty.Value!;
 
             var val = new System.Numerics.Vector4(valueCasted.X, valueCasted.Y, valueCasted.Z, valueCasted.W);
-            ImGui.DragFloat4(elementLabel, ref val, 0.01f, 0.0f, 1.0f);
+            ImGui.ColorEdit4(elementLabel, ref val);
 
             entity.SetPropertyValue(propertyName, new Color4<Rgba>(val.X, val.Y, val.Z, val.W));
         }
@@ -339,7 +341,7 @@ public class Editor : IUiPanel, IInputHandler
             var valueCasted = (Color3<Rgb>)entityProperty.Value!;
 
             var val = new System.Numerics.Vector3(valueCasted.X, valueCasted.Y, valueCasted.Z);
-            ImGui.DragFloat3(elementLabel, ref val, 0.01f, 0.0f, 1.0f);
+            ImGui.ColorEdit3(elementLabel, ref val);
 
             entity.SetPropertyValue(propertyName, new Color3<Rgb>(val.X, val.Y, val.Z));
         }
