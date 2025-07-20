@@ -60,7 +60,7 @@ public class InfoOverlay : IUiPanel
             }
 
             ImGui.Separator();
-            ImGui.InputText("", ref _mapInput, 1024);
+            ImGui.InputText(MainWindow.CurrentMap, ref _mapInput, 1024);
             ImGui.SameLine();
             if (ImGui.Button("Load"))
             {

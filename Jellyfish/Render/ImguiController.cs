@@ -1,16 +1,17 @@
 ﻿using ImGuiNET;
-using System;
-using OpenTK.Graphics.OpenGL;
-using Jellyfish.Render.Buffers;
-using System.Runtime.CompilerServices;
-using Jellyfish.Render.Shaders;
-using OpenTK.Mathematics;
-using OpenTK.Windowing.GraphicsLibraryFramework;
-using ErrorCode = OpenTK.Graphics.OpenGL.ErrorCode;
-using Jellyfish.Input;
-using System.Collections.Generic;
 using ImGuizmoNET;
 using Jellyfish.Console;
+using Jellyfish.Input;
+using Jellyfish.Render.Buffers;
+using Jellyfish.Render.Shaders;
+using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
+using OpenTK.Windowing.GraphicsLibraryFramework;
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using ImPlotNET;
+using ErrorCode = OpenTK.Graphics.OpenGL.ErrorCode;
 using Vector2 = System.Numerics.Vector2;
 
 namespace Jellyfish.Render;
@@ -36,6 +37,8 @@ public sealed class ImguiController : IDisposable, IInputHandler
         var context = ImGui.CreateContext();
         ImGui.SetCurrentContext(context);
         ImGuizmo.SetImGuiContext(context);
+        var implotctx = ImPlot.CreateContext();
+        ImPlot.SetCurrentContext(implotctx);
 
         ImGui.StyleColorsClassic();
         ImGui.PushStyleVar(ImGuiStyleVar.ScrollbarRounding, 4f);
@@ -51,6 +54,9 @@ public sealed class ImguiController : IDisposable, IInputHandler
         var io = ImGui.GetIO();
         io.Fonts.AddFontFromFileTTF("fonts/Roboto-Regular.ttf", 15f);
         io.Fonts.AddFontDefault();
+        io.DisplaySize = new Vector2(800, 600);
+        io.DisplayFramebufferScale = new Vector2(1);
+        io.DeltaTime = 1 / 60f;
 
         io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
 
@@ -136,7 +142,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
         var io = ImGui.GetIO();
         io.DisplaySize = new Vector2(_windowWidth, _windowHeight);
-        io.DeltaTime = (float)MainWindow.Frametime;
+        io.DeltaTime = Math.Max(0.001f, (float)MainWindow.Frametime);
 
         if (_frameBegun)
         {
@@ -202,7 +208,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
         for (var i = 0; i < drawData.CmdListsCount; i++)
         {
-            var cmdList = new ImVector<ImDrawListPtr>(drawData.CmdListsCount, drawData.CmdListsCount, drawData.CmdLists)[i];
+            var cmdList = drawData.CmdLists[i];
 
             var vertexSize = cmdList.VtxBuffer.Size * Unsafe.SizeOf<ImDrawVert>();
             if (vertexSize > _vbo.Size)
@@ -251,7 +257,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
         // Render command lists
         for (var n = 0; n < drawData.CmdListsCount; n++)
         {
-            var cmdList = new ImVector<ImDrawListPtr>(drawData.CmdListsCount, drawData.CmdListsCount, drawData.CmdLists)[n];//drawData.CmdLists[n];
+            var cmdList = drawData.CmdLists[n];
             ImGuizmo.SetDrawlist(cmdList);
 
             GL.NamedBufferSubData(_vbo.Handle, nint.Zero,

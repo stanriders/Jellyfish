@@ -28,7 +28,7 @@ namespace Jellyfish.UI
                     ImGui.SetWindowSize(new Vector2(viewport.Size.X * 0.75f, viewport.Size.Y * 0.75f));
                 }
 
-                if (ImGui.BeginChild("ScrollingRegion", new Vector2(0, 0), true, ImGuiWindowFlags.NavFlattened | ImGuiWindowFlags.NoMove))
+                if (ImGui.BeginChild("ScrollingRegion", new Vector2(0, 0), ImGuiChildFlags.NavFlattened, ImGuiWindowFlags.NoMove))
                 {
                     ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(4, 2));
 

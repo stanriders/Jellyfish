@@ -10,6 +10,7 @@
 	<ItemGroup>
 		<FragShaders Include="Render\Shaders\**\*.frag" />
 		<VertShaders Include="Render\Shaders\**\*.vert" />
+		<CompShaders Include="Render\Shaders\**\*.comp" />
 		<AllFiles Include="$(OutDir)/**/*.*" />
 	</ItemGroup>
 
@@ -17,11 +18,13 @@
 		<Message Importance="High" Text="Copying shaders..." />
 		<Copy SourceFiles="@(FragShaders)" DestinationFolder="$(OutDir)\shaders" />
 		<Copy SourceFiles="@(VertShaders)" DestinationFolder="$(OutDir)\shaders" />
+		<Copy SourceFiles="@(CompShaders)" DestinationFolder="$(OutDir)\shaders" />
 	</Target>
 
 	<ItemGroup>
 		<Watch Include="@(FragShaders)" />
 		<Watch Include="@(VertShaders)" />
+		<Watch Include="@(CompShaders)" />
 	</ItemGroup>
 
 	<Target Name="CopyDLLs" AfterTargets="Build">
@@ -33,15 +36,15 @@
 		<!--<PackageReference Include="AssimpNet" Version="4.1.0" />-->
 		<!--<PackageReference Include="ImGui.NET" Version="1.90.6.1" />-->
 		<PackageReference Include="AssimpNet" Version="5.0.0-beta1" />
-		<PackageReference Include="JoltPhysicsSharp" Version="2.14.0" />
+		<PackageReference Include="JoltPhysicsSharp" Version="2.17.4" />
 		<PackageReference Include="ManagedBass" Version="3.1.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="OpenTK" Version="5.0.0-pre.13" />
 		<PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
-		<PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.3.0" />
+		<PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.7.0" />
 		<PackageReference Include="SteamAudio.NET" Version="4.5.3" />
 		<PackageReference Include="SteamAudio.NET.Natives" Version="4.5.3" />
-		<PackageReference Include="Twizzle.ImGuizmo.NET" Version="1.89.4.1" />
+		<PackageReference Include="Twizzle.ImGui-Bundle.NET" Version="1.91.5.2" />
 	</ItemGroup>
 
 	<ItemGroup>

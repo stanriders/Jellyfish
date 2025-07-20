@@ -61,7 +61,7 @@ public class TextureListPanel : IUiPanel, IInputHandler
 
                 ImGui.EndGroup();
 
-                var windowSize = ImGui.GetWindowPos().X + ImGui.GetWindowContentRegionMax().X;
+                var windowSize = ImGui.GetWindowPos().X + ImGui.GetContentRegionAvail().X;
                 var prevGroup = ImGui.GetItemRectMax().X;
                 var nextGroup = prevGroup + item_width / 2.0f; // divided by 2 to make ux slightly better
                 if (i + 1 < textureCount && nextGroup < windowSize)

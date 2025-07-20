@@ -1,9 +1,13 @@
 ﻿using ImGuiNET;
+using ImPlotNET;
 using Jellyfish.Debug;
 using Jellyfish.Input;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Linq;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace Jellyfish.UI
 {
@@ -13,21 +17,38 @@ namespace Jellyfish.UI
         private Dictionary<string, double> _measurements = new();
         private double _elapsedSinceLastUpdate;
 
+        private Dictionary<string, List<double>> _previousMeasurements = new();
+
         public PerformancePanel()
         {
             InputManager.RegisterInputHandler(this);
         }
 
-        public void Frame(double timeElapsed)
+        public unsafe void Frame(double timeElapsed)
         {
-            if (!_isEnabled)
-                return;
-
             if (_elapsedSinceLastUpdate > 0.1)
             {
+                foreach (var measurement in _measurements)
+                {
+                    if (!_previousMeasurements.ContainsKey(measurement.Key))
+                    {
+                        _previousMeasurements.Add(measurement.Key, new List<double>());
+                    }
+
+                    _previousMeasurements[measurement.Key].Add(measurement.Value);
+
+                    if (_previousMeasurements[measurement.Key].Count > 100)
+                        _previousMeasurements[measurement.Key].RemoveAt(0);
+                }
+
                 _measurements = PerformanceMeasurment.Measurements.ToDictionary();
                 _elapsedSinceLastUpdate = 0;
             }
+
+            _elapsedSinceLastUpdate += timeElapsed;
+
+            if (!_isEnabled)
+                return;
 
             if (ImGui.Begin("Performance"))
             {
@@ -35,10 +56,28 @@ namespace Jellyfish.UI
                 {
                     ImGui.Text(
                         $"{measurement.Key}: {1000.0 / measurement.Value:N1} ({measurement.Value:N4})");
-                }
-            }
 
-            _elapsedSinceLastUpdate += timeElapsed;
+                }
+
+                var frameSize = ImGui.GetWindowSize();
+
+                ImPlot.SetNextAxesToFit();
+                if (ImPlot.BeginPlot("measurments", new Vector2(frameSize.X - 30, frameSize.Y - 120), ImPlotFlags.NoInputs))
+                {
+                    foreach (var previousMeasurement in _previousMeasurements)
+                    {
+                        var previousMeasurements = _previousMeasurements[previousMeasurement.Key].Select(x => (float)x).ToArray();
+
+                        fixed (float* previousMeasurementsPinned = previousMeasurements)
+                            ImPlot.PlotBars(previousMeasurement.Key, ref Unsafe.AsRef<float>(previousMeasurementsPinned),
+                                previousMeasurements.Length);
+                    }
+
+                    ImPlot.EndPlot();
+                }
+
+                ImGui.End();
+            }
         }
 
         public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
