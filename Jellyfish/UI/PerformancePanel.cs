@@ -62,7 +62,7 @@ namespace Jellyfish.UI
                 var frameSize = ImGui.GetWindowSize();
 
                 ImPlot.SetNextAxesToFit();
-                if (ImPlot.BeginPlot("measurments", new Vector2(frameSize.X - 30, frameSize.Y - 120), ImPlotFlags.NoInputs))
+                if (ImPlot.BeginPlot("Measurements", new Vector2(frameSize.X - 30, frameSize.Y - 120), ImPlotFlags.NoInputs))
                 {
                     foreach (var previousMeasurement in _previousMeasurements)
                     {
