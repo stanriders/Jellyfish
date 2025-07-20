@@ -9,6 +9,7 @@ public abstract class EntityProperty
     public object? Value { get; private set; }
     public object? DefaultValue { get; set; }
     public bool Editable { get; set; } = true;
+    public bool ShowGizmo { get; set; } = false;
     public Action<object>? OnChangeAction { get; set; }
 
     public void SetValue(object? value)
@@ -29,13 +30,14 @@ public abstract class EntityProperty
 
 public class EntityProperty<T> : EntityProperty
 {
-    public EntityProperty(string name, T? defaultValue = default, bool editable = true, Action<T>? changeCallback = null)
+    public EntityProperty(string name, T? defaultValue = default, bool editable = true, bool showGizmo = false, Action<T>? changeCallback = null)
     {
         Name = name;
         Type = typeof(T);
         SetValue(defaultValue);
         DefaultValue = defaultValue;
         Editable = editable;
+        ShowGizmo = showGizmo;
 
         if (changeCallback != null)
             OnChangeAction = x => changeCallback((T)x);

@@ -116,24 +116,26 @@ public class Editor : IUiPanel, IInputHandler
                 {
                     ImGuizmo.SetID(_selectedEntity.GetHashCode());
 
-                    var rotation = Matrix4.CreateFromQuaternion(_selectedEntity.GetPropertyValue<Quaternion>("Rotation"));
-                    var transform = (rotation * Matrix4.CreateTranslation(_selectedEntity.GetPropertyValue<Vector3>("Position")))
-                        .ToFloatArray();
+                    var entityRotation = Matrix4.CreateFromQuaternion(_selectedEntity.GetPropertyValue<Quaternion>("Rotation"));
+                    var entityScale = Matrix4.CreateScale(_selectedEntity.GetPropertyValue<Vector3>("Scale"));
+                    var entityTransform = entityScale * entityRotation * Matrix4.CreateTranslation(_selectedEntity.GetPropertyValue<Vector3>("Position"));
+                    var transformArray = entityTransform.ToFloatArray();
 
-                    fixed (float* transformArray = transform)
+                    fixed (float* transformArrayPinned = transformArray)
                     {
                         ImGuizmo.Enable(true);
 
                         ImGuizmo.DrawCubes(ref Unsafe.AsRef<float>(view), ref Unsafe.AsRef<float>(proj),
-                            ref Unsafe.AsRef<float>(transformArray), 1);
+                            ref Unsafe.AsRef<float>(transformArrayPinned), 1);
 
                         if (ImGuizmo.Manipulate(ref Unsafe.AsRef<float>(view), ref Unsafe.AsRef<float>(proj),
-                                OPERATION.TRANSLATE | OPERATION.ROTATE, MODE.LOCAL,
-                                ref Unsafe.AsRef<float>(transformArray)))
+                                OPERATION.TRANSLATE | OPERATION.ROTATE | OPERATION.SCALE, MODE.LOCAL,
+                                ref Unsafe.AsRef<float>(transformArrayPinned)))
                         {
                             _usingGizmo = true;
-                            _selectedEntity.SetPropertyValue("Position", transform.ToMatrix().ExtractTranslation());
-                            _selectedEntity.SetPropertyValue("Rotation", transform.ToMatrix().ExtractRotation());
+                            _selectedEntity.SetPropertyValue("Position", transformArray.ToMatrix().ExtractTranslation());
+                            _selectedEntity.SetPropertyValue("Rotation", transformArray.ToMatrix().ExtractRotation());
+                            _selectedEntity.SetPropertyValue("Scale", transformArray.ToMatrix().ExtractScale());
 
                             if (_selectedEntity is IPhysicsEntity physicsEntity)
                             {
@@ -148,6 +150,36 @@ public class Editor : IUiPanel, IInputHandler
                             }
 
                             _usingGizmo = false;
+                        }
+                    }
+                    
+                    foreach (var gizmoProperty in _selectedEntity.EntityProperties.Where(x => x.ShowGizmo))
+                    {
+                        if (gizmoProperty.Value is Vector3[] arr)
+                        {
+                            foreach (var point in arr)
+                            {
+                                var propertyTransform = (Matrix4.CreateTranslation(point) * entityTransform)
+                                    .ToFloatArray();
+
+                                fixed (float* propertyTransformArrayPinned = propertyTransform)
+                                {
+                                    ImGuizmo.Enable(true);
+                                    ImGuizmo.SetID(_selectedEntity.GetHashCode() + gizmoProperty.GetHashCode() + point.GetHashCode());
+
+                                    ImGuizmo.DrawCubes(ref Unsafe.AsRef<float>(view), ref Unsafe.AsRef<float>(proj),
+                                        ref Unsafe.AsRef<float>(propertyTransformArrayPinned), 1);
+
+                                    if (ImGuizmo.Manipulate(ref Unsafe.AsRef<float>(view),
+                                            ref Unsafe.AsRef<float>(proj),
+                                            OPERATION.TRANSLATE, MODE.WORLD, ref Unsafe.AsRef<float>(propertyTransformArrayPinned)))
+                                    {
+                                        arr[Array.IndexOf(arr, point)] = propertyTransform.ToMatrix().ExtractTranslation();
+                                        _selectedEntity.SetPropertyValue(gizmoProperty.Name, arr);
+                                    }
+
+                                }
+                            }
                         }
                     }
                 }
