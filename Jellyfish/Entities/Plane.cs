@@ -26,6 +26,12 @@ public class Plane : BaseModelEntity, IPhysicsEntity
     private void OnSizeChanged(Vector2 obj)
     {
         Model?.Meshes[0].Update(GenerateVertices());
+
+        if (_physicsBodyId != null)
+        {
+            PhysicsManager.RemoveObject(_physicsBodyId.Value);
+            _physicsBodyId = PhysicsManager.AddStaticObject([Model!.Meshes[0]], this) ?? 0;
+        }
     }
 
     public override void Load()

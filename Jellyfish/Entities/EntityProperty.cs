@@ -21,9 +21,10 @@ public abstract class EntityProperty
         if (value == Value)
             return;
 
+        var oldValue = Value;
         Value = value;
 
-        if (value != null)
+        if (value != null && !value.Equals(oldValue))
             OnChangeAction?.Invoke(value);
     }
 
