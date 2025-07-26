@@ -27,6 +27,9 @@ public class DynamicModel : BaseModelEntity, IPhysicsEntity
         AddProperty<BoundingBoxType>("BoundingBox", editable: false);
         AddProperty("EnablePhysics", true, changeCallback: enablePhysics =>
         {
+            if (!Loaded)
+                return;
+
             if (enablePhysics)
             {
                 _physicsBodyId = PhysicsManager.AddDynamicObject(CalculatePhysicsShape(), this) ?? 0;

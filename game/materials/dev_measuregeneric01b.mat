@@ -1,0 +1,5 @@
+{
+  "Shader": "Main",
+  "Diffuse": "dev_measuregeneric01b.png",
+  "MetalRoughness": "dev_measuregeneric01b_metallic.png"
+}

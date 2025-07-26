@@ -1,0 +1,7 @@
+{
+  "Shader": "Main",
+  "Diffuse": "Glass_Frosted_001_basecolor.png",
+  "Normal": "Glass_Frosted_001_normal.jpg",
+  "MetalRoughness": "Glass_Frosted_001_metrough.png",
+  "AlphaTest": true
+}

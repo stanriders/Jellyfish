@@ -21,10 +21,15 @@ public abstract class EntityProperty
         if (value == Value)
             return;
 
-        if (value != null && !value.Equals(Value))
-            OnChangeAction?.Invoke(value);
-
         Value = value;
+
+        if (value != null)
+            OnChangeAction?.Invoke(value);
+    }
+
+    public override string ToString()
+    {
+        return $"{Name} - {Value}";
     }
 }
 

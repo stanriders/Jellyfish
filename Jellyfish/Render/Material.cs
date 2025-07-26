@@ -24,19 +24,22 @@ public class Material
 
         if (path != null)
         {
-            var folder = isModel ? $"materials/models/{modelName}" : "materials";
+            string[] potentialFileNames = [
+                $"materials/models/{modelName}/{Path.GetFileNameWithoutExtension(path)}.mat",
+                $"materials/models/{modelName}/{Path.GetFileName(path)}",
+                $"materials/{Path.GetFileNameWithoutExtension(path)}.mat",
+                $"materials/{Path.GetFileName(path)}",
+                $"materials/{path}",
+                path
+            ];
 
-            var matPath = $"{folder}/{Path.GetFileNameWithoutExtension(path)}.mat";
-            if (!File.Exists(matPath))
+            string? matPath = null;
+            foreach (var fileName in potentialFileNames)
             {
-                matPath = $"{folder}/{Path.GetFileName(path)}";
-                if (!File.Exists(matPath))
+                if (File.Exists(fileName))
                 {
-                    matPath = path;
-                    if (!File.Exists(matPath))
-                    {
-                        matPath = null;
-                    }
+                    matPath = fileName;
+                    break;
                 }
             }
 

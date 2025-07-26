@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using Assimp.Unmanaged;
 using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Shaders.Deferred;
 using Jellyfish.Utils;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
+using System.Collections.Generic;
+using System.IO;
 
 namespace Jellyfish.Render;
 
@@ -198,6 +200,16 @@ public class Mesh
             //_ibo.UpdateData(indices.ToArray());
             Indices = indices;
         }
+
+        _boundingBox = null;
+    }
+
+    public void UpdateMaterial(string path)
+    {
+        _gBufferShader.Unload();
+        Material?.Unload();
+
+        AddMaterial(path);
     }
 
     public Matrix4 GetTransformationMatrix() => Matrix4.Identity * 
