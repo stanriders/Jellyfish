@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using ImGuiNET;
 using Jellyfish.Audio;
 using Jellyfish.Console;
+using Jellyfish.Debug;
 using Jellyfish.Entities;
 using Jellyfish.Render;
 using JoltPhysicsSharp;
@@ -278,6 +280,8 @@ public class PhysicsManager
         {
             Thread.Sleep(update_rate);
 
+            var stopwatch = Stopwatch.StartNew();
+
             var drawSettings = new DrawSettings
             {
                 DrawMassAndInertia = true,
@@ -289,7 +293,10 @@ public class PhysicsManager
             _debugRenderer.Render();
 
             if (!ShouldSimulate)
+            {
+                PerformanceMeasurment.Add("PhysicsManager.Run", stopwatch.Elapsed.TotalMilliseconds);
                 continue;
+            }
 
             while (_deletionQueue.TryDequeue(out var bodyId))
             {
@@ -316,6 +323,8 @@ public class PhysicsManager
             {
                 Log.Context(this).Warning("Physics simulation reported error {Error}!", error);
             }
+
+            PerformanceMeasurment.Add("PhysicsManager.Run", stopwatch.Elapsed.TotalMilliseconds);
         }
 
         _jobSystem.Dispose();
