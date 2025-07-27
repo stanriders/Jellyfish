@@ -28,7 +28,7 @@ public static class MapLoader
         var mapString = File.ReadAllText(path);
         var deserializer = JsonSerializer.CreateDefault(new JsonSerializerSettings {Converters = Converters});
 
-        var map = JsonConvert.DeserializeObject<Map>(mapString, new Color4Converter(), new Color3Converter());
+        var map = JsonConvert.DeserializeObject<Map>(mapString, Converters);
         if (map == null)
         {
             Log.Context("MapLoader").Error("Couldn't parse map {Path}!", path);
@@ -50,8 +50,15 @@ public static class MapLoader
                     var propertyToken = ent.Properties.FirstOrDefault(x=> x.Name == entityProperty.Name);
                     if (propertyToken != null)
                     {
-                        var propertyValue = propertyToken.Value.ToObject(entityProperty.Type, deserializer);
-                        entityProperty.SetValue(propertyValue);
+                        if (entityProperty.Type.IsArray)
+                        {
+                            // TODO: arrays don't deserialize properly
+                        }
+                        else
+                        {
+                            var propertyValue = propertyToken.Value.ToObject(entityProperty.Type, deserializer);
+                            entityProperty.SetValue(propertyValue);
+                        }
                     }
                     else
                     {
