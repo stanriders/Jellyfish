@@ -118,8 +118,11 @@ public class Editor : IUiPanel, IInputHandler
                 {
                     ImGuizmo.SetID(_selectedEntity.GetHashCode());
 
-                    var entityRotation = Matrix4.CreateFromQuaternion(_selectedEntity.GetPropertyValue<Quaternion>("Rotation"));
-                    var entityScale = Matrix4.CreateScale(_selectedEntity.GetPropertyValue<Vector3>("Scale"));
+                    var hasScale = _selectedEntity.HasProperty("Scale") || _selectedEntity.HasProperty("Size");
+                    var hasRotation = _selectedEntity.HasProperty("Rotation");
+
+                    var entityRotation = hasRotation ? Matrix4.CreateFromQuaternion(_selectedEntity.GetPropertyValue<Quaternion>("Rotation")) : Matrix4.Identity;
+                    var entityScale = hasScale ? Matrix4.CreateScale(_selectedEntity.GetPropertyValue<Vector3>("Scale")) : Matrix4.Identity;
                     var entityTransform = entityScale * entityRotation * Matrix4.CreateTranslation(_selectedEntity.GetPropertyValue<Vector3>("Position"));
                     var transformArray = entityTransform.ToFloatArray();
 
@@ -130,8 +133,14 @@ public class Editor : IUiPanel, IInputHandler
                         ImGuizmo.DrawCubes(ref Unsafe.AsRef<float>(view), ref Unsafe.AsRef<float>(proj),
                             ref Unsafe.AsRef<float>(transformArrayPinned), 1);
 
+                        var operations = OPERATION.TRANSLATE;
+                        if (hasRotation)
+                            operations |= OPERATION.ROTATE;
+                        if (hasScale)
+                            operations |= OPERATION.SCALE;
+
                         if (ImGuizmo.Manipulate(ref Unsafe.AsRef<float>(view), ref Unsafe.AsRef<float>(proj),
-                                OPERATION.TRANSLATE | OPERATION.ROTATE | OPERATION.SCALE, MODE.LOCAL,
+                                operations, MODE.LOCAL,
                                 ref Unsafe.AsRef<float>(transformArrayPinned)))
                         {
                             _usingGizmo = true;

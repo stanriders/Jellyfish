@@ -110,6 +110,11 @@ public abstract class BaseEntity
         return false;
     }
 
+    public bool HasProperty(string name)
+    {
+        return _entityProperties.ContainsKey(name);
+    }
+
     protected void AddAction(string name, Action action, bool enabled = true)
     {
         _entityActions.Add(name, new EntityAction(name, action, enabled));
