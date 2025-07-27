@@ -69,7 +69,7 @@
           "Name": "Position",
           "Value": {
             "X": -50.0,
-            "Y": 19.962341,
+            "Y": 19.949787,
             "Z": 0.0
           }
         },
@@ -113,17 +113,17 @@
         {
           "Name": "Position",
           "Value": {
-            "X": -150.00046,
-            "Y": 19.94551,
-            "Z": -0.005507768
+            "X": -150.00082,
+            "Y": 19.943668,
+            "Z": -0.0071506505
           }
         },
         {
           "Name": "Rotation",
           "Value": {
-            "Pitch": 0.035223275,
-            "Yaw": 1.5165798E-05,
-            "Roll": 0.0007956331
+            "Pitch": 0.020862622,
+            "Yaw": 4.6397297E-05,
+            "Roll": 0.000830119
           }
         },
         {
@@ -158,17 +158,17 @@
         {
           "Name": "Position",
           "Value": {
-            "X": -150.0006,
-            "Y": 19.942507,
-            "Z": 40.00216
+            "X": -150.00096,
+            "Y": 19.94338,
+            "Z": 40.00371
           }
         },
         {
           "Name": "Rotation",
           "Value": {
-            "Pitch": -0.0410572,
-            "Yaw": 6.482599E-05,
-            "Roll": 0.00050613674
+            "Pitch": -0.03634566,
+            "Yaw": 0.00018064016,
+            "Roll": 0.0007094531
           }
         },
         {
@@ -203,16 +203,16 @@
         {
           "Name": "Position",
           "Value": {
-            "X": -150.00003,
-            "Y": 19.981617,
-            "Z": 80.00394
+            "X": -150.00005,
+            "Y": 19.98162,
+            "Z": 80.00397
           }
         },
         {
           "Name": "Rotation",
           "Value": {
-            "Pitch": -0.007399715,
-            "Yaw": -2.2177737E-05,
+            "Pitch": -0.007399714,
+            "Yaw": -2.2177735E-05,
             "Roll": 1.40127195E-05
           }
         },
@@ -249,16 +249,16 @@
           "Name": "Position",
           "Value": {
             "X": -150.0,
-            "Y": 64.00386,
-            "Z": 60.000362
+            "Y": 63.9913,
+            "Z": 60.000538
           }
         },
         {
           "Name": "Rotation",
           "Value": {
-            "Pitch": 0.0002704392,
-            "Yaw": 1.6639642E-05,
-            "Roll": -1.9801922E-09
+            "Pitch": -0.00020849645,
+            "Yaw": 4.6835637E-05,
+            "Roll": -2.676177E-09
           }
         },
         {
@@ -293,17 +293,17 @@
         {
           "Name": "Position",
           "Value": {
-            "X": -150.00116,
-            "Y": 60.093224,
-            "Z": 19.998909
+            "X": -150.002,
+            "Y": 60.111397,
+            "Z": 19.998636
           }
         },
         {
           "Name": "Rotation",
           "Value": {
-            "Pitch": 0.0007643303,
-            "Yaw": 8.3439736E-05,
-            "Roll": 0.00060318963
+            "Pitch": -0.013979543,
+            "Yaw": 0.00018940613,
+            "Roll": 0.0010077307
           }
         },
         {
@@ -339,7 +339,7 @@
           "Name": "Position",
           "Value": {
             "X": -150.0,
-            "Y": 149.96234,
+            "Y": 149.94978,
             "Z": 40.0
           }
         },
@@ -384,7 +384,7 @@
           "Name": "Position",
           "Value": {
             "X": -150.0,
-            "Y": 249.96234,
+            "Y": 249.94978,
             "Z": 40.0
           }
         },
@@ -429,7 +429,7 @@
           "Name": "Position",
           "Value": {
             "X": -150.0,
-            "Y": 349.96234,
+            "Y": 349.9498,
             "Z": 40.0
           }
         },
@@ -474,7 +474,7 @@
           "Name": "Position",
           "Value": {
             "X": -150.0,
-            "Y": 449.96234,
+            "Y": 449.9498,
             "Z": 40.0
           }
         },
@@ -1058,100 +1058,6 @@
       "ClassName": "plane_flat",
       "Properties": [
         {
-          "Name": "Position",
-          "Value": {
-            "X": -300.0,
-            "Y": 25.0,
-            "Z": -307.0
-          }
-        },
-        {
-          "Name": "Rotation",
-          "Value": {
-            "Pitch": 0.0,
-            "Yaw": 0.0,
-            "Roll": 0.0
-          }
-        },
-        {
-          "Name": "Scale",
-          "Value": {
-            "X": 1.0,
-            "Y": 1.0,
-            "Z": 1.0
-          }
-        },
-        {
-          "Name": "Size",
-          "Value": {
-            "X": 400.0,
-            "Y": 50.0
-          }
-        },
-        {
-          "Name": "Texture",
-          "Value": "tile-pbr.mat"
-        },
-        {
-          "Name": "TextureScale",
-          "Value": {
-            "X": 8.0,
-            "Y": 1.0
-          }
-        }
-      ]
-    },
-    {
-      "ClassName": "plane_flat",
-      "Properties": [
-        {
-          "Name": "Position",
-          "Value": {
-            "X": -300.0,
-            "Y": 25.0,
-            "Z": -306.7
-          }
-        },
-        {
-          "Name": "Rotation",
-          "Value": {
-            "Pitch": 179.9999,
-            "Yaw": 0.0,
-            "Roll": -179.9999
-          }
-        },
-        {
-          "Name": "Scale",
-          "Value": {
-            "X": 1.0,
-            "Y": 1.0,
-            "Z": 1.0
-          }
-        },
-        {
-          "Name": "Size",
-          "Value": {
-            "X": 400.0,
-            "Y": 50.0
-          }
-        },
-        {
-          "Name": "Texture",
-          "Value": "tile-pbr.mat"
-        },
-        {
-          "Name": "TextureScale",
-          "Value": {
-            "X": 8.0,
-            "Y": 1.0
-          }
-        }
-      ]
-    },
-    {
-      "ClassName": "plane_flat",
-      "Properties": [
-        {
           "Name": "Name",
           "Value": "superfloor"
         },
@@ -1241,6 +1147,102 @@
           "Name": "TextureScale",
           "Value": {
             "X": 1.0,
+            "Y": 1.0
+          }
+        }
+      ]
+    },
+    {
+      "ClassName": "box",
+      "Properties": [
+        {
+          "Name": "Position",
+          "Value": {
+            "X": 240.0,
+            "Y": 70.0,
+            "Z": 0.0
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0.0,
+            "Yaw": 0.0,
+            "Roll": 0.0
+          }
+        },
+        {
+          "Name": "Scale",
+          "Value": {
+            "X": 1.0,
+            "Y": 1.0,
+            "Z": 1.0
+          }
+        },
+        {
+          "Name": "Size",
+          "Value": {
+            "X": 70.0,
+            "Y": 70.0,
+            "Z": 70.0
+          }
+        },
+        {
+          "Name": "Texture",
+          "Value": "dev_measuregeneric01b"
+        },
+        {
+          "Name": "TextureScale",
+          "Value": {
+            "X": 4.0,
+            "Y": 4.0
+          }
+        }
+      ]
+    },
+    {
+      "ClassName": "box",
+      "Properties": [
+        {
+          "Name": "Position",
+          "Value": {
+            "X": -300.0,
+            "Y": 30.0,
+            "Z": -300.0
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0.0,
+            "Yaw": 0.0,
+            "Roll": 0.0
+          }
+        },
+        {
+          "Name": "Scale",
+          "Value": {
+            "X": 1.0,
+            "Y": 1.0,
+            "Z": 1.0
+          }
+        },
+        {
+          "Name": "Size",
+          "Value": {
+            "X": 200.0,
+            "Y": 30.0,
+            "Z": 5.0
+          }
+        },
+        {
+          "Name": "Texture",
+          "Value": "tile-pbr"
+        },
+        {
+          "Name": "TextureScale",
+          "Value": {
+            "X": 6.66,
             "Y": 1.0
           }
         }
