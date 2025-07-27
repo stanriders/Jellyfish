@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Jellyfish.Audio;
+using Jellyfish.Debug;
 using Jellyfish.Utils;
 using OpenTK.Graphics.OpenGL;
 
@@ -55,6 +57,7 @@ public static class MeshManager
     public static void Draw(bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null)
     {
         drawing = true;
+        var drawStopwatch = Stopwatch.StartNew();
 
         var playerPosition = Camera.Instance.Position;
 
@@ -63,16 +66,20 @@ public static class MeshManager
             .OrderByDescending(x => ((x.Position + x.BoundingBox.Center) - playerPosition).Length)
             .ToArray();
 
+        var stopwatch = Stopwatch.StartNew();
         foreach (var mesh in opaqueObjects)
             DrawMesh(mesh, drawDev, shaderToUse, frustum);
+        PerformanceMeasurment.Add("MeshManager.Draw.Opaque", stopwatch.Elapsed.TotalMilliseconds);
 
         GL.DepthMask(false);
         GL.Enable(EnableCap.Blend);
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         GL.BlendEquation(BlendEquationMode.FuncAdd);
 
+        stopwatch.Restart();
         foreach (var mesh in transluscentObjects)
             DrawMesh(mesh, drawDev, shaderToUse, frustum);
+        PerformanceMeasurment.Add("MeshManager.Draw.Transluscent", stopwatch.Elapsed.TotalMilliseconds);
 
         GL.Disable(EnableCap.Blend);
         GL.DepthMask(true);
@@ -96,11 +103,13 @@ public static class MeshManager
 
             singleFrameMeshes.Clear();
         }
+        PerformanceMeasurment.Add("MeshManager.Draw", drawStopwatch.Elapsed.TotalMilliseconds);
     }
 
     public static void DrawGBuffer(bool drawDev = true)
     {
         drawing = true;
+        var drawStopwatch = Stopwatch.StartNew();
 
         var playerPosition = Camera.Instance.Position;
         var opaqueObjects = meshes.Where(x => !(x.Material?.GetParam<bool>("AlphaTest") ?? false)).ToArray();
@@ -134,6 +143,7 @@ public static class MeshManager
         GL.Disable(EnableCap.Blend);
         GL.DepthMask(true);
 
+        PerformanceMeasurment.Add("MeshManager.DrawGBuffer", drawStopwatch.Elapsed.TotalMilliseconds);
         drawing = false;
     }
 

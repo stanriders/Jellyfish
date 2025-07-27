@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using Jellyfish.Debug;
 using Jellyfish.Entities;
 using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Shaders;
 using Jellyfish.Utils;
 using OpenTK.Graphics.OpenGL;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 
 namespace Jellyfish.Render.Lighting;
 
@@ -82,6 +84,7 @@ public static class LightManager
 
     public static void DrawShadows()
     {
+        var stopwatch = Stopwatch.StartNew();
         GL.Disable(EnableCap.CullFace);
         GL.CullFace(TriangleFace.Front);
 
@@ -130,6 +133,7 @@ public static class LightManager
 
         GL.CullFace(TriangleFace.Back);
         GL.Enable(EnableCap.CullFace);
+        PerformanceMeasurment.Add("LightManager.DrawShadows", stopwatch.Elapsed.TotalMilliseconds);
     }
 
     private static void CreateShadow(Light light, string subname = "")

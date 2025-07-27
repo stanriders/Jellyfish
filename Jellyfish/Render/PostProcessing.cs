@@ -1,9 +1,11 @@
-﻿using Jellyfish.Input;
+﻿using Jellyfish.Debug;
+using Jellyfish.Input;
 using Jellyfish.Render.Buffers;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
-using OpenTK.Mathematics;
+using System.Diagnostics;
 
 namespace Jellyfish.Render;
 
@@ -59,6 +61,7 @@ public class PostProcessing : IInputHandler
 
     public void Draw()
     {
+        var stopwatch = Stopwatch.StartNew();
         GL.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         GL.Clear(ClearBufferMask.ColorBufferBit);
         GL.Disable(EnableCap.DepthTest);
@@ -69,21 +72,24 @@ public class PostProcessing : IInputHandler
         _shader.SetVector2("screenSize", new Vector2(MainWindow.WindowWidth, MainWindow.WindowHeight));
         _shader.SetInt("isEnabled", _isEnabled ? 1 : 0);
 
-        GL.GenerateTextureMipmap(_rtColor.TextureHandle); // TODO: This generates mipmaps every frame, replace with a histogram calculation
-        var luminescence = new Span<float>(new float[128]); // can't allocate less than 128
-        GL.GetTextureImage(_rtColor.TextureHandle, _rtColor.Levels - 1, PixelFormat.Rgb, PixelType.Float, luminescence.Length, luminescence);
-
-        // TODO: histogram-based luminance
-        var luminance = 0.2126f * luminescence[0] + 0.7152f * luminescence[1] + 0.0722f * luminescence[2]; // Calculate a weighted average
-        luminance = Math.Max(luminance, 0.00001f);
-
-        if (!double.IsNaN(luminance))
+        if (_isEnabled)
         {
-            sceneExposure = float.Lerp(sceneExposure, 0.5f / luminance * 0.5f, adj_speed);
-            sceneExposure = Math.Clamp(sceneExposure, 0.1f, 1f);
-        }
+            GL.GenerateTextureMipmap(_rtColor.TextureHandle); // TODO: This generates mipmaps every frame, replace with a histogram calculation
+            var luminescence = new Span<float>(new float[128]); // can't allocate less than 128
+            GL.GetTextureImage(_rtColor.TextureHandle, _rtColor.Levels - 1, PixelFormat.Rgb, PixelType.Float, luminescence.Length, luminescence);
 
-        _shader.SetFloat("exposure", sceneExposure);
+            // TODO: histogram-based luminance
+            var luminance = 0.2126f * luminescence[0] + 0.7152f * luminescence[1] + 0.0722f * luminescence[2]; // Calculate a weighted average
+            luminance = Math.Max(luminance, 0.00001f);
+
+            if (!double.IsNaN(luminance))
+            {
+                sceneExposure = float.Lerp(sceneExposure, 0.5f / luminance * 0.5f, adj_speed);
+                sceneExposure = Math.Clamp(sceneExposure, 0.1f, 1f);
+            }
+
+            _shader.SetFloat("exposure", sceneExposure);
+        }
 
         _vertexArray.Bind();
 
@@ -91,6 +97,8 @@ public class PostProcessing : IInputHandler
 
         _vertexArray.Unbind();
         _shader.Unbind();
+
+        PerformanceMeasurment.Add("PostProcessing.Draw", stopwatch.Elapsed.TotalMilliseconds);
     }
 
     public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
