@@ -1,9 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using Hexa.NET.ImGui;
+using Jellyfish.Render;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using ImGuiNET;
-using Jellyfish.Entities;
-using Jellyfish.Render;
 
 namespace Jellyfish.UI;
 
@@ -28,11 +27,11 @@ public class InfoOverlay : IUiPanel
         _lastFewFrametimes.Add(MainWindow.Frametime);
 
         var windowFlags = ImGuiWindowFlags.NoDecoration |
-                          ImGuiWindowFlags.AlwaysAutoResize |
-                          ImGuiWindowFlags.NoSavedSettings |
-                          ImGuiWindowFlags.NoFocusOnAppearing |
-                          ImGuiWindowFlags.NoNav |
-                          ImGuiWindowFlags.NoMove;
+              ImGuiWindowFlags.AlwaysAutoResize |
+              ImGuiWindowFlags.NoSavedSettings |
+              ImGuiWindowFlags.NoFocusOnAppearing |
+              ImGuiWindowFlags.NoNav |
+              ImGuiWindowFlags.NoMove;
 
         var viewport = ImGui.GetMainViewport();
         var workPos = viewport.WorkPos; // Use work area to avoid menu-bar/task-bar, if any!

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using ImGuiNET;
+using Hexa.NET.ImGui;
 using Jellyfish.Audio;
 using Jellyfish.Console;
 using Jellyfish.Entities;

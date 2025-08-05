@@ -1,5 +1,5 @@
 ﻿using System.Numerics;
-using ImGuiNET;
+using Hexa.NET.ImGui;
 using Jellyfish.Console;
 
 namespace Jellyfish.UI;
@@ -8,6 +8,9 @@ public class PausedOverlay : IUiPanel
 {
     public void Frame(double timeElapsed)
     {
+        if (!MainWindow.Paused)
+            return;
+
         var windowFlags = ImGuiWindowFlags.NoDecoration |
                           ImGuiWindowFlags.AlwaysAutoResize |
                           ImGuiWindowFlags.NoSavedSettings |
@@ -15,7 +18,7 @@ public class PausedOverlay : IUiPanel
                           ImGuiWindowFlags.NoNav |
                           ImGuiWindowFlags.NoMove;
 
-        if (MainWindow.Paused && ImGui.Begin("PausedOverlay", windowFlags))
+        if (ImGui.Begin("PausedOverlay", windowFlags))
         {
             var viewport = ImGui.GetMainViewport();
 
@@ -29,7 +32,7 @@ public class PausedOverlay : IUiPanel
                 ImGui.SetWindowPos(viewport.Size / 2);
 
             ImGui.Text("Paused");
-            ImGui.End();
         }
+        ImGui.End();
     }
 }

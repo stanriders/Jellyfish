@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using ImGuiNET;
+using Hexa.NET.ImGui;
 
 namespace Jellyfish.UI
 {
@@ -20,7 +20,10 @@ namespace Jellyfish.UI
         {
             var config = Settings.Instance;
 
-            if (ShowPanel && ImGui.Begin("Settings", ImGuiWindowFlags.AlwaysAutoResize))
+            if (!ShowPanel)
+                return;
+
+            if (ImGui.Begin("Settings", ImGuiWindowFlags.AlwaysAutoResize))
             {
                 ShowPanel = !ImGui.Button("X");
 
@@ -60,8 +63,8 @@ namespace Jellyfish.UI
                         Settings.Save();
                     }
                 }
-                ImGui.End();
             }
+            ImGui.End();
         }
     }
 }

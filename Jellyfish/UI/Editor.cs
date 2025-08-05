@@ -1,14 +1,12 @@
-﻿using ImGuiNET;
-using ImGuizmoNET;
+﻿using Hexa.NET.ImGui;
+using Hexa.NET.ImGuizmo;
 using Jellyfish.Console;
 using Jellyfish.Entities;
 using Jellyfish.Input;
 using Jellyfish.Render;
-using ManagedBass;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
-using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Quaternion = OpenTK.Mathematics.Quaternion;
@@ -31,6 +29,7 @@ public class Editor : IUiPanel, IInputHandler
     private string? _selectedEntityType;
 
     private bool _usingGizmo = false;
+    private static bool setUpDocking = true;
 
     private const float camera_speed = 120.0f;
     private const float sensitivity = 0.2f;
@@ -54,49 +53,23 @@ public class Editor : IUiPanel, IInputHandler
         if (_selectedEntity?.MarkedForDeath ?? false)
             _selectedEntity = null;
 
-        var windowFlags = ImGuiWindowFlags.NoDecoration |
-                          ImGuiWindowFlags.AlwaysAutoResize |
-                          ImGuiWindowFlags.NoSavedSettings |
-                          ImGuiWindowFlags.NoFocusOnAppearing |
-                          ImGuiWindowFlags.NoNav |
-                          ImGuiWindowFlags.NoMove;
-
-        var viewport = ImGui.GetMainViewport();
-        var workPos = viewport.WorkPos;
-        var editorWindowSize = Vector2.Zero;
-
-        ImGui.SetNextWindowBgAlpha(0.2f);
-
-        if (ImGui.Begin("EditorParams", windowFlags))
+        var editorDock = ImGui.GetID("EditorDock");
+        ImGui.SetNextWindowBgAlpha(0.5f);
+        ImGui.DockSpaceOverViewport(editorDock, ImGui.GetMainViewport(), ImGuiDockNodeFlags.PassthruCentralNode);
+        
+        ImGui.SetNextWindowBgAlpha(0.5f);
+        if (ImGui.Begin("Editor params"))
         {
-            editorWindowSize = ImGui.GetWindowSize();
-            var editorWindowPos =
-                new Vector2(workPos.X + viewport.WorkSize.X - editorWindowSize.X - pad, workPos.Y + pad);
-            ImGui.SetWindowPos(editorWindowPos);
-
             ImGui.Checkbox("Enable debug cones", ref ConVarStorage.GetConVar<bool>("edt_drawcones")!.Value);
             ImGui.Checkbox("Show entity names", ref ConVarStorage.GetConVar<bool>("edt_drawnames")!.Value);
             ImGui.Checkbox("Enable physics debug overlay", ref ConVarStorage.GetConVar<bool>("phys_debug")!.Value);
-            ImGui.End();
         }
-
-        var entityControlsWindowFlags = ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoCollapse | ImGuiWindowFlags.NoResize |
-                          ImGuiWindowFlags.NoSavedSettings |
-                          ImGuiWindowFlags.NoFocusOnAppearing |
-                          ImGuiWindowFlags.NoMove;
-
-        var entityControlsSize = new Vector2(310, viewport.Size.Y - workPos.Y - (pad * 3) - editorWindowSize.Y);
-        var entityControlsPos =
-            new Vector2(workPos.X + viewport.WorkSize.X - entityControlsSize.X - pad, 
-                workPos.Y + pad + editorWindowSize.Y + pad);
+        ImGui.End();
 
         ImGui.SetNextWindowBgAlpha(0.5f);
-        ImGui.SetNextWindowPos(entityControlsPos);
-        ImGui.SetNextWindowSize(entityControlsSize);
-
-        if (ImGui.Begin("Entity controls", entityControlsWindowFlags))
+        if (ImGui.Begin("Entity controls"))
         {
-            if (ImGui.BeginListBox("Entity list", new Vector2(300, 300)))
+            if (ImGui.BeginListBox("Entity list"))
             {
                 foreach (var entity in EntityManager.Entities)
                 {
@@ -113,94 +86,6 @@ public class Editor : IUiPanel, IInputHandler
 
             if (_selectedEntity != null)
             {
-                fixed (float* view = Camera.Instance.GetViewMatrix().ToFloatArray())
-                fixed (float* proj = Camera.Instance.GetProjectionMatrix().ToFloatArray())
-                {
-                    ImGuizmo.SetID(_selectedEntity.GetHashCode());
-
-                    var hasScale = _selectedEntity.HasProperty("Scale") || _selectedEntity.HasProperty("Size");
-                    var hasRotation = _selectedEntity.HasProperty("Rotation");
-
-                    var entityRotation = hasRotation ? Matrix4.CreateFromQuaternion(_selectedEntity.GetPropertyValue<Quaternion>("Rotation")) : Matrix4.Identity;
-                    var entityScale = hasScale ? Matrix4.CreateScale(_selectedEntity.GetPropertyValue<Vector3>("Scale")) : Matrix4.Identity;
-                    var entityTransform = entityScale * entityRotation * Matrix4.CreateTranslation(_selectedEntity.GetPropertyValue<Vector3>("Position"));
-                    var transformArray = entityTransform.ToFloatArray();
-
-                    fixed (float* transformArrayPinned = transformArray)
-                    {
-                        ImGuizmo.Enable(true);
-
-                        ImGuizmo.DrawCubes(ref Unsafe.AsRef<float>(view), ref Unsafe.AsRef<float>(proj),
-                            ref Unsafe.AsRef<float>(transformArrayPinned), 1);
-
-                        var operations = OPERATION.TRANSLATE;
-                        if (hasRotation)
-                            operations |= OPERATION.ROTATE;
-                        if (hasScale)
-                            operations |= OPERATION.SCALE;
-
-                        if (ImGuizmo.Manipulate(ref Unsafe.AsRef<float>(view), ref Unsafe.AsRef<float>(proj),
-                                operations, MODE.LOCAL,
-                                ref Unsafe.AsRef<float>(transformArrayPinned)))
-                        {
-                            _usingGizmo = true;
-                            _selectedEntity.SetPropertyValue("Position", transformArray.ToMatrix().ExtractTranslation());
-                            _selectedEntity.SetPropertyValue("Rotation", transformArray.ToMatrix().ExtractRotation());
-                            _selectedEntity.SetPropertyValue("Scale", transformArray.ToMatrix().ExtractScale());
-
-                            if (_selectedEntity is IPhysicsEntity physicsEntity)
-                            {
-                                physicsEntity.ResetVelocity();
-                            }
-                        }
-                        else
-                        {
-                            if (_usingGizmo && _selectedEntity is IPhysicsEntity physicsEntity)
-                            {
-                                physicsEntity.ResetVelocity();
-                            }
-
-                            _usingGizmo = false;
-                        }
-                    }
-                    
-                    foreach (var gizmoProperty in _selectedEntity.EntityProperties.Where(x => x.ShowGizmo))
-                    {
-                        if (gizmoProperty.Value is Vector3[] arr)
-                        {
-                            foreach (var point in arr)
-                            {
-                                var propertyTransform = (Matrix4.CreateTranslation(point) * entityTransform)
-                                    .ToFloatArray();
-
-                                fixed (float* propertyTransformArrayPinned = propertyTransform)
-                                {
-                                    ImGuizmo.Enable(true);
-                                    ImGuizmo.SetID(_selectedEntity.GetHashCode() + gizmoProperty.GetHashCode() + point.GetHashCode());
-
-                                    ImGuizmo.DrawCubes(ref Unsafe.AsRef<float>(view), ref Unsafe.AsRef<float>(proj),
-                                        ref Unsafe.AsRef<float>(propertyTransformArrayPinned), 1);
-
-                                    if (ImGuizmo.Manipulate(ref Unsafe.AsRef<float>(view),
-                                            ref Unsafe.AsRef<float>(proj),
-                                            OPERATION.TRANSLATE, MODE.WORLD, ref Unsafe.AsRef<float>(propertyTransformArrayPinned)))
-                                    {
-                                        arr[Array.IndexOf(arr, point)] = propertyTransform.ToMatrix().ExtractTranslation();
-                                        _selectedEntity.SetPropertyValue(gizmoProperty.Name, arr);
-                                    }
-
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (_selectedEntity.BoundingBox != null)
-                    DebugRender.DrawBoundingBox(_selectedEntity.GetPropertyValue<Vector3>("Position"), _selectedEntity.BoundingBox.Value);
-
-                if (_selectedEntity is IHaveFrustum frustumEntity)
-                    DebugRender.DrawFrustum(frustumEntity.GetFrustum());
-
                 foreach (var entityProperty in _selectedEntity.EntityProperties)
                 {
                     AddProperty(_selectedEntity, entityProperty);
@@ -224,30 +109,30 @@ public class Editor : IUiPanel, IInputHandler
                     }
                 }
             }
-
-            ImGui.Separator();
-
-            if (ImGui.CollapsingHeader("Add entity"))
+        }
+        ImGui.End();
+        
+        ImGui.SetNextWindowBgAlpha(0.5f);
+        if (ImGui.Begin("Add entity"))
+        {
+            if (ImGui.BeginListBox("Entity types"))
             {
-                if (ImGui.BeginListBox("Entity types"))
+                foreach (var entityClass in EntityManager.EntityClasses.Order())
                 {
-                    foreach (var entityClass in EntityManager.EntityClasses.Order())
+                    if (ImGui.MenuItem(entityClass, "", entityClass == _selectedEntityType))
                     {
-                        if (ImGui.MenuItem(entityClass, "", entityClass == _selectedEntityType))
-                        {
-                            _selectedEntityType = entityClass;
-                        }
+                        _selectedEntityType = entityClass;
                     }
-
-                    ImGui.EndListBox();
                 }
 
-                if (_selectedEntityType != null)
+                ImGui.EndListBox();
+            }
+
+            if (_selectedEntityType != null)
+            {
+                if (ImGui.Button("Spawn"))
                 {
-                    if (ImGui.Button("Spawn"))
-                    {
-                        _selectedEntity = EntityManager.CreateEntity(_selectedEntityType);
-                    }
+                    _selectedEntity = EntityManager.CreateEntity(_selectedEntityType);
                 }
             }
 
@@ -257,9 +142,131 @@ public class Editor : IUiPanel, IInputHandler
             {
                 MapLoader.Save($"{MainWindow.CurrentMap}");
             }
-
-            ImGui.End();
         }
+        ImGui.End();
+
+        if (setUpDocking)
+        {
+            setUpDocking = false;
+
+            var dockIdRight = ImGuiP.DockBuilderSplitNode(editorDock, ImGuiDir.Right, 0.15f, null, &editorDock);
+            var dockIdRightTop = ImGuiP.DockBuilderSplitNode(dockIdRight, ImGuiDir.Up, 0.15f, null, &dockIdRight);
+            var dockIdRightMiddle = ImGuiP.DockBuilderSplitNode(dockIdRight, ImGuiDir.Up, 0.55f, null, &dockIdRight);
+            var dockIdRightBottom = ImGuiP.DockBuilderSplitNode(dockIdRight, ImGuiDir.Up, 0.3f, null, &dockIdRight);
+            ImGuiP.DockBuilderDockWindow("Editor params", dockIdRightTop);
+            ImGuiP.DockBuilderDockWindow("Entity controls", dockIdRightMiddle);
+            ImGuiP.DockBuilderDockWindow("Add entity", dockIdRightBottom);
+            ImGuiP.DockBuilderFinish(dockIdRight);
+            ImGuiP.DockBuilderFinish(editorDock);
+        }
+
+        DrawGizmos();
+    }
+
+    private unsafe void DrawGizmos()
+    {
+        if (_selectedEntity == null) 
+            return;
+
+        fixed (float* view = Camera.Instance.GetViewMatrix().ToFloatArray())
+        fixed (float* proj = Camera.Instance.GetProjectionMatrix().ToFloatArray())
+        {
+            ImGuizmo.SetID(_selectedEntity.GetHashCode());
+
+            var hasScale = _selectedEntity.HasProperty("Scale") || _selectedEntity.HasProperty("Size");
+            var hasRotation = _selectedEntity.HasProperty("Rotation");
+
+            var entityRotation = hasRotation
+                ? Matrix4.CreateFromQuaternion(_selectedEntity.GetPropertyValue<Quaternion>("Rotation"))
+                : Matrix4.Identity;
+            var entityScale = hasScale
+                ? Matrix4.CreateScale(_selectedEntity.GetPropertyValue<Vector3>("Scale"))
+                : Matrix4.Identity;
+            var entityTransform = entityScale * entityRotation *
+                                  Matrix4.CreateTranslation(
+                                      _selectedEntity.GetPropertyValue<Vector3>("Position"));
+            var transformArray = entityTransform.ToFloatArray();
+
+            fixed (float* transformArrayPinned = transformArray)
+            {
+                ImGuizmo.Enable(true);
+
+                ImGuizmo.DrawCubes(ref Unsafe.AsRef<float>(view), ref Unsafe.AsRef<float>(proj),
+                    ref Unsafe.AsRef<float>(transformArrayPinned), 1);
+
+                var operations = ImGuizmoOperation.Translate;
+                if (hasRotation)
+                    operations |= ImGuizmoOperation.Rotate;
+                if (hasScale)
+                    operations |= ImGuizmoOperation.Scale;
+
+                if (ImGuizmo.Manipulate(ref Unsafe.AsRef<float>(view), ref Unsafe.AsRef<float>(proj),
+                        operations, ImGuizmoMode.Local,
+                        ref Unsafe.AsRef<float>(transformArrayPinned)))
+                {
+                    _usingGizmo = true;
+                    _selectedEntity.SetPropertyValue("Position",
+                        transformArray.ToMatrix().ExtractTranslation());
+                    _selectedEntity.SetPropertyValue("Rotation",
+                        transformArray.ToMatrix().ExtractRotation());
+                    _selectedEntity.SetPropertyValue("Scale", transformArray.ToMatrix().ExtractScale());
+
+                    if (_selectedEntity is IPhysicsEntity physicsEntity)
+                    {
+                        physicsEntity.ResetVelocity();
+                    }
+                }
+                else
+                {
+                    if (_usingGizmo && _selectedEntity is IPhysicsEntity physicsEntity)
+                    {
+                        physicsEntity.ResetVelocity();
+                    }
+
+                    _usingGizmo = false;
+                }
+            }
+
+            foreach (var gizmoProperty in _selectedEntity.EntityProperties.Where(x => x.ShowGizmo))
+            {
+                if (gizmoProperty.Value is Vector3[] arr)
+                {
+                    foreach (var point in arr)
+                    {
+                        var propertyTransform = (Matrix4.CreateTranslation(point) * entityTransform)
+                            .ToFloatArray();
+
+                        fixed (float* propertyTransformArrayPinned = propertyTransform)
+                        {
+                            ImGuizmo.Enable(true);
+                            ImGuizmo.SetID(_selectedEntity.GetHashCode() + gizmoProperty.GetHashCode() +
+                                           point.GetHashCode());
+
+                            ImGuizmo.DrawCubes(ref Unsafe.AsRef<float>(view), ref Unsafe.AsRef<float>(proj),
+                                ref Unsafe.AsRef<float>(propertyTransformArrayPinned), 1);
+
+                            if (ImGuizmo.Manipulate(ref Unsafe.AsRef<float>(view),
+                                    ref Unsafe.AsRef<float>(proj),
+                                    ImGuizmoOperation.Translate, ImGuizmoMode.World,
+                                    ref Unsafe.AsRef<float>(propertyTransformArrayPinned)))
+                            {
+                                arr[Array.IndexOf(arr, point)] =
+                                    propertyTransform.ToMatrix().ExtractTranslation();
+                                _selectedEntity.SetPropertyValue(gizmoProperty.Name, arr);
+                            }
+
+                        }
+                    }
+                }
+            }
+        }
+
+        if (_selectedEntity.BoundingBox != null)
+            DebugRender.DrawBoundingBox(_selectedEntity.GetPropertyValue<Vector3>("Position"),
+                _selectedEntity.BoundingBox.Value);
+
+        if (_selectedEntity is IHaveFrustum frustumEntity)
+            DebugRender.DrawFrustum(frustumEntity.GetFrustum());
     }
 
     public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)

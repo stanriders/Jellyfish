@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 using System.Numerics;
-using ImGuiNET;
+using Hexa.NET.ImGui;
 using Jellyfish.Console;
 using Jellyfish.Input;
 using Jellyfish.Render;
@@ -19,7 +19,7 @@ public class TextureListPanel : IUiPanel, IInputHandler
         InputManager.RegisterInputHandler(this);
     }
 
-    public void Frame(double timeElapsed)
+    public unsafe void Frame(double timeElapsed)
     {
         if (!ConVarStorage.Get<bool>("edt_enable"))
             return;
@@ -49,16 +49,16 @@ public class TextureListPanel : IUiPanel, IInputHandler
                 bool pressed;
                 // flip RTs upside down
                 if (texture.Path.StartsWith("_rt_"))
-                    pressed = ImGui.ImageButton(texture.Path, texture.Handle, new Vector2(size, size), Vector2.One,
+                    pressed = ImGui.ImageButton(texture.Path, new ImTextureRef(texId: texture.Handle), new Vector2(size, size), Vector2.One,
                         Vector2.Zero);
                 else
-                    pressed = ImGui.ImageButton(texture.Path, texture.Handle, new Vector2(size, size));
-
+                    pressed = ImGui.ImageButton(texture.Path, new ImTextureRef(texId: texture.Handle), new Vector2(size, size));
+                
                 if (pressed)
                 {
                     _expandedTexture = i;
                 }
-
+                
                 ImGui.EndGroup();
 
                 var windowSize = ImGui.GetWindowPos().X + ImGui.GetContentRegionAvail().X;
@@ -67,8 +67,8 @@ public class TextureListPanel : IUiPanel, IInputHandler
                 if (i + 1 < textureCount && nextGroup < windowSize)
                     ImGui.SameLine();
             }
-            ImGui.End();
         }
+        ImGui.End();
     }
 
     public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)

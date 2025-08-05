@@ -1,4 +1,4 @@
-﻿using ImGuiNET;
+﻿using Hexa.NET.ImGui;
 using Jellyfish.Console;
 using Jellyfish.Input;
 using OpenTK.Mathematics;
@@ -19,7 +19,10 @@ namespace Jellyfish.UI
 
         public void Frame(double timeElapsed)
         {
-            if (_isEnabled && ImGui.Begin("Console"))
+            if (!_isEnabled)
+                return;
+
+            if (ImGui.Begin("Console"))
             {
                 var currentSize = ImGui.GetWindowSize();
                 if (currentSize is { X: 32, Y: 41 }) // default size
@@ -66,12 +69,10 @@ namespace Jellyfish.UI
                     _screllToBottom = false;
 
                     ImGui.PopStyleVar();
-
-                    ImGui.EndChild();
                 }
-
-                ImGui.End();
+                ImGui.EndChild();
             }
+            ImGui.End();
         }
 
         public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)

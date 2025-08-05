@@ -1,5 +1,6 @@
-﻿using ImGuiNET;
-using ImGuizmoNET;
+﻿using Hexa.NET.ImGui;
+using Hexa.NET.ImGuizmo;
+using Hexa.NET.ImPlot;
 using Jellyfish.Console;
 using Jellyfish.Input;
 using Jellyfish.Render.Buffers;
@@ -10,7 +11,6 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using ImPlotNET;
 using ErrorCode = OpenTK.Graphics.OpenGL.ErrorCode;
 using Vector2 = System.Numerics.Vector2;
 
@@ -19,7 +19,6 @@ namespace Jellyfish.Render;
 public sealed class ImguiController : IDisposable, IInputHandler
 {
     private bool _frameBegun;
-    private Texture? _fontTexture;
 
     private Imgui _shader = null!;
     private VertexArray _vao = null!;
@@ -32,7 +31,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
     private readonly List<char> _pressedChars = new();
     private bool _usingGizmo;
 
-    public ImguiController()
+    public unsafe ImguiController()
     {
         var context = ImGui.CreateContext();
         ImGui.SetCurrentContext(context);
@@ -58,7 +57,13 @@ public sealed class ImguiController : IDisposable, IInputHandler
         io.DisplayFramebufferScale = new Vector2(1);
         io.DeltaTime = 1 / 60f;
 
-        io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
+        io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset | ImGuiBackendFlags.RendererHasTextures;
+        io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+
+        var maxTextureSize = 0;
+        GL.GetIntegerv(GetPName.MaxTextureSize, &maxTextureSize);
+        var platformIo = ImGui.GetPlatformIO();
+        platformIo.RendererTextureMaxWidth = platformIo.RendererTextureMaxHeight = maxTextureSize;
 
         CreateDeviceResources();
 
@@ -77,7 +82,6 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
         _ibo = new IndexBuffer(usage: VertexBufferObjectUsage.DynamicDraw);
         _vao = new VertexArray(_vbo, _ibo);
-        RecreateFontDeviceTexture();
 
         _shader = new Imgui();
 
@@ -95,44 +99,6 @@ public sealed class ImguiController : IDisposable, IInputHandler
         GL.VertexArrayAttribBinding(_vao.Handle, 2, 0);
 
         CheckGlError("End of ImGui setup");
-    }
-
-    /// <summary>
-    /// Recreates the device texture used to render text.
-    /// </summary>
-    public void RecreateFontDeviceTexture()
-    {
-        var io = ImGui.GetIO();
-        io.Fonts.GetTexDataAsRGBA32(out nint pixels, out var width, out var height, out _);
-
-        var mips = (int)Math.Floor(Math.Log(Math.Max(width, height), 2));
-
-        _fontTexture?.Unload();
-
-        var (fontTexture, alreadyExists) = TextureManager.GetTexture("_imgui_Fonts", TextureTarget.Texture2d, false);
-        _fontTexture = fontTexture;
-
-        if (!alreadyExists)
-        {
-            GL.TextureStorage2D(_fontTexture.Handle, mips, SizedInternalFormat.Rgba8, width, height);
-
-            GL.TextureSubImage2D(_fontTexture.Handle, 0, 0, 0, width, height, PixelFormat.Bgra, PixelType.UnsignedByte,
-                pixels);
-
-            GL.GenerateTextureMipmap(_fontTexture.Handle);
-
-            GL.TextureParameteri(_fontTexture.Handle, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-            GL.TextureParameteri(_fontTexture.Handle, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
-
-            GL.TextureParameteri(_fontTexture.Handle, TextureParameterName.TextureMaxLevel, mips - 1);
-
-            GL.TextureParameteri(_fontTexture.Handle, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-            GL.TextureParameteri(_fontTexture.Handle, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
-        }
-
-        io.Fonts.SetTexID(_fontTexture.Handle);
-
-        io.Fonts.ClearTexData();
     }
 
     public void Update(int windowWidth, int windowHeigth)
@@ -154,11 +120,72 @@ public sealed class ImguiController : IDisposable, IInputHandler
         ImGuizmo.SetRect(0, 0, io.DisplaySize.X, io.DisplaySize.Y);
 
         var scale = new Vector2(_windowWidth / 1920f, _windowHeight / 1080f);
-        io.FontGlobalScale = Math.Max(0.6f, Math.Max(scale.X, scale.Y));
+        var style = ImGui.GetStyle();
+        style.FontScaleDpi = Math.Max(0.6f, Math.Max(scale.X, scale.Y));
+
         _frameBegun = true;
     }
 
-    public void Render()
+    private unsafe void UpdateTextures(ImDrawDataPtr drawData)
+    {
+        if (drawData.Textures.Size > 0)
+        {
+            for (int i = 0; i < drawData.Textures.Size; i++)
+            {
+                var imTexture = drawData.Textures[i];
+                var id = $"_imgui_{imTexture.UniqueID}"; 
+
+                if (imTexture.Status == ImTextureStatus.Ok || imTexture.Status == ImTextureStatus.Destroyed)
+                    continue;
+
+                var mips = (int)Math.Floor(Math.Log(Math.Max(imTexture.Width, imTexture.Height), 2));
+
+                var (texture, alreadyExists) = TextureManager.GetTexture(id, TextureTarget.Texture2d, false);
+
+                if (imTexture.Status == ImTextureStatus.WantCreate)
+                {
+                    if (!alreadyExists)
+                    {
+                        GL.TextureStorage2D(texture.Handle, mips, SizedInternalFormat.Rgba32f, imTexture.Width, imTexture.Height);
+
+                        GL.TextureSubImage2D(texture.Handle, 0, 0, 0, imTexture.Width, imTexture.Height, PixelFormat.Bgra, PixelType.UnsignedByte,
+                            imTexture.GetPixels());
+
+                        GL.GenerateTextureMipmap(texture.Handle);
+
+                        GL.TextureParameteri(texture.Handle, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+                        GL.TextureParameteri(texture.Handle, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+
+                        GL.TextureParameteri(texture.Handle, TextureParameterName.TextureMaxLevel, mips - 1);
+
+                        GL.TextureParameteri(texture.Handle, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+                        GL.TextureParameteri(texture.Handle, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+                    }
+
+                    imTexture.SetTexID(texture.Handle);
+                    imTexture.SetStatus(ImTextureStatus.Ok);
+                }
+                if (imTexture.Status == ImTextureStatus.WantUpdates)
+                {
+                    // TODO: update rects instead of the full texture
+                    GL.TextureSubImage2D(texture.Handle, 0, 0, 0, imTexture.Width, imTexture.Height, PixelFormat.Bgra, PixelType.UnsignedByte,
+                        imTexture.GetPixels());
+
+                    GL.GenerateTextureMipmap(texture.Handle);
+
+                    imTexture.SetStatus(ImTextureStatus.Ok);
+                }
+                if (imTexture.Status == ImTextureStatus.WantDestroy && imTexture.UnusedFrames > 0)
+                {
+                    TextureManager.RemoveTexture(texture);
+                    imTexture.SetTexID(ImTextureID.Null);
+                    imTexture.SetStatus(ImTextureStatus.Destroyed);
+                }
+            }
+        }
+    }
+
+    public unsafe void Render()
     {
         if (!_frameBegun)
             return;
@@ -171,6 +198,8 @@ public sealed class ImguiController : IDisposable, IInputHandler
         {
             return;
         }
+
+        UpdateTextures(drawData);
 
         // Get intial state.
         var prevBlendEnabled = GL.GetBoolean(GetPName.Blend);
@@ -271,13 +300,13 @@ public sealed class ImguiController : IDisposable, IInputHandler
             for (var cmd_i = 0; cmd_i < cmdList.CmdBuffer.Size; cmd_i++)
             {
                 var pcmd = cmdList.CmdBuffer[cmd_i];
-                if (pcmd.UserCallback != nint.Zero)
+                if (pcmd.UserCallback != (void*)nint.Zero)
                 {
                     throw new NotImplementedException();
                 }
 
                 GL.ActiveTexture(TextureUnit.Texture0);
-                GL.BindTexture(TextureTarget.Texture2d, (int)pcmd.TextureId);
+                GL.BindTexture(TextureTarget.Texture2d, (int)pcmd.GetTexID());
                 CheckGlError("Texture");
 
                 // We do _windowHeight - (int)clip.W instead of (int)clip.Y because gl has flipped Y when it comes to these coordinates
@@ -355,8 +384,6 @@ public sealed class ImguiController : IDisposable, IInputHandler
         _vbo.Unload();
         _ibo.Unload();
         _shader.Unload();
-
-        _fontTexture?.Unload();
     }
 
     public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
@@ -413,8 +440,8 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
     private static ImGuiKey TranslateKeyToImgui(Keys key)
     {
-        if (key >= Keys.D0 && key <= Keys.D9)
-            return key - Keys.D0 + ImGuiKey._0;
+        //if (key >= Keys.D0 && key <= Keys.D9)
+        //    return key - Keys.D0 + ImGuiKey._0;
 
         if (key >= Keys.A && key <= Keys.Z)
             return key - Keys.A + ImGuiKey.A;

@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using ImGuiNET;
 using Jellyfish.Audio;
 using Jellyfish.Console;
 using Jellyfish.Debug;

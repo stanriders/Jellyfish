@@ -1,5 +1,6 @@
-﻿using ImGuiNET;
-using ImPlotNET;
+﻿using System;
+using Hexa.NET.ImGui;
+using Hexa.NET.ImPlot;
 using Jellyfish.Debug;
 using Jellyfish.Input;
 using OpenTK.Windowing.GraphicsLibraryFramework;
@@ -73,7 +74,7 @@ namespace Jellyfish.UI
                 var frameSize = ImGui.GetWindowSize();
 
                 ImPlot.SetNextAxesToFit();
-                if (ImPlot.BeginPlot("Measurements", new Vector2(frameSize.X - 30, frameSize.Y - tableSize.Y - 40), ImPlotFlags.NoInputs | ImPlotFlags.NoTitle))
+                if (ImPlot.BeginPlot("Measurements", new Vector2(Math.Max(1, frameSize.X - 30), Math.Max(1, frameSize.Y - tableSize.Y - 40)), ImPlotFlags.NoInputs | ImPlotFlags.NoTitle))
                 {
                     foreach (var previousMeasurement in _previousMeasurements)
                     {
@@ -87,9 +88,8 @@ namespace Jellyfish.UI
 
                     ImPlot.EndPlot();
                 }
-
-                ImGui.End();
             }
+            ImGui.End();
         }
 
         public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
