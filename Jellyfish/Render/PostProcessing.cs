@@ -6,6 +6,7 @@ using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 using System.Diagnostics;
+using Jellyfish.Utils;
 
 namespace Jellyfish.Render;
 
@@ -20,21 +21,10 @@ public class PostProcessing : IInputHandler
     private static float sceneExposure = 1.0f;
     private const float adj_speed = 0.05f;
 
-    private readonly float[] _quad = {
-        // positions   // texCoords
-        -1.0f,  1.0f,  0.0f, 1.0f,
-        -1.0f, -1.0f,  0.0f, 0.0f,
-         1.0f, -1.0f,  1.0f, 0.0f,
-
-        -1.0f,  1.0f,  0.0f, 1.0f,
-         1.0f, -1.0f,  1.0f, 0.0f,
-         1.0f,  1.0f,  1.0f, 1.0f
-    };
-
     public PostProcessing(RenderTarget color)
     {
         _rtColor = color;
-        _vertexBuffer = new VertexBuffer("PostProcessingQuad", _quad, 4 * sizeof(float));
+        _vertexBuffer = new VertexBuffer("PostProcessingQuad", CommonShapes.Quad, 4 * sizeof(float));
         _vertexArray = new VertexArray(_vertexBuffer, null);
 
         _shader = new Shaders.PostProcessing(color);

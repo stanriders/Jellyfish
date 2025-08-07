@@ -1,9 +1,9 @@
-﻿using System;
-using Jellyfish.Render;
+﻿using Jellyfish.Render;
+using Jellyfish.Utils;
 using JoltPhysicsSharp;
+using OpenTK.Mathematics;
 using System.Collections.Generic;
 using System.Linq;
-using OpenTK.Mathematics;
 
 namespace Jellyfish.Entities;
 
@@ -11,53 +11,6 @@ namespace Jellyfish.Entities;
 public class Box : BaseModelEntity, IPhysicsEntity
 {
     private BodyID? _physicsBodyId;
-
-    private readonly Vector3[] _vertices =
-    {
-        // positions          
-        new(-1.0f, 1.0f, -1.0f),
-        new(-1.0f, -1.0f, -1.0f),
-        new(1.0f, -1.0f, -1.0f),
-        new(1.0f, -1.0f, -1.0f),
-        new(1.0f, 1.0f, -1.0f),
-        new(-1.0f, 1.0f, -1.0f),
-
-        new(-1.0f, -1.0f, 1.0f),
-        new(-1.0f, -1.0f, -1.0f),
-        new(-1.0f, 1.0f, -1.0f),
-        new(-1.0f, 1.0f, -1.0f),
-        new(-1.0f, 1.0f, 1.0f),
-        new(-1.0f, -1.0f, 1.0f),
-
-        new(1.0f, -1.0f, -1.0f),
-        new(1.0f, -1.0f, 1.0f),
-        new(1.0f, 1.0f, 1.0f),
-        new (1.0f, 1.0f, 1.0f),
-        new (1.0f, 1.0f, -1.0f),
-        new (1.0f, -1.0f, -1.0f),
-
-        new (-1.0f, -1.0f, 1.0f),
-        new (-1.0f, 1.0f, 1.0f),
-        new (1.0f, 1.0f, 1.0f),
-        new (1.0f, 1.0f, 1.0f),
-        new (1.0f, -1.0f, 1.0f),
-        new (-1.0f, -1.0f, 1.0f),
-
-        new (-1.0f, 1.0f, -1.0f),
-        new (1.0f, 1.0f, -1.0f),
-        new (1.0f, 1.0f, 1.0f),
-        new (1.0f, 1.0f, 1.0f),
-        new (-1.0f, 1.0f, 1.0f),
-        new (-1.0f, 1.0f, -1.0f),
-
-        new (-1.0f, -1.0f, -1.0f),
-        new (-1.0f, -1.0f, 1.0f),
-        new (1.0f, -1.0f, -1.0f),
-        new (1.0f, -1.0f, -1.0f),
-        new (-1.0f, -1.0f, 1.0f),
-        new (1.0f, -1.0f, 1.0f)
-    };
-
     public Box()
     {
         AddProperty("Size", new Vector3(20, 20, 20), changeCallback: OnSizeChanged);
@@ -140,9 +93,9 @@ public class Box : BaseModelEntity, IPhysicsEntity
         var textureScale = GetPropertyValue<Vector2>("TextureScale");
 
         var vertices = new List<Vertex>();
-        for (int i = 0; i < _vertices.Length; i+=6)
+        for (int i = 0; i < CommonShapes.Cube.Length; i+=6)
         {
-            var plane = _vertices.Reverse().Skip(i).Take(6).Select(x=> x * size).ToArray();
+            var plane = CommonShapes.Cube.Reverse().Skip(i).Take(6).Select(x=> x * size).ToArray();
 
             Vector3 u = plane[1] - plane[0];
             Vector3 v = plane[2] - plane[1];

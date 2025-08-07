@@ -2,64 +2,20 @@
 using Jellyfish.Input;
 using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Shaders;
+using Jellyfish.Utils;
 using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.Render
 {
     public class Sky
     {
-        private readonly float[] _skyboxVertices = {
-            // positions          
-            -1.0f,  1.0f, -1.0f,
-            -1.0f, -1.0f, -1.0f,
-            1.0f, -1.0f, -1.0f,
-            1.0f, -1.0f, -1.0f,
-            1.0f,  1.0f, -1.0f,
-            -1.0f,  1.0f, -1.0f,
-
-            -1.0f, -1.0f,  1.0f,
-            -1.0f, -1.0f, -1.0f,
-            -1.0f,  1.0f, -1.0f,
-            -1.0f,  1.0f, -1.0f,
-            -1.0f,  1.0f,  1.0f,
-            -1.0f, -1.0f,  1.0f,
-
-            1.0f, -1.0f, -1.0f,
-            1.0f, -1.0f,  1.0f,
-            1.0f,  1.0f,  1.0f,
-            1.0f,  1.0f,  1.0f,
-            1.0f,  1.0f, -1.0f,
-            1.0f, -1.0f, -1.0f,
-
-            -1.0f, -1.0f,  1.0f,
-            -1.0f,  1.0f,  1.0f,
-            1.0f,  1.0f,  1.0f,
-            1.0f,  1.0f,  1.0f,
-            1.0f, -1.0f,  1.0f,
-            -1.0f, -1.0f,  1.0f,
-
-            -1.0f,  1.0f, -1.0f,
-            1.0f,  1.0f, -1.0f,
-            1.0f,  1.0f,  1.0f,
-            1.0f,  1.0f,  1.0f,
-            -1.0f,  1.0f,  1.0f,
-            -1.0f,  1.0f, -1.0f,
-
-            -1.0f, -1.0f, -1.0f,
-            -1.0f, -1.0f,  1.0f,
-            1.0f, -1.0f, -1.0f,
-            1.0f, -1.0f, -1.0f,
-            -1.0f, -1.0f,  1.0f,
-            1.0f, -1.0f,  1.0f
-        };
-
         private readonly Skybox _shader;
         private readonly VertexBuffer _vbo;
         private readonly VertexArray _vao;
 
         public Sky()
         {
-            _vbo = new VertexBuffer("Skybox", _skyboxVertices, 3 * sizeof(float));
+            _vbo = new VertexBuffer("Skybox", CommonShapes.Cube, 3 * sizeof(float));
             _vao = new VertexArray(_vbo, null);
             _shader = new Skybox();
 
@@ -77,7 +33,7 @@ namespace Jellyfish.Render
             GL.DepthFunc(DepthFunction.Lequal);
             _shader.Bind();
             _vao.Bind();
-            GL.DrawArrays(PrimitiveType.Triangles, 0, _skyboxVertices.Length);
+            GL.DrawArrays(PrimitiveType.Triangles, 0, CommonShapes.Cube.Length);
 
             GL.BindVertexArray(0);
             GL.UseProgram(0);
