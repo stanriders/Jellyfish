@@ -1,5 +1,4 @@
 ﻿
-using Jellyfish.Entities;
 using Jellyfish.Render;
 using OpenTK.Mathematics;
 
@@ -9,7 +8,7 @@ public static class MathExtensions
 {
     public static Vector3 ToOpentkVector(this System.Numerics.Vector3 v)
     {
-        return new Vector3(v.X, v.Y, v.Z);
+        return (Vector3)v;
     }
 
     public static Vector3 ToOpentkVector(this SteamAudio.IPL.Vector3 v)
@@ -24,7 +23,7 @@ public static class MathExtensions
 
     public static System.Numerics.Vector3 ToNumericsVector(this Vector3 v)
     {
-        return new System.Numerics.Vector3(v.X, v.Y, v.Z);
+        return (System.Numerics.Vector3)v;
     }
 
     public static System.Numerics.Vector4 ToNumericsVector(this Color4<Rgba> v)
@@ -39,12 +38,12 @@ public static class MathExtensions
 
     public static Quaternion ToOpentkQuaternion(this System.Numerics.Quaternion v)
     {
-        return new Quaternion(v.X, v.Y, v.Z, v.W);
+        return (Quaternion)v;
     }
 
     public static System.Numerics.Quaternion ToNumericsQuaternion(this Quaternion v)
     {
-        return new System.Numerics.Quaternion(v.X, v.Y, v.Z, v.W);
+        return (System.Numerics.Quaternion)v;
     }
 
     /*public static Matrix4 ToOpentkMatrix(this Assimp.Matrix4x4 mat)
@@ -54,13 +53,13 @@ public static class MathExtensions
 
     public static float[] ToFloatArray(this Matrix4 mat)
     {
-        return new[]
-        {
+        return
+        [
             mat.M11, mat.M12, mat.M13, mat.M14, 
             mat.M21, mat.M22, mat.M23, mat.M24, 
             mat.M31, mat.M32, mat.M33, mat.M34, 
             mat.M41, mat.M42, mat.M43, mat.M44
-        };
+        ];
     }
 
     public static Matrix4 ToMatrix(this float[] mat)
