@@ -53,112 +53,152 @@ public class Editor : IUiPanel, IInputHandler
         if (_selectedEntity?.MarkedForDeath ?? false)
             _selectedEntity = null;
 
+        ImGui.PushStyleColor(ImGuiCol.WindowBg, new System.Numerics.Vector4(0.1f, 0.1f, 0.1f, 0.3f));
+
+        var viewport = ImGui.GetMainViewport();
+
+        ImGui.SetNextWindowPos(Vector2.Zero);
+        if (ImGui.Begin("Editor Top",
+                ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.MenuBar | ImGuiWindowFlags.NoTitleBar | 
+                ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoResize))
+        {
+            if (ImGui.BeginMainMenuBar())
+            {
+                if (ImGui.BeginMenu("File"))
+                {
+                    if (ImGui.MenuItem("Save", "Ctrl+S"))
+                    {
+                        MapLoader.Save($"{MainWindow.CurrentMap}");
+                    }
+                    if (ImGui.MenuItem("Close"))
+                    {
+                        MainWindow.ShouldQuit = true;
+                    }
+                    ImGui.EndMenu();
+                }
+                ImGui.EndMainMenuBar();
+            }
+        }
+        ImGui.End();
+
         var editorDock = ImGui.GetID("EditorDock");
-        ImGui.SetNextWindowBgAlpha(0.5f);
-        ImGui.DockSpaceOverViewport(editorDock, ImGui.GetMainViewport(), ImGuiDockNodeFlags.PassthruCentralNode);
-        
-        ImGui.SetNextWindowBgAlpha(0.5f);
-        if (ImGui.Begin("Editor params"))
-        {
-            ImGui.Checkbox("Enable debug cones", ref ConVarStorage.GetConVar<bool>("edt_drawcones")!.Value);
-            ImGui.Checkbox("Show entity names", ref ConVarStorage.GetConVar<bool>("edt_drawnames")!.Value);
-            ImGui.Checkbox("Enable physics debug overlay", ref ConVarStorage.GetConVar<bool>("phys_debug")!.Value);
-        }
-        ImGui.End();
 
-        ImGui.SetNextWindowBgAlpha(0.5f);
-        if (ImGui.Begin("Entity controls"))
+        ImGui.SetNextWindowPos(viewport.WorkPos);
+        ImGui.SetNextWindowSize(viewport.WorkSize);
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, Vector2.Zero);
+        if (ImGui.Begin("Dockable Editor", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoTitleBar |
+                                           ImGuiWindowFlags.NoResize |
+                                           ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoScrollbar |
+                                           ImGuiWindowFlags.NoDecoration |
+                                           ImGuiWindowFlags.NoNav | ImGuiWindowFlags.NoFocusOnAppearing))
         {
-            if (ImGui.BeginListBox("Entity list"))
+            ImGui.PopStyleVar();
+
+            ImGui.DockSpace(editorDock, viewport.WorkSize,
+                ImGuiDockNodeFlags.PassthruCentralNode | ImGuiDockNodeFlags.AutoHideTabBar);
+
+            ImGui.SetNextWindowBgAlpha(0.5f);
+            if (ImGui.Begin("Editor params"))
             {
-                foreach (var entity in EntityManager.Entities)
+                ImGui.Checkbox("Enable debug cones", ref ConVarStorage.GetConVar<bool>("edt_drawcones")!.Value);
+                ImGui.Checkbox("Show entity names", ref ConVarStorage.GetConVar<bool>("edt_drawnames")!.Value);
+                ImGui.Checkbox("Enable physics debug overlay", ref ConVarStorage.GetConVar<bool>("phys_debug")!.Value);
+            }
+
+            ImGui.End();
+
+            ImGui.SetNextWindowBgAlpha(0.5f);
+            if (ImGui.Begin("Entity controls"))
+            {
+                if (ImGui.BeginListBox("Entity list"))
                 {
-                    if (ImGui.MenuItem(entity.Name, "", _selectedEntity?.Name == entity.Name))
+                    foreach (var entity in EntityManager.Entities)
                     {
-                        _selectedEntity = EntityManager.FindEntityByName(entity.Name);
+                        if (ImGui.MenuItem(entity.Name, "", _selectedEntity?.Name == entity.Name))
+                        {
+                            _selectedEntity = EntityManager.FindEntityByName(entity.Name);
+                        }
+                    }
+
+                    ImGui.EndListBox();
+                }
+
+                ImGui.Separator();
+
+                if (_selectedEntity != null)
+                {
+                    foreach (var entityProperty in _selectedEntity.EntityProperties)
+                    {
+                        AddProperty(_selectedEntity, entityProperty);
+                    }
+
+                    ImGui.Spacing();
+
+                    foreach (var entityAction in _selectedEntity.EntityActions.OrderBy(x => x.Name))
+                    {
+                        if (ImGui.Button(entityAction.Name))
+                            entityAction.Act();
+                    }
+
+                    ImGui.Spacing();
+
+                    if (!_selectedEntity.Loaded)
+                    {
+                        if (ImGui.Button($"Load"))
+                        {
+                            _selectedEntity.Load();
+                        }
                     }
                 }
-
-                ImGui.EndListBox();
             }
 
-            ImGui.Separator();
+            ImGui.End();
 
-            if (_selectedEntity != null)
+            ImGui.SetNextWindowBgAlpha(0.5f);
+            if (ImGui.Begin("Add entity"))
             {
-                foreach (var entityProperty in _selectedEntity.EntityProperties)
+                if (ImGui.BeginListBox("Entity types"))
                 {
-                    AddProperty(_selectedEntity, entityProperty);
-                }
-
-                ImGui.Spacing();
-
-                foreach (var entityAction in _selectedEntity.EntityActions.OrderBy(x => x.Name))
-                {
-                    if (ImGui.Button(entityAction.Name))
-                        entityAction.Act();
-                }
-
-                ImGui.Spacing();
-
-                if (!_selectedEntity.Loaded)
-                {
-                    if (ImGui.Button($"Load"))
+                    foreach (var entityClass in EntityManager.EntityClasses.Order())
                     {
-                        _selectedEntity.Load();
+                        if (ImGui.MenuItem(entityClass, "", entityClass == _selectedEntityType))
+                        {
+                            _selectedEntityType = entityClass;
+                        }
+                    }
+
+                    ImGui.EndListBox();
+                }
+
+                if (_selectedEntityType != null)
+                {
+                    if (ImGui.Button("Spawn"))
+                    {
+                        _selectedEntity = EntityManager.CreateEntity(_selectedEntityType);
                     }
                 }
             }
+
+            ImGui.End();
+
+            if (setUpDocking)
+            {
+                setUpDocking = false;
+
+                var dockIdRight = ImGuiP.DockBuilderSplitNode(editorDock, ImGuiDir.Right, 0.15f, null, &editorDock);
+                var dockIdRightTop = ImGuiP.DockBuilderSplitNode(dockIdRight, ImGuiDir.Up, 0.15f, null, &dockIdRight);
+                var dockIdRightMiddle = ImGuiP.DockBuilderSplitNode(dockIdRight, ImGuiDir.Up, 0.55f, null, &dockIdRight);
+                var dockIdRightBottom = ImGuiP.DockBuilderSplitNode(dockIdRight, ImGuiDir.Up, 0.3f, null, &dockIdRight);
+                ImGuiP.DockBuilderDockWindow("Editor params", dockIdRightTop);
+                ImGuiP.DockBuilderDockWindow("Entity controls", dockIdRightMiddle);
+                ImGuiP.DockBuilderDockWindow("Add entity", dockIdRightBottom);
+                ImGuiP.DockBuilderFinish(dockIdRight);
+                ImGuiP.DockBuilderFinish(editorDock);
+            }
         }
+
         ImGui.End();
-        
-        ImGui.SetNextWindowBgAlpha(0.5f);
-        if (ImGui.Begin("Add entity"))
-        {
-            if (ImGui.BeginListBox("Entity types"))
-            {
-                foreach (var entityClass in EntityManager.EntityClasses.Order())
-                {
-                    if (ImGui.MenuItem(entityClass, "", entityClass == _selectedEntityType))
-                    {
-                        _selectedEntityType = entityClass;
-                    }
-                }
-
-                ImGui.EndListBox();
-            }
-
-            if (_selectedEntityType != null)
-            {
-                if (ImGui.Button("Spawn"))
-                {
-                    _selectedEntity = EntityManager.CreateEntity(_selectedEntityType);
-                }
-            }
-
-            ImGui.Separator();
-
-            if (ImGui.Button("Save map"))
-            {
-                MapLoader.Save($"{MainWindow.CurrentMap}");
-            }
-        }
-        ImGui.End();
-
-        if (setUpDocking)
-        {
-            setUpDocking = false;
-
-            var dockIdRight = ImGuiP.DockBuilderSplitNode(editorDock, ImGuiDir.Right, 0.15f, null, &editorDock);
-            var dockIdRightTop = ImGuiP.DockBuilderSplitNode(dockIdRight, ImGuiDir.Up, 0.15f, null, &dockIdRight);
-            var dockIdRightMiddle = ImGuiP.DockBuilderSplitNode(dockIdRight, ImGuiDir.Up, 0.55f, null, &dockIdRight);
-            var dockIdRightBottom = ImGuiP.DockBuilderSplitNode(dockIdRight, ImGuiDir.Up, 0.3f, null, &dockIdRight);
-            ImGuiP.DockBuilderDockWindow("Editor params", dockIdRightTop);
-            ImGuiP.DockBuilderDockWindow("Entity controls", dockIdRightMiddle);
-            ImGuiP.DockBuilderDockWindow("Add entity", dockIdRightBottom);
-            ImGuiP.DockBuilderFinish(dockIdRight);
-            ImGuiP.DockBuilderFinish(editorDock);
-        }
+        ImGui.PopStyleColor();
 
         DrawGizmos();
     }

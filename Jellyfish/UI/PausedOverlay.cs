@@ -16,7 +16,8 @@ public class PausedOverlay : IUiPanel
                           ImGuiWindowFlags.NoSavedSettings |
                           ImGuiWindowFlags.NoFocusOnAppearing |
                           ImGuiWindowFlags.NoNav |
-                          ImGuiWindowFlags.NoMove;
+                          ImGuiWindowFlags.NoMove | 
+                          ImGuiWindowFlags.NoDocking;
 
         if (ImGui.Begin("PausedOverlay", windowFlags))
         {

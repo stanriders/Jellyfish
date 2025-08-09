@@ -31,7 +31,8 @@ public class InfoOverlay : IUiPanel
               ImGuiWindowFlags.NoSavedSettings |
               ImGuiWindowFlags.NoFocusOnAppearing |
               ImGuiWindowFlags.NoNav |
-              ImGuiWindowFlags.NoMove;
+              ImGuiWindowFlags.NoMove | 
+              ImGuiWindowFlags.NoDocking;
 
         var viewport = ImGui.GetMainViewport();
         var workPos = viewport.WorkPos; // Use work area to avoid menu-bar/task-bar, if any!
@@ -49,9 +50,6 @@ public class InfoOverlay : IUiPanel
 
             if (MainWindow.Loaded)
             {
-                ImGui.Separator();
-                ImGui.Text($"{MainWindow.CurrentMap}");
-
                 ImGui.Separator();
                 ImGui.Text($"Position: {Camera.Instance.Position:N4}");
                 ImGui.Separator();
