@@ -49,8 +49,8 @@ public class TextureListPanel : IUiPanel, IInputHandler
                 bool pressed;
                 // flip RTs upside down
                 if (texture.Path.StartsWith("_rt_"))
-                    pressed = ImGui.ImageButton(texture.Path, new ImTextureRef(texId: texture.Handle), new Vector2(size, size), Vector2.One,
-                        Vector2.Zero);
+                    pressed = ImGui.ImageButton(texture.Path, new ImTextureRef(texId: texture.Handle), new Vector2(size, size), new Vector2(0, 1),
+                        new Vector2(1, 0));
                 else
                     pressed = ImGui.ImageButton(texture.Path, new ImTextureRef(texId: texture.Handle), new Vector2(size, size));
                 
