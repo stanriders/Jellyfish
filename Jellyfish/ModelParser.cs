@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Assimp;
+﻿using Assimp;
 using Jellyfish.FileFormats.Models;
 using Jellyfish.Render;
 using OpenTK.Mathematics;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Mesh = Jellyfish.Render.Mesh;
 using Quaternion = OpenTK.Mathematics.Quaternion;
 
@@ -22,11 +22,13 @@ public static class ModelParser
                                               PostProcessSteps.GenerateUVCoords | 
                                               PostProcessSteps.JoinIdenticalVertices | 
                                               PostProcessSteps.OptimizeMeshes | 
-                                              PostProcessSteps.OptimizeGraph);
+                                              PostProcessSteps.OptimizeGraph | 
+                                              PostProcessSteps.SplitLargeMeshes | 
+                                              PostProcessSteps.SortByPrimitiveType);
 
         var prerotate = Path.GetExtension(path) == ".smd";
 
-        var mashes = new List<Mesh>();
+        var meshes = new List<Mesh>();
         foreach (var mesh in scene.Meshes)
         {
             var coords = mesh.Vertices.Select(x => new Vector3(x.X, x.Y, x.Z)).ToArray();
@@ -62,13 +64,13 @@ public static class ModelParser
                 }
             }
             
-            mashes.Add(new Mesh(Path.GetFileNameWithoutExtension(path), 
+            meshes.Add(new Mesh(Path.GetFileNameWithoutExtension(path), 
                 verticies, 
                 mesh.GetUnsignedIndices().ToList(), 
                 bones, 
                 scene.Materials[mesh.MaterialIndex].TextureDiffuse.FilePath ?? scene.Materials[mesh.MaterialIndex].Name));
         }
 
-        return mashes.ToArray();
+        return meshes.ToArray();
     }
 }
