@@ -94,7 +94,7 @@ public class Mesh
     }
 
     public virtual PrimitiveType PrimitiveType { get; set; } = PrimitiveType.Triangles;
-    public VertexBufferObjectUsage Usage { get; set; } = VertexBufferObjectUsage.StaticDraw;
+    public BufferUsage Usage { get; set; } = BufferUsage.StaticDraw;
 
     protected void AddMaterial(string? path)
     {

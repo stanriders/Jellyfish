@@ -59,7 +59,7 @@ public class PhysicsManager
         _debugMesh = new Mesh("physdebug", texture: "materials/error.mat")
         {
             IsDev = true, 
-            Usage = VertexBufferObjectUsage.StreamDraw
+            Usage = BufferUsage.StreamDraw
         };
         MeshManager.AddMesh(_debugMesh);
 

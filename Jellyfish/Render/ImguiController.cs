@@ -75,12 +75,12 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
     public void CreateDeviceResources()
     {
-        _vbo = new VertexBuffer("Imgui", usage: VertexBufferObjectUsage.DynamicDraw)
+        _vbo = new VertexBuffer("Imgui", usage: BufferUsage.DynamicDraw)
         {
             Stride = Unsafe.SizeOf<ImDrawVert>()
         };
 
-        _ibo = new IndexBuffer(usage: VertexBufferObjectUsage.DynamicDraw);
+        _ibo = new IndexBuffer(usage: BufferUsage.DynamicDraw);
         _vao = new VertexArray(_vbo, _ibo);
 
         _shader = new Imgui();

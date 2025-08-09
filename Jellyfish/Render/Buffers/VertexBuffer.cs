@@ -21,9 +21,9 @@ public class VertexBuffer
         }
     }
 
-    private VertexBufferObjectUsage _usage;
+    private BufferUsage _usage;
 
-    public VertexBuffer(string name, int size = 10000, VertexBufferObjectUsage usage = VertexBufferObjectUsage.StaticDraw)
+    public VertexBuffer(string name, int size = 10000, BufferUsage usage = BufferUsage.StaticDraw)
     {
         _size = size;
         _usage = usage;
@@ -33,7 +33,7 @@ public class VertexBuffer
         GL.NamedBufferData(Handle, _size, IntPtr.Zero, _usage);
     }
 
-    public VertexBuffer(string name, float[] data, int stride, VertexBufferObjectUsage usage = VertexBufferObjectUsage.StaticDraw)
+    public VertexBuffer(string name, float[] data, int stride, BufferUsage usage = BufferUsage.StaticDraw)
     {
         _size = data.Length * sizeof(float);
         _usage = usage;
@@ -44,7 +44,7 @@ public class VertexBuffer
         GL.NamedBufferData(Handle, _size, data, _usage);
     }
 
-    public VertexBuffer(string name, Vertex[] vertices, VertexBufferObjectUsage usage = VertexBufferObjectUsage.StaticDraw)
+    public VertexBuffer(string name, Vertex[] vertices, BufferUsage usage = BufferUsage.StaticDraw)
     {
         _usage = usage;
 
@@ -91,7 +91,7 @@ public class VertexBuffer
         Length = vertices.Length;
     }
 
-    public void UpdateData(Vertex[] vertices, VertexBufferObjectUsage? usage = null)
+    public void UpdateData(Vertex[] vertices, BufferUsage? usage = null)
     {
         if (usage != null)
         {

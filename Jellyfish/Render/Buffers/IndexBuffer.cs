@@ -18,9 +18,9 @@ public class IndexBuffer
         }
     }
 
-    private readonly VertexBufferObjectUsage _usage;
+    private readonly BufferUsage _usage;
 
-    public IndexBuffer(int size = 2000, VertexBufferObjectUsage usage = VertexBufferObjectUsage.StaticDraw)
+    public IndexBuffer(int size = 2000, BufferUsage usage = BufferUsage.StaticDraw)
     {
         _usage = usage;
         _size = size;
@@ -31,7 +31,7 @@ public class IndexBuffer
 
     public IndexBuffer(uint[] indices)
     {
-        _usage = VertexBufferObjectUsage.StaticDraw;
+        _usage = BufferUsage.StaticDraw;
         _size = indices.Length * sizeof(uint);
 
         GL.CreateBuffer(out Handle);
