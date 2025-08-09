@@ -15,9 +15,23 @@ public static class MapLoader
 {
     private static readonly JsonConverter[] Converters = [new Color4Converter(), new Color3Converter(), new RotationConverter(), new Vector2Converter(), new Vector3Converter()];
 
-    public static void Load(string path)
+    private const string maps_directory = "maps";
+
+    public static string[] GetMapList()
     {
-        Log.Context("MapLoader").Information("Parsing map {Path}...", path);
+        if (!Directory.Exists(maps_directory))
+            Directory.CreateDirectory(maps_directory);
+
+        return Directory.EnumerateFiles(maps_directory, "*.json", SearchOption.TopDirectoryOnly)
+            .Select(Path.GetFileNameWithoutExtension)
+            .ToArray()!;
+    }
+
+    public static void Load(string mapName)
+    {
+        Log.Context("MapLoader").Information("Parsing map {Path}...", mapName);
+
+        var path = Path.Combine(maps_directory, $"{mapName}.json");
 
         if (!File.Exists(path))
         {
@@ -31,7 +45,7 @@ public static class MapLoader
         var map = JsonConvert.DeserializeObject<Map>(mapString, Converters);
         if (map == null)
         {
-            Log.Context("MapLoader").Error("Couldn't parse map {Path}!", path);
+            Log.Context("MapLoader").Error("Couldn't parse map {Path}!", mapName);
             return;
         }
         foreach (var ent in map.Entities)
@@ -77,8 +91,10 @@ public static class MapLoader
         Log.Context("MapLoader").Information("Finished parsing map");
     }
 
-    public static void Save(string path)
+    public static void Save(string mapName)
     {
+        var path = Path.Combine(maps_directory, $"{mapName}.json");
+
         var serializer = JsonSerializer.CreateDefault(new JsonSerializerSettings { Converters = Converters });
 
         var entities = new List<Map.Entity>();

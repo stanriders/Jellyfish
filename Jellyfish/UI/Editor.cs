@@ -66,6 +66,18 @@ public class Editor : IUiPanel, IInputHandler
             {
                 if (ImGui.BeginMenu("File"))
                 {
+                    if (ImGui.BeginMenu("Maps"))
+                    {
+                        foreach (var map in MapLoader.GetMapList())
+                        {
+                            if (ImGui.MenuItem(map))
+                            {
+                                MainWindow.QueuedMap = map;
+                            }
+                        }
+                        
+                        ImGui.EndMenu();
+                    }
                     if (ImGui.MenuItem("Save", "Ctrl+S"))
                     {
                         MapLoader.Save($"{MainWindow.CurrentMap}");
@@ -95,7 +107,7 @@ public class Editor : IUiPanel, IInputHandler
             ImGui.PopStyleVar();
 
             ImGui.DockSpace(editorDock, viewport.WorkSize,
-                ImGuiDockNodeFlags.PassthruCentralNode | ImGuiDockNodeFlags.AutoHideTabBar);
+                ImGuiDockNodeFlags.PassthruCentralNode);
 
             ImGui.SetNextWindowBgAlpha(0.5f);
             if (ImGui.Begin("Editor params"))
@@ -110,7 +122,7 @@ public class Editor : IUiPanel, IInputHandler
             ImGui.SetNextWindowBgAlpha(0.5f);
             if (ImGui.Begin("Entity controls"))
             {
-                if (ImGui.BeginListBox("Entity list"))
+                if (ImGui.BeginListBox("##Entity list", new Vector2(-1, 10 * ImGui.GetTextLineHeightWithSpacing())))
                 {
                     foreach (var entity in EntityManager.Entities)
                     {
@@ -144,7 +156,7 @@ public class Editor : IUiPanel, IInputHandler
 
                     if (!_selectedEntity.Loaded)
                     {
-                        if (ImGui.Button($"Load"))
+                        if (ImGui.Button("Load"))
                         {
                             _selectedEntity.Load();
                         }
@@ -157,7 +169,7 @@ public class Editor : IUiPanel, IInputHandler
             ImGui.SetNextWindowBgAlpha(0.5f);
             if (ImGui.Begin("Add entity"))
             {
-                if (ImGui.BeginListBox("Entity types"))
+                if (ImGui.BeginListBox("##Entity types", new Vector2(-1, 10 * ImGui.GetTextLineHeightWithSpacing())))
                 {
                     foreach (var entityClass in EntityManager.EntityClasses.Order())
                     {

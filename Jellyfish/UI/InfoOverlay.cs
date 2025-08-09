@@ -57,14 +57,6 @@ public class InfoOverlay : IUiPanel
             }
 
             ImGui.Separator();
-            ImGui.InputText(MainWindow.CurrentMap, ref _mapInput, 1024);
-            ImGui.SameLine();
-            if (ImGui.Button("Load"))
-            {
-                MainWindow.QueuedMap = $"maps/{_mapInput}.json";
-            }
-
-            ImGui.Separator();
             if (ImGui.Button("Settings"))
             {
                 SettingsPanel.ShowPanel = true;
