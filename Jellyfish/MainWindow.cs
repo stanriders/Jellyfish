@@ -96,7 +96,7 @@ public class MainWindow : GameWindow, IInputHandler
         Log.Context(this).Information("Finished loading!");
 
 #if DEBUG
-        QueuedMap = "maps/test.json";
+        QueuedMap = "test";
         Paused = true;
 #endif
     }

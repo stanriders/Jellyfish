@@ -36,7 +36,9 @@ public sealed class ImguiController : IDisposable, IInputHandler
         var context = ImGui.CreateContext();
         ImGui.SetCurrentContext(context);
         ImGuizmo.SetImGuiContext(context);
+
         var implotctx = ImPlot.CreateContext();
+        ImPlot.SetImGuiContext(context);
         ImPlot.SetCurrentContext(implotctx);
 
         ImGui.StyleColorsClassic();
