@@ -1,6 +1,8 @@
 ﻿
+using Jellyfish.Render.Shaders;
 using OpenTK.Mathematics;
 using System;
+using System.Linq;
 
 namespace Jellyfish.Utils
 {
@@ -10,6 +12,9 @@ namespace Jellyfish.Utils
         public Vector3[] Corners { get; }
         public Vector3[] NearCorners => Corners[..4];
         public Vector3[] FarCorners => Corners[4..];
+        public Vector3 Center { get; }
+        public Vector3 NearPlaneCenter { get; }
+        public Vector3 FarPlaneCenter { get; }
 
         private static readonly Vector3[] ClipCorners =
         [
@@ -76,6 +81,9 @@ namespace Jellyfish.Utils
                     transformed.Z * invW);
             }
 
+            Center = Corners.Average();
+            NearPlaneCenter = NearCorners.Average();
+            FarPlaneCenter = FarCorners.Average();
         }
 
         public bool IsInside(Vector3 center, float radius)

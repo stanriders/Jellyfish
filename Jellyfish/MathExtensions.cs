@@ -1,4 +1,5 @@
 ﻿
+using System.Linq;
 using Jellyfish.Render;
 using OpenTK.Mathematics;
 
@@ -110,5 +111,11 @@ public static class MathExtensions
         float y = (1.0f - (clipSpacePos.Y * 0.5f + 0.5f)) * MainWindow.WindowHeight;
 
         return new System.Numerics.Vector2(x, y);
+    }
+
+    public static Vector3 Average(this Vector3[] points)
+    {
+        var sum = points.Aggregate(Vector3.Zero, (current, p) => current + p);
+        return sum / points.Length;
     }
 }

@@ -59,11 +59,11 @@ public static class MeshManager
         drawing = true;
         var drawStopwatch = Stopwatch.StartNew();
 
-        var playerPosition = Camera.Instance.Position;
+        var sortingPosition = frustum?.NearPlaneCenter ?? Camera.Instance.Position;
 
         var opaqueObjects = meshes.Where(x => !(x.Material?.GetParam<bool>("AlphaTest") ?? false)).ToArray();
         var transluscentObjects = meshes.Where(x => !opaqueObjects.Contains(x))
-            .OrderByDescending(x => ((x.Position + x.BoundingBox.Center) - playerPosition).Length)
+            .OrderByDescending(x => ((x.Position + x.BoundingBox.Center) - sortingPosition).Length)
             .ToArray();
 
         var stopwatch = Stopwatch.StartNew();
@@ -111,7 +111,8 @@ public static class MeshManager
         drawing = true;
         var drawStopwatch = Stopwatch.StartNew();
 
-        var playerPosition = Camera.Instance.Position;
+        var playerFrustum = Camera.Instance.GetFrustum();
+        var playerPosition = playerFrustum.NearPlaneCenter;
         var opaqueObjects = meshes.Where(x => !(x.Material?.GetParam<bool>("AlphaTest") ?? false)).ToArray();
         var transluscentObjects = meshes.Where(x => !opaqueObjects.Contains(x))
             .OrderByDescending(x => ((x.Position + x.BoundingBox.Center) - playerPosition).Length)
@@ -122,7 +123,7 @@ public static class MeshManager
             if (mesh.IsDev && !drawDev)
                 continue;
 
-            if (mesh.ShouldDraw && Camera.Instance.GetFrustum().IsInside(mesh.Position, mesh.BoundingBox.Length))
+            if (mesh.ShouldDraw && playerFrustum.IsInside(mesh.Position, mesh.BoundingBox.Length))
                 mesh.DrawGBuffer();
         }
 
@@ -136,7 +137,7 @@ public static class MeshManager
             if (mesh.IsDev && !drawDev)
                 continue;
 
-            if (mesh.ShouldDraw && Camera.Instance.GetFrustum().IsInside(mesh.Position, mesh.BoundingBox.Length))
+            if (mesh.ShouldDraw && playerFrustum.IsInside(mesh.Position, mesh.BoundingBox.Length))
                 mesh.DrawGBuffer();
         }
 
