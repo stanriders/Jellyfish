@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using Jellyfish.Input;
-using Jellyfish.Render.Buffers;
+﻿using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Shaders;
 using Jellyfish.Utils;
 using OpenTK.Graphics.OpenGL;
@@ -15,7 +13,7 @@ namespace Jellyfish.Render
 
         public Sky()
         {
-            _vbo = new VertexBuffer("Skybox", CommonShapes.Cube, 3 * sizeof(float));
+            _vbo = new VertexBuffer("Skybox", CommonShapes.CubeFloat, 3 * sizeof(float));
             _vao = new VertexArray(_vbo, null);
             _shader = new Skybox();
 
