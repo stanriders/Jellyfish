@@ -220,6 +220,8 @@ public class Editor : IUiPanel, IInputHandler
         if (_selectedEntity == null) 
             return;
 
+        _usingGizmo = false;
+
         fixed (float* view = Camera.Instance.GetViewMatrix().ToFloatArray())
         fixed (float* proj = Camera.Instance.GetProjectionMatrix().ToFloatArray())
         {
@@ -274,8 +276,6 @@ public class Editor : IUiPanel, IInputHandler
                     {
                         physicsEntity.ResetVelocity();
                     }
-
-                    _usingGizmo = false;
                 }
             }
 
@@ -302,8 +302,10 @@ public class Editor : IUiPanel, IInputHandler
                                     ImGuizmoOperation.Translate, ImGuizmoMode.World,
                                     ref Unsafe.AsRef<float>(propertyTransformArrayPinned)))
                             {
+                                _usingGizmo = true;
                                 arr[Array.IndexOf(arr, point)] =
-                                    propertyTransform.ToMatrix().ExtractTranslation();
+                                    Vector3.TransformPosition(propertyTransform.ToMatrix().ExtractTranslation(), entityTransform.Inverted());
+
                                 _selectedEntity.SetPropertyValue(gizmoProperty.Name, arr);
                             }
 
