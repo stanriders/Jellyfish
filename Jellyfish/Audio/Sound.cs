@@ -52,8 +52,8 @@ namespace Jellyfish.Audio
 
         public float Volume { get; set; } = 1.0f;
 
-        private readonly MemoryStream _audioStream;
-        private readonly int _stream;
+        private readonly MemoryStream? _audioStream;
+        private readonly int? _stream;
 
         private Vector3 _position = Vector3.Zero;
         private bool _useAirAbsorption = true;
@@ -71,6 +71,11 @@ namespace Jellyfish.Audio
 
         public Sound(string path, IPL.Source iplSource, IPL.Context iplContext, IPL.Hrtf iplHrtf)
         {
+            if (!File.Exists(path))
+            {
+                return;
+            }
+
             var file = File.ReadAllBytes(path);
 
             var sample = Bass.SampleLoad(file, 0, file.Length, 1, BassFlags.Decode | BassFlags.Float);
@@ -122,35 +127,35 @@ namespace Jellyfish.Audio
 
         public void Play()
         {
-            if (!Playing)
+            if (_stream != null && !Playing)
             {
-                _audioStream.Position = 0;
+                _audioStream!.Position = 0;
                 Playing = true;
-                Bass.ChannelPlay(_stream, true);
+                Bass.ChannelPlay(_stream.Value, true);
             }
         }
 
         public void Stop()
         {
-            if (Playing)
+            if (_stream != null && Playing)
             {
                 Playing = false;
-                Bass.ChannelStop(_stream);
+                Bass.ChannelStop(_stream.Value);
             }
         }
 
         public unsafe void Update(IPL.Context iplContext, IPL.Hrtf iplHrtf)
         {
-            if (!Playing)
+            if (_stream == null || !Playing)
                 return;
 
-            Bass.ChannelSetAttribute(_stream, ChannelAttribute.Volume, Volume);
+            Bass.ChannelSetAttribute(_stream.Value, ChannelAttribute.Volume, Volume);
 
             var inputBufferByteSpan = new Span<byte>((void*)_inBuffer, AudioManager.ipl_buffer_size_bytes);
-            int bytesRead = _audioStream.Read(inputBufferByteSpan);
+            int bytesRead = _audioStream!.Read(inputBufferByteSpan);
             if (bytesRead == 0)
             {
-                Bass.StreamPutData(_stream, nint.Zero, (int)StreamProcedureType.End);
+                Bass.StreamPutData(_stream.Value, nint.Zero, (int)StreamProcedureType.End);
                 Playing = false;
             }
 
@@ -189,7 +194,7 @@ namespace Jellyfish.Audio
 
             IPL.AudioBufferInterleave(iplContext, _iplOutputBuffer, Unsafe.AsRef<float>((float*)_outBuffer));
 
-            var result = Bass.StreamPutData(_stream, _outBuffer, AudioManager.ipl_buffer_size_bytes * AudioManager.output_channels);
+            var result = Bass.StreamPutData(_stream.Value, _outBuffer, AudioManager.ipl_buffer_size_bytes * AudioManager.output_channels);
             if (result == -1)
             {
                 Log.Context(this).Warning("BASS StreamPutData error {Error}", Bass.LastError);
@@ -212,7 +217,7 @@ namespace Jellyfish.Audio
 
             Marshal.FreeHGlobal(_inBuffer);
             Marshal.FreeHGlobal(_outBuffer);
-            _audioStream.Dispose();
+            _audioStream?.Dispose();
 
             // todo: IPL free
         }
