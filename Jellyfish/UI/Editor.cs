@@ -382,36 +382,58 @@ public class Editor : IUiPanel, IInputHandler
             var valueCasted = (OpenTK.Mathematics.Vector2)entityProperty.Value!;
 
             var val = new Vector2(valueCasted.X, valueCasted.Y);
-            ImGui.DragFloat2(elementLabel, ref val);
-
-            entity.SetPropertyValue(propertyName, new OpenTK.Mathematics.Vector2(val.X, val.Y));
+            if (ImGui.DragFloat2(elementLabel, ref val))
+            {
+                entity.SetPropertyValue(propertyName, new OpenTK.Mathematics.Vector2(val.X, val.Y));
+            }
         }
         else if (entityProperty.Type == typeof(Vector3))
         {
             var valueCasted = (Vector3)entityProperty.Value!;
 
             var val = valueCasted.ToNumericsVector();
-            ImGui.DragFloat3(elementLabel, ref val);
+            if (ImGui.DragFloat3(elementLabel, ref val))
+            {
+                entity.SetPropertyValue(propertyName, val.ToOpentkVector());
+            }
+        }
+        else if (entityProperty.Type == typeof(Vector3[]))
+        {
+            ImGui.Text(elementLabel);
+            var valueCasted = (Vector3[])((Vector3[])entityProperty.Value!).Clone();
+            var updated = false;
+            for (var i = 0; i < valueCasted.Length; i++)
+            {
+                var val = valueCasted[i].ToNumericsVector();
+                if (ImGui.DragFloat3($"##{elementLabel}_{i}", ref val))
+                {
+                    valueCasted[i] = val.ToOpentkVector();
+                    updated = true;
+                }
+            }
 
-            entity.SetPropertyValue(propertyName, val.ToOpentkVector());
+            if (updated)
+                entity.SetPropertyValue(propertyName, valueCasted);
         }
         else if (entityProperty.Type == typeof(Color4<Rgba>))
         {
             var valueCasted = (Color4<Rgba>)entityProperty.Value!;
 
             var val = new System.Numerics.Vector4(valueCasted.X, valueCasted.Y, valueCasted.Z, valueCasted.W);
-            ImGui.ColorEdit4(elementLabel, ref val);
-
-            entity.SetPropertyValue(propertyName, new Color4<Rgba>(val.X, val.Y, val.Z, val.W));
+            if (ImGui.ColorEdit4(elementLabel, ref val))
+            {
+                entity.SetPropertyValue(propertyName, new Color4<Rgba>(val.X, val.Y, val.Z, val.W));
+            }
         }
         else if (entityProperty.Type == typeof(Color3<Rgb>))
         {
             var valueCasted = (Color3<Rgb>)entityProperty.Value!;
 
             var val = new System.Numerics.Vector3(valueCasted.X, valueCasted.Y, valueCasted.Z);
-            ImGui.ColorEdit3(elementLabel, ref val);
-
-            entity.SetPropertyValue(propertyName, new Color3<Rgb>(val.X, val.Y, val.Z));
+            if (ImGui.ColorEdit3(elementLabel, ref val))
+            {
+                entity.SetPropertyValue(propertyName, new Color3<Rgb>(val.X, val.Y, val.Z));
+            }
         }
         else if (entityProperty.Type == typeof(Quaternion))
         {
@@ -422,41 +444,54 @@ public class Editor : IUiPanel, IInputHandler
                 MathHelper.RadiansToDegrees(eulerAngles.Y),
                 MathHelper.RadiansToDegrees(eulerAngles.Z));
 
-            ImGui.DragFloat3(elementLabel, ref val, 1f, -360.0f, 360.0f);
-
-            entity.SetPropertyValue(propertyName,
-                new Quaternion(MathHelper.DegreesToRadians(val.X), MathHelper.DegreesToRadians(val.Y), MathHelper.DegreesToRadians(val.Z)));
+            if (ImGui.DragFloat3(elementLabel, ref val, 1f, -360.0f, 360.0f))
+            {
+                entity.SetPropertyValue(propertyName,
+                    new Quaternion(MathHelper.DegreesToRadians(val.X), 
+                        MathHelper.DegreesToRadians(val.Y),
+                        MathHelper.DegreesToRadians(val.Z)));
+            }
         }
         else if (entityProperty.Type == typeof(bool))
         {
             var val = (bool)entityProperty.Value!;
-            ImGui.Checkbox(elementLabel, ref val);
-            entity.SetPropertyValue(propertyName, val);
+            if (ImGui.Checkbox(elementLabel, ref val))
+            {
+                entity.SetPropertyValue(propertyName, val);
+            }
         }
         else if (entityProperty.Type == typeof(int))
         {
             var val = (int)entityProperty.Value!;
-            ImGui.DragInt(elementLabel, ref val);
-            entity.SetPropertyValue(propertyName, val);
+            if (ImGui.DragInt(elementLabel, ref val)) 
+            {
+                entity.SetPropertyValue(propertyName, val);
+            }
         }
         else if (entityProperty.Type == typeof(float))
         {
             var val = (float)entityProperty.Value!;
             var speed = val > 10.0f ? 1.0f : val > 1.0f ? 0.1f : 0.01f;
-            ImGui.DragFloat(elementLabel, ref val, speed);
-            entity.SetPropertyValue(propertyName, val);
+            if (ImGui.DragFloat(elementLabel, ref val, speed))
+            {
+                entity.SetPropertyValue(propertyName, val);
+            }
         }
         else if (entityProperty.Type == typeof(string))
         {
             var val = (string?)entityProperty.Value ?? string.Empty;
-            ImGui.InputText(elementLabel, ref val, 1024);
-            entity.SetPropertyValue(propertyName, val);
+            if (ImGui.InputText(elementLabel, ref val, 1024))
+            {
+                entity.SetPropertyValue(propertyName, val);
+            }
         }
         else if (entityProperty.Type == typeof(Enum))
         {
             var val = (int)entityProperty.Value!;
-            ImGui.DragInt(elementLabel, ref val);
-            entity.SetPropertyValue(propertyName, val);
+            if (ImGui.DragInt(elementLabel, ref val))
+            {
+                entity.SetPropertyValue(propertyName, val);
+            }
         }
         else
         {
