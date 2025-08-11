@@ -65,11 +65,16 @@ public class PostProcessing : IInputHandler
         if (_isEnabled)
         {
             GL.GenerateTextureMipmap(_rtColor.TextureHandle); // TODO: This generates mipmaps every frame, replace with a histogram calculation
-            var luminescence = new Span<float>(new float[128]); // can't allocate less than 128
-            GL.GetTextureImage(_rtColor.TextureHandle, _rtColor.Levels - 1, PixelFormat.Rgb, PixelType.Float, luminescence.Length, luminescence);
 
-            // TODO: histogram-based luminance
-            var luminance = 0.2126f * luminescence[0] + 0.7152f * luminescence[1] + 0.0722f * luminescence[2]; // Calculate a weighted average
+            var pixel = new float[3];
+            GL.GetTextureSubImage(_rtColor.TextureHandle, 
+                _rtColor.Levels - 1, 
+                0, 0, 0, 
+                1, 1, 1, 
+                PixelFormat.Rgb, PixelType.Float,
+                pixel.Length * sizeof(float), pixel);
+
+            var luminance = 0.2126f * pixel[0] + 0.7152f * pixel[1] + 0.0722f * pixel[2]; // Calculate a weighted average
             luminance = Math.Max(luminance, 0.00001f);
 
             if (!double.IsNaN(luminance))
@@ -84,6 +89,7 @@ public class PostProcessing : IInputHandler
         _vertexArray.Bind();
 
         GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
+        PerformanceMeasurment.Increment("DrawCalls");
 
         _vertexArray.Unbind();
         _shader.Unbind();
