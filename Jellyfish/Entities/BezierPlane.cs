@@ -6,11 +6,11 @@ using JoltPhysicsSharp;
 namespace Jellyfish.Entities;
 
 [Entity("plane_bezier")]
-public class BezierPlaneEntity : BaseModelEntity, IPhysicsEntity
+public class BezierPlane : BaseModelEntity, IPhysicsEntity
 {
     private BodyID? _physicsBodyId;
 
-    public BezierPlaneEntity()
+    public BezierPlane()
     {
         AddProperty("QuadSize", 20, changeCallback: _ => UpdateMesh());
         AddProperty("Texture", "test.png", changeCallback: OnTextureChanged);
