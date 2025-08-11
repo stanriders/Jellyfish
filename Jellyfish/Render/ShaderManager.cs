@@ -24,7 +24,8 @@ namespace Jellyfish.Render
             handle = GL.CreateShader(type);
             if (handle != 0)
             {
-                GL.ShaderSource(handle, LoadSource(path));
+                var shaderSource = LoadSource(path);
+                GL.ShaderSource(handle, shaderSource);
                 CompileShader(handle);
                 Shaders.Add(path, handle);
             }
@@ -49,7 +50,7 @@ namespace Jellyfish.Render
             if (code != (int)All.True)
             {
                 GL.GetShaderInfoLog(shader, out var error);
-                throw new Exception($"Cant compile shader, {error}");
+                throw new Exception($"Cant compile shader:\n{error}");
             }
         }
 

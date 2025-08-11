@@ -133,7 +133,7 @@ vec3 CalcPointLight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
     ambient  *= attenuation;
     outdiffuse *= attenuation;
 
-    float shadow = 1f;
+    float shadow = 1.0f;
     if (light.hasShadows) 
     {
         shadow = ShadowCalculation(lightIndex, lightDir, normal);
@@ -165,7 +165,7 @@ vec3 CalcSpotlight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
     outdiffuse *= intensity;
     ambient *= intensity;
 
-    float shadow = 1f;
+    float shadow = 1.0f;
     if (light.hasShadows) 
     {
         shadow = ShadowCalculation(lightIndex, lightDir, normal);
@@ -180,7 +180,7 @@ vec3 CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
 
     vec3 outdiffuse = sun.diffuse * sun.brightness;
 
-    float shadow = 1f;
+    float shadow = 1.0f;
     if (sun.hasShadows) 
     {
         vec4 fragPosViewSpace = view * vec4(frag_position, 1.0);
