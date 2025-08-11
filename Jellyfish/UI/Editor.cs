@@ -254,6 +254,7 @@ public class Editor : IUiPanel, IInputHandler
                 if (hasScale)
                     operations |= ImGuizmoOperation.Scale;
 
+                ImGuizmo.SetID(_selectedEntity.GetHashCode());
                 if (ImGuizmo.Manipulate(ref Unsafe.AsRef<float>(view), ref Unsafe.AsRef<float>(proj),
                         operations, ImGuizmoMode.Local,
                         ref Unsafe.AsRef<float>(transformArrayPinned)))

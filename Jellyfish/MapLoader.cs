@@ -64,15 +64,8 @@ public static class MapLoader
                     var propertyToken = ent.Properties.FirstOrDefault(x=> x.Name == entityProperty.Name);
                     if (propertyToken != null)
                     {
-                        if (entityProperty.Type.IsArray)
-                        {
-                            // TODO: arrays don't deserialize properly
-                        }
-                        else
-                        {
-                            var propertyValue = propertyToken.Value.ToObject(entityProperty.Type, deserializer);
-                            entityProperty.SetValue(propertyValue);
-                        }
+                        var propertyValue = propertyToken.Value.ToObject(entityProperty.Type, deserializer);
+                        entityProperty.SetValue(propertyValue);
                     }
                     else
                     {
@@ -158,41 +151,14 @@ public static class MapLoader
         public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue,
             JsonSerializer serializer)
         {
-            byte r = 0, g = 0, b = 0, a = 0;
+            var obj = JObject.Load(reader);
 
-            while (reader.Read())
-            {
-                var token = reader.Path;
-                switch (token)
-                {
-                    case "R":
-                    {
-                        reader.Read();
-                        r = Convert.ToByte(reader.Value);
-                        break;
-                    }
-                    case "G":
-                    {
-                        reader.Read();
-                        g = Convert.ToByte(reader.Value);
-                        break;
-                    }
-                    case "B":
-                    {
-                        reader.Read();
-                        b = Convert.ToByte(reader.Value);
-                        break;
-                    }
-                    case "A":
-                    {
-                        reader.Read();
-                        a = Convert.ToByte(reader.Value);
-                        break;
-                    }
-                }
-            }
-
-            return new Color4<Rgba>(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f);
+            return new Color4<Rgba>(
+                (float)(obj["R"] ?? 0f) / 255.0f,
+                (float)(obj["G"] ?? 0f) / 255.0f,
+                (float)(obj["B"] ?? 0f) / 255.0f,
+                (float)(obj["A"] ?? 0f) / 255.0f
+            );
         }
 
         public override bool CanRead => true;
@@ -220,35 +186,13 @@ public static class MapLoader
         public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue,
             JsonSerializer serializer)
         {
-            byte r = 0, g = 0, b = 0;
+            var obj = JObject.Load(reader);
 
-            while (reader.Read())
-            {
-                var token = reader.Path;
-                switch (token)
-                {
-                    case "R":
-                    {
-                        reader.Read();
-                        r = Convert.ToByte(reader.Value);
-                        break;
-                    }
-                    case "G":
-                    {
-                        reader.Read();
-                        g = Convert.ToByte(reader.Value);
-                        break;
-                    }
-                    case "B":
-                    {
-                        reader.Read();
-                        b = Convert.ToByte(reader.Value);
-                        break;
-                    }
-                }
-            }
-
-            return new Color3<Rgb>(r / 255.0f, g / 255.0f, b / 255.0f);
+            return new Color3<Rgb>(
+                (float)(obj["R"] ?? 0f) / 255.0f,
+                (float)(obj["G"] ?? 0f) / 255.0f,
+                (float)(obj["B"] ?? 0f) / 255.0f
+            );
         }
 
         public override bool CanRead => true;
@@ -278,35 +222,13 @@ public static class MapLoader
         public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue,
             JsonSerializer serializer)
         {
-            float pitch = 0, yaw = 0, roll = 0;
+            var obj = JObject.Load(reader);
 
-            while (reader.Read())
-            {
-                var token = reader.Path;
-                switch (token)
-                {
-                    case "Pitch":
-                    {
-                        reader.Read();
-                        pitch = Convert.ToSingle(reader.Value);
-                        break;
-                    }
-                    case "Yaw":
-                    {
-                        reader.Read();
-                        yaw = Convert.ToSingle(reader.Value);
-                        break;
-                    }
-                    case "Roll":
-                    {
-                        reader.Read();
-                        roll = Convert.ToSingle(reader.Value);
-                        break;
-                    }
-                }
-            }
-
-            return new Quaternion(MathHelper.DegreesToRadians(pitch), MathHelper.DegreesToRadians(yaw), MathHelper.DegreesToRadians(roll));
+            return new Quaternion(
+                MathHelper.DegreesToRadians((float)(obj["Pitch"] ?? 0f)),
+                MathHelper.DegreesToRadians((float)(obj["Yaw"] ?? 0f)),
+                MathHelper.DegreesToRadians((float)(obj["Roll"] ?? 0f))
+            );
         }
 
         public override bool CanRead => true;
@@ -333,29 +255,12 @@ public static class MapLoader
         public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue,
             JsonSerializer serializer)
         {
-            float x = 0, y = 0;
+            var obj = JObject.Load(reader);
 
-            while (reader.Read())
-            {
-                var token = reader.Path;
-                switch (token)
-                {
-                    case "X":
-                    {
-                        reader.Read();
-                        x = Convert.ToSingle(reader.Value);
-                        break;
-                    }
-                    case "Y":
-                    {
-                        reader.Read();
-                        y = Convert.ToSingle(reader.Value);
-                        break;
-                    }
-                }
-            }
-
-            return new Vector2(x, y);
+            return new Vector2(
+                (float)(obj["X"] ?? 0f),
+                (float)(obj["Y"] ?? 0f)
+            );
         }
 
         public override bool CanRead => true;
@@ -383,35 +288,13 @@ public static class MapLoader
         public override object? ReadJson(JsonReader reader, Type objectType, object? existingValue,
             JsonSerializer serializer)
         {
-            float x = 0, y = 0, z = 0;
+            var obj = JObject.Load(reader);
 
-            while (reader.Read())
-            {
-                var token = reader.Path;
-                switch (token)
-                {
-                    case "X":
-                        {
-                            reader.Read();
-                            x = Convert.ToSingle(reader.Value);
-                            break;
-                        }
-                    case "Y":
-                        {
-                            reader.Read();
-                            y = Convert.ToSingle(reader.Value);
-                            break;
-                        }
-                    case "Z":
-                        {
-                            reader.Read();
-                            z = Convert.ToSingle(reader.Value);
-                            break;
-                        }
-                }
-            }
-
-            return new Vector3(x, y, z);
+            return new Vector3(
+                (float)(obj["X"] ?? 0f),
+                (float)(obj["Y"] ?? 0f),
+                (float)(obj["Z"] ?? 0f)
+            );
         }
 
         public override bool CanRead => true;
