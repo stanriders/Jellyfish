@@ -103,6 +103,7 @@ public class MainWindow : GameWindow, IInputHandler
 
     protected override void OnRenderFrame(FrameEventArgs e)
     {
+        PerformanceMeasurment.Reset("DrawCalls");
         var stopwatch = Stopwatch.StartNew();
 
         RenderScheduler.Run();
@@ -211,7 +212,9 @@ public class MainWindow : GameWindow, IInputHandler
         _render.Frame();
         _imguiController?.Render();
 
+        var stopwatch = Stopwatch.StartNew();
         SwapBuffers();
+        PerformanceMeasurment.Add("SwapBuffers", stopwatch.Elapsed.TotalMilliseconds);
     }
 
     private void UpdateLoadingScreen(string text = "Loading...")

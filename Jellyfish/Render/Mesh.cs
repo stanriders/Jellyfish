@@ -6,6 +6,7 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using System.Collections.Generic;
 using System.IO;
+using Jellyfish.Debug;
 
 namespace Jellyfish.Render;
 
@@ -187,6 +188,8 @@ public class Mesh
         else
             GL.DrawArrays(PrimitiveType, 0, _vbo.Length);
 
+        PerformanceMeasurment.Increment("DrawCalls");
+
         drawShader.Unbind();
         _vao.Unbind();
     }
@@ -197,7 +200,7 @@ public class Mesh
         Vertices = vertices;
         if (indices != null) 
         { 
-            _ibo.UpdateData(indices.ToArray());
+            _ibo?.UpdateData(indices.ToArray());
             Indices = indices;
         }
 

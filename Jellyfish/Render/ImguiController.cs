@@ -2,6 +2,7 @@
 using Hexa.NET.ImGuizmo;
 using Hexa.NET.ImPlot;
 using Jellyfish.Console;
+using Jellyfish.Debug;
 using Jellyfish.Input;
 using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Shaders;
@@ -328,6 +329,8 @@ public sealed class ImguiController : IDisposable, IInputHandler
                     GL.DrawElements(PrimitiveType.Triangles, (int)pcmd.ElemCount, DrawElementsType.UnsignedShort,
                         (int)pcmd.IdxOffset * sizeof(ushort));
                 }
+
+                PerformanceMeasurment.Increment("DrawCalls");
 
                 CheckGlError("Draw");
             }

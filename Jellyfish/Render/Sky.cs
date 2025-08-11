@@ -1,4 +1,5 @@
-﻿using Jellyfish.Render.Buffers;
+﻿using Jellyfish.Debug;
+using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Shaders;
 using Jellyfish.Utils;
 using OpenTK.Graphics.OpenGL;
@@ -32,6 +33,7 @@ namespace Jellyfish.Render
             _shader.Bind();
             _vao.Bind();
             GL.DrawArrays(PrimitiveType.Triangles, 0, CommonShapes.Cube.Length);
+            PerformanceMeasurment.Increment("DrawCalls");
 
             GL.BindVertexArray(0);
             GL.UseProgram(0);

@@ -16,10 +16,12 @@ namespace Jellyfish.UI
     public class PerformancePanel : IUiPanel, IInputHandler
     {
         private bool _isEnabled;
-        private ImmutableSortedDictionary<string, double>? _measurements;
+        private ImmutableSortedDictionary<string, double>? _timedMeasurements;
+        private ImmutableSortedDictionary<string, double>? _incrementalMeasurements;
         private double _elapsedSinceLastUpdate;
 
-        private Dictionary<string, List<double>> _previousMeasurements = new();
+        private readonly Dictionary<string, List<double>> _previousTimedMeasurements = new();
+        private readonly Dictionary<string, List<double>> _previousIncrementalMeasurements = new();
 
         public PerformancePanel()
         {
@@ -28,44 +30,72 @@ namespace Jellyfish.UI
 
         public unsafe void Frame(double timeElapsed)
         {
-            if (_elapsedSinceLastUpdate > 0.1)
+            if (_elapsedSinceLastUpdate > 0.075)
             {
-                if (_measurements != null)
+                if (_timedMeasurements != null)
                 {
-                    foreach (var measurement in _measurements)
+                    foreach (var measurement in _timedMeasurements)
                     {
-                        if (!_previousMeasurements.ContainsKey(measurement.Key))
+                        if (!_previousTimedMeasurements.ContainsKey(measurement.Key))
                         {
-                            _previousMeasurements.Add(measurement.Key, new List<double>());
+                            _previousTimedMeasurements.Add(measurement.Key, new List<double>());
                         }
 
-                        _previousMeasurements[measurement.Key].Add(measurement.Value);
+                        _previousTimedMeasurements[measurement.Key].Add(measurement.Value);
 
-                        if (_previousMeasurements[measurement.Key].Count > 100)
-                            _previousMeasurements[measurement.Key].RemoveAt(0);
+                        if (_previousTimedMeasurements[measurement.Key].Count > 100)
+                            _previousTimedMeasurements[measurement.Key].RemoveAt(0);
                     }
                 }
 
-                _measurements = PerformanceMeasurment.Measurements.ToImmutableSortedDictionary();
+                _timedMeasurements = PerformanceMeasurment.TimedMeasurements.ToImmutableSortedDictionary();
+
+                if (_incrementalMeasurements != null)
+                {
+                    foreach (var measurement in _incrementalMeasurements)
+                    {
+                        if (!_previousIncrementalMeasurements.ContainsKey(measurement.Key))
+                        {
+                            _previousIncrementalMeasurements.Add(measurement.Key, new List<double>());
+                        }
+
+                        _previousIncrementalMeasurements[measurement.Key].Add(measurement.Value);
+
+                        if (_previousIncrementalMeasurements[measurement.Key].Count > 100)
+                            _previousIncrementalMeasurements[measurement.Key].RemoveAt(0);
+                    }
+                }
+
+                _incrementalMeasurements = PerformanceMeasurment.IncrementalMeasurements.ToImmutableSortedDictionary();
                 _elapsedSinceLastUpdate = 0;
             }
 
             _elapsedSinceLastUpdate += timeElapsed;
 
-            if (!_isEnabled || _measurements == null)
+            if (!_isEnabled || _timedMeasurements == null || _incrementalMeasurements == null)
                 return;
 
             if (ImGui.Begin("Performance"))
             {
-                if (ImGui.BeginTable("Measurments", 2, ImGuiTableFlags.SizingFixedFit))
+                if (ImGui.BeginTable("Measurements", 2, ImGuiTableFlags.SizingFixedFit))
                 {
-                    foreach (var measurement in _measurements)
+                    foreach (var measurement in _timedMeasurements)
                     {
                         ImGui.TableNextRow();
                         ImGui.TableNextColumn();
                         ImGui.Text(measurement.Key);
                         ImGui.TableNextColumn();
                         ImGui.Text($"{measurement.Value:N4} ({1000.0 / measurement.Value:N1} fps)");
+                    }
+
+                    ImGui.Separator();
+                    foreach (var measurement in _incrementalMeasurements)
+                    {
+                        ImGui.TableNextRow();
+                        ImGui.TableNextColumn();
+                        ImGui.Text(measurement.Key);
+                        ImGui.TableNextColumn();
+                        ImGui.Text(measurement.Value.ToString());
                     }
                     ImGui.EndTable();
                 }
@@ -74,13 +104,29 @@ namespace Jellyfish.UI
                 var frameSize = ImGui.GetWindowSize();
 
                 ImPlot.SetNextAxesToFit();
-                if (ImPlot.BeginPlot("Measurements", new Vector2(Math.Max(1, frameSize.X - 30), Math.Max(1, frameSize.Y - tableSize.Y - 40)), ImPlotFlags.NoInputs | ImPlotFlags.NoTitle))
+                if (ImPlot.BeginPlot("TimedMeasurementsPlot", new Vector2(Math.Max(1, frameSize.X - 30), Math.Max(1, frameSize.Y - tableSize.Y - 40)), ImPlotFlags.NoInputs | ImPlotFlags.NoTitle))
                 {
-                    foreach (var previousMeasurement in _previousMeasurements)
+                    foreach (var previousMeasurement in _previousTimedMeasurements)
                     {
-                        var previousMeasurements = _previousMeasurements[previousMeasurement.Key].Select(x => (float)x).ToArray();
+                        var previousMeasurements = _previousTimedMeasurements[previousMeasurement.Key].Select(x => (float)x).ToArray();
 
                         ImPlot.SetNextFillStyle(new Vector4(0,0,0,-1), 0.75f);
+                        fixed (float* previousMeasurementsPinned = previousMeasurements)
+                            ImPlot.PlotShaded(previousMeasurement.Key, ref Unsafe.AsRef<float>(previousMeasurementsPinned),
+                                previousMeasurements.Length);
+                    }
+
+                    ImPlot.EndPlot();
+                }
+
+                ImPlot.SetNextAxesToFit();
+                if (ImPlot.BeginPlot("IncrementalMeasurementsPlot", new Vector2(Math.Max(1, frameSize.X - 30), Math.Max(1, frameSize.Y - tableSize.Y - 40)), ImPlotFlags.NoInputs | ImPlotFlags.NoTitle))
+                {
+                    foreach (var previousMeasurement in _previousIncrementalMeasurements)
+                    {
+                        var previousMeasurements = _previousIncrementalMeasurements[previousMeasurement.Key].Select(x => (float)x).ToArray();
+
+                        ImPlot.SetNextFillStyle(new Vector4(0, 0, 0, -1), 0.75f);
                         fixed (float* previousMeasurementsPinned = previousMeasurements)
                             ImPlot.PlotShaded(previousMeasurement.Key, ref Unsafe.AsRef<float>(previousMeasurementsPinned),
                                 previousMeasurements.Length);
