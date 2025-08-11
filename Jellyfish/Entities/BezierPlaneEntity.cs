@@ -1,7 +1,5 @@
 ﻿using Jellyfish.Render;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System;
 using OpenTK.Mathematics;
 using JoltPhysicsSharp;
 
@@ -10,14 +8,30 @@ namespace Jellyfish.Entities;
 [Entity("plane_bezier")]
 public class BezierPlaneEntity : BaseModelEntity, IPhysicsEntity
 {
-    private BodyID _physicsBodyId;
+    private BodyID? _physicsBodyId;
 
     public BezierPlaneEntity()
     {
-        AddProperty("Size", new Vector2(20, 20), false);
-        AddProperty("QuadSize", 2, false);
-        AddProperty("Texture", "test.png", false);
-        AddProperty("TextureScale", new Vector2(1.0f), false);
+        AddProperty("QuadSize", 20, changeCallback: _ => UpdateMesh());
+        AddProperty("Texture", "test.png", changeCallback: OnTextureChanged);
+        AddProperty("TextureScale", new Vector2(1.0f), changeCallback: _ => UpdateMesh());
+        AddProperty("ControlPoints", GenerateInitialControlPoints(), showGizmo: true, changeCallback: _ => UpdateMesh());
+    }
+
+    private void OnTextureChanged(string path)
+    {
+        Model?.Meshes[0].UpdateMaterial(path);
+    }
+
+    private void UpdateMesh()
+    {
+        Model?.Meshes[0].Update(GenerateBezierPlane(), GenerateGridIndices());
+
+        if (_physicsBodyId != null)
+        {
+            PhysicsManager.RemoveObject(_physicsBodyId.Value);
+            _physicsBodyId = PhysicsManager.AddStaticObject([Model!.Meshes[0]], this) ?? 0;
+        }
     }
 
     public override void Load()
@@ -29,7 +43,7 @@ public class BezierPlaneEntity : BaseModelEntity, IPhysicsEntity
             return;
         }
 
-        var mesh = GenerateRandom(GetPropertyValue<Vector2>("Size"), texture, GetPropertyValue<int>("QuadSize"));
+        var mesh = new Mesh("randombezierplane", GenerateBezierPlane(), GenerateGridIndices(), texture: texture);
 
         Model = new Model(mesh)
         {
@@ -43,160 +57,119 @@ public class BezierPlaneEntity : BaseModelEntity, IPhysicsEntity
 
     public override void Unload()
     {
-        PhysicsManager.RemoveObject(_physicsBodyId);
+        if (_physicsBodyId != null)
+            PhysicsManager.RemoveObject(_physicsBodyId.Value);
 
         base.Unload();
     }
 
-    /// <summary>
-    /// https://github.com/tugbadogan/opengl-bezier-surface/tree/master
-    /// </summary>
-    private Mesh GenerateRandom(Vector2 size, string texture, int quadSize)
+    private Vector3[] GenerateInitialControlPoints()
     {
-        List<Vertex> verticies = new();
+        var points = new List<Vector3>();
 
-        var watch = Stopwatch.StartNew();
+        const float sizeX = 100f;
+        const float sizeZ = 100f;
+        const int gridCount = 4; // 4x4 control points for a single Bézier patch
 
-        var sizeX = (int)size.X;
-        var sizeY = (int)size.Y;
-
-        var resolutionX = sizeX;
-        var resolutionY = sizeY;
-
-        var inPoints = new double[sizeX + 1, sizeY + 1][];
-        var outPoints = new double[resolutionX, resolutionY][];
-
-        for (var x = 0; x <= sizeX; x++)
+        for (var row = 0; row < gridCount; row++)
         {
-            for (var y = 0; y <= sizeY; y++)
+            var z = (row / 3f) * sizeZ;
+
+            for (var col = 0; col < gridCount; col++)
             {
-                inPoints[x, y] = [x * quadSize - 0.5, y * quadSize - 0.5, (Random.Shared.NextDouble() * quadSize) - (quadSize / 2.0)];
+                points.Add(new Vector3((col / 3f) * sizeX, 0, z));
             }
         }
 
-        for (var i = 0; i < resolutionX; i++)
+        return points.ToArray();
+    }
+    public List<Vertex> GenerateBezierPlane()
+    {
+        var controlPoints = GetPropertyValue<Vector3[]>("ControlPoints");
+        if (controlPoints == null || controlPoints.Length == 0)
+            return [];
+
+        var quadSize = GetPropertyValue<int>("QuadSize");
+        var textureScale = GetPropertyValue<Vector2>("TextureScale");
+
+        List<Vertex> vertices = new();
+
+        for (var i = 0; i <= quadSize; i++)
         {
-            var muX = i / (float)(resolutionX - 1);
-            for (var j = 0; j < resolutionY; j++)
+            var u = i / (float)quadSize;
+
+            for (var j = 0; j <= quadSize; j++)
             {
-                var muY = j / (float)(resolutionY - 1);
+                var v = j / (float)quadSize;
 
-                outPoints[i, j] = [0, 0, 0];
+                var position = EvaluateBezierSurface(controlPoints, u, v);
+                var normal = EstimateNormal(controlPoints, u, v);
+                var uv = new Vector2(u, v) * textureScale;
 
-                for (var kX = 0; kX <= sizeX; kX++)
+                vertices.Add(new Vertex
                 {
-                    var bi = BezierBlend(kX, muX, sizeX);
-                    for (var kY = 0; kY <= sizeY; kY++)
-                    {
-                        var bj = BezierBlend(kY, muY, sizeY);
-                        outPoints[i, j][0] += inPoints[kX, kY][0] * bi * bj;
-                        outPoints[i, j][1] += inPoints[kX, kY][1] * bi * bj;
-                        outPoints[i, j][2] += inPoints[kX, kY][2] * bi * bj;
-                    }
-                }
-            }
-        }
-
-        /* Display the surface, in this case in OOGL format for GeomView */
-        for (var i = 0; i < resolutionX - 1; i++)
-        {
-            for (var j = 0; j < resolutionY - 1; j++)
-            {
-                var a = new Vector3((float)outPoints[i, j][0], (float)outPoints[i, j][1], (float)outPoints[i, j][2]);
-                var d = new Vector3((float)outPoints[i, j + 1][0], (float)outPoints[i, j + 1][1],
-                    (float)outPoints[i, j + 1][2]);
-                var b = new Vector3((float)outPoints[i + 1, j][0], (float)outPoints[i + 1, j][1],
-                    (float)outPoints[i + 1, j][2]);
-                var c = new Vector3((float)outPoints[i + 1, j + 1][0], (float)outPoints[i + 1, j + 1][1],
-                    (float)outPoints[i + 1, j + 1][2]);
-
-                Vector3 u = b - a;
-                Vector3 v = c - b;
-
-                Vector3 normal = Vector3.Cross(u, v).Normalized();
-
-                var textureScale = GetPropertyValue<Vector2>("TextureScale");
-                var uvScale = new Vector2(size.X / quadSize * textureScale.X, size.Y / quadSize * textureScale.Y);
-
-                verticies.AddRange(new Vertex[]
-                {
-                    new()
-                    {
-                        Coordinates = a,
-                        Normal = normal,
-                        UV = new(uvScale.X, uvScale.Y)
-                    },
-                    new()
-                    {
-                        Coordinates = b,
-                        Normal = normal,
-                        UV = new(-uvScale.X, uvScale.Y)
-                    },
-                    new()
-                    {
-                        Coordinates = c,
-                        Normal = normal,
-                        UV = new(-uvScale.X, -uvScale.Y)
-                    },
-                    new()
-                    {
-                        Coordinates = a,
-                        Normal = normal,
-                        UV = new(uvScale.X, uvScale.Y)
-                    },
-                    new()
-                    {
-                        Coordinates = c,
-                        Normal = normal,
-                        UV = new(-uvScale.X, -uvScale.Y)
-                    },
-                    new()
-                    {
-                        Coordinates = d,
-                        Normal = normal,
-                        UV = new(uvScale.X, -uvScale.Y)
-                    },
+                    Coordinates = position,
+                    UV = uv,
+                    Normal = normal
                 });
             }
         }
 
-        watch.Stop();
-        EntityLog().Information("Took {Elapsed} time to create a plane", watch.Elapsed);
-
-        return new Mesh("randombezierplane", verticies, texture: $"materials/{texture}");
+        return vertices;
     }
 
-    private float BezierBlend(int k, float mu, int n)
+    private static Vector3 EvaluateBezierSurface(Vector3[] cp, float u, float v)
     {
-        float blend = 1;
+        var uCurve = new Vector3[4];
 
-        var nn = n;
-        var kn = k;
-        var nkn = n - k;
+        for (var i = 0; i < 4; i++)
+            uCurve[i] = Bezier1D(cp[i * 4], cp[i * 4 + 1], cp[i * 4 + 2], cp[i * 4 + 3], u);
 
-        while (nn >= 1)
+        return Bezier1D(uCurve[0], uCurve[1], uCurve[2], uCurve[3], v);
+    }
+
+    private static Vector3 Bezier1D(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
+    {
+        var it = 1f - t;
+        return it * it * it * p0 +
+               3f * it * it * t * p1 +
+               3f * it * t * t * p2 +
+               t * t * t * p3;
+    }
+
+    private static Vector3 EstimateNormal(Vector3[] cp, float u, float v)
+    {
+        // Small delta for partial derivatives
+        var delta = 0.001f;
+        var p = EvaluateBezierSurface(cp, u, v);
+        var pu = EvaluateBezierSurface(cp, u + delta, v) - p;
+        var pv = EvaluateBezierSurface(cp, u, v + delta) - p;
+
+        return Vector3.Normalize(Vector3.Cross(pv, pu));
+    }
+    public List<uint> GenerateGridIndices()
+    {
+        var quadSize = GetPropertyValue<int>("QuadSize");
+
+        var indices = new List<uint>();
+
+        for (var y = 0; y < quadSize; y++)
         {
-            blend *= nn;
-            nn--;
-            if (kn > 1)
+            for (var x = 0; x < quadSize; x++)
             {
-                blend /= kn;
-                kn--;
-            }
+                var start = y * (quadSize + 1) + x;
 
-            if (nkn > 1)
-            {
-                blend /= nkn;
-                nkn--;
+                indices.Add((uint)start);
+                indices.Add((uint)(start + 1));
+                indices.Add((uint)(start + quadSize + 1));
+
+                indices.Add((uint)(start + 1));
+                indices.Add((uint)(start + quadSize + 2));
+                indices.Add((uint)(start + quadSize + 1));
             }
         }
 
-        if (k > 0)
-            blend *= (float)Math.Pow(mu, k);
-        if (n - k > 0)
-            blend *= (float)Math.Pow(1 - mu, n - k);
-
-        return blend;
+        return indices;
     }
 
     public void ResetVelocity()
