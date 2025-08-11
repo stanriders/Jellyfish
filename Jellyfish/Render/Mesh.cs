@@ -197,7 +197,7 @@ public class Mesh
         Vertices = vertices;
         if (indices != null) 
         { 
-            //_ibo.UpdateData(indices.ToArray());
+            _ibo.UpdateData(indices.ToArray());
             Indices = indices;
         }
 
