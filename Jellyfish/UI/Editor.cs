@@ -254,7 +254,7 @@ public class Editor : IUiPanel, IInputHandler
                 if (hasScale)
                     operations |= ImGuizmoOperation.Scale;
 
-                ImGuizmo.SetID(_selectedEntity.GetHashCode());
+                ImGuizmo.SetID(0);
                 if (ImGuizmo.Manipulate(ref Unsafe.AsRef<float>(view), ref Unsafe.AsRef<float>(proj),
                         operations, ImGuizmoMode.Local,
                         ref Unsafe.AsRef<float>(transformArrayPinned)))
@@ -284,16 +284,15 @@ public class Editor : IUiPanel, IInputHandler
             {
                 if (gizmoProperty.Value is Vector3[] arr)
                 {
-                    foreach (var point in arr)
+                    for (var i = 0; i < arr.Length; i++)
                     {
+                        var point = arr[i];
                         var propertyTransform = (Matrix4.CreateTranslation(point) * entityTransform)
                             .ToFloatArray();
 
                         fixed (float* propertyTransformArrayPinned = propertyTransform)
                         {
-                            ImGuizmo.Enable(true);
-                            ImGuizmo.SetID(_selectedEntity.GetHashCode() + gizmoProperty.GetHashCode() +
-                                           point.GetHashCode());
+                            ImGuizmo.SetID(_selectedEntity.GetHashCode() + gizmoProperty.GetHashCode() + i);
 
                             ImGuizmo.DrawCubes(ref Unsafe.AsRef<float>(view), ref Unsafe.AsRef<float>(proj),
                                 ref Unsafe.AsRef<float>(propertyTransformArrayPinned), 1);
@@ -305,11 +304,11 @@ public class Editor : IUiPanel, IInputHandler
                             {
                                 _usingGizmo = true;
                                 arr[Array.IndexOf(arr, point)] =
-                                    Vector3.TransformPosition(propertyTransform.ToMatrix().ExtractTranslation(), entityTransform.Inverted());
+                                    Vector3.TransformPosition(propertyTransform.ToMatrix().ExtractTranslation(),
+                                        entityTransform.Inverted());
 
-                                _selectedEntity.SetPropertyValue(gizmoProperty.Name, arr);
+                                _selectedEntity.SetPropertyValue(gizmoProperty.Name, arr.ToArray());
                             }
-
                         }
                     }
                 }
