@@ -14,8 +14,6 @@ public class InfoOverlay : IUiPanel
     private readonly List<double> _lastFewFrametimes = new();
     private double _lastAverageFrametime;
 
-    private string _mapInput = string.Empty;
-
     public void Frame(double timeElapsed)
     {
         // smoothing out frametime a bit

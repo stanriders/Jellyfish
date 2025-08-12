@@ -12,6 +12,8 @@ namespace Jellyfish.Entities;
 [Entity("player")]
 public class Player : BaseEntity, IInputHandler, IHaveFrustum
 {
+    public override bool DrawDevCone { get; set; } = true;
+
     private CharacterVirtual? _physCharacter;
 
     private const float camera_speed = 120.0f;
