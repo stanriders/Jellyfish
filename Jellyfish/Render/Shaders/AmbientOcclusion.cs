@@ -13,8 +13,8 @@ public class AmbientOcclusion : Shader
     public AmbientOcclusion() : 
         base("shaders/Screenspace.vert", null, "shaders/AmbientOcclusion.frag")
     {
-        _rtDepth = TextureManager.GetTexture("_rt_Depth", TextureTarget.Texture2d, false).Texture;
-        _rtNormals = TextureManager.GetTexture("_rt_Normal", TextureTarget.Texture2d, false).Texture;
+        _rtDepth = TextureManager.GetTexture("_rt_Depth")!;
+        _rtNormals = TextureManager.GetTexture("_rt_Normal")!;
     }
     public override void Bind()
     {

@@ -17,8 +17,8 @@ public class PostProcessing : Shader
     public PostProcessing() : 
         base("shaders/Screenspace.vert", null, "shaders/PostProcessing.frag")
     {
-        _rtColor = TextureManager.GetTexture("_rt_Color", TextureTarget.Texture2d, false).Texture;
-        _rtAmbientOcclusion = TextureManager.GetTexture("_rt_Gtao", TextureTarget.Texture2d, false).Texture;
+        _rtColor = TextureManager.GetTexture("_rt_Color")!;
+        _rtAmbientOcclusion = TextureManager.GetTexture("_rt_Gtao")!;
     }
 
     public override void Bind()
