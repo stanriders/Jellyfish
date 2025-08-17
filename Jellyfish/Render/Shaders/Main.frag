@@ -227,28 +227,22 @@ vec3 CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
     return outdiffuse * shadow;
 }
 
-mat3 GetTBN(vec3 fragPos, vec2 texCoord, vec3 worldNormal)
+mat3 GetTBN(vec3 pos, vec2 uv, vec3 normal)
 {
-    vec3 p_dx = dFdx(fragPos);
-    vec3 p_dy = dFdy(fragPos);
+    vec3 dp1 = dFdx(pos);
+    vec3 dp2 = dFdy(pos);
+    vec2 duv1 = dFdx(uv);
+    vec2 duv2 = dFdy(uv);
 
-    vec2 tc_dx = dFdx(texCoord);
-    vec2 tc_dy = dFdy(texCoord);
+    float r = 1.0 / (duv1.x * duv2.y - duv1.y * duv2.x);
+    vec3 tangent   = normalize((dp1 * duv2.y - dp2 * duv1.y) * r);
+    vec3 bitangent = normalize((dp2 * duv1.x - dp1 * duv2.x) * r);
 
-    vec3 tangent = normalize( tc_dy.y * p_dx - tc_dx.y * p_dy );
-    vec3 bitangent = normalize( tc_dy.x * p_dx - tc_dx.x * p_dy ); // sign inversion
+    // Orthonormalize to avoid accumulated floating-point drift
+    tangent   = normalize(tangent - normal * dot(normal, tangent));
+    bitangent = normalize(bitangent - normal * dot(normal, bitangent));
 
-    vec3 normal = normalize(worldNormal);
-    vec3 x = cross(normal, tangent);
-    tangent = cross(x, normal);
-    tangent = normalize(tangent);
-
-    // get updated bi-tangent
-    x = cross(bitangent, normal);
-    bitangent = cross(normal, x);
-    bitangent = normalize(bitangent);
-
-    return mat3(tangent, bitangent, normal);
+    return mat3(tangent, bitangent, normalize(normal));
 }
 
 void main()

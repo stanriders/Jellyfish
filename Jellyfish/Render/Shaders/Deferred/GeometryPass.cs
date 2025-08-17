@@ -22,6 +22,7 @@ public class GeometryPass : Shader
 
         SetMatrix4("view", Camera.Instance.GetViewMatrix());
         SetMatrix4("projection", Camera.Instance.GetProjectionMatrix());
+        SetBool("hasNormalMap", _normal != null);
 
         _diffuse?.Bind(0);
         _normal?.Bind(1);

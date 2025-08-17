@@ -1,23 +1,29 @@
-﻿using System;
-using System.Text;
-using Jellyfish.Console;
+﻿using Jellyfish.Console;
 using Jellyfish.Input;
 using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Lighting;
+using Jellyfish.Render.Screenspace;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
 
 namespace Jellyfish.Render;
 
 public class OpenGLRender : IRender, IInputHandler
 {
-    private PostProcessing? _postProcessing;
+    private FinalOut? _outRender;
     private FrameBuffer? _mainFramebuffer;
     private RenderTarget? _colorRenderTarget;
     private RenderTarget? _depthRenderTarget;
     private Sky? _sky;
     private GBuffer? _gBuffer;
     private readonly Camera _camera;
+
+    private readonly List<ScreenspaceEffect> _screenspaceEffects = new();
 
     private bool _wireframe;
 
@@ -38,6 +44,25 @@ public class OpenGLRender : IRender, IInputHandler
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
         _camera = new Camera();
+    }
+
+    public void LoadScreenspaceEffects()
+    {
+        var effects = Assembly.GetExecutingAssembly()
+            .GetTypes()
+            .Where(x => x is { IsPublic: true, IsAbstract: false } && typeof(ScreenspaceEffect).IsAssignableFrom(x));
+
+        foreach (var effectType in effects)
+        {
+            if (Activator.CreateInstance(effectType) is ScreenspaceEffect panel)
+            {
+                _screenspaceEffects.Add(panel);
+            }
+            else
+            {
+                Log.Context(this).Error("Can't create screenspace effect {Type}", effectType.Name);
+            }
+        }
     }
 
     public void CreateBuffers()
@@ -62,7 +87,8 @@ public class OpenGLRender : IRender, IInputHandler
 
         _gBuffer = new GBuffer(_depthRenderTarget);
         _sky = new Sky();
-        _postProcessing = new PostProcessing(_colorRenderTarget);
+        LoadScreenspaceEffects();
+        _outRender = new FinalOut();
 
         InputManager.RegisterInputHandler(this);
     }
@@ -104,7 +130,12 @@ public class OpenGLRender : IRender, IInputHandler
 
         _mainFramebuffer?.Unbind();
 
-        _postProcessing?.Draw();
+        foreach (var effect in _screenspaceEffects)
+        {
+            effect.Draw();
+        }
+
+        _outRender?.Draw();
     }
 
     public void Unload()
@@ -112,7 +143,11 @@ public class OpenGLRender : IRender, IInputHandler
         MeshManager.Unload();
 
         _sky?.Unload();
-        _postProcessing?.Unload();
+        foreach (var effect in _screenspaceEffects)
+        {
+            effect.Unload();
+        }
+        _outRender?.Unload();
 
         _gBuffer?.Unload();
         _colorRenderTarget?.Unload();
@@ -162,7 +197,12 @@ public class OpenGLRender : IRender, IInputHandler
         Log.Context(this).Warning("Recreating render buffers!");
 
         _sky?.Unload();
-        _postProcessing?.Unload();
+        foreach (var effect in _screenspaceEffects)
+        {
+            effect.Unload();
+        }
+        _screenspaceEffects.Clear();
+        _outRender?.Unload();
 
         _gBuffer?.Unload();
         _colorRenderTarget?.Unload();

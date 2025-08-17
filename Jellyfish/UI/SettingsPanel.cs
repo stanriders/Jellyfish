@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Hexa.NET.ImGui;
+using Jellyfish.Console;
 
 namespace Jellyfish.UI
 {
@@ -52,6 +53,28 @@ namespace Jellyfish.UI
                             _resolutions.Select(x => x.ToString()).ToArray(), _resolutions.Length);
 
                         config.Video.WindowSize = _resolutions[currentResolution];
+
+                        ImGui.Separator();
+
+                        var gtaoEnabled = ConVarStorage.Get<bool>("mat_gtao_enabled");
+                        if (ImGui.Checkbox("GTAO", ref gtaoEnabled))
+                            ConVarStorage.Set("mat_gtao_enabled", gtaoEnabled);
+
+                        var gtaoQuality = ConVarStorage.Get<int>("mat_gtao_quality");
+                        if (ImGui.DragInt("GTAO Quality", ref gtaoQuality, 1, 0, 3))
+                            ConVarStorage.Set("mat_gtao_quality", gtaoQuality);
+
+                        var gtaoRadius = ConVarStorage.Get<float>("mat_gtao_radius");
+                        if (ImGui.DragFloat("GTAO Radius", ref gtaoRadius))
+                            ConVarStorage.Set("mat_gtao_radius", gtaoRadius);
+
+                        var gtaoIntensity = ConVarStorage.Get<float>("mat_gtao_intensity");
+                        if (ImGui.DragFloat("GTAO Intensity", ref gtaoIntensity))
+                            ConVarStorage.Set("mat_gtao_radius", gtaoIntensity);
+
+                        var gtaoThickness = ConVarStorage.Get<float>("mat_gtao_thickness");
+                        if (ImGui.DragFloat("GTAO Thickness", ref gtaoThickness))
+                            ConVarStorage.Set("mat_gtao_radius", gtaoThickness);
 
                         ImGui.EndTabItem();
                     }

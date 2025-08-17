@@ -73,6 +73,9 @@ namespace Jellyfish.Render
             }
         }
 
+        public static float NearPlane => 1f;
+        public static float FarPlane => 20000f;
+
         public Camera()
         {
             camera = this;
@@ -83,12 +86,12 @@ namespace Jellyfish.Render
             return Matrix4.LookAt(Position, Position + _front, Up);
         }
 
-        public Matrix4 GetProjectionMatrix(float nearPlane = 1f, float farPlane = 20000f)
+        public Matrix4 GetProjectionMatrix(float? nearPlane = null, float? farPlane = null)
         {
-            return Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, nearPlane, farPlane);
+            return Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, nearPlane ?? NearPlane, farPlane ?? FarPlane);
         }
 
-        public Frustum GetFrustum(float nearPlane = 1f, float farPlane = 20000f)
+        public Frustum GetFrustum(float? nearPlane = null, float? farPlane = null)
         {
             return new Frustum(GetViewMatrix() * GetProjectionMatrix(nearPlane, farPlane));
         }
