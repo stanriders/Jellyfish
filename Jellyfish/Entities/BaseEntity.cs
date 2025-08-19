@@ -100,6 +100,9 @@ public abstract class BaseEntity
 
     public bool SetPropertyValue<T>(string name, T value)
     {
+        if (!CanEditProperty(name))
+            return false;
+
         var property = GetProperty<T>(name);
         if (property != null)
         {
@@ -108,6 +111,11 @@ public abstract class BaseEntity
         }
 
         return false;
+    }
+
+    public bool CanEditProperty(string name)
+    {
+        return _entityProperties.ContainsKey(name) && _entityProperties[name].Editable;
     }
 
     public bool HasProperty(string name)

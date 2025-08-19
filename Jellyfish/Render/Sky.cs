@@ -29,16 +29,16 @@ namespace Jellyfish.Render
 
         public void Draw()
         {
-            GL.DepthFunc(DepthFunction.Lequal);
             _shader.Bind();
             _vao.Bind();
+
+            GL.DepthFunc(DepthFunction.Lequal);
             GL.DrawArrays(PrimitiveType.Triangles, 0, CommonShapes.Cube.Length);
             PerformanceMeasurment.Increment("DrawCalls");
-
-            GL.BindVertexArray(0);
-            GL.UseProgram(0);
-            
             GL.DepthFunc(DepthFunction.Less);
+
+            _shader.Unbind();
+            _vao.Unbind();
         }
 
         public void Unload()

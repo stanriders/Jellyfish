@@ -227,8 +227,8 @@ public class Editor : IUiPanel, IInputHandler
         {
             ImGuizmo.SetID(_selectedEntity.GetHashCode());
 
-            var hasScale = _selectedEntity.HasProperty("Scale") || _selectedEntity.HasProperty("Size");
-            var hasRotation = _selectedEntity.HasProperty("Rotation");
+            var hasScale = _selectedEntity.CanEditProperty("Scale") || _selectedEntity.CanEditProperty("Size");
+            var hasRotation = _selectedEntity.CanEditProperty("Rotation");
 
             var entityRotation = hasRotation
                 ? Matrix4.CreateFromQuaternion(_selectedEntity.GetPropertyValue<Quaternion>("Rotation"))
