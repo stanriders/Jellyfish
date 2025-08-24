@@ -14,7 +14,7 @@ namespace Jellyfish.UI
 
         public ConsolePanel()
         {
-            InputManager.RegisterInputHandler(this);
+            Engine.InputManager.RegisterInputHandler(this);
         }
 
         public void Frame(double timeElapsed)
@@ -80,8 +80,8 @@ namespace Jellyfish.UI
             if (keyboardState.IsKeyPressed(Keys.GraveAccent))
             {
                 _isEnabled = !_isEnabled;
-                if (_isEnabled && !MainWindow.Paused)
-                    MainWindow.Paused = true;
+                if (_isEnabled && !Engine.Paused)
+                    Engine.Paused = true;
                 return true;
             }
 

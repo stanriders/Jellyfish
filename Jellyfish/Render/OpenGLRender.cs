@@ -21,7 +21,6 @@ public class OpenGLRender : IRender, IInputHandler
     private RenderTarget? _depthRenderTarget;
     private Sky? _sky;
     private GBuffer? _gBuffer;
-    private readonly Camera _camera;
 
     private readonly List<ScreenspaceEffect> _screenspaceEffects = new();
 
@@ -40,10 +39,9 @@ public class OpenGLRender : IRender, IInputHandler
         _debugProc = DebugMessage;
         GL.DebugMessageCallback(_debugProc, nint.Zero);
 #endif
+        GL.Viewport(0, 0, Engine.MainWindow.Size.X, Engine.MainWindow.Size.Y);
         GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
-        _camera = new Camera();
     }
 
     public void LoadScreenspaceEffects()
@@ -73,8 +71,8 @@ public class OpenGLRender : IRender, IInputHandler
         _mainFramebuffer = new FrameBuffer();
         _mainFramebuffer.Bind();
 
-        _colorRenderTarget = new RenderTarget("_rt_Color", MainWindow.WindowWidth, MainWindow.WindowHeight, SizedInternalFormat.Rgb16f, FramebufferAttachment.ColorAttachment0, TextureWrapMode.ClampToEdge, levels: 11);
-        _depthRenderTarget = new RenderTarget("_rt_Depth", MainWindow.WindowWidth, MainWindow.WindowHeight, SizedInternalFormat.DepthComponent24, FramebufferAttachment.DepthAttachment, TextureWrapMode.ClampToEdge);
+        _colorRenderTarget = new RenderTarget("_rt_Color", Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y, SizedInternalFormat.Rgb16f, FramebufferAttachment.ColorAttachment0, TextureWrapMode.ClampToEdge, levels: 11);
+        _depthRenderTarget = new RenderTarget("_rt_Depth", Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y, SizedInternalFormat.DepthComponent24, FramebufferAttachment.DepthAttachment, TextureWrapMode.ClampToEdge);
 
         if (!_mainFramebuffer.Check())
         {
@@ -90,7 +88,7 @@ public class OpenGLRender : IRender, IInputHandler
         LoadScreenspaceEffects();
         _outRender = new FinalOut();
 
-        InputManager.RegisterInputHandler(this);
+        Engine.InputManager.RegisterInputHandler(this);
     }
 
     public void Frame()
@@ -109,8 +107,6 @@ public class OpenGLRender : IRender, IInputHandler
             return;
         }
 
-        _camera.Think();
-
         GL.Enable(EnableCap.DepthTest);
         GL.DepthFunc(DepthFunction.Less);
 
@@ -119,14 +115,14 @@ public class OpenGLRender : IRender, IInputHandler
 
         _mainFramebuffer?.Bind();
 
-        GL.Viewport(0, 0, MainWindow.WindowWidth, MainWindow.WindowHeight);
+        GL.Viewport(0, 0, Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y);
         GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
         GL.PolygonMode(TriangleFace.FrontAndBack, _wireframe ? PolygonMode.Line : PolygonMode.Fill);
 
         _sky?.Draw();
-        MeshManager.Draw();
+        Engine.MeshManager.Draw();
 
         _mainFramebuffer?.Unbind();
 
@@ -140,7 +136,7 @@ public class OpenGLRender : IRender, IInputHandler
 
     public void Unload()
     {
-        MeshManager.Unload();
+        Engine.InputManager.UnregisterInputHandler(this);
 
         _sky?.Unload();
         foreach (var effect in _screenspaceEffects)

@@ -21,7 +21,7 @@ public abstract class ScreenspaceEffect
         Buffer = new FrameBuffer();
         Buffer.Bind();
 
-        RenderTarget = new RenderTarget($"_rt_{rtName}", MainWindow.WindowWidth, MainWindow.WindowHeight,
+        RenderTarget = new RenderTarget($"_rt_{rtName}", Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y,
             format, FramebufferAttachment.ColorAttachment0, TextureWrapMode.ClampToEdge);
 
         GL.DrawBuffer(DrawBufferMode.ColorAttachment0);

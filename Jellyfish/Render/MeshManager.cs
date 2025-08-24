@@ -1,68 +1,67 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Jellyfish.Audio;
 using Jellyfish.Debug;
 using Jellyfish.Utils;
 using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.Render;
 
-public static class MeshManager
+public class MeshManager
 {
-    private static readonly List<Mesh> meshes = new();
-    private static readonly List<Mesh> singleFrameMeshes = new();
-    private static readonly List<(Mesh, List<Vertex>)> updateQueue = new();
+    private readonly List<Mesh> _meshes = new();
+    private readonly List<Mesh> _singleFrameMeshes = new();
+    private readonly List<(Mesh, List<Vertex>)> _updateQueue = new();
 
-    public static BoundingBox SceneBoundingBox { get; private set; }
+    public BoundingBox SceneBoundingBox { get; private set; }
 
-    private static bool drawing;
+    private bool _drawing;
 
-    public static void AddMesh(Mesh mesh, bool singleFrame = false)
+    public void AddMesh(Mesh mesh, bool singleFrame = false)
     {
         mesh.Load();
-        meshes.Add(mesh);
+        _meshes.Add(mesh);
         if (singleFrame)
-            singleFrameMeshes.Add(mesh);
+            _singleFrameMeshes.Add(mesh);
 
         SceneBoundingBox = new BoundingBox([SceneBoundingBox, mesh.BoundingBox]);
 
         if (!mesh.IsDev)
-            AudioManager.AddMesh(mesh);
+            Engine.AudioManager.AddMesh(mesh);
     }
 
-    public static void RemoveMesh(Mesh mesh)
+    public void RemoveMesh(Mesh mesh)
     {
-        while (drawing)
+        while (_drawing)
         {
             // never remove meshes mid-drawing
         }
 
-        meshes.Remove(mesh);
+        _meshes.Remove(mesh);
         mesh.Unload();
 
         // sounds expensive?
-        SceneBoundingBox = new BoundingBox(meshes.Select(x => x.BoundingBox).ToArray());
+        SceneBoundingBox = new BoundingBox(_meshes.Select(x => x.BoundingBox).ToArray());
     }
 
-    public static void UpdateMesh(Mesh mesh, List<Vertex> vertices)
+    public void UpdateMesh(Mesh mesh, List<Vertex> vertices)
     {
-        if (!drawing)
+        if (!_drawing)
         {
-            if (!updateQueue.Any(x=> x.Item1 == mesh))
-                updateQueue.Add((mesh, vertices));
+            if (!_updateQueue.Any(x=> x.Item1 == mesh))
+                _updateQueue.Add((mesh, vertices));
         }
     }
 
-    public static void Draw(bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null)
+    public void Draw(bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null)
     {
-        drawing = true;
+        _drawing = true;
         var drawStopwatch = Stopwatch.StartNew();
 
-        var sortingPosition = frustum?.NearPlaneCenter ?? Camera.Instance.Position;
+        var sortingPosition = frustum?.NearPlaneCenter ?? Engine.MainViewport.Position;
 
-        var opaqueObjects = meshes.Where(x => !(x.Material?.GetParam<bool>("AlphaTest") ?? false)).ToArray();
-        var transluscentObjects = meshes.Where(x => !opaqueObjects.Contains(x))
+        var opaqueObjects = _meshes.Where(x => !(x.Material?.GetParam<bool>("AlphaTest") ?? false)).ToArray();
+        var transluscentObjects = _meshes.Where(x => !opaqueObjects.Contains(x))
             .OrderByDescending(x => ((x.Position + x.BoundingBox.Center) - sortingPosition).Length)
             .ToArray();
 
@@ -85,36 +84,36 @@ public static class MeshManager
         GL.DepthMask(true);
 
         // ensures that all VBO updates happen post-rendering
-        foreach (var update in updateQueue)
+        foreach (var update in _updateQueue)
         {
             update.Item1.Update(update.Item2);
         }
 
-        updateQueue.Clear();
+        _updateQueue.Clear();
 
-        drawing = false;
+        _drawing = false;
 
         if (drawDev)
         {
-            foreach (var singleFrameMesh in singleFrameMeshes)
+            foreach (var singleFrameMesh in _singleFrameMeshes)
             {
                 RemoveMesh(singleFrameMesh);
             }
 
-            singleFrameMeshes.Clear();
+            _singleFrameMeshes.Clear();
         }
         PerformanceMeasurment.Add("MeshManager.Draw", drawStopwatch.Elapsed.TotalMilliseconds);
     }
 
-    public static void DrawGBuffer(bool drawDev = true)
+    public void DrawGBuffer(bool drawDev = true)
     {
-        drawing = true;
+        _drawing = true;
         var drawStopwatch = Stopwatch.StartNew();
 
-        var playerFrustum = Camera.Instance.GetFrustum();
+        var playerFrustum = Engine.MainViewport.GetFrustum();
         var playerPosition = playerFrustum.NearPlaneCenter;
-        var opaqueObjects = meshes.Where(x => !(x.Material?.GetParam<bool>("AlphaTest") ?? false)).ToArray();
-        var transluscentObjects = meshes.Where(x => !opaqueObjects.Contains(x))
+        var opaqueObjects = _meshes.Where(x => !(x.Material?.GetParam<bool>("AlphaTest") ?? false)).ToArray();
+        var transluscentObjects = _meshes.Where(x => !opaqueObjects.Contains(x))
             .OrderByDescending(x => ((x.Position + x.BoundingBox.Center) - playerPosition).Length)
             .ToArray();
 
@@ -145,22 +144,22 @@ public static class MeshManager
         GL.DepthMask(true);
 
         PerformanceMeasurment.Add("MeshManager.DrawGBuffer", drawStopwatch.Elapsed.TotalMilliseconds);
-        drawing = false;
+        _drawing = false;
     }
 
-    private static void DrawMesh(Mesh mesh, bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null)
+    private void DrawMesh(Mesh mesh, bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null)
     {
         if (mesh.IsDev && !drawDev)
             return;
 
-        var frustumToUse = frustum ?? Camera.Instance.GetFrustum();
+        var frustumToUse = frustum ?? Engine.MainViewport.GetFrustum();
         if (mesh.ShouldDraw && frustumToUse.IsInside(mesh.Position, mesh.BoundingBox.Length))
             mesh.Draw(shaderToUse);
     }
 
-    public static void Unload()
+    public void Unload()
     {
-        foreach (var mesh in meshes)
+        foreach (var mesh in _meshes)
             mesh.Unload();
     }
 }

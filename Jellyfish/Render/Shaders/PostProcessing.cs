@@ -17,8 +17,8 @@ public class PostProcessing : Shader
     public PostProcessing() : 
         base("shaders/Screenspace.vert", null, "shaders/PostProcessing.frag")
     {
-        _rtColor = TextureManager.GetTexture("_rt_Color")!;
-        _rtAmbientOcclusion = TextureManager.GetTexture("_rt_Gtao")!;
+        _rtColor = Engine.TextureManager.GetTexture("_rt_Color")!;
+        _rtAmbientOcclusion = Engine.TextureManager.GetTexture("_rt_Gtao")!;
     }
 
     public override void Bind()
@@ -28,7 +28,7 @@ public class PostProcessing : Shader
         _rtColor.Bind(0);
         _rtAmbientOcclusion.Bind(1);
 
-        SetVector2("screenSize", new Vector2(MainWindow.WindowWidth, MainWindow.WindowHeight));
+        SetVector2("screenSize", new Vector2(Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y));
         SetInt("isEnabled", IsEnabled ? 1 : 0);
 
         if (IsEnabled)

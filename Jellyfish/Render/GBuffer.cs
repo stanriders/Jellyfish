@@ -21,7 +21,7 @@ public class GBuffer
                 ? SizedInternalFormat.Rgba16f
                 : SizedInternalFormat.Rgb16f;
 
-            _renderTargets.Add(new RenderTarget($"_rt_{(GBufferType)i}", MainWindow.WindowWidth, MainWindow.WindowHeight, format, FramebufferAttachment.ColorAttachment0 + i, 
+            _renderTargets.Add(new RenderTarget($"_rt_{(GBufferType)i}", Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y, format, FramebufferAttachment.ColorAttachment0 + i, 
                 TextureWrapMode.ClampToEdge));
         }
 
@@ -38,7 +38,7 @@ public class GBuffer
         _buffer.Bind(FramebufferTarget.DrawFramebuffer);
 
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-        MeshManager.DrawGBuffer();
+        Engine.MeshManager.DrawGBuffer();
 
         _buffer.Unbind();
     }

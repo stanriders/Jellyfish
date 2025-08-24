@@ -33,7 +33,7 @@ public class PhysicsManager
         public static readonly BroadPhaseLayer Moving = 1;
     }
 
-    private System.Numerics.Vector3 Gravity => _physicsSystem.Gravity;
+    public System.Numerics.Vector3 Gravity => _physicsSystem.Gravity;
 
     private PhysicsSystem _physicsSystem = null!;
     private BodyInterface _bodyInterface;
@@ -52,8 +52,6 @@ public class PhysicsManager
     private readonly Mesh _debugMesh;
     private readonly PhysicsDebugDrawFilter _debugDrawFilter = new();
 
-    private static PhysicsManager? instance;
-
     public PhysicsManager()
     {
         _debugMesh = new Mesh("physdebug", texture: "materials/error.mat")
@@ -61,20 +59,13 @@ public class PhysicsManager
             IsDev = true, 
             Usage = BufferUsage.StreamDraw
         };
-        MeshManager.AddMesh(_debugMesh);
+        Engine.MeshManager.AddMesh(_debugMesh);
 
         var physicsThread = new Thread(Run) { Name = "Physics thread" };
         physicsThread.Start();
-
-        instance = this;
     }
 
-    public static System.Numerics.Vector3 GetGravity()
-    {
-        return instance?.Gravity ?? System.Numerics.Vector3.Zero;
-    }
-
-    public static BodyID? AddStaticObject(Mesh[] meshes, IPhysicsEntity entity)
+    public BodyID? AddStaticObject(Mesh[] meshes, IPhysicsEntity entity)
     {
         if (entity is not BaseEntity baseEntity)
         {
@@ -122,16 +113,13 @@ public class PhysicsManager
             MotionType.Static,
             Layers.NonMoving);
 
-        var bodyId = instance?._bodyInterface.CreateAndAddBody(bodySettings, Activation.DontActivate);
-        if (bodyId == null)
-            return null;
-
-        instance?._bodies.Add(bodyId.Value, entity);
+        var bodyId = _bodyInterface.CreateAndAddBody(bodySettings, Activation.DontActivate);
+        _bodies.Add(bodyId, entity);
 
         return bodyId;
     }
 
-    public static BodyID? AddDynamicObject(ShapeSettings shape, IPhysicsEntity entity)
+    public BodyID? AddDynamicObject(ShapeSettings shape, IPhysicsEntity entity)
     {
         if (entity is not BaseEntity baseEntity)
         {
@@ -151,26 +139,19 @@ public class PhysicsManager
         bodySettings.OverrideMassProperties = OverrideMassProperties.CalculateInertia;
         bodySettings.MassPropertiesOverride = new MassProperties { Mass = 1f };
 
-        var bodyId =
-            instance?._bodyInterface.CreateAndAddBody(bodySettings, Activation.Activate);
+        var bodyId = _bodyInterface.CreateAndAddBody(bodySettings, Activation.Activate);
 
-        if (bodyId == null)
-            return null;
-
-        instance?._bodies.Add(bodyId.Value, entity);
+        _bodies.Add(bodyId, entity);
 
         shape.Dispose();
 
-        instance?._physicsSystem.OptimizeBroadPhase();
+        _physicsSystem.OptimizeBroadPhase();
 
         return bodyId;
     }
 
-    public static CharacterVirtual? AddPlayerController(BaseEntity entity, BoxShape shape)
+    public CharacterVirtual? AddPlayerController(BaseEntity entity, BoxShape shape)
     {
-        if (instance == null)
-            return null;
-
         var initialPosition = entity.GetPropertyValue<Vector3>("Position");
 
         var charSettings = new CharacterVirtualSettings
@@ -181,37 +162,37 @@ public class PhysicsManager
             MaxSlopeAngle = 60
         };
 
-        instance._character = new CharacterVirtual(charSettings, initialPosition.ToNumericsVector(), System.Numerics.Quaternion.Identity, 0, instance._physicsSystem);
-        return instance._character;
+        _character = new CharacterVirtual(charSettings, initialPosition.ToNumericsVector(), System.Numerics.Quaternion.Identity, 0, _physicsSystem);
+        return _character;
     }
 
-    public static void RemovePlayerController()
+    public void RemovePlayerController()
     {
-        if (instance?._character == null)
+        if (_character == null)
             return;
 
-        instance._character?.Dispose();
-        instance._character = null;
+        _character?.Dispose();
+        _character = null;
     }
 
-    public static void SetPosition(BodyID bodyId, Vector3 newPosition)
+    public void SetPosition(BodyID bodyId, Vector3 newPosition)
     {
-        instance?._bodyInterface.SetPosition(bodyId, newPosition.ToNumericsVector(), Activation.Activate);
+        _bodyInterface.SetPosition(bodyId, newPosition.ToNumericsVector(), Activation.Activate);
     }
 
-    public static void SetRotation(BodyID bodyId, Quaternion newRotation)
+    public void SetRotation(BodyID bodyId, Quaternion newRotation)
     {
-        instance?._bodyInterface.SetRotation(bodyId, newRotation.ToNumericsQuaternion(), Activation.Activate);
+        _bodyInterface.SetRotation(bodyId, newRotation.ToNumericsQuaternion(), Activation.Activate);
     }
 
-    public static void SetVelocity(BodyID bodyId, Vector3 newVelocity)
+    public void SetVelocity(BodyID bodyId, Vector3 newVelocity)
     {
-        instance?._bodyInterface.SetLinearVelocity(bodyId, newVelocity.ToNumericsVector());
+        _bodyInterface.SetLinearVelocity(bodyId, newVelocity.ToNumericsVector());
     }
 
-    public static void RemoveObject(BodyID body)
+    public void RemoveObject(BodyID body)
     {
-        instance?._deletionQueue.Enqueue(body);
+        _deletionQueue.Enqueue(body);
     }
 
     private void Run()
@@ -266,7 +247,7 @@ public class PhysicsManager
         _physicsSystem.Gravity *= 80f;
         _physicsSystem.OptimizeBroadPhase();
 
-        _impactSound = AudioManager.AddSound("sounds/impact.wav");
+        _impactSound = Engine.AudioManager.AddSound("sounds/impact.wav");
         _impactSound!.Persistent = true;
         _impactSound!.Volume = 0.5f;
 
@@ -378,7 +359,7 @@ public class PhysicsManager
 
         public void Render()
         {
-            MeshManager.UpdateMesh(_mesh, _vertices.ToList());
+            Engine.MeshManager.UpdateMesh(_mesh, _vertices.ToList());
 
             _vertices.Clear();
         }

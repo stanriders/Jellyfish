@@ -4,7 +4,7 @@ using Jellyfish.Utils;
 
 namespace Jellyfish.Render
 {
-    public class Camera
+    public class Viewport
     {
         private Vector3 _front = -Vector3.UnitZ;
 
@@ -14,27 +14,12 @@ namespace Jellyfish.Render
 
         public Vector3 Position { get; set; }
         public Quaternion Rotation { get; set; }
-        public float AspectRatio { get; set; }
+        public float AspectRatio => Size.X / (float)Size.Y;
+        public Vector2i Size { get; set; }
 
         public Vector3 Front => _front;
         public Vector3 Up { get; set; } = Vector3.UnitY;
         public Vector3 Right { get; set; } = Vector3.UnitX;
-
-        public bool IsControllingCursor { get; set; }
-
-        private static Camera? camera;
-        public static Camera Instance
-        {
-            get
-            {
-                if (camera != null)
-                    return camera;
-
-                camera = new Camera();
-                return camera;
-            }
-            set => camera = value;
-        }
 
         public float Pitch
         {
@@ -75,11 +60,6 @@ namespace Jellyfish.Render
 
         public static float NearPlane => 1f;
         public static float FarPlane => 20000f;
-
-        public Camera()
-        {
-            camera = this;
-        }
 
         public Matrix4 GetViewMatrix()
         {

@@ -106,7 +106,7 @@ public class Material
         {
             // todo: unlit shader
             _params.TryGetValue("Diffuse", out var diffusePath);
-            Shader = new Main(TextureManager.GetTexture($"{Directory}/{diffusePath}", TextureTarget.Texture2d, true).Texture);
+            Shader = new Main(Engine.TextureManager.GetTexture($"{Directory}/{diffusePath}", TextureTarget.Texture2d, true).Texture);
         }
         else
         {

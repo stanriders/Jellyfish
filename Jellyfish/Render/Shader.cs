@@ -117,7 +117,7 @@ public abstract class Shader
         {
             try
             {
-                ShaderManager.RemoveShader(e.FullPath.Replace(@"\", "/"));
+                Engine.ShaderManager.RemoveShader(e.FullPath.Replace(@"\", "/"));
 
                 var newHandle = LoadShader();
                 var oldHandle = _shaderHandle;
@@ -169,12 +169,12 @@ public abstract class Shader
         GL.ObjectLabel(ObjectIdentifier.Program, (uint)handle, GetType().Name.Length, GetType().Name);
 
         // compile shaders
-        var vertexShader = ShaderManager.GetShader(_vertPath, ShaderType.VertexShader);
-        var geometryShader = ShaderManager.GetShader(_geomPath, ShaderType.GeometryShader);
-        var fragmentShader = ShaderManager.GetShader(_fragPath, ShaderType.FragmentShader);
-        var tesselationControlShader = ShaderManager.GetShader(_tessControlPath, ShaderType.TessControlShader);
-        var tesselationEvaluationShader = ShaderManager.GetShader(_tessEvalPath, ShaderType.TessEvaluationShader);
-        var computeShader = ShaderManager.GetShader(_compPath, ShaderType.ComputeShader);
+        var vertexShader = Engine.ShaderManager.GetShader(_vertPath, ShaderType.VertexShader);
+        var geometryShader = Engine.ShaderManager.GetShader(_geomPath, ShaderType.GeometryShader);
+        var fragmentShader = Engine.ShaderManager.GetShader(_fragPath, ShaderType.FragmentShader);
+        var tesselationControlShader = Engine.ShaderManager.GetShader(_tessControlPath, ShaderType.TessControlShader);
+        var tesselationEvaluationShader = Engine.ShaderManager.GetShader(_tessEvalPath, ShaderType.TessEvaluationShader);
+        var computeShader = Engine.ShaderManager.GetShader(_compPath, ShaderType.ComputeShader);
 
         if (vertexShader != null)
             GL.AttachShader(handle, vertexShader.Value);

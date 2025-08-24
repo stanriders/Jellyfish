@@ -38,7 +38,7 @@ public class FinalOut : IInputHandler
             GL.VertexArrayAttribBinding(_vertexArray.Handle, texCoordLocation.Value, 0);
         }
 
-        InputManager.RegisterInputHandler(this);
+        Engine.InputManager.RegisterInputHandler(this);
     }
 
     public void Draw()
@@ -79,6 +79,6 @@ public class FinalOut : IInputHandler
         _vertexArray.Unload();
         _vertexBuffer.Unload();
 
-        InputManager.UnregisterInputHandler(this);
+        Engine.InputManager.UnregisterInputHandler(this);
     }
 }

@@ -4,12 +4,12 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.Render;
 
-public static class TextureManager
+public class TextureManager
 {
-    private static List<Texture> _textures { get; } = new();
-    public static IReadOnlyList<Texture> Textures { get; } = _textures.AsReadOnly();
+    private readonly List<Texture> _textures = new();
+    public IReadOnlyList<Texture> Textures => _textures.AsReadOnly();
 
-    public static (Texture Texture, bool AlreadyExists) GetTexture(string name, TextureTarget type, bool srgb)
+    public (Texture Texture, bool AlreadyExists) GetTexture(string name, TextureTarget type, bool srgb)
     {
         var existingTexture = _textures.FirstOrDefault(x => x.Path == name);
         if (existingTexture != null)
@@ -24,7 +24,7 @@ public static class TextureManager
         return (texture, false);
     }
 
-    public static Texture? GetTexture(string name)
+    public Texture? GetTexture(string name)
     {
         var existingTexture = _textures.FirstOrDefault(x => x.Path == name);
         if (existingTexture != null)
@@ -36,7 +36,7 @@ public static class TextureManager
         return null;
     }
 
-    public static void RemoveTexture(Texture texture)
+    public void RemoveTexture(Texture texture)
     {
         texture.References--;
 

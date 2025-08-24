@@ -33,7 +33,7 @@ public class Skybox : Shader
         SetVector3("uSunPos", rotationVector);
         SetFloat("uSunIntensity", _sun.Brightness * 5f);
 
-        SetMatrix4("view", Camera.Instance.GetViewMatrix().ClearTranslation());
-        SetMatrix4("projection", Camera.Instance.GetProjectionMatrix());
+        SetMatrix4("view", Engine.MainViewport.GetViewMatrix().ClearTranslation());
+        SetMatrix4("projection", Engine.MainViewport.GetProjectionMatrix());
     }
 }

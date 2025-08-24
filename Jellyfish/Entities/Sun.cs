@@ -61,7 +61,7 @@ public class Sun : BaseEntity, ILightSource
 
             for (var i = 0; i < cascades; i++)
             {
-                var frustum = Camera.Instance.GetFrustum(CascadeRanges[i].Near, CascadeRanges[i].Far);
+                var frustum = Engine.MainViewport.GetFrustum(CascadeRanges[i].Near, CascadeRanges[i].Far);
 
                 var center = frustum.Corners.Aggregate(new Vector3(0, 0, 0), (current, v) => current + v) / frustum.Corners.Length;
 

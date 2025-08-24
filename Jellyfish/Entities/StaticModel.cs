@@ -24,12 +24,12 @@ public class StaticModel : BaseModelEntity, IPhysicsEntity
     {
         ModelPath = $"models/{GetPropertyValue<string>("Model")}";
         base.Load();
-        _physicsBodyId = PhysicsManager.AddStaticObject(Model!.Meshes.ToArray(), this) ?? 0;
+        _physicsBodyId = Engine.PhysicsManager.AddStaticObject(Model!.Meshes.ToArray(), this) ?? 0;
     }
 
     public override void Unload()
     {
-        PhysicsManager.RemoveObject(_physicsBodyId);
+        Engine.PhysicsManager.RemoveObject(_physicsBodyId);
         base.Unload();
     }
 

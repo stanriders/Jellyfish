@@ -44,20 +44,20 @@ public class Model
         }
 
         foreach (var mesh in _meshes)
-            MeshManager.AddMesh(mesh);
+            Engine.MeshManager.AddMesh(mesh);
     }
 
     public Model(Mesh mesh, bool isDev = false)
     {
         mesh.IsDev = isDev;
         _meshes.Add(mesh);
-        MeshManager.AddMesh(mesh);
+        Engine.MeshManager.AddMesh(mesh);
     }
 
     public void Unload()
     {
         foreach (var mesh in _meshes)
-            MeshManager.RemoveMesh(mesh);
+            Engine.MeshManager.RemoveMesh(mesh);
     }
 
     public Vector3 Position

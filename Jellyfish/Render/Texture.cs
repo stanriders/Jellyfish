@@ -94,7 +94,7 @@ public class Texture
     public void Unload()
     {
         if (!_isError && Handle != 0)
-            TextureManager.RemoveTexture(this);
+            Engine.TextureManager.RemoveTexture(this);
     }
 
     public override string ToString() => Path;

@@ -32,11 +32,11 @@ public class DynamicModel : BaseModelEntity, IPhysicsEntity
 
             if (enablePhysics)
             {
-                _physicsBodyId = PhysicsManager.AddDynamicObject(CalculatePhysicsShape(), this) ?? 0;
+                _physicsBodyId = Engine.PhysicsManager.AddDynamicObject(CalculatePhysicsShape(), this) ?? 0;
             }
             else if (_physicsBodyId != null)
             {
-                PhysicsManager.RemoveObject(_physicsBodyId!.Value);
+                Engine.PhysicsManager.RemoveObject(_physicsBodyId!.Value);
                 _physicsBodyId = null;
             }
         });
@@ -48,14 +48,14 @@ public class DynamicModel : BaseModelEntity, IPhysicsEntity
         base.Load();
 
         if (GetPropertyValue<bool>("EnablePhysics") && Model != null)
-            _physicsBodyId = PhysicsManager.AddDynamicObject(CalculatePhysicsShape(), this) ?? 0;
+            _physicsBodyId = Engine.PhysicsManager.AddDynamicObject(CalculatePhysicsShape(), this) ?? 0;
     }
 
     protected override void OnPositionChanged(Vector3 position)
     {
         if (_physicsBodyId != null)
         {
-            PhysicsManager.SetPosition(_physicsBodyId.Value, position);
+            Engine.PhysicsManager.SetPosition(_physicsBodyId.Value, position);
         }
 
         base.OnPositionChanged(position);
@@ -65,7 +65,7 @@ public class DynamicModel : BaseModelEntity, IPhysicsEntity
     {
         if (_physicsBodyId != null)
         {
-            PhysicsManager.SetRotation(_physicsBodyId.Value, rotation);
+            Engine.PhysicsManager.SetRotation(_physicsBodyId.Value, rotation);
         }
 
         base.OnRotationChanged(rotation);
@@ -85,7 +85,7 @@ public class DynamicModel : BaseModelEntity, IPhysicsEntity
     public override void Unload()
     {
         if (_physicsBodyId != null)
-            PhysicsManager.RemoveObject(_physicsBodyId.Value);
+            Engine.PhysicsManager.RemoveObject(_physicsBodyId.Value);
 
         base.Unload();
     }
@@ -118,7 +118,7 @@ public class DynamicModel : BaseModelEntity, IPhysicsEntity
     public void ResetVelocity()
     {
         if (_physicsBodyId != null)
-            PhysicsManager.SetVelocity(_physicsBodyId.Value, Vector3.Zero);
+            Engine.PhysicsManager.SetVelocity(_physicsBodyId.Value, Vector3.Zero);
     }
 
     public void OnPhysicsPositionChanged(Vector3 position)

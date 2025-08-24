@@ -97,7 +97,7 @@ public static class LightManager
 
                 GL.Viewport(0, 0, Sun.Source.ShadowResolution, Sun.Source.ShadowResolution);
                 GL.Clear(ClearBufferMask.DepthBufferBit);
-                MeshManager.Draw(false, shadow.Shader, new Frustum(Sun.Source.Projections[i]));
+                Engine.MeshManager.Draw(false, shadow.Shader, new Frustum(Sun.Source.Projections[i]));
 
                 shadow.FrameBuffer.Unbind();
             }
@@ -113,7 +113,7 @@ public static class LightManager
 
             foreach (var shadow in light.Shadows)
             {
-                if (!Camera.Instance.GetFrustum().IsInside(light.Source.Position, light.Source.FarPlane))
+                if (!Engine.MainViewport.GetFrustum().IsInside(light.Source.Position, light.Source.FarPlane))
                     continue;
 
                 shadow.FrameBuffer.Bind();
@@ -125,7 +125,7 @@ public static class LightManager
                 if (light.Source is IHaveFrustum frustumEntity)
                     frustum = frustumEntity.GetFrustum();
 
-                MeshManager.Draw(false, shadow.Shader, frustum);
+                Engine.MeshManager.Draw(false, shadow.Shader, frustum);
 
                 shadow.FrameBuffer.Unbind();
             }

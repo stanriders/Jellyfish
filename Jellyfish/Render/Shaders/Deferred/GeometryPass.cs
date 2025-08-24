@@ -10,18 +10,18 @@ public class GeometryPass : Shader
     public GeometryPass(Material material) : base("shaders/Main.vert", null, "shaders/GeometryPass.frag")
     {
         if (material.TryGetParam<string>("Diffuse", out var diffusePath))
-            _diffuse = TextureManager.GetTexture($"{material.Directory}/{diffusePath}", TextureTarget.Texture2d, true).Texture;
+            _diffuse = Engine.TextureManager.GetTexture($"{material.Directory}/{diffusePath}", TextureTarget.Texture2d, true).Texture;
 
         if (material.TryGetParam<string>("Normal", out var normalPath))
-            _normal = TextureManager.GetTexture($"{material.Directory}/{normalPath}", TextureTarget.Texture2d, false).Texture;
+            _normal = Engine.TextureManager.GetTexture($"{material.Directory}/{normalPath}", TextureTarget.Texture2d, false).Texture;
     }
 
     public override void Bind()
     {
         base.Bind();
 
-        SetMatrix4("view", Camera.Instance.GetViewMatrix());
-        SetMatrix4("projection", Camera.Instance.GetProjectionMatrix());
+        SetMatrix4("view", Engine.MainViewport.GetViewMatrix());
+        SetMatrix4("projection", Engine.MainViewport.GetProjectionMatrix());
         SetBool("hasNormalMap", _normal != null);
 
         _diffuse?.Bind(0);

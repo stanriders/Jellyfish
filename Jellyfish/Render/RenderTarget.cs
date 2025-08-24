@@ -16,7 +16,7 @@ public class RenderTarget
         Size = new Vector2(width, heigth);
         Levels = Math.Clamp(Math.Min(width, heigth) / 64, 1, levels);
 
-        _texture = TextureManager.GetTexture(name, TextureTarget.Texture2d, false).Texture;
+        _texture = Engine.TextureManager.GetTexture(name, TextureTarget.Texture2d, false).Texture;
         TextureHandle = _texture.Handle;
         GL.BindTexture(TextureTarget.Texture2d, TextureHandle);
 
@@ -52,6 +52,6 @@ public class RenderTarget
 
     public void Unload()
     {
-        TextureManager.RemoveTexture(_texture);
+        Engine.TextureManager.RemoveTexture(_texture);
     }
 }

@@ -21,6 +21,7 @@ public class AmbientOcclusion : ScreenspaceEffect
 
     public override void Draw()
     {
+        var stopwatch = Stopwatch.StartNew();
         if (!ConVarStorage.Get<bool>("mat_gtao_enabled"))
         {
             Buffer.Bind(FramebufferTarget.DrawFramebuffer);
@@ -29,10 +30,10 @@ public class AmbientOcclusion : ScreenspaceEffect
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
             Buffer.Unbind();
+            PerformanceMeasurment.Add("AmbientOcclusion.Draw", stopwatch.Elapsed.TotalMilliseconds);
             return;
         }
 
-        var stopwatch = Stopwatch.StartNew();
         base.Draw();
         PerformanceMeasurment.Add("AmbientOcclusion.Draw", stopwatch.Elapsed.TotalMilliseconds);
     }

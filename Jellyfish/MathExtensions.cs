@@ -81,7 +81,7 @@ public static class MathExtensions
 
     public static Vector2 ToScreenspace(this Vector3 vector)
     {
-        var clipSpacePos = new Vector4(vector, 1.0f) * Camera.Instance.GetViewMatrix() * Camera.Instance.GetProjectionMatrix();
+        var clipSpacePos = new Vector4(vector, 1.0f) * Engine.MainViewport.GetViewMatrix() * Engine.MainViewport.GetProjectionMatrix();
 
         if (clipSpacePos.W > 0.0f)
         {
@@ -90,15 +90,15 @@ public static class MathExtensions
             clipSpacePos.Z /= clipSpacePos.W;
         }
 
-        float x = (clipSpacePos.X * 0.5f + 0.5f) * MainWindow.WindowWidth;
-        float y = (1.0f - (clipSpacePos.Y * 0.5f + 0.5f)) * MainWindow.WindowHeight;
+        float x = (clipSpacePos.X * 0.5f + 0.5f) * Engine.MainViewport.Size.X;
+        float y = (1.0f - (clipSpacePos.Y * 0.5f + 0.5f)) * Engine.MainViewport.Size.Y;
 
         return new Vector2(x, y);
     }
 
     public static System.Numerics.Vector2 ToScreenspace(this System.Numerics.Vector3 vector)
     {
-        var clipSpacePos = new Vector4(vector.ToOpentkVector(), 1.0f) * Camera.Instance.GetViewMatrix() * Camera.Instance.GetProjectionMatrix();
+        var clipSpacePos = new Vector4(vector.ToOpentkVector(), 1.0f) * Engine.MainViewport.GetViewMatrix() * Engine.MainViewport.GetProjectionMatrix();
 
         if (clipSpacePos.W > 0.0f)
         {
@@ -107,8 +107,8 @@ public static class MathExtensions
             clipSpacePos.Z /= clipSpacePos.W;
         }
 
-        float x = (clipSpacePos.X * 0.5f + 0.5f) * MainWindow.WindowWidth;
-        float y = (1.0f - (clipSpacePos.Y * 0.5f + 0.5f)) * MainWindow.WindowHeight;
+        float x = (clipSpacePos.X * 0.5f + 0.5f) * Engine.MainViewport.Size.X;
+        float y = (1.0f - (clipSpacePos.Y * 0.5f + 0.5f)) * Engine.MainViewport.Size.Y;
 
         return new System.Numerics.Vector2(x, y);
     }

@@ -19,13 +19,13 @@ public class Main : Shader
     public Main(Material material) : base("shaders/Main.vert", null, "shaders/Main.frag")
     {
         if (material.TryGetParam<string>("Diffuse", out var diffusePath))
-            _diffuse = TextureManager.GetTexture($"{material.Directory}/{diffusePath}", TextureTarget.Texture2d, true).Texture;
+            _diffuse = Engine.TextureManager.GetTexture($"{material.Directory}/{diffusePath}", TextureTarget.Texture2d, true).Texture;
 
         if (material.TryGetParam<string>("Normal", out var normalPath))
-            _normal = TextureManager.GetTexture($"{material.Directory}/{normalPath}", TextureTarget.Texture2d, false).Texture;
+            _normal = Engine.TextureManager.GetTexture($"{material.Directory}/{normalPath}", TextureTarget.Texture2d, false).Texture;
 
         if (material.TryGetParam<string>("MetalRoughness", out var metroughtPath))
-            _metRought = TextureManager.GetTexture($"{material.Directory}/{metroughtPath}", TextureTarget.Texture2d, false).Texture;
+            _metRought = Engine.TextureManager.GetTexture($"{material.Directory}/{metroughtPath}", TextureTarget.Texture2d, false).Texture;
 
         if (material.TryGetParam<bool>("AlphaTest", out var alphatest))
             _alphaTest = alphatest;
@@ -40,9 +40,9 @@ public class Main : Shader
     {
         base.Bind();
 
-        SetVector3("cameraPos", Camera.Instance.Position);
-        SetMatrix4("view", Camera.Instance.GetViewMatrix());
-        SetMatrix4("projection", Camera.Instance.GetProjectionMatrix());
+        SetVector3("cameraPos", Engine.MainViewport.Position);
+        SetMatrix4("view", Engine.MainViewport.GetViewMatrix());
+        SetMatrix4("projection", Engine.MainViewport.GetProjectionMatrix());
 
         var totalLights = LightManager.Lights.Count;
         for (var i = 0; i < totalLights; i++)

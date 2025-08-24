@@ -7,16 +7,16 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.Render
 {
-    public static class ShaderManager
+    public class ShaderManager
     {
-        private static Dictionary<string, int> Shaders { get; } = new();
+        private readonly Dictionary<string, int> _shaders = new();
 
-        public static int? GetShader(string? path, ShaderType type)
+        public int? GetShader(string? path, ShaderType type)
         {
             if (string.IsNullOrEmpty(path))
                 return null;
 
-            if (Shaders.TryGetValue(path, out var handle))
+            if (_shaders.TryGetValue(path, out var handle))
             {
                 return handle;
             }
@@ -27,22 +27,22 @@ namespace Jellyfish.Render
                 var shaderSource = LoadSource(path);
                 GL.ShaderSource(handle, shaderSource);
                 CompileShader(handle);
-                Shaders.Add(path, handle);
+                _shaders.Add(path, handle);
             }
 
             return handle;
         }
 
-        public static void RemoveShader(string path)
+        public void RemoveShader(string path)
         {
-            if (Shaders.TryGetValue(path, out var handle))
+            if (_shaders.TryGetValue(path, out var handle))
             {
                 GL.DeleteShader(handle);
-                Shaders.Remove(path);
+                _shaders.Remove(path);
             }
         }
 
-        private static void CompileShader(int shader)
+        private void CompileShader(int shader)
         {
             GL.CompileShader(shader);
 
@@ -54,7 +54,7 @@ namespace Jellyfish.Render
             }
         }
 
-        private static string LoadSource(string path)
+        private string LoadSource(string path)
         {
             try
             {
@@ -83,7 +83,7 @@ namespace Jellyfish.Render
             }
             catch (Exception ex)
             {
-                Log.Context("ShaderManager").Error(ex, "Failed to load shader {Path}", path);
+                Log.Context(this).Error(ex, "Failed to load shader {Path}", path);
                 return string.Empty;
             }
         }

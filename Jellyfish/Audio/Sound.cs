@@ -159,7 +159,7 @@ namespace Jellyfish.Audio
                 Playing = false;
             }
 
-            var camera = Camera.Instance;
+            var camera = Engine.MainViewport;
 
             var direction = IPL.CalculateRelativeDirection(iplContext,
                 Position.ToIplVector(),

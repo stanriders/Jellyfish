@@ -29,8 +29,8 @@ public class BezierPlane : BaseModelEntity, IPhysicsEntity
 
         if (_physicsBodyId != null)
         {
-            PhysicsManager.RemoveObject(_physicsBodyId.Value);
-            _physicsBodyId = PhysicsManager.AddStaticObject([Model!.Meshes[0]], this) ?? 0;
+            Engine.PhysicsManager.RemoveObject(_physicsBodyId.Value);
+            _physicsBodyId = Engine.PhysicsManager.AddStaticObject([Model!.Meshes[0]], this) ?? 0;
         }
     }
 
@@ -51,14 +51,14 @@ public class BezierPlane : BaseModelEntity, IPhysicsEntity
             Rotation = GetPropertyValue<Quaternion>("Rotation")
         };
 
-        _physicsBodyId = PhysicsManager.AddStaticObject([mesh], this) ?? 0;
+        _physicsBodyId = Engine.PhysicsManager.AddStaticObject([mesh], this) ?? 0;
         base.Load();
     }
 
     public override void Unload()
     {
         if (_physicsBodyId != null)
-            PhysicsManager.RemoveObject(_physicsBodyId.Value);
+            Engine.PhysicsManager.RemoveObject(_physicsBodyId.Value);
 
         base.Unload();
     }

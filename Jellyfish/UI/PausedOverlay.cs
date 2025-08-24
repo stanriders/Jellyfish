@@ -8,7 +8,7 @@ public class PausedOverlay : IUiPanel
 {
     public void Frame(double timeElapsed)
     {
-        if (!MainWindow.Paused)
+        if (!Engine.Paused)
             return;
 
         var windowFlags = ImGuiWindowFlags.NoDecoration |

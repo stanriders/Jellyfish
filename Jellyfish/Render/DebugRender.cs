@@ -132,7 +132,7 @@ public static class DebugRender
     {
         RenderScheduler.Schedule(() =>
         {
-            MeshManager.AddMesh(mesh, true);
+            Engine.MeshManager.AddMesh(mesh, true);
         });
     }
 }

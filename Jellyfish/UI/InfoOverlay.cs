@@ -22,7 +22,7 @@ public class InfoOverlay : IUiPanel
             _lastAverageFrametime = _lastFewFrametimes.Average();
             _lastFewFrametimes.Clear();
         }
-        _lastFewFrametimes.Add(MainWindow.Frametime);
+        _lastFewFrametimes.Add(Engine.Frametime);
 
         var windowFlags = ImGuiWindowFlags.NoDecoration |
               ImGuiWindowFlags.AlwaysAutoResize |
@@ -46,12 +46,12 @@ public class InfoOverlay : IUiPanel
             ImGui.Text(
                 $"FPS: {1.0 / _lastAverageFrametime:N0} (frametime: {_lastAverageFrametime * 1000.0:N4})");
 
-            if (MainWindow.Loaded)
+            if (Engine.Loaded)
             {
                 ImGui.Separator();
-                ImGui.Text($"Position: {Camera.Instance.Position:N4}");
+                ImGui.Text($"Position: {Engine.MainViewport.Position:N4}");
                 ImGui.Separator();
-                ImGui.Text($"Rotation: {Camera.Instance.Rotation.ToEulerAngles().ToDegrees():N2}");
+                ImGui.Text($"Rotation: {Engine.MainViewport.Rotation.ToEulerAngles().ToDegrees():N2}");
             }
 
             ImGui.Separator();
@@ -62,7 +62,7 @@ public class InfoOverlay : IUiPanel
             ImGui.SameLine();
             if (ImGui.Button("Quit"))
             {
-                MainWindow.ShouldQuit = true;
+                Engine.ShouldQuit = true;
             }
             ImGui.End();
         }

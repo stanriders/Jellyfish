@@ -25,7 +25,7 @@ namespace Jellyfish.UI
 
         public PerformancePanel()
         {
-            InputManager.RegisterInputHandler(this);
+            Engine.InputManager.RegisterInputHandler(this);
         }
 
         public unsafe void Frame(double timeElapsed)

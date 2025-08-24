@@ -70,7 +70,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
         CreateDeviceResources();
 
-        InputManager.RegisterInputHandler(this);
+        Engine.InputManager.RegisterInputHandler(this);
 
         ImGui.NewFrame();
         _frameBegun = true;
@@ -111,7 +111,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
         var io = ImGui.GetIO();
         io.DisplaySize = new Vector2(_windowWidth, _windowHeight);
-        io.DeltaTime = Math.Max(0.001f, (float)MainWindow.Frametime);
+        io.DeltaTime = Math.Max(0.001f, (float)Engine.Frametime);
 
         if (_frameBegun)
         {
@@ -143,7 +143,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
                 var mips = (int)Math.Floor(Math.Log(Math.Max(imTexture.Width, imTexture.Height), 2));
 
-                var (texture, alreadyExists) = TextureManager.GetTexture(id, TextureTarget.Texture2d, false);
+                var (texture, alreadyExists) = Engine.TextureManager.GetTexture(id, TextureTarget.Texture2d, false);
 
                 if (imTexture.Status == ImTextureStatus.WantCreate)
                 {
@@ -180,7 +180,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
                 }
                 if (imTexture.Status == ImTextureStatus.WantDestroy && imTexture.UnusedFrames > 0)
                 {
-                    TextureManager.RemoveTexture(texture);
+                    Engine.TextureManager.RemoveTexture(texture);
                     imTexture.SetTexID(ImTextureID.Null);
                     imTexture.SetStatus(ImTextureStatus.Destroyed);
                 }
@@ -425,14 +425,14 @@ public sealed class ImguiController : IDisposable, IInputHandler
         if (ImGuizmo.IsUsing())
         {
             _usingGizmo = true;
-            InputManager.CaptureInput(this);
+            Engine.InputManager.CaptureInput(this);
             return true;
         }
 
         if (_usingGizmo && !ImGuizmo.IsUsing())
         {
             _usingGizmo = false;
-            InputManager.ReleaseInput(this);
+            Engine.InputManager.ReleaseInput(this);
         }
 
         return io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput || ImGuizmo.IsOver();

@@ -102,7 +102,7 @@ public class EntityManager
             devCone.Think();
         }
 
-        if (!MainWindow.Paused)
+        if (!Engine.Paused)
         {
             foreach (var entity in _entityList)
                 entity.Think(frameTime);

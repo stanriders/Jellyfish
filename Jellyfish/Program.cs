@@ -15,7 +15,7 @@ public class Program
             .WriteTo.GameConsole()
             .CreateLogger();
 
-        using var game = new MainWindow();
+        using var game = new Engine();
         game.Run();
     }
 }

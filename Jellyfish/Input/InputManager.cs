@@ -1,5 +1,4 @@
 ﻿using OpenTK.Windowing.GraphicsLibraryFramework;
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Jellyfish.Debug;
@@ -12,38 +11,30 @@ public class InputManager
     private bool _inputCaptured;
     private IInputHandler? _capturer;
 
-    private static InputManager? instance;
+    public bool IsControllingCursor { get; set; }
 
-    public InputManager()
+    public void RegisterInputHandler(IInputHandler inputHandler)
     {
-        instance = this;
+         _inputHandlers.Add(inputHandler);
     }
 
-    public static void RegisterInputHandler(IInputHandler inputHandler)
+    public void UnregisterInputHandler(IInputHandler inputHandler)
     {
-        instance?._inputHandlers.Add(inputHandler);
+         _inputHandlers.Remove(inputHandler);
     }
 
-    public static void UnregisterInputHandler(IInputHandler inputHandler)
+    public void CaptureInput(IInputHandler inputHandler)
     {
-        instance?._inputHandlers.Remove(inputHandler);
+        _inputCaptured = true;
+        _capturer = inputHandler;
     }
 
-    public static void CaptureInput(IInputHandler inputHandler)
+    public void ReleaseInput(IInputHandler inputHandler)
     {
-        if (instance != null)
+        if (inputHandler == _capturer)
         {
-            instance._inputCaptured = true;
-            instance._capturer = inputHandler;
-        }
-    }
-
-    public static void ReleaseInput(IInputHandler inputHandler)
-    {
-        if (instance != null && inputHandler == instance._capturer)
-        {
-            instance._inputCaptured = false;
-            instance._capturer = null;
+             _inputCaptured = false;
+             _capturer = null;
         }
     }
 

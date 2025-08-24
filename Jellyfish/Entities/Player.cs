@@ -30,8 +30,8 @@ public class Player : BaseEntity, IInputHandler, IHaveFrustum
     {
         if (!ConVarStorage.Get<bool>("edt_enable"))
         {
-            Camera.Instance.Position = GetPropertyValue<Vector3>("Position") + new Vector3(0, height / 2, 0);
-            Camera.Instance.Rotation = GetPropertyValue<Quaternion>("Rotation");
+            Engine.MainViewport.Position = GetPropertyValue<Vector3>("Position") + new Vector3(0, height / 2, 0);
+            Engine.MainViewport.Rotation = GetPropertyValue<Quaternion>("Rotation");
         }
         else
         {
@@ -49,16 +49,16 @@ public class Player : BaseEntity, IInputHandler, IHaveFrustum
 
     public override void Load()
     {
-        _physCharacter = PhysicsManager.AddPlayerController(this, new BoxShape((BoundingBox!.Value.Size / 2).ToNumericsVector()));
-        InputManager.RegisterInputHandler(this);
+        _physCharacter = Engine.PhysicsManager.AddPlayerController(this, new BoxShape((BoundingBox!.Value.Size / 2).ToNumericsVector()));
+        Engine.InputManager.RegisterInputHandler(this);
 
         base.Load();
     }
 
     public override void Unload()
     {
-        PhysicsManager.RemovePlayerController();
-        InputManager.UnregisterInputHandler(this);
+        Engine.PhysicsManager.RemovePlayerController();
+        Engine.InputManager.UnregisterInputHandler(this);
 
         base.Unload();
     }
@@ -66,15 +66,15 @@ public class Player : BaseEntity, IInputHandler, IHaveFrustum
     public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
     {
         var editorMode = ConVarStorage.Get<bool>("edt_enable");
-        if (editorMode || MainWindow.Paused)
+        if (editorMode || Engine.Paused)
         {
-            Camera.Instance.IsControllingCursor = false;
+            Engine.InputManager.IsControllingCursor = false;
             return false;
         }
 
-        Camera.Instance.Yaw += mouseState.Delta.X * sensitivity;
-        Camera.Instance.Pitch -= mouseState.Delta.Y * sensitivity;
-        Camera.Instance.IsControllingCursor = true;
+        Engine.MainViewport.Yaw += mouseState.Delta.X * sensitivity;
+        Engine.MainViewport.Pitch -= mouseState.Delta.Y * sensitivity;
+        Engine.InputManager.IsControllingCursor = true;
 
         return PhysicsMove(keyboardState) || mouseState.Delta != Vector2.Zero;
     }
@@ -87,7 +87,7 @@ public class Player : BaseEntity, IInputHandler, IHaveFrustum
         SetPropertyValue("Position", _physCharacter.Position.ToOpentkVector());
 
         // apply gravity
-        _physCharacter.LinearVelocity += System.Numerics.Vector3.UnitY * PhysicsManager.GetGravity() * frameTime;
+        _physCharacter.LinearVelocity += System.Numerics.Vector3.UnitY * Engine.PhysicsManager.Gravity * frameTime;
 
         var groundVelocity = _physCharacter.LinearVelocity with { Y = 0 };
 
@@ -152,15 +152,15 @@ public class Player : BaseEntity, IInputHandler, IHaveFrustum
     {
         var cameraPosition = GetPropertyValue<Vector3>("Position") + new Vector3(0, height / 2, 0);
         var view = Matrix4.LookAt(cameraPosition, cameraPosition - Vector3.UnitZ, Vector3.UnitY);
-        return new Frustum(view * Camera.Instance.GetProjectionMatrix());
+        return new Frustum(view * Engine.MainViewport.GetProjectionMatrix());
     }
 
     private Vector3 GetMovementDirection(KeyboardState keyboardState)
     {
         var direction = Vector3.Zero;
 
-        var forward = Camera.Instance.Front;
-        var side = Camera.Instance.Right;
+        var forward = Engine.MainViewport.Front;
+        var side = Engine.MainViewport.Right;
 
         // forward 
         if (keyboardState.IsKeyDown(Keys.W))

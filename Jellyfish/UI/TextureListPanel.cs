@@ -16,7 +16,7 @@ public class TextureListPanel : IUiPanel, IInputHandler
 
     public TextureListPanel()
     {
-        InputManager.RegisterInputHandler(this);
+        Engine.InputManager.RegisterInputHandler(this);
     }
 
     public unsafe void Frame(double timeElapsed)
@@ -27,14 +27,14 @@ public class TextureListPanel : IUiPanel, IInputHandler
         if (!_isEnabled)
             return;
         
-        var textureCount = TextureManager.Textures.Count;
+        var textureCount = Engine.TextureManager.Textures.Count;
 
         if (ImGui.Begin("Texture list"))
         {
             ImGui.Text($"{textureCount} textures");
             for (int i = 0; i < textureCount; i++)
             {
-                var texture = TextureManager.Textures.ElementAt(i);
+                var texture = Engine.TextureManager.Textures.ElementAt(i);
                 ImGui.BeginGroup();
                 var expanded = _expandedTexture == i;
 

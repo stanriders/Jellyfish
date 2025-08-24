@@ -1,11 +1,11 @@
-﻿using ManagedBass;
+﻿using Jellyfish.Console;
+using Jellyfish.Render;
+using ManagedBass;
+using SteamAudio;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using Jellyfish.Console;
-using Jellyfish.Render;
-using SteamAudio;
 using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace Jellyfish.Audio
@@ -18,7 +18,6 @@ namespace Jellyfish.Audio
         private IPL.Hrtf _iplHrtf;
         private IPL.Scene _iplScene;
         private IPL.Simulator _iplSimulator;
-        private static AudioManager? instance;
 
         private readonly List<Sound> _sounds = new();
         private readonly List<IPL.StaticMesh> _meshes = new();
@@ -39,25 +38,20 @@ namespace Jellyfish.Audio
 
             var audioThread = new Thread(Run) { Name = "Audio thread" };
             audioThread.Start();
-
-            instance = this;
         }
 
-        public static Sound? AddSound(string path)
+        public Sound? AddSound(string path)
         {
-            if (instance == null)
-                return null;
-
             IPL.Source source = default;
 
-            IplRun(() => IPL.SourceCreate(instance._iplSimulator, new IPL.SourceSettings { Flags = IPL.SimulationFlags.Direct }, out source));
+            IplRun(() => IPL.SourceCreate(_iplSimulator, new IPL.SourceSettings { Flags = IPL.SimulationFlags.Direct }, out source));
             if (source != default)
             {
-                var sound = new Sound(path, source, instance._iplContext, instance._iplHrtf);
-                IPL.SourceAdd(source, instance._iplSimulator);
-                IPL.SimulatorCommit(instance._iplSimulator);
+                var sound = new Sound(path, source, _iplContext, _iplHrtf);
+                IPL.SourceAdd(source, _iplSimulator);
+                IPL.SimulatorCommit(_iplSimulator);
 
-                instance._sounds.Add(sound);
+                _sounds.Add(sound);
 
                 return sound;
             }
@@ -65,11 +59,8 @@ namespace Jellyfish.Audio
             return null;
         }
         
-        public static void AddMesh(Mesh mesh)
+        public void AddMesh(Mesh mesh)
         {
-            if (instance == null)
-                return;
-
             var transformationMatrix = mesh.GetTransformationMatrix();
             var tranformedVertices = mesh.Vertices.Select(meshVertex => Vector3.TransformPosition(meshVertex.Coordinates, transformationMatrix).ToIplVector()).ToList();
 
@@ -102,7 +93,7 @@ namespace Jellyfish.Audio
             fixed (IPL.Material* materials = materialsList)
             fixed (int* materialIndicies = Enumerable.Repeat(0, triangles.Count).ToArray())
             {
-                IPL.StaticMeshCreate(instance._iplScene, new IPL.StaticMeshSettings
+                IPL.StaticMeshCreate(_iplScene, new IPL.StaticMeshSettings
                 {
                     NumVertices = tranformedVertices.Count,
                     NumTriangles = triangles.Count,
@@ -113,10 +104,10 @@ namespace Jellyfish.Audio
                     Materials = (nint)materials
                 }, out var iplMesh);
 
-                IPL.StaticMeshAdd(iplMesh, instance._iplScene);
-                IPL.SceneCommit(instance._iplScene);
+                IPL.StaticMeshAdd(iplMesh, _iplScene);
+                IPL.SceneCommit(_iplScene);
 
-                instance._meshes.Add(iplMesh);
+                _meshes.Add(iplMesh);
             }
         }
 
@@ -211,7 +202,7 @@ namespace Jellyfish.Audio
                 if (_sounds.Count(x=> x.Playing) == 0)
                     continue;
 
-                var camera = Camera.Instance;
+                var camera = Engine.MainViewport;
 
                 var listener = new IPL.CoordinateSpace3
                 {

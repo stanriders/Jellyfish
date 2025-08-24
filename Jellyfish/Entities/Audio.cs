@@ -45,7 +45,7 @@ public class Audio : BaseEntity
             return;
         }
 
-        _handle = AudioManager.AddSound(path);
+        _handle = Engine.AudioManager.AddSound(path);
 
         if (_handle != null)
         {

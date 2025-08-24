@@ -36,7 +36,7 @@ public class Editor : IUiPanel, IInputHandler
 
     public Editor()
     {
-        InputManager.RegisterInputHandler(this);
+        Engine.InputManager.RegisterInputHandler(this);
     }
 
     public unsafe void Frame(double timeElapsed)
@@ -47,7 +47,7 @@ public class Editor : IUiPanel, IInputHandler
         if (EntityManager.Entities == null || EntityManager.EntityClasses == null)
             return;
 
-        if (!MainWindow.Loaded)
+        if (!Engine.Loaded)
             return;
 
         if (_selectedEntity?.MarkedForDeath ?? false)
@@ -72,7 +72,7 @@ public class Editor : IUiPanel, IInputHandler
                         {
                             if (ImGui.MenuItem(map))
                             {
-                                MainWindow.QueuedMap = map;
+                                Engine.QueuedMap = map;
                             }
                         }
                         
@@ -80,11 +80,11 @@ public class Editor : IUiPanel, IInputHandler
                     }
                     if (ImGui.MenuItem("Save", "Ctrl+S"))
                     {
-                        MapLoader.Save($"{MainWindow.CurrentMap}");
+                        MapLoader.Save($"{Engine.CurrentMap}");
                     }
                     if (ImGui.MenuItem("Close"))
                     {
-                        MainWindow.ShouldQuit = true;
+                        Engine.ShouldQuit = true;
                     }
                     ImGui.EndMenu();
                 }
@@ -222,8 +222,8 @@ public class Editor : IUiPanel, IInputHandler
 
         _usingGizmo = false;
 
-        fixed (float* view = Camera.Instance.GetViewMatrix().ToFloatArray())
-        fixed (float* proj = Camera.Instance.GetProjectionMatrix().ToFloatArray())
+        fixed (float* view = Engine.MainViewport.GetViewMatrix().ToFloatArray())
+        fixed (float* proj = Engine.MainViewport.GetProjectionMatrix().ToFloatArray())
         {
             ImGuizmo.SetID(_selectedEntity.GetHashCode());
 
@@ -337,8 +337,8 @@ public class Editor : IUiPanel, IInputHandler
 
             if (mouseState.IsButtonDown(MouseButton.Left))
             {
-                var screenspacePosition = new OpenTK.Mathematics.Vector2(mouseState.Position.X / MainWindow.WindowWidth, mouseState.Y / MainWindow.WindowHeight);
-                var ray = Camera.Instance.GetCameraToViewportRay(screenspacePosition);
+                var screenspacePosition = new OpenTK.Mathematics.Vector2(mouseState.Position.X / Engine.MainViewport.Size.X, mouseState.Y / Engine.MainViewport.Size.Y);
+                var ray = Engine.MainViewport.GetCameraToViewportRay(screenspacePosition);
 
                 _selectedEntity = Trace.IntersectsEntity(ray);
             }
@@ -349,15 +349,15 @@ public class Editor : IUiPanel, IInputHandler
             ConVarStorage.Set("edt_enable", !enabled);
 
             // unpause if going from editor to game mode
-            if (enabled && MainWindow.Paused)
+            if (enabled && Engine.Paused)
             {
-                MainWindow.Paused = false;
+                Engine.Paused = false;
             }
 
             // pause if going from game to editor mode
-            if (!enabled && !MainWindow.Paused)
+            if (!enabled && !Engine.Paused)
             {
-                MainWindow.Paused = true;
+                Engine.Paused = true;
             }
             return true;
         }
@@ -507,38 +507,38 @@ public class Editor : IUiPanel, IInputHandler
 
         if (mouseState.IsButtonDown(MouseButton.Right))
         {
-            var position = Camera.Instance.Position;
+            var position = Engine.MainViewport.Position;
 
             if (keyboardState.IsKeyDown(Keys.W))
-                position += Camera.Instance.Front * cameraSpeed * frameTime; // Forward 
+                position += Engine.MainViewport.Front * cameraSpeed * frameTime; // Forward 
             if (keyboardState.IsKeyDown(Keys.S))
-                position -= Camera.Instance.Front * cameraSpeed * frameTime; // Backwards
+                position -= Engine.MainViewport.Front * cameraSpeed * frameTime; // Backwards
             if (keyboardState.IsKeyDown(Keys.A))
-                position -= Camera.Instance.Right * cameraSpeed * frameTime; // Left
+                position -= Engine.MainViewport.Right * cameraSpeed * frameTime; // Left
             if (keyboardState.IsKeyDown(Keys.D))
-                position += Camera.Instance.Right * cameraSpeed * frameTime; // Right
+                position += Engine.MainViewport.Right * cameraSpeed * frameTime; // Right
             if (keyboardState.IsKeyDown(Keys.Space))
-                position += Camera.Instance.Up * cameraSpeed * frameTime; // Up 
+                position += Engine.MainViewport.Up * cameraSpeed * frameTime; // Up 
             if (keyboardState.IsKeyDown(Keys.LeftControl))
-                position -= Camera.Instance.Up * cameraSpeed * frameTime; // Down
+                position -= Engine.MainViewport.Up * cameraSpeed * frameTime; // Down
 
-            Camera.Instance.Position = position;
-            Camera.Instance.Yaw += mouseState.Delta.X * sensitivity;
-            Camera.Instance.Pitch -= mouseState.Delta.Y * sensitivity;
+            Engine.MainViewport.Position = position;
+            Engine.MainViewport.Yaw += mouseState.Delta.X * sensitivity;
+            Engine.MainViewport.Pitch -= mouseState.Delta.Y * sensitivity;
 
-            if (!Camera.Instance.IsControllingCursor)
+            if (!Engine.InputManager.IsControllingCursor)
             {
-                InputManager.CaptureInput(this);
-                Camera.Instance.IsControllingCursor = true;
+                Engine.InputManager.CaptureInput(this);
+                Engine.InputManager.IsControllingCursor = true;
             }
 
             return true;
         }
 
-        if (Camera.Instance.IsControllingCursor)
+        if (Engine.InputManager.IsControllingCursor)
         {
-            InputManager.ReleaseInput(this);
-            Camera.Instance.IsControllingCursor = false;
+            Engine.InputManager.ReleaseInput(this);
+            Engine.InputManager.IsControllingCursor = false;
         }
 
         return false;
