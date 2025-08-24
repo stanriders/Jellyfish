@@ -112,9 +112,17 @@ public class Editor : IUiPanel, IInputHandler
             ImGui.SetNextWindowBgAlpha(0.5f);
             if (ImGui.Begin("Editor params"))
             {
-                ImGui.Checkbox("Enable debug cones", ref ConVarStorage.GetConVar<bool>("edt_drawcones")!.Value);
-                ImGui.Checkbox("Show entity names", ref ConVarStorage.GetConVar<bool>("edt_drawnames")!.Value);
-                ImGui.Checkbox("Enable physics debug overlay", ref ConVarStorage.GetConVar<bool>("phys_debug")!.Value);
+                var cones = ConVarStorage.Get<bool>("edt_drawcones");
+                ImGui.Checkbox("Enable debug cones", ref cones);
+                ConVarStorage.Set("edt_drawcones", cones);
+
+                var drawnames = ConVarStorage.Get<bool>("edt_drawnames");
+                ImGui.Checkbox("Show entity names", ref drawnames);
+                ConVarStorage.Set("edt_drawnames", drawnames);
+
+                var physdebug = ConVarStorage.Get<bool>("phys_debug");
+                ImGui.Checkbox("Enable physics debug overlay", ref physdebug);
+                ConVarStorage.Set("phys_debug", physdebug);
             }
 
             ImGui.End();

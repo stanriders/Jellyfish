@@ -9,6 +9,8 @@ public static class ConVarStorage
 {
     private static readonly Dictionary<string, IConVar> ConVars = new();
 
+    public static IReadOnlyList<string> ConVarNames => ConVars.Keys.ToList();
+
     static ConVarStorage()
     {
         var panels = Assembly.GetExecutingAssembly()
@@ -52,6 +54,14 @@ public static class ConVarStorage
         return convar as ConVar<T>;
     }
 
+    public static IConVar? GetConVar(string name)
+    {
+        if (string.IsNullOrEmpty(name))
+            return null;
+
+        return ConVars.GetValueOrDefault(name);
+    }
+
     public static void Set<T>(string name, T value) where T : notnull
     {
         if (string.IsNullOrEmpty(name))
@@ -61,5 +71,16 @@ public static class ConVarStorage
             return;
 
         (convar as ConVar<T>)!.Value = value;
+    }
+
+    public static void Set(string name, object value)
+    {
+        if (string.IsNullOrEmpty(name))
+            return;
+
+        if (!ConVars.TryGetValue(name, out var convar))
+            return;
+
+        convar.UntypedValue = value;
     }
 }
