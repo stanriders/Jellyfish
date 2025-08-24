@@ -232,9 +232,7 @@ namespace Jellyfish
 
             UpdateLoadingScreen("Creating player...");
 
-            var player = EntityManager.FindEntity("player");
-            if (player == null)
-                player = EntityManager.CreateEntity("player");
+            var player = EntityManager.FindEntity("player") ?? EntityManager.CreateEntity("player");
 
             _viewport.Position = player?.GetPropertyValue<Vector3>("Position") ?? Vector3.Zero;
 

@@ -224,18 +224,32 @@ public class Editor : IUiPanel, IInputHandler
 
         fixed (float* view = Engine.MainViewport.GetViewMatrix().ToFloatArray())
         fixed (float* proj = Engine.MainViewport.GetProjectionMatrix().ToFloatArray())
+        fixed (float* snap = new[] { 0.1f, 0.1f, 0.1f })
         {
             ImGuizmo.SetID(_selectedEntity.GetHashCode());
 
-            var hasScale = _selectedEntity.CanEditProperty("Scale") || _selectedEntity.CanEditProperty("Size");
+            var hasScale = _selectedEntity.CanEditProperty("Scale");
+            var hasSize = _selectedEntity.CanEditProperty("Size");
             var hasRotation = _selectedEntity.CanEditProperty("Rotation");
+
+            var sizeType = _selectedEntity.EntityProperties.SingleOrDefault(x => x.Name == "Size")?.Type;
+
+            var sizeValue = Vector3.One;
+            if (sizeType == typeof(Vector3))
+                sizeValue = _selectedEntity.GetPropertyValue<Vector3>("Size");
+            else if (sizeType == typeof(OpenTK.Mathematics.Vector2))
+                sizeValue = new Vector3(_selectedEntity.GetPropertyValue<OpenTK.Mathematics.Vector2>("Size"), 1f);
 
             var entityRotation = hasRotation
                 ? Matrix4.CreateFromQuaternion(_selectedEntity.GetPropertyValue<Quaternion>("Rotation"))
                 : Matrix4.Identity;
-            var entityScale = hasScale
-                ? Matrix4.CreateScale(_selectedEntity.GetPropertyValue<Vector3>("Scale"))
-                : Matrix4.Identity;
+
+            var entityScale = hasSize 
+                ? Matrix4.CreateScale(sizeValue) 
+                : hasScale
+                    ? Matrix4.CreateScale(_selectedEntity.GetPropertyValue<Vector3>("Scale"))
+                    : Matrix4.Identity;
+
             var entityTransform = entityScale * entityRotation *
                                   Matrix4.CreateTranslation(
                                       _selectedEntity.GetPropertyValue<Vector3>("Position"));
@@ -245,9 +259,6 @@ public class Editor : IUiPanel, IInputHandler
             {
                 ImGuizmo.Enable(true);
 
-                ImGuizmo.DrawCubes(ref Unsafe.AsRef<float>(view), ref Unsafe.AsRef<float>(proj),
-                    ref Unsafe.AsRef<float>(transformArrayPinned), 1);
-
                 var operations = ImGuizmoOperation.Translate;
                 if (hasRotation)
                     operations |= ImGuizmoOperation.Rotate;
@@ -256,15 +267,33 @@ public class Editor : IUiPanel, IInputHandler
 
                 ImGuizmo.SetID(0);
                 if (ImGuizmo.Manipulate(ref Unsafe.AsRef<float>(view), ref Unsafe.AsRef<float>(proj),
-                        operations, ImGuizmoMode.Local,
-                        ref Unsafe.AsRef<float>(transformArrayPinned)))
+                        operations, ImGuizmoMode.World,
+                        ref Unsafe.AsRef<float>(transformArrayPinned),
+                        null,
+                        ref Unsafe.AsRef<float>(snap)))
                 {
                     _usingGizmo = true;
                     _selectedEntity.SetPropertyValue("Position",
                         transformArray.ToMatrix().ExtractTranslation());
-                    _selectedEntity.SetPropertyValue("Rotation",
-                        transformArray.ToMatrix().ExtractRotation());
-                    _selectedEntity.SetPropertyValue("Scale", transformArray.ToMatrix().ExtractScale());
+
+                    if (hasRotation)
+                    {
+                        _selectedEntity.SetPropertyValue("Rotation",
+                            transformArray.ToMatrix().ExtractRotation());
+                    }
+
+                    if (hasSize)
+                    {
+                        var newSize = transformArray.ToMatrix().ExtractScale();
+                        if (sizeType == typeof(Vector3))
+                            _selectedEntity.SetPropertyValue("Size", newSize);
+                        else if (sizeType == typeof(OpenTK.Mathematics.Vector2))
+                            _selectedEntity.SetPropertyValue("Size", new OpenTK.Mathematics.Vector2(newSize.X, newSize.Y));
+                    }
+                    else if (hasScale)
+                    {
+                        _selectedEntity.SetPropertyValue("Scale", transformArray.ToMatrix().ExtractScale());
+                    }
 
                     if (_selectedEntity is IPhysicsEntity physicsEntity)
                     {
@@ -300,7 +329,9 @@ public class Editor : IUiPanel, IInputHandler
                             if (ImGuizmo.Manipulate(ref Unsafe.AsRef<float>(view),
                                     ref Unsafe.AsRef<float>(proj),
                                     ImGuizmoOperation.Translate, ImGuizmoMode.World,
-                                    ref Unsafe.AsRef<float>(propertyTransformArrayPinned)))
+                                    ref Unsafe.AsRef<float>(propertyTransformArrayPinned),
+                                    null,
+                                    snap))
                             {
                                 _usingGizmo = true;
                                 arr[Array.IndexOf(arr, point)] =
