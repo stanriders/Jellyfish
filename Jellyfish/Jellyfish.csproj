@@ -37,6 +37,7 @@
 		<PackageReference Include="AssimpNet" Version="5.0.0-beta1" />
 		<PackageReference Include="Hexa.NET.ImGuizmo" Version="2.2.8.4" />
 		<PackageReference Include="Hexa.NET.ImPlot" Version="2.2.8.4" />
+		<PackageReference Include="JoltPhysics.Native" Version="1.0.0" />
 		<PackageReference Include="JoltPhysicsSharp" Version="2.18.2" />
 		<PackageReference Include="ManagedBass" Version="4.0.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
