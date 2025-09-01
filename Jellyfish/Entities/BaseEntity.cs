@@ -100,7 +100,8 @@ public abstract class BaseEntity
 
     public bool SetPropertyValue<T>(string name, T value)
     {
-        if (!CanEditProperty(name))
+        // allow editing all properties of unloaded entities
+        if (Loaded && !CanEditProperty(name))
             return false;
 
         var property = GetProperty<T>(name);
