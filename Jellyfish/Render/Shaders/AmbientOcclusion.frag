@@ -1,4 +1,5 @@
 ﻿#version 460
+#include CommonFrag.frag
 
 layout(binding=0) uniform sampler2D depthSampler;
 layout(binding=1) uniform sampler2D normalSampler;
@@ -26,19 +27,6 @@ out vec4 FragColor;
 #define BFGTAO_IASPECT       vec2(1.0, BFGTAO_RES.x / BFGTAO_RES.y)
 #define BFGTAO_SAT(x)        clamp((x), 0.0, 1.0)
 
-float BFGTAO_LinearizeDepthFromHardware(float z01)
-{
-    float n = BFGTAO_Near;
-    float f = BFGTAO_Far;
-    float z = z01 * 2.0 - 1.0;
-    return (2.0 * n * f) / (f + n - z * (f - n));
-}
-
-float BFGTAO_GetDepth(vec2 uv)
-{
-    return BFGTAO_LinearizeDepthFromHardware(texture(depthSampler, uv).r) / BFGTAO_Far;
-}
-
 float BFGTAO_FL_INV()
 {
     return 1.0 / tan(0.5 * radians(BFGTAO_FovYDegrees));
@@ -50,13 +38,6 @@ vec3 BFGTAO_GetEyePos(vec2 uv, float z)
     vec3  m  = vec3(fl / BFGTAO_IASPECT, (BFGTAO_Far / (BFGTAO_Far - 1.0)));
     vec3  xyz = vec3(2.0 * uv - 1.0, 1.0);
     return (z * BFGTAO_Far + 1.0) * xyz * m;
-}
-
-vec3 BFGTAO_GetNormal(vec2 uv)
-{
-    vec3 normal = textureLod(normalSampler, uv, 0.0).xyz;
-    normal.z *= -1f; // opengl is Special
-    return normalize(normal);
 }
 
 const int BFGTAO_RAYQUALITY[4]  = int[4](2, 2, 4, 4);
@@ -103,7 +84,7 @@ vec2 BFGTAO_TraceSliceBF(
         /*float samD = (o < 1.0)
                    ? BFGTAO_GetDepth(round(nxy * BFGTAO_RES) / BFGTAO_RES)
                    : BFGTAO_SampleDepth(nxy, 0.0);*/
-        float samD = BFGTAO_GetDepth(round(nxy * BFGTAO_RES) / BFGTAO_RES);
+        float samD = GetDepth(depthSampler, round(nxy * BFGTAO_RES) / BFGTAO_RES, BFGTAO_Near, BFGTAO_Far);
 
         vec3 samPos = BFGTAO_GetEyePos(nxy, samD * 1.001);
         vec3 tv     = samPos - verPos;
@@ -176,12 +157,12 @@ float BFGTAO_ComputeAO(vec2 uv, ivec2 fragCoord)
     ivec2 pp = ivec2(fragCoord.x % 5, fragCoord.y % 5);
     float dir = Bayer5[pp.x + 5 * pp.y];
 
-    float d = BFGTAO_GetDepth(uv);
+    float d = GetDepth(depthSampler, uv, BFGTAO_Near, BFGTAO_Far);
     if (d > 0.99) return 1.0; // sky / no geometry
 
     vec3 verPos = BFGTAO_GetEyePos(uv, d);
     float vl    = length(verPos);
-    vec3 normal = BFGTAO_GetNormal(uv);
+    vec3 normal = GetNormal(normalSampler, uv);
     vec3 viewV  = -verPos / max(vl, 1e-6);
 
     vec2 noise = vec2(dir, BFGTAO_Bayer(uvec2(fragCoord), 3u));
