@@ -21,8 +21,15 @@ public class GBuffer
                 ? SizedInternalFormat.Rgba16f
                 : SizedInternalFormat.Rgb16f;
 
-            _renderTargets.Add(new RenderTarget($"_rt_{(GBufferType)i}", Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y, format, FramebufferAttachment.ColorAttachment0 + i, 
-                TextureWrapMode.ClampToEdge));
+            _renderTargets.Add(new RenderTarget(new RenderTargetParams
+            {
+                Name = $"_rt_{(GBufferType)i}",
+                Width = Engine.MainViewport.Size.X,
+                Heigth = Engine.MainViewport.Size.Y,
+                InternalFormat = format,
+                Attachment = FramebufferAttachment.ColorAttachment0 + i,
+                WrapMode = TextureWrapMode.ClampToEdge
+            }));
         }
 
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2d, depthRenderTarget.TextureHandle, 0);

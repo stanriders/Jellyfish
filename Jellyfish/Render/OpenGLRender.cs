@@ -71,8 +71,26 @@ public class OpenGLRender : IRender, IInputHandler
         _mainFramebuffer = new FrameBuffer();
         _mainFramebuffer.Bind();
 
-        _colorRenderTarget = new RenderTarget("_rt_Color", Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y, SizedInternalFormat.Rgb16f, FramebufferAttachment.ColorAttachment0, TextureWrapMode.ClampToEdge, levels: 11);
-        _depthRenderTarget = new RenderTarget("_rt_Depth", Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y, SizedInternalFormat.DepthComponent24, FramebufferAttachment.DepthAttachment, TextureWrapMode.ClampToEdge);
+        _colorRenderTarget = new RenderTarget(new RenderTargetParams
+        {
+            Name = "_rt_Color",
+            Width = Engine.MainViewport.Size.X,
+            Heigth = Engine.MainViewport.Size.Y,
+            InternalFormat = SizedInternalFormat.Rgb16f,
+            Attachment = FramebufferAttachment.ColorAttachment0,
+            WrapMode = TextureWrapMode.ClampToEdge,
+            Levels = 11
+        });
+
+        _depthRenderTarget = new RenderTarget(new RenderTargetParams
+        {
+            Name = "_rt_Depth",
+            Width = Engine.MainViewport.Size.X,
+            Heigth = Engine.MainViewport.Size.Y,
+            InternalFormat = SizedInternalFormat.DepthComponent24,
+            Attachment = FramebufferAttachment.DepthAttachment,
+            WrapMode = TextureWrapMode.ClampToEdge
+        });
 
         if (!_mainFramebuffer.Check())
         {

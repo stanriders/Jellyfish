@@ -4,45 +4,60 @@ using System;
 
 namespace Jellyfish.Render;
 
+public class RenderTargetParams
+{
+    public required string Name { get; set; }
+    public required int Width { get; set; }
+    public required int Heigth { get; set; }
+    public required SizedInternalFormat InternalFormat { get; set; }
+    public required FramebufferAttachment Attachment { get; set; }
+    public required TextureWrapMode WrapMode { get; set; }
+    public float[]? BorderColor { get; set; } = null;
+    public bool EnableCompare { get; set; } = false;
+    public int Levels { get; set; } = 1;
+    public TextureMinFilter Filtering { get; set; } = TextureMinFilter.Nearest;
+    public TextureTarget TextureType { get; set; } = TextureTarget.Texture2d;
+}
+
 public class RenderTarget
 {
     public readonly int TextureHandle;
-    public readonly Vector2 Size;
-    public readonly int Levels;
+    public readonly int ClampedLevels;
+    public readonly RenderTargetParams Params;
     private readonly Texture _texture;
 
-    public RenderTarget(string name, int width, int heigth, SizedInternalFormat internalFormat, FramebufferAttachment attachment, TextureWrapMode wrapMode, float[]? borderColor = null, bool enableCompare = false, int levels = 1, TextureMinFilter filtering = TextureMinFilter.Nearest)
+    public RenderTarget(RenderTargetParams rtParams)
     {
-        Size = new Vector2(width, heigth);
-        Levels = Math.Clamp(Math.Min(width, heigth) / 64, 1, levels);
+        Params = rtParams;
+        ClampedLevels = Math.Clamp(Math.Min(rtParams.Width, rtParams.Heigth) / 64, 1, rtParams.Levels);
 
-        _texture = Engine.TextureManager.GetTexture(name, TextureTarget.Texture2d, false).Texture;
+        _texture = Engine.TextureManager.GetTexture(rtParams.Name, rtParams.TextureType, false).Texture;
         TextureHandle = _texture.Handle;
-        GL.BindTexture(TextureTarget.Texture2d, TextureHandle);
+        GL.BindTexture(rtParams.TextureType, TextureHandle);
 
-        GL.TextureStorage2D(TextureHandle, Levels, internalFormat, width, heigth);
-        GL.TextureParameteri(TextureHandle, TextureParameterName.TextureMinFilter, new[] { (int)filtering });
-        GL.TextureParameteri(TextureHandle, TextureParameterName.TextureMagFilter, new[] { (int)filtering });
-        GL.TextureParameteri(TextureHandle, TextureParameterName.TextureWrapS, new[] { (int)wrapMode });
-        GL.TextureParameteri(TextureHandle, TextureParameterName.TextureWrapT, new[] { (int)wrapMode });
+        GL.TextureStorage2D(TextureHandle, ClampedLevels, rtParams.InternalFormat, rtParams.Width, rtParams.Heigth);
+        GL.TextureParameteri(TextureHandle, TextureParameterName.TextureMinFilter, new[] { (int)rtParams.Filtering });
+        GL.TextureParameteri(TextureHandle, TextureParameterName.TextureMagFilter, new[] { (int)rtParams.Filtering });
+        GL.TextureParameteri(TextureHandle, TextureParameterName.TextureWrapS, new[] { (int)rtParams.WrapMode });
+        GL.TextureParameteri(TextureHandle, TextureParameterName.TextureWrapT, new[] { (int)rtParams.WrapMode });
 
-        if (enableCompare)
+        if (rtParams.EnableCompare)
         {
             GL.TextureParameteri(TextureHandle, TextureParameterName.TextureCompareMode, (int)TextureCompareMode.CompareRefToTexture);
             GL.TextureParameteri(TextureHandle, TextureParameterName.TextureCompareFunc, (int)DepthFunction.Lequal);
         }
 
-        if (borderColor != null)
+        if (rtParams.BorderColor != null)
         {
-            GL.TextureParameterf(TextureHandle, TextureParameterName.TextureBorderColor, borderColor);
+            GL.TextureParameterf(TextureHandle, TextureParameterName.TextureBorderColor, rtParams.BorderColor);
         }
 
-        GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, attachment, TextureTarget.Texture2d, TextureHandle, 0);
+        GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, rtParams.Attachment, rtParams.TextureType, TextureHandle, 0);
 
-        GL.BindTexture(TextureTarget.Texture2d, 0);
+        GL.BindTexture(rtParams.TextureType, 0);
 
-        _texture.Levels = Levels;
-        _texture.Format = internalFormat.ToString();
+        _texture.Levels = ClampedLevels;
+        _texture.Format = rtParams.InternalFormat.ToString();
     }
 
     public void Bind(uint unit)

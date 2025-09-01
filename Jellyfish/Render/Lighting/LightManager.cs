@@ -143,8 +143,16 @@ public static class LightManager
 
         var shader = new Shadow(light.Source, light.Shadows.Count);
 
-        var rt = new RenderTarget($"_rt_Shadow{lights.IndexOf(light)}{subname}", light.Source.ShadowResolution, light.Source.ShadowResolution, 
-            SizedInternalFormat.DepthComponent32f, FramebufferAttachment.DepthAttachment, TextureWrapMode.ClampToBorder, [1f, 1f, 1f, 1f]);
+        var rt = new RenderTarget(new RenderTargetParams
+        {
+            Name = $"_rt_Shadow{lights.IndexOf(light)}{subname}",
+            Width = light.Source.ShadowResolution,
+            Heigth = light.Source.ShadowResolution,
+            InternalFormat = SizedInternalFormat.DepthComponent32f,
+            Attachment = FramebufferAttachment.DepthAttachment,
+            WrapMode = TextureWrapMode.ClampToBorder,
+            BorderColor = [1f, 1f, 1f, 1f]
+        });
 
         GL.BindTexture(TextureTarget.Texture2d, rt.TextureHandle);
 

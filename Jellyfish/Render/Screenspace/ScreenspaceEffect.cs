@@ -1,5 +1,4 @@
 ﻿using Jellyfish.Debug;
-using Jellyfish.Input;
 using Jellyfish.Render.Buffers;
 using Jellyfish.Utils;
 using OpenTK.Graphics.OpenGL;
@@ -21,8 +20,15 @@ public abstract class ScreenspaceEffect
         Buffer = new FrameBuffer();
         Buffer.Bind();
 
-        RenderTarget = new RenderTarget($"_rt_{rtName}", Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y,
-            format, FramebufferAttachment.ColorAttachment0, TextureWrapMode.ClampToEdge);
+        RenderTarget = new RenderTarget(new RenderTargetParams
+        {
+            Name = $"_rt_{rtName}",
+            Width = Engine.MainViewport.Size.X,
+            Heigth = Engine.MainViewport.Size.Y,
+            InternalFormat = format,
+            Attachment = FramebufferAttachment.ColorAttachment0,
+            WrapMode = TextureWrapMode.ClampToEdge
+        });
 
         GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
 
