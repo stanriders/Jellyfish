@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using Jellyfish.Render;
 using JoltPhysicsSharp;
 using OpenTK.Mathematics;
@@ -40,7 +39,7 @@ public class Plane : BaseModelEntity, IPhysicsEntity
         if (mesh == null)
             return;
 
-        Model = new Model(mesh)
+        Model = new Model($"plane_flat_{GetPropertyValue<string>("Name")}", mesh, [])
         {
             Position = GetPropertyValue<Vector3>("Position"),
             Rotation = GetPropertyValue<Quaternion>("Rotation")
@@ -79,7 +78,7 @@ public class Plane : BaseModelEntity, IPhysicsEntity
             return null;
         }
 
-        return new Mesh("plane_flat", GenerateVertices(), texture: $"materials/{textureProperty}");
+        return new Mesh($"plane_flat_{GetPropertyValue<string>("Name")}", GenerateVertices(), texture: $"materials/{textureProperty}");
     }
 
     private List<Vertex> GenerateVertices()

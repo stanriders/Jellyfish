@@ -20,12 +20,10 @@ public abstract class BaseModelEntity : BaseEntity
     {
         if (!string.IsNullOrEmpty(ModelPath) && Path.Exists(ModelPath))
         {
-            Model = new Model(ModelPath)
-            {
-                Position = GetPropertyValue<Vector3>("Position"),
-                Rotation = GetPropertyValue<Quaternion>("Rotation"),
-                Scale = GetPropertyValue<Vector3>("Scale")
-            };
+            Model = ModelParser.Parse(ModelPath);
+            Model.Position = GetPropertyValue<Vector3>("Position");
+            Model.Rotation = GetPropertyValue<Quaternion>("Rotation");
+            Model.Scale = GetPropertyValue<Vector3>("Scale");
         }
 
         base.Load();

@@ -45,7 +45,7 @@ public class Box : BaseModelEntity, IPhysicsEntity
         if (mesh == null)
             return;
 
-        Model = new Model(mesh)
+        Model = new Model($"box_{GetPropertyValue<string>("Name")}", mesh, [])
         {
             Position = GetPropertyValue<Vector3>("Position"),
             Rotation = GetPropertyValue<Quaternion>("Rotation")
@@ -84,7 +84,7 @@ public class Box : BaseModelEntity, IPhysicsEntity
             return null;
         }
 
-        return new Mesh("box", GenerateVertices(), texture: $"materials/{textureProperty}");
+        return new Mesh($"box_{GetPropertyValue<string>("Name")}", GenerateVertices(), texture: $"materials/{textureProperty}");
     }
 
     private List<Vertex> GenerateVertices()

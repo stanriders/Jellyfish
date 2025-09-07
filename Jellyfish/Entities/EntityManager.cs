@@ -215,7 +215,7 @@ public class EntityManager
         public EntityDevCone(BaseEntity entity)
         {
             Entity = entity;
-            _model = new Model("models/spot_reference.smd", true);
+            _model = ModelParser.Parse("models/spot_reference.smd", true);
         }
 
         public void Think()

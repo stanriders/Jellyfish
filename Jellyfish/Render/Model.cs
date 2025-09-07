@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Jellyfish.Console;
 using Jellyfish.Utils;
@@ -7,8 +6,53 @@ using OpenTK.Mathematics;
 
 namespace Jellyfish.Render;
 
+public struct Bone
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = null!;
+    public int? Parent { get; set; } = null;
+
+    public override string ToString() => $"{Id} - {Name}";
+
+    public Bone()
+    {
+    }
+}
+
+public struct Keyframe<T>
+{
+    public double Time;   // in seconds
+    public T Value;
+
+    public Keyframe(double time, T value)
+    {
+        Time = time;
+        Value = value;
+    }
+}
+
+public class BoneAnimation
+{
+    public string BoneName { get; set; } = null!;
+
+    public List<Keyframe<Vector3>> PositionKeys { get; set; } = new();
+    public List<Keyframe<Quaternion>> RotationKeys { get; set; } = new();
+    public List<Keyframe<Vector3>> ScalingKeys { get; set; } = new();
+}
+
+public class AnimationClip
+{
+    public string Name { get; set; } = null!;
+    public double Duration { get; set; } // seconds
+    public List<BoneAnimation> BoneAnimations { get; set; } = new();
+}
+
 public class Model
 {
+    public string Name { get; set; }
+    public List<AnimationClip> Animations { get; private set; } = new();
+    public List<Bone> Bones { get; private set; } = new();
+
     private readonly List<Mesh> _meshes = new();
     private bool _shouldDraw = true;
     public IReadOnlyList<Mesh> Meshes => _meshes.AsReadOnly();
@@ -26,31 +70,38 @@ public class Model
         }
     }
 
-    public Model(string path, bool isDev = false)
+    public Model(string name, List<Mesh> meshes, List<Bone> bones, List<AnimationClip> animations, bool isDev = false)
     {
-        Log.Context(this).Information("Loading model {Path}...", path);
+        Name = name;
 
-        var meshParts = ModelParser.Parse(path);
-        if (meshParts.Length <= 0)
+        if (meshes.Count <= 0)
         {
             Log.Context(this).Error("Failed to create Model!");
             return;
         }
 
-        foreach (var meshPart in meshParts)
+        foreach (var meshPart in meshes)
         {
+            meshPart.Model = this;
             meshPart.IsDev = isDev;
             _meshes.Add(meshPart);
         }
+
+        Animations = animations;
+        Bones = bones;
 
         foreach (var mesh in _meshes)
             Engine.MeshManager.AddMesh(mesh);
     }
 
-    public Model(Mesh mesh, bool isDev = false)
+    public Model(string name, Mesh mesh, List<Bone> bones, bool isDev = false)
     {
+        Name = name;
+        Bones = bones;
+
         mesh.IsDev = isDev;
         _meshes.Add(mesh);
+
         Engine.MeshManager.AddMesh(mesh);
     }
 

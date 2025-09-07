@@ -1,27 +1,14 @@
 ﻿using Assimp.Unmanaged;
+using Jellyfish.Debug;
 using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Shaders.Deferred;
 using Jellyfish.Utils;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using System.Collections.Generic;
-using System.IO;
-using Jellyfish.Debug;
 
 namespace Jellyfish.Render;
 
-public struct Bone
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = null!;
-    public int? Parent { get; set; } = null;
-
-    public override string ToString() => $"{Id} - {Name}";
-
-    public Bone()
-    {
-    }
-}
 
 public struct BoneLink
 {
@@ -47,6 +34,7 @@ public struct Vertex
 
 public class Mesh
 {
+    private readonly string? _texture;
     private IndexBuffer? _ibo;
     private VertexArray _vao = null!;
     private VertexBuffer _vbo = null!;
@@ -61,9 +49,9 @@ public class Mesh
     public string Name { get; set; }
     public bool ShouldDraw { get; set; } = true;
     public bool IsDev { get; set; }
+    public Model? Model { get; set; }
     public Material? Material { get; private set; }
     public List<Vertex> Vertices { get; private set; }
-    public List<Bone> Bones { get; private set; }
     public List<uint>? Indices { get; private set; }
     public override string ToString() => Name;
 
@@ -79,18 +67,18 @@ public class Mesh
         }
     }
 
-    public Mesh(string name, List<Vertex>? vertices = null, List<uint>? indices = null, List<Bone>? bones = null, string? texture = null)
+    public Mesh(string name, List<Vertex>? vertices = null, List<uint>? indices = null, string? texture = null, Model? model = null)
     {
+        _texture = texture;
+        Model = model;
         Name = name;
         Vertices = vertices ?? [];
         Indices = indices;
-        Bones = bones ?? [];
-
-        AddMaterial(texture);
     }
 
     public void Load()
     {
+        AddMaterial(_texture);
         CreateBuffers();
     }
 
@@ -99,7 +87,7 @@ public class Mesh
 
     protected void AddMaterial(string? path)
     {
-        Material = new Material(path, Name);
+        Material = new Material(path, Model != null ? Model.Name : Name);
         _shader = Material.Shader;
         _gBufferShader = new GeometryPass(Material);
     }
@@ -176,11 +164,14 @@ public class Mesh
         var rotation = Matrix4.Identity * Matrix4.CreateFromQuaternion(Rotation);
         drawShader.SetMatrix4("rotation", rotation);
 
-        drawShader.SetInt("boneCount", Bones.Count);
-
-        for (var i = 0; i < Bones.Count; i++)
+        if (Model != null)
         {
-            drawShader.SetMatrix4($"bones[{i}]", Matrix4.Identity);
+            drawShader.SetInt("boneCount", Model.Bones.Count);
+
+            for (var i = 0; i < Model.Bones.Count; i++)
+            {
+                drawShader.SetMatrix4($"bones[{i}]", Matrix4.Identity);
+            }
         }
 
         if (_ibo != null)

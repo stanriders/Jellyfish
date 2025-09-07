@@ -43,9 +43,9 @@ public class BezierPlane : BaseModelEntity, IPhysicsEntity
             return;
         }
 
-        var mesh = new Mesh("randombezierplane", GenerateBezierPlane(), GenerateGridIndices(), texture: texture);
+        var mesh = new Mesh($"plane_bezier_{GetPropertyValue<string>("Name")}", GenerateBezierPlane(), GenerateGridIndices(), texture: texture);
 
-        Model = new Model(mesh)
+        Model = new Model($"plane_bezier_{GetPropertyValue<string>("Name")}", mesh, [])
         {
             Position = GetPropertyValue<Vector3>("Position"),
             Rotation = GetPropertyValue<Quaternion>("Rotation")
