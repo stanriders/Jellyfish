@@ -10,16 +10,19 @@ void main(void)
 {
     frag_texCoord = aTexCoord;
 
-    vec4 transformedNormal = rotation * vec4(aNormal, 1.0);
-    frag_normal = transformedNormal.xyz;
-
-    vec4 transformedPosition = transform * rotation * vec4(aPosition, 1.0);
+    vec4 localNormal = vec4(aNormal, 1.0);
+    vec4 localPosition = vec4(aPosition, 1.0);
     if (boneCount > 0)
     {
-        transformedPosition = boneTransform() * transformedPosition;
+        localPosition = boneTransform() * localPosition;
+        localNormal = boneTransform() * localNormal;
     }
+    
+    vec4 transformedNormal = rotation * localNormal;
+    vec4 transformedPosition = transform * rotation * localPosition;
 
     frag_position = transformedPosition.xyz;
+    frag_normal = transformedNormal.xyz;
     
     gl_Position = projection * view * transformedPosition;
     frag_clipspaceZ = gl_Position.z;

@@ -11,6 +11,7 @@ public struct Bone
     public int Id { get; set; }
     public string Name { get; set; } = null!;
     public int? Parent { get; set; } = null;
+    public Matrix4 OffsetMatrix { get; set; }
 
     public override string ToString() => $"{Id} - {Name}";
 
@@ -53,6 +54,8 @@ public class Model
     public List<AnimationClip> Animations { get; private set; } = new();
     public List<Bone> Bones { get; private set; } = new();
 
+    public ModelAnimator? Animator { get; }
+
     private readonly List<Mesh> _meshes = new();
     private bool _shouldDraw = true;
     public IReadOnlyList<Mesh> Meshes => _meshes.AsReadOnly();
@@ -92,6 +95,8 @@ public class Model
 
         foreach (var mesh in _meshes)
             Engine.MeshManager.AddMesh(mesh);
+
+        Animator = new ModelAnimator(this);
     }
 
     public Model(string name, Mesh mesh, List<Bone> bones, bool isDev = false)

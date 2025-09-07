@@ -14,6 +14,7 @@ public abstract class BaseModelEntity : BaseEntity
     protected BaseModelEntity() : base()
     {
         AddProperty("Scale", Vector3.One, changeCallback: OnScaleChanged);
+        AddAction("Play Animation", () => { Model?.Animator?.Play(Model.Animations[0]);});
     }
 
     public override void Load()
@@ -27,6 +28,12 @@ public abstract class BaseModelEntity : BaseEntity
         }
 
         base.Load();
+    }
+
+    public override void Think(float frameTime)
+    {
+        Model?.Animator?.Update(frameTime);
+        base.Think(frameTime);
     }
 
     public override void Unload()

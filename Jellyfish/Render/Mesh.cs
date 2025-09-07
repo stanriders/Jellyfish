@@ -1,5 +1,4 @@
-﻿using Assimp.Unmanaged;
-using Jellyfish.Debug;
+﻿using Jellyfish.Debug;
 using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Shaders.Deferred;
 using Jellyfish.Utils;
@@ -166,12 +165,26 @@ public class Mesh
 
         if (Model != null)
         {
-            drawShader.SetInt("boneCount", Model.Bones.Count);
-
-            for (var i = 0; i < Model.Bones.Count; i++)
+            if (Model.Animator?.CurrentClip != null)
             {
-                drawShader.SetMatrix4($"bones[{i}]", Matrix4.Identity);
+                var boneMatrices = Model.Animator.FinalBoneMatrices;
+
+                drawShader.SetInt("boneCount", boneMatrices.Length);
+                for (int i = 0; i < boneMatrices.Length; i++)
+                {
+                    drawShader.SetMatrix4($"bones[{i}]", boneMatrices[i]);
+                }
             }
+            else
+            {
+                drawShader.SetInt("boneCount", Model.Bones.Count);
+
+                for (var i = 0; i < Model.Bones.Count; i++)
+                {
+                    drawShader.SetMatrix4($"bones[{i}]", Matrix4.Identity);
+                }
+            }
+            
         }
 
         if (_ibo != null)
