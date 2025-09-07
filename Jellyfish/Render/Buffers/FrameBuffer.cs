@@ -5,19 +5,19 @@ namespace Jellyfish.Render.Buffers;
 
 public class FrameBuffer
 {
-    private readonly int _framebufferHandle;
+    public readonly int Handle;
 
     public FrameBuffer()
     {
-        _framebufferHandle = GL.GenFramebuffer();
-        GL.BindFramebuffer(FramebufferTarget.Framebuffer, _framebufferHandle);
+        Handle = GL.GenFramebuffer();
+        GL.BindFramebuffer(FramebufferTarget.Framebuffer, Handle);
 
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
     }
 
     public void Bind(FramebufferTarget target = FramebufferTarget.Framebuffer)
     {
-        GL.BindFramebuffer(target, _framebufferHandle);
+        GL.BindFramebuffer(target, Handle);
     }
 
     public void Unbind(FramebufferTarget target = FramebufferTarget.Framebuffer)
@@ -27,7 +27,7 @@ public class FrameBuffer
 
     public void Unload()
     {
-        GL.DeleteFramebuffer(_framebufferHandle);
+        GL.DeleteFramebuffer(Handle);
     }
 
     public bool Check()
@@ -35,7 +35,7 @@ public class FrameBuffer
         var code = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
         if (code != FramebufferStatus.FramebufferComplete)
         {
-            Log.Context(this).Error("Framebuffer {Id} status check failed with code {Code}", _framebufferHandle, code);
+            Log.Context(this).Error("Framebuffer {Id} status check failed with code {Code}", Handle, code);
             return false;
         }
 

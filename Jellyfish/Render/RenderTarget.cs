@@ -52,7 +52,11 @@ public class RenderTarget
             GL.TextureParameterf(TextureHandle, TextureParameterName.TextureBorderColor, rtParams.BorderColor);
         }
 
-        GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, rtParams.Attachment, rtParams.TextureType, TextureHandle, 0);
+        // other types should bind manually
+        if (Params.TextureType == TextureTarget.Texture2d)
+        {
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, rtParams.Attachment, rtParams.TextureType, TextureHandle, 0);
+        }
 
         GL.BindTexture(rtParams.TextureType, 0);
 
