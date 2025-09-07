@@ -13,6 +13,7 @@ public class MeshManager
     private readonly List<Mesh> _singleFrameMeshes = new();
     private readonly List<(Mesh, List<Vertex>)> _updateQueue = new();
 
+    public IReadOnlyList<Mesh> Meshes => _meshes.AsReadOnly();
     public BoundingBox SceneBoundingBox { get; private set; }
 
     private bool _drawing;

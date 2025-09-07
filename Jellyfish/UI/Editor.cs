@@ -88,6 +88,21 @@ public class Editor : IUiPanel, IInputHandler
                     }
                     ImGui.EndMenu();
                 }
+
+                if (ImGui.BeginMenu("Windows"))
+                {
+                    var textureBrowser = ConVarStorage.Get<bool>("edt_texturelist");
+                    if (ImGui.MenuItem("Texture browser", "", ref textureBrowser))
+                    {
+                        ConVarStorage.Set("edt_texturelist", textureBrowser);
+                    }
+                    var meshBrowser = ConVarStorage.Get<bool>("edt_meshbrowser");
+                    if (ImGui.MenuItem("Mesh browser", "", ref meshBrowser))
+                    {
+                        ConVarStorage.Set("edt_meshbrowser", meshBrowser);
+                    }
+                    ImGui.EndMenu();
+                }
                 ImGui.EndMainMenuBar();
             }
         }
