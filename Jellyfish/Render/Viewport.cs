@@ -51,11 +51,7 @@ namespace Jellyfish.Render
         public float Fov
         {
             get => MathHelper.RadiansToDegrees(_fov);
-            set
-            {
-                var angle = Math.Clamp(value, 1f, 45f);
-                _fov = MathHelper.DegreesToRadians(angle);
-            }
+            set => _fov = MathHelper.DegreesToRadians(value);
         }
 
         public static float NearPlane => 1f;
