@@ -2,7 +2,8 @@
 using Jellyfish.Console;
 using Jellyfish.Render;
 using System;
-using System.Numerics;
+using OpenTK.Mathematics;
+using Vector2 = System.Numerics.Vector2;
 
 namespace Jellyfish.UI;
 
@@ -52,6 +53,15 @@ public class MeshBrowser : IUiPanel
                     foreach (var bone in _selectedMesh.Model.Bones)
                     {
                         ImGui.Text($"\t{bone.Id}. {bone.Name}");
+
+                        if (bone.Parent != null && _selectedMesh.Model.Animator is { CurrentClip: not null })
+                        {
+                            var bonePosition = _selectedMesh.Model.Animator.UnoffsetBoneMatrices[bone.Id];
+                            var parentBonePosition = _selectedMesh.Model.Animator.UnoffsetBoneMatrices[bone.Parent.Value];
+
+                            DebugRender.DrawLine((bonePosition * _selectedMesh.GetTransformationMatrix()).ExtractTranslation(), 
+                                (parentBonePosition * _selectedMesh.GetTransformationMatrix()).ExtractTranslation());
+                        }
                     }
                 }
                 ImGui.Text($"Animations: {_selectedMesh.Model?.Animations.Count ?? 0}");

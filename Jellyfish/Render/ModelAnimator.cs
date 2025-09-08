@@ -12,16 +12,14 @@ public class ModelAnimator
     public AnimationClip? CurrentClip { get; private set; }
     public double Time { get; private set; }
     public Matrix4[] FinalBoneMatrices { get; }
+    public Matrix4[] UnoffsetBoneMatrices { get; }
 
     public ModelAnimator(Model model)
     {
         _model = model;
-        FinalBoneMatrices = new Matrix4[model.Bones.Count];
 
-        for (int i = 0; i < FinalBoneMatrices.Length; i++)
-        {
-            FinalBoneMatrices[i] = Matrix4.Identity;
-        }
+        FinalBoneMatrices = Enumerable.Repeat(Matrix4.Identity, model.Bones.Count).ToArray();
+        UnoffsetBoneMatrices = Enumerable.Repeat(Matrix4.Identity, model.Bones.Count).ToArray();
     }
 
     public void Play(AnimationClip clip)
@@ -71,6 +69,7 @@ public class ModelAnimator
 
         var globalTransform = localTransform * parentTransform;
         FinalBoneMatrices[bone.Id] = bone.OffsetMatrix * globalTransform;
+        UnoffsetBoneMatrices[bone.Id] = globalTransform;
 
         // recurse into children
         foreach (var child in _model.Bones.Where(b => b.Parent == bone.Id))
