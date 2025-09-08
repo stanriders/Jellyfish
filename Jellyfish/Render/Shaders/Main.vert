@@ -10,7 +10,7 @@ void main(void)
 {
     frag_texCoord = aTexCoord;
 
-    vec4 localNormal = vec4(aNormal, 1.0);
+    vec4 localNormal = vec4(aNormal, 0.0);
     vec4 localPosition = vec4(aPosition, 1.0);
     if (boneCount > 0)
     {
