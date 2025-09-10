@@ -17,8 +17,8 @@ public class OpenGLRender : IRender, IInputHandler
 {
     private FinalOut? _outRender;
     private FrameBuffer? _mainFramebuffer;
-    private RenderTarget? _colorRenderTarget;
-    private RenderTarget? _depthRenderTarget;
+    private Texture? _colorRenderTarget;
+    private Texture? _depthRenderTarget;
     private Sky? _sky;
     private GBuffer? _gBuffer;
 
@@ -71,25 +71,31 @@ public class OpenGLRender : IRender, IInputHandler
         _mainFramebuffer = new FrameBuffer();
         _mainFramebuffer.Bind();
 
-        _colorRenderTarget = new RenderTarget(new RenderTargetParams
+        _colorRenderTarget = Engine.TextureManager.CreateTexture(new TextureParams
         {
             Name = "_rt_Color",
-            Width = Engine.MainViewport.Size.X,
-            Heigth = Engine.MainViewport.Size.Y,
-            InternalFormat = SizedInternalFormat.Rgb16f,
-            Attachment = FramebufferAttachment.ColorAttachment0,
             WrapMode = TextureWrapMode.ClampToEdge,
-            Levels = 11
+            MaxLevels = 11,
+            RenderTargetParams = new RenderTargetParams
+            {
+                Width = Engine.MainViewport.Size.X,
+                Heigth = Engine.MainViewport.Size.Y,
+                InternalFormat = SizedInternalFormat.Rgb16f,
+                Attachment = FramebufferAttachment.ColorAttachment0,
+            }
         });
 
-        _depthRenderTarget = new RenderTarget(new RenderTargetParams
+        _depthRenderTarget = Engine.TextureManager.CreateTexture(new TextureParams
         {
             Name = "_rt_Depth",
-            Width = Engine.MainViewport.Size.X,
-            Heigth = Engine.MainViewport.Size.Y,
-            InternalFormat = SizedInternalFormat.DepthComponent24,
-            Attachment = FramebufferAttachment.DepthAttachment,
-            WrapMode = TextureWrapMode.ClampToEdge
+            WrapMode = TextureWrapMode.ClampToEdge,
+            RenderTargetParams = new RenderTargetParams
+            {
+                Width = Engine.MainViewport.Size.X,
+                Heigth = Engine.MainViewport.Size.Y,
+                InternalFormat = SizedInternalFormat.DepthComponent24,
+                Attachment = FramebufferAttachment.DepthAttachment,
+            }
         });
 
         if (!_mainFramebuffer.Check())
@@ -140,10 +146,11 @@ public class OpenGLRender : IRender, IInputHandler
         GL.PolygonMode(TriangleFace.FrontAndBack, _wireframe ? PolygonMode.Line : PolygonMode.Fill);
 
         _sky?.Draw();
-        Engine.MeshManager.Draw();
+        Engine.MeshManager.Draw(frustum: Engine.MainViewport.GetFrustum());
 
         _mainFramebuffer?.Unbind();
 
+        GL.Viewport(0, 0, Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y);
         foreach (var effect in _screenspaceEffects)
         {
             effect.Draw();

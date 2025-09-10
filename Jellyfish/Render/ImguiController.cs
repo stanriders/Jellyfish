@@ -143,7 +143,13 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
                 var mips = (int)Math.Floor(Math.Log(Math.Max(imTexture.Width, imTexture.Height), 2));
 
-                var (texture, alreadyExists) = Engine.TextureManager.GetTexture(id, TextureTarget.Texture2d, false);
+                var (texture, alreadyExists) = Engine.TextureManager.GetTexture(new TextureParams
+                {
+                    Name = id,
+                    Type = TextureTarget.Texture2d,
+                    Srgb = false,
+                    MinFiltering = TextureMinFilter.Linear
+                });
 
                 if (imTexture.Status == ImTextureStatus.WantCreate)
                 {
@@ -156,13 +162,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
                         GL.GenerateTextureMipmap(texture.Handle);
 
-                        GL.TextureParameteri(texture.Handle, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-                        GL.TextureParameteri(texture.Handle, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
-
                         GL.TextureParameteri(texture.Handle, TextureParameterName.TextureMaxLevel, mips - 1);
-
-                        GL.TextureParameteri(texture.Handle, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
-                        GL.TextureParameteri(texture.Handle, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
                     }
 
                     imTexture.SetTexID(texture.Handle);

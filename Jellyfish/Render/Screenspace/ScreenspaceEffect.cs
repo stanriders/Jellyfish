@@ -8,7 +8,7 @@ namespace Jellyfish.Render.Screenspace;
 public abstract class ScreenspaceEffect
 {
     protected readonly FrameBuffer Buffer;
-    protected readonly RenderTarget RenderTarget;
+    protected readonly Texture RenderTarget;
     protected readonly Shader Shader;
     protected readonly VertexArray VertexArray;
     protected readonly VertexBuffer VertexBuffer;
@@ -20,14 +20,17 @@ public abstract class ScreenspaceEffect
         Buffer = new FrameBuffer();
         Buffer.Bind();
 
-        RenderTarget = new RenderTarget(new RenderTargetParams
+        RenderTarget = Engine.TextureManager.CreateTexture(new TextureParams
         {
             Name = $"_rt_{rtName}",
-            Width = Engine.MainViewport.Size.X,
-            Heigth = Engine.MainViewport.Size.Y,
-            InternalFormat = format,
-            Attachment = FramebufferAttachment.ColorAttachment0,
-            WrapMode = TextureWrapMode.ClampToEdge
+            WrapMode = TextureWrapMode.ClampToEdge,
+            RenderTargetParams = new RenderTargetParams
+            {
+                Width = Engine.MainViewport.Size.X,
+                Heigth = Engine.MainViewport.Size.Y,
+                InternalFormat = format,
+                Attachment = FramebufferAttachment.ColorAttachment0,
+            }
         });
 
         GL.DrawBuffer(DrawBufferMode.ColorAttachment0);

@@ -19,13 +19,13 @@ public class Main : Shader
     public Main(Material material) : base("shaders/Main.vert", null, "shaders/Main.frag")
     {
         if (material.TryGetParam<string>("Diffuse", out var diffusePath))
-            _diffuse = Engine.TextureManager.GetTexture($"{material.Directory}/{diffusePath}", TextureTarget.Texture2d, true).Texture;
+            _diffuse = Engine.TextureManager.GetTexture(new TextureParams {Name = $"{material.Directory}/{diffusePath}", Srgb = true}).Texture;
 
         if (material.TryGetParam<string>("Normal", out var normalPath))
-            _normal = Engine.TextureManager.GetTexture($"{material.Directory}/{normalPath}", TextureTarget.Texture2d, false).Texture;
+            _normal = Engine.TextureManager.GetTexture(new TextureParams { Name = $"{material.Directory}/{normalPath}"}).Texture;
 
         if (material.TryGetParam<string>("MetalRoughness", out var metroughtPath))
-            _metRought = Engine.TextureManager.GetTexture($"{material.Directory}/{metroughtPath}", TextureTarget.Texture2d, false).Texture;
+            _metRought = Engine.TextureManager.GetTexture(new TextureParams { Name = $"{material.Directory}/{metroughtPath}"}).Texture;
 
         if (material.TryGetParam<bool>("AlphaTest", out var alphatest))
             _alphaTest = alphatest;

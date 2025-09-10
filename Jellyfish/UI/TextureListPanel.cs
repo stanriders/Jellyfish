@@ -1,32 +1,25 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Numerics;
 using Hexa.NET.ImGui;
 using Jellyfish.Console;
-using Jellyfish.Input;
-using Jellyfish.Render;
-using OpenTK.Windowing.GraphicsLibraryFramework;
+using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.UI;
 
-public class TextureListPanel : IUiPanel, IInputHandler
+public class EnableTextureList() : ConVar<bool>("edt_texturelist");
+
+public class TextureListPanel : IUiPanel
 {
     private const int item_width = 250;
-    private bool _isEnabled;
     private int? _expandedTexture;
-
-    public TextureListPanel()
-    {
-        Engine.InputManager.RegisterInputHandler(this);
-    }
+    private static int _atlasedCubemapHandle;
 
     public unsafe void Frame(double timeElapsed)
     {
-        if (!ConVarStorage.Get<bool>("edt_enable"))
+        if (!ConVarStorage.Get<bool>("edt_texturelist"))
             return;
 
-        if (!_isEnabled)
-            return;
-        
         var textureCount = Engine.TextureManager.Textures.Count;
 
         if (ImGui.Begin("Texture list"))
@@ -40,19 +33,36 @@ public class TextureListPanel : IUiPanel, IInputHandler
 
                 ImGui.PushTextWrapPos(ImGui.GetCursorPos().X + item_width);
                 if (expanded)
-                    ImGui.Text($"{texture.Path}: {(texture.Srgb ? "[SRGB] " : "")}{texture.References} references, {texture.Levels} levels, {texture.Format}");
+                    ImGui.Text($"{texture.Params.Name}: {(texture.Params.Srgb ? "[SRGB] " : "")}{texture.References} references, {texture.Levels} levels, {texture.Format}");
                 else
-                    ImGui.Text($"{texture.Path} ({texture.References} references)");
+                    ImGui.Text($"{texture.Params.Name} ({texture.References} references)");
                 ImGui.PopTextWrapPos();
 
                 var size = expanded ? item_width * 2 : item_width;
                 bool pressed;
                 // flip RTs upside down
-                if (texture.Path.StartsWith("_rt_"))
-                    pressed = ImGui.ImageButton(texture.Path, new ImTextureRef(texId: texture.Handle), new Vector2(size, size), new Vector2(0, 1),
-                        new Vector2(1, 0));
+                if (texture.Params.RenderTargetParams != null)
+                {
+                    if (texture.Params.Type == TextureTarget.TextureCubeMap)
+                    {
+                        if (_atlasedCubemapHandle != 0)
+                            GL.DeleteTexture(_atlasedCubemapHandle);
+
+                        _atlasedCubemapHandle = CreateCubemapCross(texture.Handle, 256);
+
+                        pressed = ImGui.ImageButton(texture.Params.Name, new ImTextureRef(texId: _atlasedCubemapHandle),
+                            new Vector2(size, size), new Vector2(0, 1),
+                            new Vector2(1, 0));
+                    }
+                    else
+                    {
+                        pressed = ImGui.ImageButton(texture.Params.Name, new ImTextureRef(texId: texture.Handle),
+                            new Vector2(size, size), new Vector2(0, 1),
+                            new Vector2(1, 0));
+                    }
+                }
                 else
-                    pressed = ImGui.ImageButton(texture.Path, new ImTextureRef(texId: texture.Handle), new Vector2(size, size));
+                    pressed = ImGui.ImageButton(texture.Params.Name, new ImTextureRef(texId: texture.Handle), new Vector2(size, size));
                 
                 if (pressed)
                 {
@@ -71,14 +81,51 @@ public class TextureListPanel : IUiPanel, IInputHandler
         ImGui.End();
     }
 
-    public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
+    private int CreateCubemapCross(int cubemapHandle, int faceSize)
     {
-        if (keyboardState.IsKeyPressed(Keys.T))
+        int width = faceSize * 4;
+        int height = faceSize * 3;
+
+        int atlasTex = GL.GenTexture();
+        GL.BindTexture(TextureTarget.Texture2d, atlasTex);
+        GL.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.Rgba8, width, height, 0,
+            PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
+        GL.TextureParameteri(atlasTex, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+        GL.TextureParameteri(atlasTex, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+
+        int fbo = GL.GenFramebuffer();
+        GL.BindFramebuffer(FramebufferTarget.ReadFramebuffer, fbo);
+
+        // Define placement of each face
+        var placements = new (TextureTarget Face, int X, int Y)[]
         {
-            _isEnabled = !_isEnabled;
-            return true;
+            (TextureTarget.TextureCubeMapPositiveX, 2, 1), // +X
+            (TextureTarget.TextureCubeMapNegativeX, 0, 1), // -X
+            (TextureTarget.TextureCubeMapPositiveY, 1, 0), // +Y
+            (TextureTarget.TextureCubeMapNegativeY, 1, 2), // -Y
+            (TextureTarget.TextureCubeMapPositiveZ, 1, 1), // +Z
+            (TextureTarget.TextureCubeMapNegativeZ, 3, 1), // -Z
+        };
+
+        foreach (var (face, gridX, gridY) in placements)
+        {
+            GL.FramebufferTexture2D(FramebufferTarget.ReadFramebuffer,
+                FramebufferAttachment.ColorAttachment0,
+                face,
+                cubemapHandle, 0);
+
+            int xOffset = gridX * faceSize;
+            int yOffset = gridY * faceSize;
+
+            GL.CopyTexSubImage2D(TextureTarget.Texture2d, 0,
+                xOffset, yOffset,  // destination offset in atlas
+                0, 0,              // source from cubemap face
+                faceSize, faceSize);
         }
 
-        return false;
+        GL.BindFramebuffer(FramebufferTarget.ReadFramebuffer, 0);
+        GL.DeleteFramebuffer(fbo);
+
+        return atlasTex;
     }
 }

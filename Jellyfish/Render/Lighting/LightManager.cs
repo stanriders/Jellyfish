@@ -19,7 +19,7 @@ public static class LightManager
 
         public class Shadow
         {
-            public required RenderTarget RenderTarget { get; set; }
+            public required Texture RenderTarget { get; set; }
             public required FrameBuffer FrameBuffer { get; set; }
             public required Shaders.Shadow Shader { get; set; }
         }
@@ -143,18 +143,21 @@ public static class LightManager
 
         var shader = new Shadow(light.Source, light.Shadows.Count);
 
-        var rt = new RenderTarget(new RenderTargetParams
+        var rt = Engine.TextureManager.CreateTexture(new TextureParams
         {
             Name = $"_rt_Shadow{lights.IndexOf(light)}{subname}",
-            Width = light.Source.ShadowResolution,
-            Heigth = light.Source.ShadowResolution,
-            InternalFormat = SizedInternalFormat.DepthComponent32f,
-            Attachment = FramebufferAttachment.DepthAttachment,
+            BorderColor = [1f, 1f, 1f, 1f],
             WrapMode = TextureWrapMode.ClampToBorder,
-            BorderColor = [1f, 1f, 1f, 1f]
+            RenderTargetParams = new RenderTargetParams
+            {
+                Width = light.Source.ShadowResolution,
+                Heigth = light.Source.ShadowResolution,
+                InternalFormat = SizedInternalFormat.DepthComponent32f,
+                Attachment = FramebufferAttachment.DepthAttachment,
+            }
         });
 
-        GL.BindTexture(TextureTarget.Texture2d, rt.TextureHandle);
+        GL.BindTexture(TextureTarget.Texture2d, rt.Handle);
 
         GL.DrawBuffer(DrawBufferMode.None);
         GL.ReadBuffer(ReadBufferMode.None);

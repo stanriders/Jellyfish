@@ -6,10 +6,10 @@ namespace Jellyfish.Render;
 
 public class GBuffer
 {
-    private readonly List<RenderTarget> _renderTargets = new();
+    private readonly List<Texture> _renderTargets = new();
     private readonly FrameBuffer _buffer;
 
-    public GBuffer(RenderTarget depthRenderTarget)
+    public GBuffer(Texture depthRenderTarget)
     {
         _buffer = new FrameBuffer();
         _buffer.Bind();
@@ -21,18 +21,21 @@ public class GBuffer
                 ? SizedInternalFormat.Rgba16f
                 : SizedInternalFormat.Rgb16f;
 
-            _renderTargets.Add(new RenderTarget(new RenderTargetParams
+            _renderTargets.Add(Engine.TextureManager.CreateTexture(new TextureParams
             {
                 Name = $"_rt_{(GBufferType)i}",
-                Width = Engine.MainViewport.Size.X,
-                Heigth = Engine.MainViewport.Size.Y,
-                InternalFormat = format,
-                Attachment = FramebufferAttachment.ColorAttachment0 + i,
-                WrapMode = TextureWrapMode.ClampToEdge
+                WrapMode = TextureWrapMode.ClampToEdge,
+                RenderTargetParams = new RenderTargetParams
+                {
+                    Width = Engine.MainViewport.Size.X,
+                    Heigth = Engine.MainViewport.Size.Y,
+                    InternalFormat = format,
+                    Attachment = FramebufferAttachment.ColorAttachment0 + i,
+                }
             }));
         }
 
-        GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2d, depthRenderTarget.TextureHandle, 0);
+        GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2d, depthRenderTarget.Handle, 0);
 
         GL.DrawBuffers(4, new[] { DrawBufferMode.ColorAttachment0, DrawBufferMode.ColorAttachment1, DrawBufferMode.ColorAttachment2, DrawBufferMode.ColorAttachment3 });
 
