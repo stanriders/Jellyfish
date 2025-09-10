@@ -30,7 +30,8 @@ public static class ModelParser
                                               PostProcessSteps.OptimizeMeshes | 
                                               PostProcessSteps.OptimizeGraph | 
                                               PostProcessSteps.SplitLargeMeshes | 
-                                              PostProcessSteps.SortByPrimitiveType);
+                                              PostProcessSteps.SortByPrimitiveType | 
+                                              PostProcessSteps.ImproveCacheLocality);
 
         var isSmd = Path.GetExtension(path) == ".smd";
         var prerotate = isSmd;
@@ -70,11 +71,18 @@ public static class ModelParser
                     boneId = bones.Count;
                     boneMap[bone.Name] = boneId;
 
+                    var offsetMatrix = bone.OffsetMatrix.ToOpentkMatrix();
+                    if (prerotate)
+                    {
+                        var corr = Matrix4.CreateFromQuaternion(new Quaternion(MathHelper.DegreesToRadians(90), 0, 0));
+                        offsetMatrix = corr * offsetMatrix;
+                    }
+
                     bones.Add(new Bone
                     {
                         Id = boneId,
                         Name = bone.Name,
-                        OffsetMatrix = bone.OffsetMatrix.ToOpentkMatrix()
+                        OffsetMatrix = offsetMatrix
                     });
                 }
 
@@ -96,16 +104,19 @@ public static class ModelParser
                 texturePath));
         }
 
-        BuildBoneHierarchy(scene.RootNode, null, boneMap, bones);
+        BuildBoneHierarchy(scene.RootNode, null, boneMap, bones, prerotate);
 
         var animations = new List<AnimationClip>();
         if (isSmd)
         {
+            // custom loader for smd anims since they're stored as separate files
             var animationFiles = Directory.EnumerateFiles(Path.GetDirectoryName(path)!, $"{modelName}__*.smd").ToArray();
             foreach (var animationFile in animationFiles)
             {
                 var animationScene = importer.ImportFile(animationFile);
-                animations = LoadAnimations(animationScene.Animations, bones);
+                var animationName = Path.GetFileNameWithoutExtension(animationFile).Replace($"{modelName}__", "");
+
+                animations.AddRange(LoadAnimations(animationScene.Animations, bones, prerotate, animationName));
             }
         }
         else
@@ -116,29 +127,32 @@ public static class ModelParser
         return new Model(modelName, meshes, bones, animations, isDev);
     }
 
-    private static void BuildBoneHierarchy(Node node, int? parentIndex, Dictionary<string, int> boneMap, List<Bone> bones)
+    private static void BuildBoneHierarchy(Node node, int? parentIndex, Dictionary<string, int> boneMap, List<Bone> bones, bool prerotate)
     {
         if (boneMap.TryGetValue(node.Name, out int boneIndex))
         {
             var bone = bones[boneIndex];
             bone.Parent = parentIndex;
+
             bones[boneIndex] = bone; // reassign because Bone is a struct
             parentIndex = boneIndex; // now children see this as parent
         }
 
         foreach (var child in node.Children)
-            BuildBoneHierarchy(child, parentIndex, boneMap, bones);
+            BuildBoneHierarchy(child, parentIndex, boneMap, bones, prerotate);
     }
 
-    private static List<AnimationClip> LoadAnimations(List<Animation> assimpAnimations, List<Bone> bones)
+    private static List<AnimationClip> LoadAnimations(List<Animation> assimpAnimations, List<Bone> bones, bool prerotate = false, string? name = null)
     {
         var animations = new List<AnimationClip>();
         foreach (var anim in assimpAnimations)
         {
+            var ticksPerSecond = anim.TicksPerSecond != 0 ? anim.TicksPerSecond : 25.0;
+
             var clip = new AnimationClip
             {
-                Name = anim.Name,
-                Duration = anim.DurationInTicks / (anim.TicksPerSecond != 0 ? anim.TicksPerSecond : 25.0)
+                Name = string.IsNullOrEmpty(anim.Name) ? (name ?? assimpAnimations.IndexOf(anim).ToString()) : anim.Name,
+                Duration = anim.DurationInTicks / ticksPerSecond
             };
 
             foreach (var channel in anim.NodeAnimationChannels)
@@ -149,20 +163,22 @@ public static class ModelParser
                 var boneAnim = new BoneAnimation { BoneName = channel.NodeName };
 
                 foreach (var pos in channel.PositionKeys)
-                    boneAnim.PositionKeys.Add(new Keyframe<Vector3>(
-                        pos.Time / (anim.TicksPerSecond != 0 ? anim.TicksPerSecond : 25.0),
-                        new Vector3(pos.Value.X, pos.Value.Y, pos.Value.Z)));
+                {
+                    var position = new Vector3(pos.Value.X, pos.Value.Y, pos.Value.Z);
+                    boneAnim.PositionKeys.Add(new Keyframe<Vector3>(pos.Time / ticksPerSecond, position));
+                }
 
                 foreach (var rot in channel.RotationKeys)
-                    boneAnim.RotationKeys.Add(new Keyframe<Quaternion>(
-                        rot.Time / (anim.TicksPerSecond != 0 ? anim.TicksPerSecond : 25.0),
-                        new Quaternion((float)rot.Value.X, (float)rot.Value.Y, (float)rot.Value.Z,
-                            (float)rot.Value.W)));
+                {
+                    var rotation = new Quaternion(rot.Value.X, rot.Value.Y, rot.Value.Z, rot.Value.W);
+                    boneAnim.RotationKeys.Add(new Keyframe<Quaternion>(rot.Time / ticksPerSecond, rotation));
+                }
 
                 foreach (var sca in channel.ScalingKeys)
-                    boneAnim.ScalingKeys.Add(new Keyframe<Vector3>(
-                        sca.Time / (anim.TicksPerSecond != 0 ? anim.TicksPerSecond : 25.0),
-                        new Vector3(sca.Value.X, sca.Value.Y, sca.Value.Z)));
+                {
+                    var scale = new Vector3(sca.Value.X, sca.Value.Y, sca.Value.Z);
+                    boneAnim.ScalingKeys.Add(new Keyframe<Vector3>(sca.Time / ticksPerSecond, scale));
+                }
 
                 clip.BoneAnimations.Add(boneAnim);
             }

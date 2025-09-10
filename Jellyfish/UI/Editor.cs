@@ -536,12 +536,27 @@ public class Editor : IUiPanel, IInputHandler
         else if (entityProperty.Type == typeof(string))
         {
             var val = (string?)entityProperty.Value ?? string.Empty;
-            if (ImGui.InputText(elementLabel, ref val, 1024))
+            if (entityProperty.PossibleValues != null)
             {
-                entity.SetPropertyValue(propertyName, val);
+                var possibleValues = entityProperty.PossibleValues.Cast<string>().ToArray();
+                if (possibleValues.Length > 0)
+                {
+                    var currentItem = Array.IndexOf(possibleValues, possibleValues.FirstOrDefault(x => x == val));
+                    if (ImGui.ListBox(elementLabel, ref currentItem, possibleValues, possibleValues.Length))
+                    {
+                        entity.SetPropertyValue(propertyName, possibleValues[currentItem]);
+                    }
+                }
+            }
+            else
+            {
+                if (ImGui.InputText(elementLabel, ref val, 1024))
+                {
+                    entity.SetPropertyValue(propertyName, val);
+                }
             }
         }
-        else if (entityProperty.Type == typeof(Enum))
+        else if (entityProperty.Type.BaseType == typeof(Enum))
         {
             var val = (int)entityProperty.Value!;
             if (ImGui.DragInt(elementLabel, ref val))

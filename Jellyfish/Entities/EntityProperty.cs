@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace Jellyfish.Entities;
 
@@ -8,6 +9,7 @@ public abstract class EntityProperty
     public Type Type { get; set; } = null!;
     public object? Value { get; private set; }
     public object? DefaultValue { get; set; }
+    public object[]? PossibleValues { get; set; }
     public bool Editable { get; set; } = true;
     public bool ShowGizmo { get; set; } = false;
     public Action<object>? OnChangeAction { get; set; }
@@ -36,12 +38,13 @@ public abstract class EntityProperty
 
 public class EntityProperty<T> : EntityProperty
 {
-    public EntityProperty(string name, T? defaultValue = default, bool editable = true, bool showGizmo = false, Action<T>? changeCallback = null)
+    public EntityProperty(string name, T? defaultValue = default, T[]? possibleValues = null, bool editable = true, bool showGizmo = false, Action<T>? changeCallback = null)
     {
         Name = name;
         Type = typeof(T);
         SetValue(defaultValue);
         DefaultValue = defaultValue;
+        PossibleValues = possibleValues?.Cast<object>().ToArray();
         Editable = editable;
         ShowGizmo = showGizmo;
 

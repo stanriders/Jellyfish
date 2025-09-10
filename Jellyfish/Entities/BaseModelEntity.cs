@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Linq;
 using Jellyfish.Render;
 using Jellyfish.Utils;
 using OpenTK.Mathematics;
@@ -13,8 +14,8 @@ public abstract class BaseModelEntity : BaseEntity
 
     protected BaseModelEntity() : base()
     {
+        AddProperty("Animation", string.Empty, changeCallback: OnAnimationChange);
         AddProperty("Scale", Vector3.One, changeCallback: OnScaleChanged);
-        AddAction("Play Animation", () => { Model?.Animator?.Play(Model.Animations[0]);});
     }
 
     public override void Load()
@@ -25,6 +26,19 @@ public abstract class BaseModelEntity : BaseEntity
             Model.Position = GetPropertyValue<Vector3>("Position");
             Model.Rotation = GetPropertyValue<Quaternion>("Rotation");
             Model.Scale = GetPropertyValue<Vector3>("Scale");
+        }
+
+        GetProperty<string>("Animation")!.PossibleValues = Model?.Animations.Select(x => x.Name).Cast<object>().ToArray();
+
+        var defaultAnimation = GetPropertyValue<string>("Animation");
+        if (!string.IsNullOrEmpty(defaultAnimation))
+        {
+            var animation = Model?.Animations.FirstOrDefault(x => x.Name == defaultAnimation);
+            if (animation != null)
+            {
+                Model?.Animator?.Play(animation);
+                Model?.Animator?.Update(0);
+            }
         }
 
         base.Load();
@@ -41,6 +55,19 @@ public abstract class BaseModelEntity : BaseEntity
         Model?.Unload();
 
         base.Unload();
+    }
+
+    private void OnAnimationChange(string obj)
+    {
+        if (!Loaded)
+            return;
+
+        var animation = Model?.Animations.FirstOrDefault(x => x.Name == obj);
+        if (animation != null)
+        {
+            Model?.Animator?.Play(animation);
+            Model?.Animator?.Update(0);
+        }
     }
 
     protected override void OnPositionChanged(Vector3 position)
