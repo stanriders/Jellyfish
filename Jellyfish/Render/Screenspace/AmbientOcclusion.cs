@@ -1,9 +1,9 @@
-﻿
-using Jellyfish.Console;
+﻿using Jellyfish.Console;
 using Jellyfish.Debug;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using System.Diagnostics;
+using Jellyfish.Render.Shaders;
 
 namespace Jellyfish.Render.Screenspace;
 
@@ -36,5 +36,19 @@ public class AmbientOcclusion : ScreenspaceEffect
 
         base.Draw();
         PerformanceMeasurment.Add("AmbientOcclusion.Draw", stopwatch.Elapsed.TotalMilliseconds);
+    }
+}
+
+public class AmbientOcclusionBlurX : ScreenspaceEffect
+{
+    public AmbientOcclusionBlurX() : base("GtaoBlurX", SizedInternalFormat.Rgb16f, new Blur("_rt_Gtao", Blur.Direction.Horizontal, Blur.Size.Blur5))
+    {
+    }
+}
+
+public class AmbientOcclusionBlurY : ScreenspaceEffect
+{
+    public AmbientOcclusionBlurY() : base("GtaoBlurY", SizedInternalFormat.Rgb16f, new Blur("_rt_GtaoBlurX", Blur.Direction.Vertical, Blur.Size.Blur5))
+    {
     }
 }
