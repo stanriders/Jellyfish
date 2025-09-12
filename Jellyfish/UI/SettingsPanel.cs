@@ -89,5 +89,9 @@ namespace Jellyfish.UI
             }
             ImGui.End();
         }
+
+        public void Unload()
+        {
+        }
     }
 }

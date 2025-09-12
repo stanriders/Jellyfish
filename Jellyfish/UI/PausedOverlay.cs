@@ -36,4 +36,8 @@ public class PausedOverlay : IUiPanel
         }
         ImGui.End();
     }
+
+    public void Unload()
+    {
+    }
 }

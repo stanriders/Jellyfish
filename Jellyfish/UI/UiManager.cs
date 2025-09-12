@@ -41,4 +41,14 @@ public class UiManager
             panel.Frame(timeElapsed);
         }
     }
+
+    public void Unload()
+    {
+        foreach (var panel in _panels)
+        {
+            panel.Unload();
+        }
+
+        _panels.Clear();
+    }
 }

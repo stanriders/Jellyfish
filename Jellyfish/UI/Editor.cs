@@ -238,6 +238,11 @@ public class Editor : IUiPanel, IInputHandler
         DrawGizmos();
     }
 
+    public void Unload()
+    {
+        _selectedEntity = null;
+    }
+
     private unsafe void DrawGizmos()
     {
         if (_selectedEntity == null) 

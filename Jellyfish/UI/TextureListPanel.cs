@@ -1,9 +1,11 @@
-﻿using System;
+﻿using Hexa.NET.ImGui;
+using Jellyfish.Console;
+using Jellyfish.Render;
+using OpenTK.Graphics.OpenGL;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using Hexa.NET.ImGui;
-using Jellyfish.Console;
-using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.UI;
 
@@ -13,7 +15,7 @@ public class TextureListPanel : IUiPanel
 {
     private const int item_width = 250;
     private int? _expandedTexture;
-    private static int _atlasedCubemapHandle;
+    private readonly Dictionary<string, int> _cubemapAtlases = new();
 
     public unsafe void Frame(double timeElapsed)
     {
@@ -45,12 +47,14 @@ public class TextureListPanel : IUiPanel
                 {
                     if (texture.Params.Type == TextureTarget.TextureCubeMap)
                     {
-                        if (_atlasedCubemapHandle != 0)
-                            GL.DeleteTexture(_atlasedCubemapHandle);
+                        _cubemapAtlases.TryAdd(texture.Params.Name, 0);
 
-                        _atlasedCubemapHandle = CreateCubemapCross(texture.Handle, 256);
+                        if (_cubemapAtlases[texture.Params.Name] != 0)
+                            GL.DeleteTexture(_cubemapAtlases[texture.Params.Name]);
 
-                        pressed = ImGui.ImageButton(texture.Params.Name, new ImTextureRef(texId: _atlasedCubemapHandle),
+                        _cubemapAtlases[texture.Params.Name] = CreateCubemapCross(texture.Handle, texture.Params.RenderTargetParams.Width);
+
+                        pressed = ImGui.ImageButton(texture.Params.Name, new ImTextureRef(texId: _cubemapAtlases[texture.Params.Name]),
                             new Vector2(size, size), new Vector2(0, 1),
                             new Vector2(1, 0));
                     }
@@ -79,6 +83,14 @@ public class TextureListPanel : IUiPanel
             }
         }
         ImGui.End();
+    }
+
+    public void Unload()
+    {
+        foreach (var cubemapAtlas in _cubemapAtlases)
+        {
+            GL.DeleteTexture(cubemapAtlas.Value);
+        }
     }
 
     private int CreateCubemapCross(int cubemapHandle, int faceSize)

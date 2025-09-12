@@ -138,6 +138,10 @@ namespace Jellyfish.UI
             ImGui.End();
         }
 
+        public void Unload()
+        {
+        }
+
         public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
         {
             if (keyboardState.IsKeyPressed(Keys.M))

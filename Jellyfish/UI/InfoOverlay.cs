@@ -67,4 +67,8 @@ public class InfoOverlay : IUiPanel
             ImGui.End();
         }
     }
+
+    public void Unload()
+    {
+    }
 }

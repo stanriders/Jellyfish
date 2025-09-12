@@ -260,6 +260,7 @@ namespace Jellyfish
         {
             _meshManager.Unload();
             _entityManager.Unload();
+            _uiManager.Unload();
             _render.Unload();
             _imguiController?.Dispose();
             _audioManager.Unload();

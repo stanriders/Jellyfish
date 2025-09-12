@@ -3,4 +3,5 @@
 public interface IUiPanel
 {
     void Frame(double timeElapsed);
+    void Unload();
 }

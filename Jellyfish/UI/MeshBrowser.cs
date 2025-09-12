@@ -79,4 +79,9 @@ public class MeshBrowser : IUiPanel
 
         ImGui.End();
     }
+
+    public void Unload()
+    {
+        _selectedMesh = null;
+    }
 }
