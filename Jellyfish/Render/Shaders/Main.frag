@@ -11,6 +11,8 @@ in float frag_clipspaceZ;
 layout(binding=0) uniform sampler2D diffuseSampler;
 layout(binding=1) uniform sampler2D normalSampler;
 layout(binding=2) uniform sampler2D metroughSampler;
+layout(binding=3) uniform samplerCube prefilterMap;
+layout(binding=4) uniform samplerCube irradianceMap;
 
 layout(binding=SUN_SAMPLER_BINDING) uniform sampler2D sunShadowSampler[CSM_CASCADES];
 layout(binding=SUN_SAMPLER_BINDING + CSM_CASCADES + 1) uniform sampler2D shadowSamplers[MAX_LIGHTS];
@@ -60,6 +62,13 @@ uniform vec3 cameraPos;
 uniform bool useNormals;
 uniform bool usePbr;
 uniform bool alphaTest;
+uniform int prefilterMips;
+uniform bool iblEnabled;
+
+struct LightContrib {
+    vec3 ambient;
+    vec3 direct;
+};
 
 const float PI = 3.14159265359;
 
@@ -117,7 +126,7 @@ float ShadowCalculation(int lightIndex, vec3 lightDir, vec3 normal)
     //return SimpleShadow(shadowSamplers[lightIndex], projCoords);
 }  
 
-vec3 CalcPointLight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
+LightContrib CalcPointLight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
 {
     Light light = lightSources[lightIndex];
     vec3 lightDir = normalize(light.position - fragPos);
@@ -139,10 +148,13 @@ vec3 CalcPointLight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
         shadow = ShadowCalculation(lightIndex, lightDir, normal);
     }
 
-    return ambient + outdiffuse * shadow;
+    LightContrib result;
+    result.ambient = ambient;
+    result.direct = outdiffuse * shadow;
+    return result;
 }
 
-vec3 CalcSpotlight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
+LightContrib CalcSpotlight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
 {
     Light light = lightSources[lightIndex];
     vec3 lightDir = normalize(light.position - fragPos);
@@ -171,10 +183,13 @@ vec3 CalcSpotlight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
         shadow = ShadowCalculation(lightIndex, lightDir, normal);
     }
 
-    return ambient + outdiffuse * shadow;
+    LightContrib result;
+    result.ambient = ambient;
+    result.direct = outdiffuse * shadow;
+    return result;
 }
 
-vec3 CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
+LightContrib CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
 {
     vec3 lightDir = normalize(-sun.direction);
 
@@ -224,7 +239,10 @@ vec3 CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
         }
     }
 
-    return outdiffuse * shadow;
+    LightContrib result;
+    result.ambient = sun.ambient;
+    result.direct = outdiffuse * shadow;
+    return result;
 }
 
 mat3 GetTBN(vec3 pos, vec2 uv, vec3 normal)
@@ -243,6 +261,15 @@ mat3 GetTBN(vec3 pos, vec2 uv, vec3 normal)
     bitangent = normalize(bitangent - normal * dot(normal, bitangent));
 
     return mat3(tangent, bitangent, normalize(normal));
+}
+
+vec2 integrateBRDFApprox(float NdotV, float roughness)
+{
+    const vec4 c0 = vec4(-1.0, -0.0275, -0.572, 0.022);
+    const vec4 c1 = vec4( 1.0,  0.0425,  1.04, -0.04);
+    vec4 r = roughness * c0 + c1;
+    float a004 = min(r.x * r.x, exp2(-9.28 * NdotV)) * r.x + r.y;
+    return vec2(-1.04, 1.04) * a004 + r.zw;
 }
 
 void main()
@@ -273,6 +300,31 @@ void main()
     vec3 result = vec3(0.0, 0.0, 0.0);
     
     vec3 lighting = vec3(0);
+    vec3 ibl = vec3(0);
+
+    if (usePbr && iblEnabled) 
+    {
+        vec3 F0 = mix(vec3(0.04), diffuseTex.rgb, metalness);
+        float NdotV = max(dot(normal, viewDir), 0.0);
+
+        // Fresnel for environment uses N·V (not H)
+        vec3 F_env = fresnelSchlick(NdotV, F0);
+        vec3 kS_env = F_env;
+        vec3 kD_env = (1.0 - kS_env) * (1.0 - metalness);
+
+        // Diffuse IBL (irradiance map must be preconvolved)
+        vec3 diffuseIBL = texture(irradianceMap, normal).rgb * diffuseTex.rgb;
+
+        // Specular IBL
+        vec3 R = normalize(reflect(-viewDir, normal));
+
+        vec3 prefilteredColor = textureLod(prefilterMap, R, roughness * prefilterMips).rgb;
+        vec2 brdf = integrateBRDFApprox(NdotV, roughness);
+        vec3 specularIBL = prefilteredColor * (F_env * brdf.x + brdf.y);
+
+        ibl = kD_env * diffuseIBL + specularIBL;
+    }
+
     for(int i = 0; i < lightSourcesCount; i++)
     {
         Light light = lightSources[i];
@@ -299,17 +351,17 @@ void main()
             specular          = numerator / denominator; 
         }
         
-        vec3 radiance = vec3(0);
+        LightContrib lightContrib;
         switch(lightSources[i].type)
         {
             case 0: // point
             {
-              radiance = CalcPointLight(i, normal, frag_position, viewDir);
+              lightContrib = CalcPointLight(i, normal, frag_position, viewDir);
               break;
             }
             case 1: // spot
             {
-              radiance = CalcSpotlight(i, normal, frag_position, viewDir);
+              lightContrib = CalcSpotlight(i, normal, frag_position, viewDir);
               break;
             }
         }
@@ -318,11 +370,12 @@ void main()
         {
             // add to outgoing radiance Lo
             vec3 diffuseBDR = diffuseTex.rgb;
-            lighting += max(vec3(0), (diffuseBDR + specular) * radiance * NdotL); 
+            lighting += kD * diffuseBDR * lightContrib.ambient;
+            lighting += max(vec3(0), (kD * diffuseBDR + specular) * lightContrib.direct * NdotL); 
         }
         else 
         {
-            lighting += radiance * NdotL;
+            lighting += (lightContrib.direct + lightContrib.ambient) * NdotL;
         }
     }
 
@@ -350,19 +403,24 @@ void main()
             specular          = numerator / denominator; 
         }
 
-        vec3 radiance = CalcSun(normal, frag_position, viewDir);
+        LightContrib lightContrib = CalcSun(normal, frag_position, viewDir);
 
         if (usePbr)
         {
             // add to outgoing radiance Lo
             vec3 diffuseBDR = diffuseTex.rgb;
-            lighting += max(vec3(0), (diffuseBDR + specular) * (radiance * NdotL + sun.ambient)); 
+            lighting += kD * diffuseBDR * lightContrib.ambient;
+            lighting += max(vec3(0), (kD * diffuseBDR + specular) * (lightContrib.direct * NdotL)); 
         }
         else 
         {
             lighting += sun.ambient;
-            lighting += radiance * NdotL;
+            lighting += lightContrib.direct * NdotL;
         }
+    }
+
+    if (usePbr) {
+        lighting += ibl;
     }
 
     result = lighting;

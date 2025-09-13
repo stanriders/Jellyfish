@@ -21,6 +21,7 @@ public class OpenGLRender : IRender, IInputHandler
     private Texture? _depthRenderTarget;
     private Sky? _sky;
     private GBuffer? _gBuffer;
+    private ImageBasedLighting? _imageBasedLighting;
 
     private readonly List<ScreenspaceEffect> _screenspaceEffects = new();
 
@@ -66,7 +67,8 @@ public class OpenGLRender : IRender, IInputHandler
     public void CreateBuffers()
     {
         GL.Enable(EnableCap.CullFace);
-        GL.Enable(EnableCap.FramebufferSrgb);
+        GL.Enable(EnableCap.FramebufferSrgb); 
+        GL.Enable(EnableCap.TextureCubeMapSeamless);
 
         _mainFramebuffer = new FrameBuffer();
         _mainFramebuffer.Bind();
@@ -109,6 +111,8 @@ public class OpenGLRender : IRender, IInputHandler
 
         _gBuffer = new GBuffer(_depthRenderTarget);
         _sky = new Sky();
+        _imageBasedLighting = new ImageBasedLighting();
+
         LoadScreenspaceEffects();
         _outRender = new FinalOut();
 
@@ -136,6 +140,8 @@ public class OpenGLRender : IRender, IInputHandler
 
         _gBuffer?.GeometryPass();
         LightManager.DrawShadows();
+
+        _imageBasedLighting?.Frame(_sky);
 
         _mainFramebuffer?.Bind();
 
@@ -170,6 +176,7 @@ public class OpenGLRender : IRender, IInputHandler
         }
         _outRender?.Unload();
 
+        _imageBasedLighting?.Unload();
         _gBuffer?.Unload();
         _colorRenderTarget?.Unload();
         _depthRenderTarget?.Unload();
@@ -225,6 +232,7 @@ public class OpenGLRender : IRender, IInputHandler
         _screenspaceEffects.Clear();
         _outRender?.Unload();
 
+        _imageBasedLighting?.Unload();
         _gBuffer?.Unload();
         _colorRenderTarget?.Unload();
         _depthRenderTarget?.Unload();

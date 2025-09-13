@@ -1,6 +1,6 @@
 ﻿#define MAX_LIGHTS 12
 #define CSM_CASCADES 4
-#define SUN_SAMPLER_BINDING 3
+#define SUN_SAMPLER_BINDING 5
 //#define CSM_DEBUG
 
 #define PCSS_FILTER_SIZE 16

@@ -1,4 +1,5 @@
 ﻿using System;
+using Jellyfish.Console;
 using Jellyfish.Entities;
 using Jellyfish.Render.Lighting;
 using OpenTK.Graphics.OpenGL;
@@ -13,7 +14,10 @@ public class Main : Shader
     private readonly Texture? _normal;
     private readonly Texture? _metRought;
 
-    private const uint sun_shadow_unit = 3;
+    private readonly Texture? _prefilterMap;
+    private readonly Texture? _irradianceMap;
+
+    private const uint sun_shadow_unit = 5;
     private const uint first_light_shadow_unit = sun_shadow_unit + Sun.cascades + 1;
 
     public Main(Material material) : base("shaders/Main.vert", null, "shaders/Main.frag")
@@ -26,6 +30,9 @@ public class Main : Shader
 
         if (material.TryGetParam<string>("MetalRoughness", out var metroughtPath))
             _metRought = Engine.TextureManager.GetTexture(new TextureParams { Name = $"{material.Directory}/{metroughtPath}"}).Texture;
+
+        _prefilterMap = Engine.TextureManager.GetTexture("_rt_Prefilter");
+        _irradianceMap = Engine.TextureManager.GetTexture("_rt_Irradiance");
 
         if (material.TryGetParam<bool>("AlphaTest", out var alphatest))
             _alphaTest = alphatest;
@@ -130,10 +137,14 @@ public class Main : Shader
         SetBool("useNormals", _normal != null);
         SetBool("usePbr", _metRought != null);
         SetBool("alphaTest", _alphaTest);
+        SetInt("prefilterMips", _prefilterMap?.Levels ?? 0);
+        SetBool("iblEnabled", ConVarStorage.Get<bool>("mat_ibl_enabled"));
 
         _diffuse?.Bind(0);
         _normal?.Bind(1);
         _metRought?.Bind(2);
+        _prefilterMap?.Bind(3);
+        _irradianceMap?.Bind(4);
     }
 
     public override void Unbind()
@@ -141,6 +152,8 @@ public class Main : Shader
         GL.BindTextureUnit(0, 0);
         GL.BindTextureUnit(1, 0);
         GL.BindTextureUnit(2, 0);
+        GL.BindTextureUnit(3, 0);
+        GL.BindTextureUnit(4, 0);
 
         if (LightManager.Sun != null)
         {
@@ -163,6 +176,8 @@ public class Main : Shader
         _diffuse?.Unload();
         _normal?.Unload();
         _metRought?.Unload();
+        _prefilterMap?.Unload();
+        _irradianceMap?.Unload();
 
         base.Unload();
     }
