@@ -22,7 +22,7 @@ public class TextureParams
     public bool Srgb { get; set; } = false;
     public RenderTargetParams? RenderTargetParams { get; set; }
     public float[]? BorderColor { get; set; } = null;
-    public int MaxLevels { get; set; } = 1;
+    public int? MaxLevels { get; set; } = 1;
     public TextureMinFilter MinFiltering { get; set; } = TextureMinFilter.LinearMipmapLinear;
     public TextureMagFilter MagFiltering { get; set; } = TextureMagFilter.Linear;
     public TextureWrapMode WrapMode { get; set; } = TextureWrapMode.Repeat;
@@ -101,7 +101,7 @@ public class Texture
             internalPixelFormat = hasAlpha ? SizedInternalFormat.Rgba16 : SizedInternalFormat.Rgb16;
         }
 
-        var levels = Math.Clamp(Math.Min((int)image.Width, (int)image.Height) / 16, 1, Params.MaxLevels);
+        var levels = Math.Clamp(Math.Min((int)image.Width, (int)image.Height) / 16, 1, Params.MaxLevels.Value);
 
         GL.TextureStorage2D(Handle, levels, internalPixelFormat, (int)image.Width, (int)image.Height);
         GL.TextureSubImage2D(Handle, 0, 0, 0, (int)image.Width, (int)image.Height, pixelFormat, PixelType.UnsignedByte,
@@ -118,7 +118,10 @@ public class Texture
         if (Params.RenderTargetParams == null)
             return;
 
-        Levels = Math.Clamp(Math.Min(Params.RenderTargetParams.Width, Params.RenderTargetParams.Heigth) / 64, 1, Params.MaxLevels);
+        if (Params.MaxLevels != null)
+            Levels = Math.Clamp(Math.Min(Params.RenderTargetParams.Width, Params.RenderTargetParams.Heigth) / 64, 1, Params.MaxLevels.Value);
+        else
+            Levels = MaxLevels(Params.RenderTargetParams.Width, Params.RenderTargetParams.Heigth);
 
         GL.TextureStorage2D(Handle, Levels, Params.RenderTargetParams.InternalFormat, Params.RenderTargetParams.Width, Params.RenderTargetParams.Heigth);
 
@@ -154,4 +157,10 @@ public class Texture
     }
 
     public override string ToString() => Params.Name;
+
+    private int MaxLevels(int width, int height)
+    {
+        var maxDim = Math.Max(width, height);
+        return (int)Math.Floor(Math.Log(maxDim, 2)) + 1;
+    }
 }
