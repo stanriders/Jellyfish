@@ -10,7 +10,7 @@ public class PostProcessing : Shader
     private readonly Texture _rtAmbientOcclusion;
 
     private static float sceneExposure = 1.0f;
-    private const float adj_speed = 0.05f;
+    private const float adj_speed = 0.035f;
 
     public bool IsEnabled { get; set; } = true;
 
@@ -48,8 +48,11 @@ public class PostProcessing : Shader
 
             if (!double.IsNaN(luminance))
             {
-                sceneExposure = float.Lerp(sceneExposure, 0.5f / luminance * 0.5f, adj_speed);
-                sceneExposure = Math.Clamp(sceneExposure, 0.1f, 1f);
+                const float key = 0.35f;
+                var targetExposure = key / luminance;
+
+                sceneExposure = float.Lerp(sceneExposure, targetExposure, adj_speed);
+                sceneExposure = Math.Clamp(sceneExposure, 0.03125f, 8.0f);
             }
 
             SetFloat("exposure", sceneExposure);
