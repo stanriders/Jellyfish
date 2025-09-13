@@ -21,6 +21,9 @@ namespace Jellyfish.Render
         public Vector3 Up { get; set; } = Vector3.UnitY;
         public Vector3 Right { get; set; } = Vector3.UnitX;
 
+        public Matrix4? ViewMatrixOverride { get; set; } = null;
+        public Matrix4? ProjectionMatrixOverride { get; set; } = null;
+
         public float Pitch
         {
             get => MathHelper.RadiansToDegrees(_pitch);
@@ -59,11 +62,17 @@ namespace Jellyfish.Render
 
         public Matrix4 GetViewMatrix()
         {
+            if (ViewMatrixOverride != null)
+                return ViewMatrixOverride.Value;
+
             return Matrix4.LookAt(Position, Position + _front, Up);
         }
 
         public Matrix4 GetProjectionMatrix(float? nearPlane = null, float? farPlane = null)
         {
+            if (ProjectionMatrixOverride != null)
+                return ProjectionMatrixOverride.Value;
+
             return Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, nearPlane ?? NearPlane, farPlane ?? FarPlane);
         }
 
