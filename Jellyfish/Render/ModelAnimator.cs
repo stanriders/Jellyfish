@@ -5,6 +5,34 @@ using System.Linq;
 
 namespace Jellyfish.Render;
 
+public struct Keyframe<T>
+{
+    public double Time;   // in seconds
+    public T Value;
+
+    public Keyframe(double time, T value)
+    {
+        Time = time;
+        Value = value;
+    }
+}
+
+public class BoneAnimation
+{
+    public string BoneName { get; set; } = null!;
+
+    public List<Keyframe<Vector3>> PositionKeys { get; set; } = new();
+    public List<Keyframe<Quaternion>> RotationKeys { get; set; } = new();
+    public List<Keyframe<Vector3>> ScalingKeys { get; set; } = new();
+}
+
+public class AnimationClip
+{
+    public string Name { get; set; } = null!;
+    public double Duration { get; set; } // seconds
+    public List<BoneAnimation> BoneAnimations { get; set; } = new();
+}
+
 public class ModelAnimator
 {
     private readonly Model _model;
