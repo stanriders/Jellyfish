@@ -111,16 +111,29 @@ public readonly struct BoundingBox
 
     public BoundingBox Translate(Matrix4 transform)
     {
-        var transformedMax = Vector3.TransformVector(Max, transform);
-        var transformedMin = Vector3.TransformVector(Min, transform);
+        var corners = new[]
+        {
+            new Vector3(Min.X, Min.Y, Min.Z),
+            new Vector3(Max.X, Min.Y, Min.Z),
+            new Vector3(Min.X, Max.Y, Min.Z),
+            new Vector3(Max.X, Max.Y, Min.Z),
+            new Vector3(Min.X, Min.Y, Max.Z),
+            new Vector3(Max.X, Min.Y, Max.Z),
+            new Vector3(Min.X, Max.Y, Max.Z),
+            new Vector3(Max.X, Max.Y, Max.Z),
+        };
 
-        var newMax = new Vector3(transformedMin.X > transformedMax.X ? transformedMin.X : transformedMax.X, 
-            transformedMin.Y > transformedMax.Y ? transformedMin.Y : transformedMax.Y, 
-            transformedMin.Z > transformedMax.Z ? transformedMin.Z : transformedMax.Z);
+        for (var i = 0; i < corners.Length; i++)
+            corners[i] = Vector3.TransformPosition(corners[i], transform);
 
-        var newMin = new Vector3(transformedMin.X < transformedMax.X ? transformedMin.X : transformedMax.X,
-            transformedMin.Y < transformedMax.Y ? transformedMin.Y : transformedMax.Y,
-            transformedMin.Z < transformedMax.Z ? transformedMin.Z : transformedMax.Z);
+        var newMin = new Vector3(float.MaxValue);
+        var newMax = new Vector3(float.MinValue);
+
+        foreach (var corner in corners)
+        {
+            newMin = Vector3.ComponentMin(newMin, corner);
+            newMax = Vector3.ComponentMax(newMax, corner);
+        }
 
         return new BoundingBox(newMax, newMin);
     }
