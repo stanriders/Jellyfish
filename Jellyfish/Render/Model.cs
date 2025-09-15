@@ -25,6 +25,7 @@ public class Model
     public string Name { get; set; }
     public List<AnimationClip> Animations { get; private set; } = new();
     public List<Bone> Bones { get; private set; } = new();
+    public Matrix4[] BoneMatrices { get; private set; } = [];
 
     public ModelAnimator? Animator { get; }
 
@@ -64,6 +65,7 @@ public class Model
 
         Animations = animations;
         Bones = bones;
+        BoneMatrices = Enumerable.Repeat(Matrix4.Identity, Bones.Count).ToArray();
 
         foreach (var mesh in _meshes)
             Engine.MeshManager.AddMesh(mesh);
@@ -75,11 +77,19 @@ public class Model
     {
         Name = name;
         Bones = bones;
+        BoneMatrices = Enumerable.Repeat(Matrix4.Identity, Bones.Count).ToArray();
 
         mesh.IsDev = isDev;
         _meshes.Add(mesh);
 
         Engine.MeshManager.AddMesh(mesh);
+    }
+
+    public void Update(double frameTime)
+    {
+        Animator?.Update(frameTime);
+        if (Animator?.CurrentClip != null)
+            BoneMatrices = Animator.FinalBoneMatrices;
     }
 
     public void Unload()

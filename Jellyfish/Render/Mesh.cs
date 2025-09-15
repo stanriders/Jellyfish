@@ -165,26 +165,13 @@ public class Mesh
 
         if (Model != null)
         {
-            if (Model.Animator?.CurrentClip != null)
-            {
-                var boneMatrices = Model.Animator.FinalBoneMatrices;
+            var boneMatrices = Model.BoneMatrices;
 
-                drawShader.SetInt("boneCount", boneMatrices.Length);
-                for (int i = 0; i < boneMatrices.Length; i++)
-                {
-                    drawShader.SetMatrix4($"bones[{i}]", boneMatrices[i]);
-                }
-            }
-            else
+            drawShader.SetInt("boneCount", boneMatrices.Length);
+            for (var i = 0; i < boneMatrices.Length; i++)
             {
-                drawShader.SetInt("boneCount", Model.Bones.Count);
-
-                for (var i = 0; i < Model.Bones.Count; i++)
-                {
-                    drawShader.SetMatrix4($"bones[{i}]", Matrix4.Identity);
-                }
+                drawShader.SetMatrix4($"bones[{i}]", boneMatrices[i]);
             }
-            
         }
 
         if (_ibo != null)

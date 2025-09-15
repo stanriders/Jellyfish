@@ -37,7 +37,7 @@ public abstract class BaseModelEntity : BaseEntity
             if (animation != null)
             {
                 Model?.Animator?.Play(animation);
-                Model?.Animator?.Update(0);
+                Model?.Update(0);
             }
         }
 
@@ -46,7 +46,7 @@ public abstract class BaseModelEntity : BaseEntity
 
     public override void Think(float frameTime)
     {
-        Model?.Animator?.Update(frameTime);
+        Model?.Update(frameTime);
         base.Think(frameTime);
     }
 
@@ -66,7 +66,7 @@ public abstract class BaseModelEntity : BaseEntity
         if (animation != null)
         {
             Model?.Animator?.Play(animation);
-            Model?.Animator?.Update(0);
+            Model?.Update(0);
         }
     }
 
