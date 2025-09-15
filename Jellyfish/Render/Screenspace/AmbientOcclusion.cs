@@ -15,7 +15,7 @@ public class GtaoThickness() : ConVar<float>("mat_gtao_thickness", 5.0f);
 
 public class AmbientOcclusion : ScreenspaceEffect
 {
-    public AmbientOcclusion() : base("Gtao", SizedInternalFormat.Rgb16f, new Shaders.AmbientOcclusion())
+    public AmbientOcclusion() : base("Gtao", SizedInternalFormat.R8, new Shaders.AmbientOcclusion())
     {
     }
 
@@ -41,14 +41,14 @@ public class AmbientOcclusion : ScreenspaceEffect
 
 public class AmbientOcclusionBlurX : ScreenspaceEffect
 {
-    public AmbientOcclusionBlurX() : base("GtaoBlurX", SizedInternalFormat.Rgb16f, new Blur("_rt_Gtao", Blur.Direction.Horizontal, Blur.Size.Blur5))
+    public AmbientOcclusionBlurX() : base("GtaoBlurX", SizedInternalFormat.R8, new Blur("_rt_Gtao", Blur.Direction.Horizontal, Blur.Size.Blur5))
     {
     }
 }
 
 public class AmbientOcclusionBlurY : ScreenspaceEffect
 {
-    public AmbientOcclusionBlurY() : base("GtaoBlurY", SizedInternalFormat.Rgb16f, new Blur("_rt_GtaoBlurX", Blur.Direction.Vertical, Blur.Size.Blur5))
+    public AmbientOcclusionBlurY() : base("GtaoBlurY", SizedInternalFormat.R8, new Blur("_rt_GtaoBlurX", Blur.Direction.Vertical, Blur.Size.Blur5))
     {
     }
 }

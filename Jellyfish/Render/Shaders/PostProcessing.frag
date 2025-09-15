@@ -31,7 +31,7 @@ void main()
     }
 
     vec3 screen = FxaaPixelShader(TexCoords, screenTexture, vec2(SourceSizeRecp.x, SourceSizeRecp.y));
-    vec3 ao = texture(aoTexture, TexCoords).rgb;
+    vec3 ao = vec3(texture(aoTexture, TexCoords).r);
     screen *= ao;
 
     const float gamma = 2.2;
