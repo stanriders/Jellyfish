@@ -53,6 +53,60 @@ public readonly struct BoundingBox
         Length = (Max - Min).Length;
     }
 
+    public BoundingBox(Bone[] bones, Matrix4[] boneTransforms)
+    {
+        var maxY = 0f;
+        var minY = 0f;
+        var maxX = 0f;
+        var minX = 0f;
+        var maxZ = 0f;
+        var minZ = 0f;
+
+        for (var i = 0; i < bones.Length; i++)
+        {
+            var coords = boneTransforms[i].ExtractTranslation();
+
+            if (coords.X < minX)
+                minX = coords.X;
+
+            if (coords.X > maxX)
+                maxX = coords.X;
+
+            if (coords.Z < minZ)
+                minZ = coords.Z;
+
+            if (coords.Z > maxZ)
+                maxZ = coords.Z;
+
+            if (coords.Y < minY)
+                minY = coords.Y;
+
+            if (coords.Y > maxY)
+                maxY = coords.Y;
+        }
+
+        // small offset since bones are too small
+        var offset = 5;
+        maxX += offset;
+        maxY += offset;
+        maxZ += offset;
+
+        minX -= offset;
+        minY -= offset;
+        minZ -= offset;
+
+
+        var midX = (maxX + minX) / 2f;
+        var midY = (maxY + minY) / 2f;
+        var midZ = (maxZ + minZ) / 2f;
+
+        Center = new Vector3(midX, midY, midZ);
+        Size = new Vector3(maxX - minX, maxY - minY, maxZ - minZ);
+        Max = new Vector3(maxX, maxY, maxZ);
+        Min = new Vector3(minX, minY, minZ);
+        Length = (Max - Min).Length;
+    }
+
     public BoundingBox(BoundingBox[] boxes)
     {
         var maxY = 0f;

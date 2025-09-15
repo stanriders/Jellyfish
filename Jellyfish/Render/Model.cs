@@ -155,5 +155,24 @@ public class Model
         }
     }
 
-    public BoundingBox BoundingBox => new BoundingBox(_meshes.Select(x => x.BoundingBox).ToArray());
+    public BoundingBox BoundingBox
+    {
+        get
+        {
+            var bindPoseBoundingBox = new BoundingBox(_meshes.Select(x => x.BoundingBox).ToArray());
+
+            // at least one bone since we can't build a box using one point
+            if (Bones.Count > 1)
+            {
+                var modelBoundingBox = new BoundingBox(Bones.ToArray(), Animator?.UnoffsetBoneMatrices ?? BoneMatrices);
+                if (modelBoundingBox.Size.Length > 0)
+                {
+                    return modelBoundingBox.Translate(Matrix4.Identity * 
+                                                      Matrix4.CreateScale(Scale) *
+                                                      Matrix4.CreateFromQuaternion(Rotation));
+                }
+            }
+            return bindPoseBoundingBox;
+        }
+    }
 }
