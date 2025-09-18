@@ -112,8 +112,8 @@ vec3 HableFunction(in vec3 x)
 // Hable tonemap
 vec3 ToneMap_Hable(in vec3 color)
 {
-    vec3 numerator = HableFunction(color, ShoulderStrength, LinearStrength, LinearAngle, ToeStrength);
-    vec3 denominator = HableFunction(vec3(WhitePoint_Hable), ShoulderStrength, LinearStrength, LinearAngle, ToeStrength);
+    vec3 numerator = HableFunction(color);
+    vec3 denominator = HableFunction(vec3(WhitePoint_Hable));
 
     return LinearTosRGB(numerator / denominator);
 }
@@ -121,16 +121,16 @@ vec3 ToneMap_Hable(in vec3 color)
 vec3 ToneMap(in vec3 color)
 {
     vec3 outputColor = vec3(0.0);
-    if (ToneMappingMode == 0)
+    if (toneMappingMode == 0)
         outputColor = LinearTosRGB(color);
-    else if (ToneMappingMode == 1)
+    else if (toneMappingMode == 1)
         outputColor = ToneMapFilmicALU(color);
-    else if (ToneMappingMode == 2)
+    else if (toneMappingMode == 2)
         outputColor = LinearTosRGB(ACESFitted(color) * 1.8);
-    else if (ToneMappingMode == 3)
-        outputColor = ToneMap_Hejl2015(color, WhitePoint_Hejl);
-    else if (ToneMappingMode == 4)
-        outputColor = ToneMap_Hable(color, WhitePoint_Hable, ShoulderStrength, LinearStrength, LinearAngle, ToeStrength);
+    else if (toneMappingMode == 3)
+        outputColor = ToneMap_Hejl2015(color);
+    else if (toneMappingMode == 4)
+        outputColor = ToneMap_Hable(color);
 
     return outputColor;
 }
