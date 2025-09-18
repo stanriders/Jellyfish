@@ -148,6 +148,8 @@ public static class LightManager
             Name = $"_rt_Shadow{lights.IndexOf(light)}{subname}",
             BorderColor = [1f, 1f, 1f, 1f],
             WrapMode = TextureWrapMode.ClampToBorder,
+            MinFiltering = TextureMinFilter.Nearest,
+            MagFiltering = TextureMagFilter.Nearest,
             RenderTargetParams = new RenderTargetParams
             {
                 Width = light.Source.ShadowResolution,

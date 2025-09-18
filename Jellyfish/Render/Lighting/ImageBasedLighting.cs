@@ -9,7 +9,7 @@ using System.Diagnostics;
 
 namespace Jellyfish.Render.Lighting;
 
-public class IblEnabled() : ConVar<bool>("mat_ibl_enabled", true);
+public class IblEnabled() : ConVar<bool>("mat_ibl_enabled", false);
 public class IblRenderWorld() : ConVar<bool>("mat_ibl_render_world", false);
 
 public class ImageBasedLighting
@@ -75,7 +75,8 @@ public class ImageBasedLighting
             Name = "_rt_EnvironmentMap",
             Type = TextureTarget.TextureCubeMap,
             WrapMode = TextureWrapMode.ClampToEdge,
-            MinFiltering = TextureMinFilter.Linear,
+            MinFiltering = TextureMinFilter.Nearest,
+            MagFiltering = TextureMagFilter.Nearest,
             RenderTargetParams = new RenderTargetParams
             {
                 Width = size,
@@ -101,6 +102,8 @@ public class ImageBasedLighting
             Name = "_rt_Irradiance",
             Type = TextureTarget.TextureCubeMap,
             WrapMode = TextureWrapMode.ClampToEdge,
+            MinFiltering = TextureMinFilter.Nearest,
+            MagFiltering = TextureMagFilter.Nearest,
             RenderTargetParams = new RenderTargetParams
             {
                 Width = irradiance_size,

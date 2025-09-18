@@ -24,6 +24,8 @@ public abstract class ScreenspaceEffect
         {
             Name = $"_rt_{rtName}",
             WrapMode = TextureWrapMode.ClampToEdge,
+            MinFiltering = TextureMinFilter.Nearest,
+            MagFiltering = TextureMagFilter.Nearest,
             RenderTargetParams = new RenderTargetParams
             {
                 Width = Engine.MainViewport.Size.X,

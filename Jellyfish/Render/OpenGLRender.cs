@@ -77,7 +77,9 @@ public class OpenGLRender : IRender, IInputHandler
         {
             Name = "_rt_Color",
             WrapMode = TextureWrapMode.ClampToEdge,
-            MaxLevels = 11,
+            MaxLevels = null,
+            MinFiltering = TextureMinFilter.Nearest,
+            MagFiltering = TextureMagFilter.Nearest,
             RenderTargetParams = new RenderTargetParams
             {
                 Width = Engine.MainViewport.Size.X,
@@ -91,6 +93,8 @@ public class OpenGLRender : IRender, IInputHandler
         {
             Name = "_rt_Depth",
             WrapMode = TextureWrapMode.ClampToEdge,
+            MinFiltering = TextureMinFilter.Nearest,
+            MagFiltering = TextureMagFilter.Nearest,
             RenderTargetParams = new RenderTargetParams
             {
                 Width = Engine.MainViewport.Size.X,

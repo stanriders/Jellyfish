@@ -25,6 +25,8 @@ public class GBuffer
             {
                 Name = $"_rt_{(GBufferType)i}",
                 WrapMode = TextureWrapMode.ClampToEdge,
+                MinFiltering = TextureMinFilter.Nearest,
+                MagFiltering = TextureMagFilter.Nearest,
                 RenderTargetParams = new RenderTargetParams
                 {
                     Width = Engine.MainViewport.Size.X,
