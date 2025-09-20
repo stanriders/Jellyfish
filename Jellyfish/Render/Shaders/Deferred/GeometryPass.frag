@@ -1,4 +1,5 @@
 #version 460
+#include CommonFrag.frag
 
 in vec2 frag_texCoord;
 in vec3 frag_normal;
@@ -16,24 +17,6 @@ uniform mat4 view;
 uniform bool hasNormalMap;
 
 #define VIEWSPACE_NORMALS 1
-
-mat3 GetTBN(vec3 pos, vec2 uv, vec3 normal)
-{
-    vec3 dp1 = dFdx(pos);
-    vec3 dp2 = dFdy(pos);
-    vec2 duv1 = dFdx(uv);
-    vec2 duv2 = dFdy(uv);
-
-    float r = 1.0 / (duv1.x * duv2.y - duv1.y * duv2.x);
-    vec3 tangent   = normalize((dp1 * duv2.y - dp2 * duv1.y) * r);
-    vec3 bitangent = normalize((dp2 * duv1.x - dp1 * duv2.x) * r);
-
-    // Orthonormalize to avoid accumulated floating-point drift
-    tangent   = normalize(tangent - normal * dot(normal, tangent));
-    bitangent = normalize(bitangent - normal * dot(normal, bitangent));
-
-    return mat3(tangent, bitangent, normalize(normal));
-}
 
 void main()
 {

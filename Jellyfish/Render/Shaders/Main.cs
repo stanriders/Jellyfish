@@ -138,7 +138,7 @@ public class Main : Shader
 
         SetBool("useNormals", _normal != null);
         SetBool("usePbr", _metRought != null);
-        SetBool("alphaTest", _alphaTest);
+        SetBool("useTransparency", _alphaTest);
         SetInt("prefilterMips", _prefilterMap?.Levels ?? 0);
         SetBool("iblEnabled", ConVarStorage.Get<bool>("mat_ibl_enabled"));
 

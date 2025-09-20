@@ -64,7 +64,7 @@ uniform mat4 view;
 uniform vec3 cameraPos;
 uniform bool useNormals;
 uniform bool usePbr;
-uniform bool alphaTest;
+uniform bool useTransparency;
 uniform int prefilterMips;
 uniform bool iblEnabled;
 
@@ -75,42 +75,8 @@ struct LightContrib {
 
 const float PI = 3.14159265359;
 
-float DistributionGGX(vec3 N, vec3 H, float roughness)
-{
-    float alpha      = roughness*roughness;
-    float alphaSq     = alpha*alpha;
-    float NdotH  = max(dot(N, H), 0.0);
-    float NdotHSq = NdotH*NdotH;
-	
-    float denom = (NdotHSq * (alphaSq - 1.0) + 1.0);
-    return alphaSq / (PI * denom * denom);
-}
-
-float GeometrySchlickGGX(float NdotV, float roughness)
-{
-    float r = (roughness + 1.0);
-    float k = (r*r) / 8.0;
-
-    float num   = NdotV;
-    float denom = NdotV * (1.0 - k) + k;
-	
-    return num / denom;
-}
-
-float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
-{
-    float NdotV = max(dot(N, V), 0.0);
-    float NdotL = max(dot(N, L), 0.0);
-    float ggx2  = GeometrySchlickGGX(NdotV, roughness);
-    float ggx1  = GeometrySchlickGGX(NdotL, roughness);
-	
-    return ggx1 * ggx2;
-}
-
-vec3 fresnelSchlick(float cosTheta, vec3 F0)
-{
-    return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
-}
+// late include to make sure we have all the uniforms
+#include Pbr.frag
 
 float ShadowCalculation(int lightIndex, vec3 lightDir, vec3 normal)
 {
@@ -257,31 +223,21 @@ LightContrib CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
     return result;
 }
 
-mat3 GetTBN(vec3 pos, vec2 uv, vec3 normal)
+vec3 ApplyLight(LightContrib lc, vec3 diffuseColor, vec3 L, vec3 N, vec3 V, vec3 F0, float roughness, float metalness)
 {
-    vec3 dp1 = dFdx(pos);
-    vec3 dp2 = dFdy(pos);
-    vec2 duv1 = dFdx(uv);
-    vec2 duv2 = dFdy(uv);
+    float NdotL = max(dot(N, L), 0.0);
 
-    float r = 1.0 / (duv1.x * duv2.y - duv1.y * duv2.x);
-    vec3 tangent   = normalize((dp1 * duv2.y - dp2 * duv1.y) * r);
-    vec3 bitangent = normalize((dp2 * duv1.x - dp1 * duv2.x) * r);
+    if (usePbr)
+    {
+        BRDFResult brdf = ComputeBRDF(N, V, L, F0, roughness, metalness);
 
-    // Orthonormalize to avoid accumulated floating-point drift
-    tangent   = normalize(tangent - normal * dot(normal, tangent));
-    bitangent = normalize(bitangent - normal * dot(normal, bitangent));
-
-    return mat3(tangent, bitangent, normalize(normal));
-}
-
-vec2 integrateBRDFApprox(float NdotV, float roughness)
-{
-    const vec4 c0 = vec4(-1.0, -0.0275, -0.572, 0.022);
-    const vec4 c1 = vec4( 1.0,  0.0425,  1.04, -0.04);
-    vec4 r = roughness * c0 + c1;
-    float a004 = min(r.x * r.x, exp2(-9.28 * NdotV)) * r.x + r.y;
-    return vec2(-1.04, 1.04) * a004 + r.zw;
+        vec3 diffuse = brdf.kD * diffuseColor;
+        return diffuse * lc.ambient + max(vec3(0.0), (diffuse + brdf.specular) * lc.direct * NdotL);
+    }
+    else
+    {
+        return (lc.direct + lc.ambient) * NdotL;
+    }
 }
 
 void main()
@@ -302,67 +258,26 @@ void main()
 
     vec3 viewDir = normalize(cameraPos - frag_position);
     
-    vec3 metroughTex = texture(metroughSampler, frag_texCoord * vec2(1.0, -1.0)).rgb;
+    vec3 metroughTex = vec3(0);
+    if (usePbr)
+        metroughTex = texture(metroughSampler, frag_texCoord * vec2(1.0, -1.0)).rgb;
+
     float metalness = metroughTex.b;
     float roughness = metroughTex.g;
-   
-    vec3 dielectricCoefficient = vec3(0.04);  //F0 dielectric
-    dielectricCoefficient = mix(dielectricCoefficient, diffuseTex.rgb, metalness);
 
-    vec3 result = vec3(0.0, 0.0, 0.0);
-    
     vec3 lighting = vec3(0);
-    vec3 ibl = vec3(0);
-
     if (usePbr && iblEnabled) 
     {
-        vec3 F0 = mix(vec3(0.04), diffuseTex.rgb, metalness);
-        float NdotV = max(dot(normal, viewDir), 0.0);
-
-        // Fresnel for environment uses N·V (not H)
-        vec3 F_env = fresnelSchlick(NdotV, F0);
-        vec3 kS_env = F_env;
-        vec3 kD_env = (1.0 - kS_env) * (1.0 - metalness);
-
-        // Diffuse IBL (irradiance map must be preconvolved)
-        vec3 diffuseIBL = texture(irradianceMap, normal).rgb * diffuseTex.rgb;
-
-        // Specular IBL
-        vec3 R = normalize(reflect(-viewDir, normal));
-
-        vec3 prefilteredColor = textureLod(prefilterMap, R, roughness * prefilterMips).rgb;
-        vec2 brdf = integrateBRDFApprox(NdotV, roughness);
-        vec3 specularIBL = prefilteredColor * (F_env * brdf.x + brdf.y);
-
-        ibl = kD_env * diffuseIBL + specularIBL;
+        lighting += ComputeIBL(normal, viewDir, diffuseTex.rgb, roughness, metalness);
     }
+    
+    vec3 dielectricCoefficient = mix(vec3(0.04), diffuseTex.rgb, metalness); // F0
 
     for(int i = 0; i < lightSourcesCount; i++)
     {
         Light light = lightSources[i];
         vec3 lightDir = normalize(light.position - frag_position);
 
-        float NdotL = max(dot(normal, lightDir), 0.0);    
-
-        vec3 specular = vec3(0);
-        vec3 kD = vec3(0);
-        if (usePbr)
-        {
-            // cook-torrance brdf
-            vec3 H = normalize(viewDir + lightDir);
-            float NDF = DistributionGGX(normal, H, roughness);        
-            float G   = GeometrySmith(normal, viewDir, lightDir, roughness);      
-            vec3 F    = fresnelSchlick(max(dot(H, viewDir), 0.0), dielectricCoefficient);      
-    
-            vec3 kS = F;
-            kD = vec3(1.0) - kS;
-            kD *= 1.0 - metalness;
-        
-            vec3 numerator    = NDF * G * F;
-            float denominator = max(0.00001, 4.0 * max(dot(normal, viewDir), 0.0) * NdotL);
-            specular          = numerator / denominator; 
-        }
-        
         LightContrib lightContrib;
         switch(lightSources[i].type)
         {
@@ -378,74 +293,23 @@ void main()
             }
         }
 
-        if (usePbr)
-        {
-            // add to outgoing radiance Lo
-            vec3 diffuseBDR = diffuseTex.rgb;
-            lighting += kD * diffuseBDR * lightContrib.ambient;
-            lighting += max(vec3(0), (kD * diffuseBDR + specular) * lightContrib.direct * NdotL); 
-        }
-        else 
-        {
-            lighting += (lightContrib.direct + lightContrib.ambient) * NdotL;
-        }
+        lighting += ApplyLight(lightContrib, diffuseTex.rgb, lightDir, normal, viewDir, dielectricCoefficient, roughness, metalness);
     }
 
     if (sunEnabled) 
     {
         vec3 lightDir = normalize(-sun.direction);
-        float NdotL = max(dot(normal, lightDir), 0.0);
-
-        vec3 specular = vec3(0);
-        vec3 kD = vec3(0);
-        if (usePbr)
-        {
-            // cook-torrance brdf
-            vec3 H = normalize(viewDir + lightDir);
-            float NDF = DistributionGGX(normal, H, roughness);
-            float G   = GeometrySmith(normal, viewDir, lightDir, roughness);
-            vec3 F    = fresnelSchlick(max(dot(H, viewDir), 0.0), dielectricCoefficient);
-
-            vec3 kS = F;
-            kD = vec3(1.0) - kS;
-            kD *= 1.0 - metalness;
-
-            vec3 numerator    = NDF * G * F;
-            float denominator = max(0.00001, 4.0 * max(dot(normal, viewDir), 0.0) * NdotL);
-            specular          = numerator / denominator; 
-        }
-
         LightContrib lightContrib = CalcSun(normal, frag_position, viewDir);
 
-        if (usePbr)
-        {
-            // add to outgoing radiance Lo
-            vec3 diffuseBDR = diffuseTex.rgb;
-            lighting += kD * diffuseBDR * lightContrib.ambient;
-            lighting += max(vec3(0), (kD * diffuseBDR + specular) * (lightContrib.direct * NdotL)); 
-        }
-        else 
-        {
-            lighting += sun.ambient;
-            lighting += lightContrib.direct * NdotL;
-        }
+        lighting += ApplyLight(lightContrib, diffuseTex.rgb, lightDir, normal, viewDir, dielectricCoefficient, roughness, metalness);
     }
-
-    if (usePbr) {
-        lighting += ibl;
-    }
-
-    result = lighting;
 
     if (!usePbr)
-    {
-        result *= diffuseTex.rgb;
-    }
+        lighting *= diffuseTex.rgb;
 
-    if (!alphaTest)
-        outputColor = vec4(result, 1.0);
+    if (!useTransparency)
+        outputColor = vec4(lighting, 1.0);
     else
-        outputColor = vec4(result, diffuseTex.a);
-
+        outputColor = vec4(lighting, diffuseTex.a);
 }
 

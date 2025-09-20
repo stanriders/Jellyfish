@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Xml.Linq;
 using Jellyfish.Console;
 using Jellyfish.Render.Shaders;
 using Newtonsoft.Json;
-using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.Render;
 

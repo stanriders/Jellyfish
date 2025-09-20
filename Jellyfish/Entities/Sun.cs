@@ -17,6 +17,7 @@ public class Sun : BaseEntity, ILightSource
         AddProperty("Brightness", 1f);
         AddProperty("Enabled", true);
         AddProperty("Shadows", true);
+        AddProperty("PCSS", false);
     }
 
     public override void Load()
@@ -40,7 +41,7 @@ public class Sun : BaseEntity, ILightSource
     public bool UseShadows => GetPropertyValue<bool>("Shadows");
     public float NearPlane => 0;
     public float FarPlane => 0;
-    public bool UsePcss => false;
+    public bool UsePcss => GetPropertyValue<bool>("PCSS");
     public int ShadowResolution => 2048;
 
     public const int cascades = 4;
