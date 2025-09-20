@@ -1,4 +1,5 @@
-﻿using Jellyfish.Console;
+﻿using System;
+using Jellyfish.Console;
 using Jellyfish.Entities;
 using OpenTK.Mathematics;
 
@@ -31,7 +32,8 @@ public class Skybox : Shader
 
         var rotationVector = Vector3.Transform(Vector3.UnitY, _sun!.GetPropertyValue<Quaternion>("Rotation"));
         SetVector3("uSunPos", rotationVector);
-        SetFloat("uSunIntensity", _sun.Brightness * 5f);
+        SetFloat("uViewHeight", Math.Max(0f, Engine.MainViewport.Position.Y));
+        SetFloat("uSunIntensity", _sun.Brightness * 4f);
 
         SetMatrix4("view", Engine.MainViewport.GetViewMatrix().ClearTranslation());
         SetMatrix4("projection", Engine.MainViewport.GetProjectionMatrix());

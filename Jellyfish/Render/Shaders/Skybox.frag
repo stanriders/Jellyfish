@@ -7,6 +7,7 @@ out vec4 FragColor;
 in vec3 TexCoords;
 
 uniform vec3 uSunPos;
+uniform float uViewHeight;
 uniform float uSunIntensity;
 
 #define PI 3.141592
@@ -119,13 +120,17 @@ vec3 atmosphere(vec3 r, vec3 r0, vec3 pSun, float iSun, float rPlanet, float rAt
 
 void main()
 {
+    const float rPlanet = 6371e3;
+    const float rayleighScaleHeight = 8e3;
+    float rAtmos = rPlanet + max(100e3, 5.0 * rayleighScaleHeight);
+
     vec3 color = atmosphere(
         normalize(TexCoords),           // normalized ray direction
-        vec3(0,6372e3,0),               // ray origin
+        vec3(0, rPlanet + uViewHeight, 0), // ray origin
         uSunPos,                        // position of the sun
         uSunIntensity,                  // intensity of the sun
-        6371e3,                         // radius of the planet in meters
-        6471e3,                         // radius of the atmosphere in meters
+        rPlanet,                        // radius of the planet in meters
+        rAtmos,                         // radius of the atmosphere in meters
         vec3(5.5e-6, 13.0e-6, 22.4e-6), // Rayleigh scattering coefficient
         21e-6,                          // Mie scattering coefficient
         8e3,                            // Rayleigh scale height
@@ -133,8 +138,13 @@ void main()
         0.758                           // Mie preferred scattering direction
     );
 
-    const float gamma = 2.2;
-    color = pow(color, vec3(gamma));
+    const float sunAngularRadius = 0.007;
+    float cosAngle = dot(normalize(TexCoords), normalize(uSunPos));
+    float sun = smoothstep(cos(sunAngularRadius), cos(0.0), cosAngle);
+    color += vec3(uSunIntensity * 0.02) * sun;
 
+    //vec3 groundColor = vec3(0.3, 0.25, 0.2);
+    //color = mix(groundColor, color, smoothstep(0.0, 0.1, TexCoords.y));
+    
     FragColor = vec4(color, 1);
 }
