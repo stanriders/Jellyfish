@@ -12,6 +12,8 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Text;
 using ErrorCode = OpenTK.Graphics.OpenGL.ErrorCode;
 using Vector2 = System.Numerics.Vector2;
 
@@ -67,6 +69,8 @@ public sealed class ImguiController : IDisposable, IInputHandler
         GL.GetIntegerv(GetPName.MaxTextureSize, &maxTextureSize);
         var platformIo = ImGui.GetPlatformIO();
         platformIo.RendererTextureMaxWidth = platformIo.RendererTextureMaxHeight = maxTextureSize;
+        platformIo.PlatformSetClipboardTextFn = (void*)Marshal.GetFunctionPointerForDelegate<PlatformSetClipboardTextFn>(SetClipboardText);
+        platformIo.PlatformGetClipboardTextFn = (void*)Marshal.GetFunctionPointerForDelegate<PlatformGetClipboardTextFn>(GetClipboardText);
 
         CreateDeviceResources();
 
@@ -74,6 +78,24 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
         ImGui.NewFrame();
         _frameBegun = true;
+    }
+
+    private static unsafe byte* GetClipboardText(ImGuiContext* data)
+    {
+        var str = Encoding.UTF8.GetBytes(GLFW.GetClipboardString(Engine.MainWindow.WindowPtr) + '\0');
+        fixed (byte* ptr = str)
+        {
+            return ptr;
+        }
+    }
+
+    private static unsafe void SetClipboardText(ImGuiContext* data, byte* text)
+    {
+        if (text == null)
+            return;
+
+        var str = Marshal.PtrToStringUTF8((nint)text) ?? string.Empty;
+        GLFW.SetClipboardString(Engine.MainWindow.WindowPtr, str);
     }
 
     public void CreateDeviceResources()
@@ -417,10 +439,10 @@ public sealed class ImguiController : IDisposable, IInputHandler
         }
         _pressedChars.Clear();
 
-        io.KeyCtrl = keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl);
-        io.KeyAlt = keyboardState.IsKeyDown(Keys.LeftAlt) || keyboardState.IsKeyDown(Keys.RightAlt);
-        io.KeyShift = keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift);
-        io.KeySuper = keyboardState.IsKeyDown(Keys.LeftSuper) || keyboardState.IsKeyDown(Keys.RightSuper);
+        io.AddKeyEvent(ImGuiKey.ModCtrl, keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl));
+        io.AddKeyEvent(ImGuiKey.ModShift, keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift));
+        io.AddKeyEvent(ImGuiKey.ModAlt, keyboardState.IsKeyDown(Keys.LeftAlt) || keyboardState.IsKeyDown(Keys.RightAlt));
+        io.AddKeyEvent(ImGuiKey.ModSuper, keyboardState.IsKeyDown(Keys.LeftSuper) || keyboardState.IsKeyDown(Keys.RightSuper));
 
         if (ImGuizmo.IsUsing())
         {

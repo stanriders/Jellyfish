@@ -136,9 +136,9 @@ namespace Jellyfish
             }
 
             // we want to update ui regardless of focus otherwise it disappears
+            _inputHandler.Frame(_mainWindow.KeyboardState, _mainWindow.MouseState, (float)e.Time);
             _imguiController?.Update(_mainWindow.ClientSize.X, _mainWindow.ClientSize.Y);
             _uiManager.Frame(e.Time);
-            _inputHandler.Frame(_mainWindow.KeyboardState, _mainWindow.MouseState, (float)e.Time);
 
             if (!Loaded)
             {
