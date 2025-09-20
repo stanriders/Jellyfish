@@ -121,8 +121,10 @@ public class Main : Shader
             {
                 SetMatrix4($"sun.lightSpaceMatrix[{i}]", sun.Projections[i]);
                 SetFloat($"sun.cascadeFar[{i}]", Sun.CascadeRanges[i].Far);
+                SetFloat($"sun.cascadeNear[{i}]", Sun.CascadeRanges[i].Near);
             }
             SetBool("sun.hasShadows", sun.UseShadows && LightManager.Sun.Shadows.Count > 0);
+            SetBool("sun.usePcss", sun.UseShadows && sun.UsePcss);
         }
 
         if (LightManager.Sun != null && LightManager.Sun.Source.Enabled && LightManager.Sun.Source.UseShadows)

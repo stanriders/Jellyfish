@@ -1,4 +1,5 @@
 ﻿#version 460
+#include CommonFrag.frag
 #include Shadowmapping.frag
 
 out vec4 outputColor;
@@ -48,10 +49,12 @@ struct Sun {
 
     float brightness;
     float cascadeFar[CSM_CASCADES];
+    float cascadeNear[CSM_CASCADES];
 
     vec3 ambient;
     vec3 diffuse;
     bool hasShadows;
+    bool usePcss;
 };
 
 uniform Sun sun;
@@ -120,9 +123,10 @@ float ShadowCalculation(int lightIndex, vec3 lightDir, vec3 normal)
         return 0.0;
         
     if (lightSources[lightIndex].usePcss)
-        return ShadowColor_PCSS4X4_PCF4X4(shadowSamplers[lightIndex], projCoords, lightSources[lightIndex].near, lightSources[lightIndex].far, 0.0003f, true);
+        return ShadowColor_PCSS4X4_PCF4X4(shadowSamplers[lightIndex], projCoords, lightSources[lightIndex].near, 3f);
 
-    return SimplePCF(shadowSamplers[lightIndex], projCoords, 4);
+    return PoissonPCF(shadowSamplers[lightIndex], projCoords, 2f);
+    //return SimplePCF(shadowSamplers[lightIndex], projCoords, 4);
     //return SimpleShadow(shadowSamplers[lightIndex], projCoords);
 }  
 
@@ -223,9 +227,17 @@ LightContrib CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
 
         if(projCoords.z < 1.0)
         {
-            shadow = SimplePCF(sunShadowSampler[layer], projCoords, layer == 0 ? 4 : 1);
-            //shadow = SimpleShadow(sunShadowSampler[layer], projCoords);
-            //shadow = ShadowColor_PCSS4X4_PCF4X4(sunShadowSampler[layer], projCoords, sun.cascadeNear[layer], sun.cascadeFar[layer], 0.01f, false);
+            if (sun.usePcss && layer == 0)
+            {
+                shadow = ShadowColor_PCSS4X4_PCF4X4(sunShadowSampler[layer], projCoords, sun.cascadeNear[layer], 0.075f);
+            }
+            else
+            {
+                shadow = PoissonPCF(sunShadowSampler[layer], projCoords, layer == 0 ? 4f : 1f);
+                //shadow = SimplePCF(sunShadowSampler[layer], projCoords, layer == 0 ? 4f : 1f);
+                //shadow = SimpleShadow(sunShadowSampler[layer], projCoords);
+            }
+
 #ifdef CSM_DEBUG
             if (layer == 0)
                 outdiffuse *= vec3(0,10,0);

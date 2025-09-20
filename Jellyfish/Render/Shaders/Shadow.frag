@@ -1,7 +1,7 @@
 #version 460
 precision highp float;
 
-#define BIAS 0.005
+#define BIAS 0.001
 
 void main()
 {
