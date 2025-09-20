@@ -1,4 +1,5 @@
 ﻿using OpenTK.Mathematics;
+using System.Collections.Generic;
 
 namespace Jellyfish.Render.Lighting;
 
@@ -17,7 +18,7 @@ public interface ILightSource
     float NearPlane { get; }
     float FarPlane { get; }
 
-    Matrix4[] Projections { get; }
+    List<Matrix4> Projections { get; }
 
     bool UsePcss { get; }
 

@@ -62,7 +62,7 @@ namespace Jellyfish.Audio
         public void AddMesh(Mesh mesh)
         {
             var transformationMatrix = mesh.GetTransformationMatrix();
-            var tranformedVertices = mesh.Vertices.Select(meshVertex => Vector3.TransformPosition(meshVertex.Coordinates, transformationMatrix).ToIplVector()).ToList();
+            var tranformedVertices = mesh.Vertices.Select(meshVertex => Vector3.TransformPosition(meshVertex.Coordinates, transformationMatrix).ToIplVector()).ToArray();
 
             var triangles = new List<IPL.Triangle>();
             for (var i = 0; i < mesh.Vertices.Count; i += 3)
@@ -88,14 +88,14 @@ namespace Jellyfish.Audio
 
             var materialsList = new[] { material };
 
-            fixed (IPL.Vector3* verts = tranformedVertices.ToArray())
+            fixed (IPL.Vector3* verts = tranformedVertices)
             fixed (IPL.Triangle* indicies = triangles.ToArray())
             fixed (IPL.Material* materials = materialsList)
             fixed (int* materialIndicies = Enumerable.Repeat(0, triangles.Count).ToArray())
             {
                 IPL.StaticMeshCreate(_iplScene, new IPL.StaticMeshSettings
                 {
-                    NumVertices = tranformedVertices.Count,
+                    NumVertices = tranformedVertices.Length,
                     NumTriangles = triangles.Count,
                     NumMaterials = materialsList.Length,
                     Vertices = (nint)verts,

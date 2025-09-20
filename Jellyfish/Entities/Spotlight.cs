@@ -1,6 +1,7 @@
-﻿using System;
-using Jellyfish.Utils;
+﻿using Jellyfish.Utils;
 using OpenTK.Mathematics;
+using System;
+using System.Collections.Generic;
 
 namespace Jellyfish.Entities;
 
@@ -23,7 +24,7 @@ public class Spotlight : LightEntity, IHaveFrustum
     public override float NearPlane => 1f;
     public override float FarPlane => GetPropertyValue<float>("FarPlane");
 
-    public override Matrix4[] Projections
+    public override List<Matrix4> Projections
     {
         get
         {

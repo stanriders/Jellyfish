@@ -54,7 +54,7 @@ public class Sun : BaseEntity, ILightSource
         (3000, 10000)
     ];
 
-    public Matrix4[] Projections
+    public List<Matrix4> Projections
     {
         get
         {
@@ -97,7 +97,7 @@ public class Sun : BaseEntity, ILightSource
                 projections.Add(lightView * lightProjection);
             }
 
-            return projections.ToArray();
+            return projections;
         }
     }
 }

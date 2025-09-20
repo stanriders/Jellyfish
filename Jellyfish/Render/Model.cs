@@ -164,7 +164,7 @@ public class Model
             // at least one bone since we can't build a box using one point
             if (Bones.Count > 1)
             {
-                var modelBoundingBox = new BoundingBox(Bones.ToArray(), Animator?.UnoffsetBoneMatrices ?? BoneMatrices);
+                var modelBoundingBox = new BoundingBox(Bones, Animator?.UnoffsetBoneMatrices ?? BoneMatrices);
                 if (modelBoundingBox.Size.Length > 0)
                 {
                     return modelBoundingBox.Translate(Matrix4.Identity * 

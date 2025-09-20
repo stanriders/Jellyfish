@@ -117,7 +117,7 @@ public class Main : Shader
             SetVector3("sun.ambient", new Vector3(sun.Ambient.X, sun.Ambient.Y, sun.Ambient.Z));
             SetFloat("sun.brightness", sun.Brightness);
 
-            for (var i = 0; i < sun.Projections.Length; i++)
+            for (var i = 0; i < sun.Projections.Count; i++)
             {
                 SetMatrix4($"sun.lightSpaceMatrix[{i}]", sun.Projections[i]);
                 SetFloat($"sun.cascadeFar[{i}]", Sun.CascadeRanges[i].Far);

@@ -1,4 +1,5 @@
-﻿using Jellyfish.Render;
+﻿using System.Collections.Generic;
+using Jellyfish.Render;
 using OpenTK.Mathematics;
 
 namespace Jellyfish.Utils;
@@ -53,7 +54,7 @@ public readonly struct BoundingBox
         Length = (Max - Min).Length;
     }
 
-    public BoundingBox(Bone[] bones, Matrix4[] boneTransforms)
+    public BoundingBox(List<Bone> bones, Matrix4[] boneTransforms)
     {
         var maxY = 0f;
         var minY = 0f;
@@ -62,7 +63,7 @@ public readonly struct BoundingBox
         var maxZ = 0f;
         var minZ = 0f;
 
-        for (var i = 0; i < bones.Length; i++)
+        for (var i = 0; i < bones.Count; i++)
         {
             var coords = boneTransforms[i].ExtractTranslation();
 
