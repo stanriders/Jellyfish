@@ -98,7 +98,7 @@ public class Main : Shader
 
             if (light.UseShadows && LightManager.Lights[i].Shadows.Count > 0)
             {
-                LightManager.Lights[i].Shadows[0].RenderTarget.Bind(first_light_shadow_unit + (uint)i);
+                BindTexture(first_light_shadow_unit + (uint)i, LightManager.Lights[i].Shadows[0].RenderTarget);
             }
 
             SetBool($"lightSources[{i}].hasShadows", light.UseShadows && LightManager.Lights[i].Shadows.Count > 0);
@@ -129,7 +129,7 @@ public class Main : Shader
         {
             for (uint i = 0; i < Sun.cascades; i++)
             {
-                LightManager.Sun.Shadows[(int)i].RenderTarget.Bind(sun_shadow_unit + i);
+                BindTexture(sun_shadow_unit + i, LightManager.Sun.Shadows[(int)i].RenderTarget);
             }
         }
         SetBool("sunEnabled", LightManager.Sun != null && LightManager.Sun.Source.Enabled);
@@ -140,35 +140,11 @@ public class Main : Shader
         SetInt("prefilterMips", _prefilterMap?.Levels ?? 0);
         SetBool("iblEnabled", ConVarStorage.Get<bool>("mat_ibl_enabled"));
 
-        _diffuse?.Bind(0);
-        _normal?.Bind(1);
-        _metRought?.Bind(2);
-        _prefilterMap?.Bind(3);
-        _irradianceMap?.Bind(4);
-    }
-
-    public override void Unbind()
-    {
-        GL.BindTextureUnit(0, 0);
-        GL.BindTextureUnit(1, 0);
-        GL.BindTextureUnit(2, 0);
-        GL.BindTextureUnit(3, 0);
-        GL.BindTextureUnit(4, 0);
-
-        if (LightManager.Sun != null)
-        {
-            for (uint i = 0; i < Sun.cascades; i++)
-            {
-                GL.BindTextureUnit(sun_shadow_unit + i, 0);
-            }
-        }
-
-        for (uint i = 0; i < LightManager.max_lights; i++)
-        {
-            GL.BindTextureUnit(first_light_shadow_unit + i, 0);
-        }
-
-        base.Unbind();
+        BindTexture(0, _diffuse);
+        BindTexture(1, _normal);
+        BindTexture(2, _metRought);
+        BindTexture(3, _prefilterMap);
+        BindTexture(4, _irradianceMap);
     }
 
     public override void Unload()

@@ -25,8 +25,8 @@ public class PostProcessing : Shader
     {
         base.Bind();
 
-        _rtColor.Bind(0);
-        _rtAmbientOcclusion.Bind(1);
+        BindTexture(0, _rtColor);
+        BindTexture(1, _rtAmbientOcclusion);
 
         SetVector2("screenSize", new Vector2(Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y));
         SetInt("isEnabled", IsEnabled ? 1 : 0);
@@ -58,14 +58,6 @@ public class PostProcessing : Shader
             SetFloat("exposure", sceneExposure);
             SetInt("toneMappingMode", 3);
         }
-    }
-
-    public override void Unbind()
-    {
-        GL.BindTextureUnit(0, 0);
-        GL.BindTextureUnit(1, 0);
-
-        base.Unbind();
     }
 
     public override void Unload()

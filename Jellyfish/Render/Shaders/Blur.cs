@@ -31,17 +31,11 @@ public class Blur : Shader
     public override void Bind()
     {
         base.Bind();
-        _rtSource.Bind(0);
+        BindTexture(0, _rtSource);
 
         SetVector2("screenSize", new Vector2(Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y));
         SetInt("direction", (int)_direction);
         SetInt("size", (int)_size); 
-    }
-
-    public override void Unbind()
-    {
-        GL.BindTextureUnit(0, 0);
-        base.Unbind();
     }
 
     public override void Unload()

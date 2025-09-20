@@ -28,6 +28,7 @@ public abstract class Shader
     private readonly string? _compPath;
 
     private readonly List<FileSystemWatcher> _watchers = new();
+    private readonly List<uint> _boundTextures = new();
     private bool _reloading;
 
     private bool _complainedAboutMissingUniforms;
@@ -280,6 +281,12 @@ public abstract class Shader
 
     public virtual void Unbind()
     {
+        foreach (var bindTexture in _boundTextures)
+        {
+            GL.BindTextureUnit(bindTexture, 0);
+        }
+        _boundTextures.Clear();
+
         GL.UseProgram(0);
     }
 
@@ -435,5 +442,17 @@ public abstract class Shader
         var uniform = SetUniform(name, data, bind);
         if (uniform != null)
             GL.Uniform4f(uniform.Location, data[0], data[1], data[2], data[3]);
+    }
+
+    public void BindTexture(uint sampler, Texture? texture)
+    {
+        if (texture == null)
+            return;
+
+        if (_boundTextures.Contains(sampler))
+            throw new Exception("Trying to bind to a sampler that wasn't unbound");
+
+        texture.Bind(sampler);
+        _boundTextures.Add(sampler);
     }
 }
