@@ -31,6 +31,10 @@ public class ShaderStorageBuffer
             PixelType.UnsignedInt,
             IntPtr.Zero);
     }
+    public void Unload()
+    {
+        GL.DeleteBuffer(Handle);
+    }
 }
 
 public class ShaderStorageBuffer<T> where T: struct, IGpuStruct
@@ -75,5 +79,9 @@ public class ShaderStorageBuffer<T> where T: struct, IGpuStruct
         {
             Marshal.FreeHGlobal(ptr);
         }
+    }
+    public void Unload()
+    {
+        GL.DeleteBuffer(Handle);
     }
 }
