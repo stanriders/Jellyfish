@@ -25,7 +25,6 @@ public abstract class Shader
     private readonly string _fragPath;
     private readonly string? _tessControlPath;
     private readonly string? _tessEvalPath;
-    private readonly string? _compPath;
 
     private readonly List<FileSystemWatcher> _watchers = new();
     private readonly List<uint> _boundTextures = new();
@@ -33,15 +32,13 @@ public abstract class Shader
 
     private bool _complainedAboutMissingUniforms;
 
-    protected Shader(string vertPath, string? geomPath, string fragPath, string? tessControlPath = null,
-        string? tessEvalPath = null, string? compPath = null)
+    protected Shader(string vertPath, string? geomPath, string fragPath, string? tessControlPath = null, string? tessEvalPath = null)
     {
         _vertPath = vertPath;
         _geomPath = geomPath;
         _fragPath = fragPath;
         _tessControlPath = tessControlPath;
         _tessEvalPath = tessEvalPath;
-        _compPath = compPath;
 
         _shaderHandle = LoadShader();
 
@@ -92,17 +89,6 @@ public abstract class Shader
             };
             tessEvalWatcher.Changed += OnChanged;
             _watchers.Add(tessEvalWatcher);
-        }
-
-        if (!string.IsNullOrEmpty(compPath))
-        {
-            var compWatcher = new FileSystemWatcher(Path.GetDirectoryName(compPath)!, Path.GetFileName(compPath))
-            {
-                NotifyFilter = NotifyFilters.LastWrite,
-                EnableRaisingEvents = true
-            };
-            compWatcher.Changed += OnChanged;
-            _watchers.Add(compWatcher);
         }
     }
 
@@ -175,7 +161,6 @@ public abstract class Shader
         var fragmentShader = Engine.ShaderManager.GetShader(_fragPath, ShaderType.FragmentShader);
         var tesselationControlShader = Engine.ShaderManager.GetShader(_tessControlPath, ShaderType.TessControlShader);
         var tesselationEvaluationShader = Engine.ShaderManager.GetShader(_tessEvalPath, ShaderType.TessEvaluationShader);
-        var computeShader = Engine.ShaderManager.GetShader(_compPath, ShaderType.ComputeShader);
 
         if (vertexShader != null)
             GL.AttachShader(handle, vertexShader.Value);
@@ -191,9 +176,6 @@ public abstract class Shader
 
         if (tesselationEvaluationShader != null)
             GL.AttachShader(handle, tesselationEvaluationShader.Value);
-
-        if (computeShader != null)
-            GL.AttachShader(handle, computeShader.Value);
 
         LinkProgram(handle);
 
@@ -221,11 +203,6 @@ public abstract class Shader
         if (tesselationEvaluationShader != null)
         {
             GL.DetachShader(handle, tesselationEvaluationShader.Value);
-        }
-
-        if (computeShader != null)
-        {
-            GL.DetachShader(handle, computeShader.Value);
         }
 
         GL.GetProgrami(handle, ProgramProperty.ActiveUniforms, out var numberOfUniforms);
