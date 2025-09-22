@@ -75,7 +75,7 @@ public class Material
             _params = new Dictionary<string, object>
             {
                 { "Shader", "Main" },
-                { "Diffuse", path }
+                { "Diffuse", originalPath ?? path }
             };
         }
         else
