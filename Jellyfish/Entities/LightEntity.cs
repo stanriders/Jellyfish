@@ -19,12 +19,12 @@ namespace Jellyfish.Entities
         public override void Load()
         {
             base.Load();
-            LightManager.AddLight(this);
+            Engine.LightManager.AddLight(this);
         }
 
         public override void Unload()
         {
-            LightManager.RemoveLight(this);
+            Engine.LightManager.RemoveLight(this);
             base.Unload();
         }
 

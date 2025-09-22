@@ -143,7 +143,7 @@ public class OpenGLRender : IRender, IInputHandler
         GL.DepthFunc(DepthFunction.Less);
 
         _gBuffer?.GeometryPass();
-        LightManager.DrawShadows();
+        Engine.LightManager.DrawShadows();
 
         _imageBasedLighting?.Frame(_sky);
 

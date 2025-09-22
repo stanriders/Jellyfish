@@ -12,6 +12,7 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 using System.Diagnostics;
 using System.Threading;
+using Jellyfish.Render.Lighting;
 
 namespace Jellyfish
 {
@@ -29,6 +30,7 @@ namespace Jellyfish
         private Viewport _viewport = null!;
         private MeshManager _meshManager = null!;
         private TextureManager _textureManager = null!;
+        private LightManager _lightManager = null!;
 
         private int _loadingStep;
 
@@ -44,6 +46,7 @@ namespace Jellyfish
         public static ShaderManager ShaderManager => instance._shaderManager;
         public static TextureManager TextureManager => instance._textureManager;
         public static MainWindow MainWindow => instance._mainWindow;
+        public static LightManager LightManager => instance._lightManager;
 
         public static double Frametime { get; set; }
         public static bool ShouldQuit { get; set; }
@@ -97,6 +100,9 @@ namespace Jellyfish
 
             UpdateLoadingScreen("Starting physics...");
             _physicsManager = new PhysicsManager();
+
+            UpdateLoadingScreen("Starting lighting system...");
+            _lightManager = new LightManager();
         }
 
         public void OnLoadingFinished()
@@ -195,7 +201,7 @@ namespace Jellyfish
                               ImGuiWindowFlags.NoNav |
                               ImGuiWindowFlags.NoMove;
 
-            const int loadingSteps = 9;
+            const int loadingSteps = 10;
             const float fracIncrease = 1.0f / loadingSteps;
 
             const int pad = 10;

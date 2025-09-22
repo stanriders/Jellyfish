@@ -51,10 +51,10 @@ public class Main : Shader
         SetMatrix4("view", Engine.MainViewport.GetViewMatrix());
         SetMatrix4("projection", Engine.MainViewport.GetProjectionMatrix());
 
-        var totalLights = LightManager.Lights.Count;
+        var totalLights = Engine.LightManager.Lights.Count;
         for (var i = 0; i < totalLights; i++)
         {
-            var light = LightManager.Lights[i].Source;
+            var light = Engine.LightManager.Lights[i].Source;
             if (!light.Enabled)
             {
                 continue;
@@ -96,19 +96,19 @@ public class Main : Shader
 
             SetMatrix4($"lightSources[{i}].lightSpaceMatrix", light.Projections[0]);
 
-            if (light.UseShadows && LightManager.Lights[i].Shadows.Count > 0)
+            if (light.UseShadows && Engine.LightManager.Lights[i].Shadows.Count > 0)
             {
-                BindTexture(first_light_shadow_unit + (uint)i, LightManager.Lights[i].Shadows[0].RenderTarget);
+                BindTexture(first_light_shadow_unit + (uint)i, Engine.LightManager.Lights[i].Shadows[0].RenderTarget);
             }
 
-            SetBool($"lightSources[{i}].hasShadows", light.UseShadows && LightManager.Lights[i].Shadows.Count > 0);
+            SetBool($"lightSources[{i}].hasShadows", light.UseShadows && Engine.LightManager.Lights[i].Shadows.Count > 0);
             SetBool($"lightSources[{i}].usePcss", light.UseShadows && light.UsePcss);
         }
         SetInt("lightSourcesCount", totalLights);
 
-        if (LightManager.Sun != null && LightManager.Sun.Source.Enabled)
+        if (Engine.LightManager.Sun != null && Engine.LightManager.Sun.Source.Enabled)
         {
-            var sun = LightManager.Sun.Source;
+            var sun = Engine.LightManager.Sun.Source;
 
             var rotationVector = Vector3.Transform(-Vector3.UnitY, sun.Rotation);
             SetVector3("sun.direction", rotationVector);
@@ -123,18 +123,18 @@ public class Main : Shader
                 SetFloat($"sun.cascadeFar[{i}]", Sun.CascadeRanges[i].Far);
                 SetFloat($"sun.cascadeNear[{i}]", Sun.CascadeRanges[i].Near);
             }
-            SetBool("sun.hasShadows", sun.UseShadows && LightManager.Sun.Shadows.Count > 0);
+            SetBool("sun.hasShadows", sun.UseShadows && Engine.LightManager.Sun.Shadows.Count > 0);
             SetBool("sun.usePcss", sun.UseShadows && sun.UsePcss);
         }
 
-        if (LightManager.Sun != null && LightManager.Sun.Source.Enabled && LightManager.Sun.Source.UseShadows)
+        if (Engine.LightManager.Sun != null && Engine.LightManager.Sun.Source.Enabled && Engine.LightManager.Sun.Source.UseShadows)
         {
             for (uint i = 0; i < Sun.cascades; i++)
             {
-                BindTexture(sun_shadow_unit + i, LightManager.Sun.Shadows[(int)i].RenderTarget);
+                BindTexture(sun_shadow_unit + i, Engine.LightManager.Sun.Shadows[(int)i].RenderTarget);
             }
         }
-        SetBool("sunEnabled", LightManager.Sun != null && LightManager.Sun.Source.Enabled);
+        SetBool("sunEnabled", Engine.LightManager.Sun != null && Engine.LightManager.Sun.Source.Enabled);
 
         SetBool("useNormals", _normal != null);
         SetBool("usePbr", _metRought != null);

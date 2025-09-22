@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace Jellyfish.Render.Lighting;
 
-public static class LightManager
+public class LightManager
 {
     public class Light
     {
@@ -26,13 +26,13 @@ public static class LightManager
 
     }
 
-    public static IReadOnlyList<Light> Lights => lights.AsReadOnly();
-    public static Light? Sun { get; private set; }
+    public IReadOnlyList<Light> Lights => lights.AsReadOnly();
+    public Light? Sun { get; private set; }
 
     public const int max_lights = 12;
-    private static readonly List<Light> lights = new(max_lights);
+    private readonly List<Light> lights = new(max_lights);
 
-    public static void AddLight(ILightSource source)
+    public void AddLight(ILightSource source)
     {
         if (source is Sun)
         {
@@ -53,7 +53,7 @@ public static class LightManager
         }
     }
 
-    public static void RemoveLight(ILightSource source)
+    public void RemoveLight(ILightSource source)
     {
         if (source is Sun && Sun != null)
         {
@@ -82,7 +82,7 @@ public static class LightManager
         }
     }
 
-    public static void DrawShadows()
+    public void DrawShadows()
     {
         var stopwatch = Stopwatch.StartNew();
         GL.Disable(EnableCap.CullFace);
@@ -136,7 +136,7 @@ public static class LightManager
         PerformanceMeasurment.Add("LightManager.DrawShadows", stopwatch.Elapsed.TotalMilliseconds);
     }
 
-    private static void CreateShadow(Light light, string subname = "")
+    private void CreateShadow(Light light, string subname = "")
     {
         var framebuffer = new FrameBuffer();
         framebuffer.Bind();
