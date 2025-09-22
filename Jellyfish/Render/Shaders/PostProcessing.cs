@@ -52,7 +52,7 @@ public class PostProcessing : Shader
                 var targetExposure = key / luminance;
 
                 sceneExposure = float.Lerp(sceneExposure, targetExposure, adj_speed);
-                sceneExposure = Math.Clamp(sceneExposure, 0.03125f, 8.0f);
+                sceneExposure = Math.Clamp(sceneExposure, 0.03125f, 4.0f);
             }
 
             SetFloat("exposure", sceneExposure);

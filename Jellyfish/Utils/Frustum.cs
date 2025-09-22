@@ -185,8 +185,8 @@ namespace Jellyfish.Utils
             // SAT test: project both frustums onto every axis and see if intervals separate
             foreach (var axis in normAxes)
             {
-                (var minA, var maxA) = ProjectOntoAxis(Corners, axis);
-                (var minB, var maxB) = ProjectOntoAxis(b.Corners, axis);
+                var (minA, maxA) = ProjectOntoAxis(Corners, axis);
+                var (minB, maxB) = ProjectOntoAxis(b.Corners, axis);
 
                 // if projection intervals do not overlap -> separating axis found
                 if (maxA < minB - eps || maxB < minA - eps)
