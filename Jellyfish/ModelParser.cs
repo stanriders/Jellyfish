@@ -88,11 +88,14 @@ public static class ModelParser
 
                 foreach (var vertexWeight in bone.VertexWeights)
                 {
-                    verticies[vertexWeight.VertexID].BoneLinks.Add(new BoneLink
+                    if (vertexWeight.Weight > 0)
                     {
-                        Id = boneMap[bone.Name],
-                        Weigth = vertexWeight.Weight
-                    });
+                        verticies[vertexWeight.VertexID].BoneLinks.Add(new BoneLink
+                        {
+                            Id = boneMap[bone.Name],
+                            Weigth = vertexWeight.Weight
+                        });
+                    }
                 }
             }
 
