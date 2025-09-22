@@ -1,8 +1,6 @@
-﻿
-using Jellyfish.Render.Shaders;
-using OpenTK.Mathematics;
+﻿using OpenTK.Mathematics;
 using System;
-using System.Linq;
+using System.Collections.Generic;
 
 namespace Jellyfish.Utils
 {
@@ -27,6 +25,19 @@ namespace Jellyfish.Utils
             new(-1, +1, +1),
             new(+1, +1, +1),
         ];
+
+        // indices for the 12 edges of the frustum (same ordering as in the explanation)
+        private static readonly int[,] EdgeIndices =
+        {
+            {0,1},{1,3},{3,2},{2,0}, // near face
+            {4,5},{5,7},{7,6},{6,4}, // far face
+            {0,4},{1,5},{2,6},{3,7}  // connections near->far
+        };
+
+        // small epsilon to avoid numerical issues
+        private const float Eps = 1e-6f;
+        // axis similarity threshold: if normalized axes have dot > this, they are considered same direction
+        private const float AxisDotThresh = 0.9995f;
 
         public Frustum(Matrix4 viewProjectionMatrix)
         {
@@ -88,17 +99,18 @@ namespace Jellyfish.Utils
 
         public bool IsInside(Vector3 center, float radius)
         {
+
             foreach (var plane in Planes)
             {
                 // Distance from plane to sphere center:
                 var distance = plane.X * center.X + plane.Y * center.Y + plane.Z * center.Z + plane.W;
 
                 // If the center is more negative than -radius => completely outside
-                if (distance < -radius)
-                    return false;
+                if (distance > -radius)
+                    return true;
             }
 
-            return true;
+            return false;
         }
 
         public bool IsInside(BoundingBox box)
@@ -119,6 +131,99 @@ namespace Jellyfish.Utils
 
             // If not behind any plane => it’s at least partially in frustum
             return true;
+        }
+
+        public bool IsInside(Frustum b)
+        {
+            // gather candidate axes: plane normals first
+            var axes = new List<Vector3>(12);
+
+            foreach (var p in Planes) 
+                axes.Add(new Vector3(p.X, p.Y, p.Z));
+
+            foreach (var p in b.Planes) 
+                axes.Add(new Vector3(p.X, p.Y, p.Z));
+
+            // add cross-products of edges
+            var edgesA = GetEdgeDirections(Corners);
+            var edgesB = GetEdgeDirections(b.Corners);
+
+            foreach (var ea in edgesA)
+            {
+                foreach (var eb in edgesB)
+                {
+                    var axis = Vector3.Cross(ea, eb);
+                    if (axis.LengthSquared > Eps)
+                    {
+                        axes.Add(axis);
+                    }
+                }
+            }
+
+            // deduplicate and normalize axes (skip near-zero)
+            var normAxes = new List<Vector3>(axes.Count);
+            foreach (var ax in axes)
+            {
+                if (ax.LengthSquared <= Eps) continue;
+
+                var n = Vector3.Normalize(ax);
+
+                // canonical sign: make first non-zero component positive to avoid duplicated opposite directions
+                if (MathF.Abs(n.X) > MathF.Abs(n.Y) ? n.X < 0f : n.Y < 0f)
+                    n = -n;
+
+                // skip if similar axis already present
+                bool similar = false;
+                foreach (var existing in normAxes)
+                {
+                    if (MathF.Abs(Vector3.Dot(existing, n)) > AxisDotThresh)
+                    {
+                        similar = true;
+                        break;
+                    }
+                }
+                if (!similar) normAxes.Add(n);
+            }
+
+            // SAT test: project both frustums onto every axis and see if intervals separate
+            foreach (var axis in normAxes)
+            {
+                (float minA, float maxA) = ProjectOntoAxis(Corners, axis);
+                (float minB, float maxB) = ProjectOntoAxis(b.Corners, axis);
+
+                // if projection intervals do not overlap -> separating axis found
+                if (maxA < minB - Eps || maxB < minA - Eps)
+                    return false;
+            }
+
+            // no separating axis found -> overlap
+            return true;
+        }
+
+        private static IEnumerable<Vector3> GetEdgeDirections(Vector3[] corners)
+        {
+            for (int i = 0; i < EdgeIndices.GetLength(0); i++)
+            {
+                var a = corners[EdgeIndices[i, 0]];
+                var b = corners[EdgeIndices[i, 1]];
+                yield return b - a;
+            }
+        }
+
+        private static (float min, float max) ProjectOntoAxis(Vector3[] corners, Vector3 axis)
+        {
+            // assumes axis is normalized (or at least direction-only is fine)
+            float min = Vector3.Dot(corners[0], axis);
+            float max = min;
+
+            for (int i = 1; i < corners.Length; i++)
+            {
+                float d = Vector3.Dot(corners[i], axis);
+                if (d < min) min = d;
+                else if (d > max) max = d;
+            }
+
+            return (min, max);
         }
     }
 }

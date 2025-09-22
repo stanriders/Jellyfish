@@ -119,7 +119,10 @@ public class LightManager
             // create shadows lazily
             if (light.Source.UseShadows && light.Shadows.Count == 0)
             {
-                CreateShadow(light);
+                for (var i = 0; i < light.Source.Projections.Count; i++)
+                {
+                    CreateShadow(light, i.ToString());
+                }
             }
 
             if (!light.Source.UseShadows && light.Shadows.Any())
@@ -130,17 +133,23 @@ public class LightManager
 
             foreach (var shadow in light.Shadows)
             {
-                if (!Engine.MainViewport.GetFrustum().IsInside(light.Source.Position, light.Source.FarPlane))
-                    continue;
+                Frustum? frustum = null;
+                if (light.Source is IHaveFrustum frustumEntity)
+                {
+                    frustum = frustumEntity.GetFrustum();
+                    if (!Engine.MainViewport.GetFrustum().IsInside(frustum.Value))
+                        continue;
+                }
+                else
+                {
+                    if (!Engine.MainViewport.GetFrustum().IsInside(light.Source.Position, light.Source.FarPlane))
+                        continue;
+                }
 
                 shadow.FrameBuffer.Bind();
 
                 GL.Viewport(0, 0, light.Source.ShadowResolution, light.Source.ShadowResolution);
                 GL.Clear(ClearBufferMask.DepthBufferBit);
-
-                Frustum? frustum = null;
-                if (light.Source is IHaveFrustum frustumEntity)
-                    frustum = frustumEntity.GetFrustum();
 
                 Engine.MeshManager.Draw(false, shadow.Shader, frustum);
 

@@ -123,7 +123,7 @@ public class MeshManager
             if (mesh.IsDev && !drawDev)
                 continue;
 
-            if (mesh.ShouldDraw && playerFrustum.IsInside(mesh.Position, mesh.BoundingBox.Length))
+            if (mesh.ShouldDraw && playerFrustum.IsInside(mesh.Position + mesh.BoundingBox.Center, mesh.BoundingBox.Length))
                 mesh.DrawGBuffer();
         }
 
@@ -137,7 +137,7 @@ public class MeshManager
             if (mesh.IsDev && !drawDev)
                 continue;
 
-            if (mesh.ShouldDraw && playerFrustum.IsInside(mesh.Position, mesh.BoundingBox.Length))
+            if (mesh.ShouldDraw && playerFrustum.IsInside(mesh.Position + mesh.BoundingBox.Center, mesh.BoundingBox.Length))
                 mesh.DrawGBuffer();
         }
 
@@ -153,9 +153,13 @@ public class MeshManager
         if (mesh.IsDev && !drawDev)
             return;
 
-        var frustumToUse = frustum ?? Engine.MainViewport.GetFrustum();
-        if (mesh.ShouldDraw && frustumToUse.IsInside(mesh.Position, mesh.BoundingBox.Length))
+        if (mesh.ShouldDraw)
+        {
+            if (frustum != null && !frustum.Value.IsInside(mesh.Position + mesh.BoundingBox.Center, mesh.BoundingBox.Length))
+                return;
+
             mesh.Draw(shaderToUse);
+        }
     }
 
     public void Unload()
