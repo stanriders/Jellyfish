@@ -24,16 +24,8 @@ public class GeometryPass : Shader
         SetMatrix4("projection", Engine.MainViewport.GetProjectionMatrix());
         SetBool("hasNormalMap", _normal != null);
 
-        _diffuse?.Bind(0);
+        //_diffuse?.Bind(0);
         _normal?.Bind(1);
-    }
-
-    public override void Unbind()
-    {
-        GL.BindTextureUnit(0, 0);
-        GL.BindTextureUnit(1, 0);
-
-        base.Unbind();
     }
 
     public override void Unload()

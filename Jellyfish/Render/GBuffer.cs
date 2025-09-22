@@ -17,10 +17,10 @@ public class GBuffer
         for (uint i = 0; i < (uint)GBufferType.Count; i++)
         {
             // diffuse is special because we want to pass alpha too
-            var format = (GBufferType)i == GBufferType.Diffuse
+            /*var format = (GBufferType)i == GBufferType.Diffuse
                 ? SizedInternalFormat.Rgba16f
                 : SizedInternalFormat.Rgb16f;
-
+            */
             _renderTargets.Add(Engine.TextureManager.CreateTexture(new TextureParams
             {
                 Name = $"_rt_{(GBufferType)i}",
@@ -31,7 +31,7 @@ public class GBuffer
                 {
                     Width = Engine.MainViewport.Size.X,
                     Heigth = Engine.MainViewport.Size.Y,
-                    InternalFormat = format,
+                    InternalFormat = SizedInternalFormat.Rgb16f,
                     Attachment = FramebufferAttachment.ColorAttachment0 + i,
                 }
             }));
@@ -39,7 +39,7 @@ public class GBuffer
 
         GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2d, depthRenderTarget.Handle, 0);
 
-        GL.DrawBuffers(4, new[] { DrawBufferMode.ColorAttachment0, DrawBufferMode.ColorAttachment1, DrawBufferMode.ColorAttachment2, DrawBufferMode.ColorAttachment3 });
+        GL.DrawBuffers((int)GBufferType.Count, new[] { DrawBufferMode.ColorAttachment0/*, DrawBufferMode.ColorAttachment1, DrawBufferMode.ColorAttachment2, DrawBufferMode.ColorAttachment3*/ });
 
         _buffer.Check();
         _buffer.Unbind();
@@ -83,10 +83,10 @@ public class GBuffer
 
 public enum GBufferType
 {
-    Position, 
-    Diffuse,
+    //Position, 
+    //Diffuse,
     Normal,
-    Texcoord,
+    //Texcoord,
 
     Count
 }

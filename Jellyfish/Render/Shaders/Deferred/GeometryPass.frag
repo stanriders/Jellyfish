@@ -5,12 +5,12 @@ in vec2 frag_texCoord;
 in vec3 frag_normal;
 in vec3 frag_position;
 
-layout (location = 0) out vec3 WorldPosOut;
-layout (location = 1) out vec4 DiffuseOut;
-layout (location = 2) out vec3 NormalOut;
-layout (location = 3) out vec3 TexCoordOut;
+//layout (location = 0) out vec3 WorldPosOut;
+//layout (location = 1) out vec4 DiffuseOut;
+layout (location = 0) out vec3 NormalOut;
+//layout (location = 3) out vec3 TexCoordOut;
 
-layout (binding = 0) uniform sampler2D diffuseSampler;
+//layout (binding = 0) uniform sampler2D diffuseSampler;
 layout (binding = 1) uniform sampler2D normalSampler;
 
 uniform mat4 view;
@@ -20,7 +20,7 @@ uniform bool hasNormalMap;
 
 void main()
 {
-    vec4 diffuseTex = texture(diffuseSampler, frag_texCoord * vec2(1.0, -1.0));
+    //vec4 diffuseTex = texture(diffuseSampler, frag_texCoord * vec2(1.0, -1.0));
 
     vec3 normal;
     if (hasNormalMap) {
@@ -38,8 +38,8 @@ void main()
         normal = normalize((view * vec4(normal, 0.0)).xyz);
     }
 
-    WorldPosOut = frag_position;
-    DiffuseOut = diffuseTex;
+    //WorldPosOut = frag_position;
+    //DiffuseOut = diffuseTex;
     NormalOut = normalize(normal);
-    TexCoordOut = vec3(frag_texCoord, 0.0);
+    //TexCoordOut = vec3(frag_texCoord, 0.0);
 }
