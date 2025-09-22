@@ -1,39 +1,23 @@
 ﻿using System;
-using Jellyfish.Console;
-using Jellyfish.Entities;
 using OpenTK.Mathematics;
 
 namespace Jellyfish.Render.Shaders;
 
 public class Skybox : Shader
 {
-    private Sun? _sun;
-    private bool _noSun;
-
     public Skybox() : base("shaders/Skybox.vert", null, "shaders/Skybox.frag") { }
 
     public override void Bind()
     {
-        if (_sun == null)
-        {
-            _sun = EntityManager.FindEntity("light_sun") as Sun;
-            if (_sun == null && !_noSun)
-            {
-                Log.Context(this).Error("No sun, sky won't be rendered!");
-                _noSun = true;
-                return;
-            }
-        }
-
-        if (_noSun)
+        if (Engine.LightManager.Sun == null)
             return;
 
         base.Bind();
 
-        var rotationVector = Vector3.Transform(Vector3.UnitY, _sun!.GetPropertyValue<Quaternion>("Rotation"));
+        var rotationVector = Vector3.Transform(Vector3.UnitY, Engine.LightManager.Sun.Source.Rotation);
         SetVector3("uSunPos", rotationVector);
         SetFloat("uViewHeight", Math.Max(0f, Engine.MainViewport.Position.Y));
-        SetFloat("uSunIntensity", _sun.Brightness * 4f);
+        SetFloat("uSunIntensity", Engine.LightManager.Sun.Source.Brightness * 4f);
 
         SetMatrix4("view", Engine.MainViewport.GetViewMatrix().ClearTranslation());
         SetMatrix4("projection", Engine.MainViewport.GetProjectionMatrix());
