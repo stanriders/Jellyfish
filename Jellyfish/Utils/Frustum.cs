@@ -26,7 +26,6 @@ namespace Jellyfish.Utils
             new(+1, +1, +1),
         ];
 
-        // indices for the 12 edges of the frustum (same ordering as in the explanation)
         private static readonly int[,] EdgeIndices =
         {
             {0,1},{1,3},{3,2},{2,0}, // near face
@@ -34,10 +33,9 @@ namespace Jellyfish.Utils
             {0,4},{1,5},{2,6},{3,7}  // connections near->far
         };
 
-        // small epsilon to avoid numerical issues
-        private const float Eps = 1e-6f;
         // axis similarity threshold: if normalized axes have dot > this, they are considered same direction
-        private const float AxisDotThresh = 0.9995f;
+        private const float axis_dot_thresh = 0.9995f;
+        private const float eps = 1e-6f;
 
         public Frustum(Matrix4 viewProjectionMatrix)
         {
@@ -77,16 +75,16 @@ namespace Jellyfish.Utils
             Matrix4.Invert(viewProjectionMatrix, out var invViewProj);
 
             Corners = new Vector3[8];
-            for (int i = 0; i < 8; i++)
+            for (var i = 0; i < 8; i++)
             {
                 // Make it a 4D vector with w = 1
                 var corner4 = new Vector4(ClipCorners[i].X, ClipCorners[i].Y, ClipCorners[i].Z, 1.0f);
 
                 // Transform by inverse view-projection
-                Vector4 transformed = corner4 * invViewProj;
+                var transformed = corner4 * invViewProj;
 
                 // Perspective divide
-                float invW = 1f / transformed.W;
+                var invW = 1f / transformed.W;
                 Corners[i] = new Vector3(transformed.X * invW,
                     transformed.Y * invW,
                     transformed.Z * invW);
@@ -99,7 +97,6 @@ namespace Jellyfish.Utils
 
         public bool IsInside(Vector3 center, float radius)
         {
-
             foreach (var plane in Planes)
             {
                 // Distance from plane to sphere center:
@@ -153,7 +150,7 @@ namespace Jellyfish.Utils
                 foreach (var eb in edgesB)
                 {
                     var axis = Vector3.Cross(ea, eb);
-                    if (axis.LengthSquared > Eps)
+                    if (axis.LengthSquared > eps)
                     {
                         axes.Add(axis);
                     }
@@ -164,7 +161,7 @@ namespace Jellyfish.Utils
             var normAxes = new List<Vector3>(axes.Count);
             foreach (var ax in axes)
             {
-                if (ax.LengthSquared <= Eps) continue;
+                if (ax.LengthSquared <= eps) continue;
 
                 var n = Vector3.Normalize(ax);
 
@@ -173,10 +170,10 @@ namespace Jellyfish.Utils
                     n = -n;
 
                 // skip if similar axis already present
-                bool similar = false;
+                var similar = false;
                 foreach (var existing in normAxes)
                 {
-                    if (MathF.Abs(Vector3.Dot(existing, n)) > AxisDotThresh)
+                    if (MathF.Abs(Vector3.Dot(existing, n)) > axis_dot_thresh)
                     {
                         similar = true;
                         break;
@@ -188,11 +185,11 @@ namespace Jellyfish.Utils
             // SAT test: project both frustums onto every axis and see if intervals separate
             foreach (var axis in normAxes)
             {
-                (float minA, float maxA) = ProjectOntoAxis(Corners, axis);
-                (float minB, float maxB) = ProjectOntoAxis(b.Corners, axis);
+                (var minA, var maxA) = ProjectOntoAxis(Corners, axis);
+                (var minB, var maxB) = ProjectOntoAxis(b.Corners, axis);
 
                 // if projection intervals do not overlap -> separating axis found
-                if (maxA < minB - Eps || maxB < minA - Eps)
+                if (maxA < minB - eps || maxB < minA - eps)
                     return false;
             }
 
@@ -202,7 +199,7 @@ namespace Jellyfish.Utils
 
         private static IEnumerable<Vector3> GetEdgeDirections(Vector3[] corners)
         {
-            for (int i = 0; i < EdgeIndices.GetLength(0); i++)
+            for (var i = 0; i < EdgeIndices.GetLength(0); i++)
             {
                 var a = corners[EdgeIndices[i, 0]];
                 var b = corners[EdgeIndices[i, 1]];
@@ -213,12 +210,12 @@ namespace Jellyfish.Utils
         private static (float min, float max) ProjectOntoAxis(Vector3[] corners, Vector3 axis)
         {
             // assumes axis is normalized (or at least direction-only is fine)
-            float min = Vector3.Dot(corners[0], axis);
-            float max = min;
+            var min = Vector3.Dot(corners[0], axis);
+            var max = min;
 
-            for (int i = 1; i < corners.Length; i++)
+            for (var i = 1; i < corners.Length; i++)
             {
-                float d = Vector3.Dot(corners[i], axis);
+                var d = Vector3.Dot(corners[i], axis);
                 if (d < min) min = d;
                 else if (d > max) max = d;
             }
