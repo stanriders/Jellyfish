@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Jellyfish.Console;
 using OpenTK.Graphics.OpenGL;
@@ -70,11 +71,19 @@ namespace Jellyfish.Render
                     if (line.StartsWith("#include"))
                     {
                         var includePath = Path.Combine(Path.GetDirectoryName(path) ?? string.Empty, line.Replace("#include", "").Trim());
-                        if (!File.Exists(includePath))
-                            throw new FileNotFoundException();
 
-                        var includedFile = File.ReadAllText(includePath);
-                        builder.AppendLine(includedFile);
+                        var includedFile = LoadDependency(includePath);
+                        var fileLines = includedFile.Split('\n');
+                        foreach (var fileLine in fileLines)
+                        {
+                            if (fileLine.StartsWith("#include"))
+                            {
+                                var subIncludePath = Path.Combine(Path.GetDirectoryName(path) ?? string.Empty, fileLine.Replace("#include", "").Trim());
+                                builder.AppendLine(LoadDependency(subIncludePath));
+                                continue;
+                            }
+                            builder.AppendLine(fileLine);
+                        }
                         continue;
                     }
                     builder.AppendLine(line);
@@ -86,6 +95,16 @@ namespace Jellyfish.Render
                 Log.Context(this).Error(ex, "Failed to load shader {Path}", path);
                 return string.Empty;
             }
+        }
+
+        private string LoadDependency(string includePath)
+        {
+            if (!File.Exists(includePath))
+                throw new FileNotFoundException();
+
+            var includedFile = File.ReadAllText(includePath);
+
+            return includedFile;
         }
     }
 }

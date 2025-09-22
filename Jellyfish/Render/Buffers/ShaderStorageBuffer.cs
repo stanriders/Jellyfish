@@ -5,6 +5,34 @@ using Jellyfish.Render.Shaders.Structs;
 
 namespace Jellyfish.Render.Buffers;
 
+public class ShaderStorageBuffer
+{
+    public readonly int Handle;
+
+    public ShaderStorageBuffer(string name, int size)
+    {
+        GL.CreateBuffer(out Handle);
+        GL.ObjectLabel(ObjectIdentifier.Buffer, (uint)Handle, name.Length, name);
+
+        GL.NamedBufferStorage(Handle, size, IntPtr.Zero, BufferStorageMask.DynamicStorageBit);
+        GL.NamedBufferSubData(Handle, IntPtr.Zero, size, IntPtr.Zero);
+    }
+
+    public void Bind(uint binding)
+    {
+        GL.BindBufferBase(BufferTarget.ShaderStorageBuffer, binding, Handle);
+    }
+
+    public void Clear()
+    {
+        GL.ClearNamedBufferData(Handle,
+            SizedInternalFormat.R32ui,
+            PixelFormat.RedInteger,
+            PixelType.UnsignedInt,
+            IntPtr.Zero);
+    }
+}
+
 public class ShaderStorageBuffer<T> where T: struct, IGpuStruct
 {
     public readonly int Handle;

@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Linq;
 using Jellyfish.Console;
 using Jellyfish.Entities;
 using Jellyfish.Render.Lighting;
-using OpenTK.Graphics.OpenGL;
+using Jellyfish.Render.Shaders.Structs;
 using OpenTK.Mathematics;
+using Sun = Jellyfish.Entities.Sun;
 
 namespace Jellyfish.Render.Shaders;
 
@@ -51,6 +53,12 @@ public class Main : Shader
         SetMatrix4("view", Engine.MainViewport.GetViewMatrix());
         SetMatrix4("projection", Engine.MainViewport.GetProjectionMatrix());
 
+        var lightSourcesStruct = new LightSources
+        {
+            Lights = new Light[LightManager.max_lights],
+            Sun = new Structs.Sun()
+        };
+
         var totalLights = Engine.LightManager.Lights.Count;
         for (var i = 0; i < totalLights; i++)
         {
@@ -60,49 +68,50 @@ public class Main : Shader
                 continue;
             }
 
-            SetVector3($"lightSources[{i}].position", light.Position);
+            lightSourcesStruct.Lights[i].Position = new Vector4(light.Position);
 
             var rotationVector = Vector3.Transform(-Vector3.UnitY, light.Rotation);
-            SetVector3($"lightSources[{i}].direction", rotationVector);
+            lightSourcesStruct.Lights[i].Direction = new Vector4(rotationVector);
 
-            SetVector3($"lightSources[{i}].diffuse", new Vector3(light.Color.X, light.Color.Y, light.Color.Z));
-            SetVector3($"lightSources[{i}].ambient", new Vector3(light.Ambient.X, light.Ambient.Y, light.Ambient.Z));
-            SetFloat($"lightSources[{i}].brightness", light.Brightness);
+            lightSourcesStruct.Lights[i].Diffuse = new Vector4(light.Color.X, light.Color.Y, light.Color.Z, 0);
+            lightSourcesStruct.Lights[i].Ambient = new Vector4(light.Ambient.X, light.Ambient.Y, light.Ambient.Z, 0);
+
+            lightSourcesStruct.Lights[i].Brightness = light.Brightness;
 
             var lightType = 0; // point
             if (light is Spotlight)
                 lightType = 1;
 
-            SetInt($"lightSources[{i}].type", lightType);
+            lightSourcesStruct.Lights[i].Type = lightType;
 
             if (light is PointLight point)
             {
-                SetFloat($"lightSources[{i}].constant", point.GetPropertyValue<float>("Constant"));
-                SetFloat($"lightSources[{i}].linear", point.GetPropertyValue<float>("Linear"));
-                SetFloat($"lightSources[{i}].quadratic", point.GetPropertyValue<float>("Quadratic"));
+                lightSourcesStruct.Lights[i].Constant = point.GetPropertyValue<float>("Constant");
+                lightSourcesStruct.Lights[i].Linear = point.GetPropertyValue<float>("Linear");
+                lightSourcesStruct.Lights[i].Quadratic = point.GetPropertyValue<float>("Quadratic");
             }
 
             if (light is Spotlight spot)
             {
-                SetFloat($"lightSources[{i}].constant", spot.GetPropertyValue<float>("Constant"));
-                SetFloat($"lightSources[{i}].linear", spot.GetPropertyValue<float>("Linear"));
-                SetFloat($"lightSources[{i}].quadratic", spot.GetPropertyValue<float>("Quadratic"));
-                SetFloat($"lightSources[{i}].cone", (float)Math.Cos(MathHelper.DegreesToRadians(spot.GetPropertyValue<float>("Cone"))));
-                SetFloat($"lightSources[{i}].outcone", (float)Math.Cos(MathHelper.DegreesToRadians(spot.GetPropertyValue<float>("OuterCone"))));
+                lightSourcesStruct.Lights[i].Constant = spot.GetPropertyValue<float>("Constant");
+                lightSourcesStruct.Lights[i].Linear = spot.GetPropertyValue<float>("Linear");
+                lightSourcesStruct.Lights[i].Quadratic = spot.GetPropertyValue<float>("Quadratic");
+                lightSourcesStruct.Lights[i].Cone = (float)Math.Cos(MathHelper.DegreesToRadians(spot.GetPropertyValue<float>("Cone")));
+                lightSourcesStruct.Lights[i].Outcone = (float)Math.Cos(MathHelper.DegreesToRadians(spot.GetPropertyValue<float>("OuterCone")));
             }
 
-            SetFloat($"lightSources[{i}].near", light.NearPlane);
-            SetFloat($"lightSources[{i}].far", light.FarPlane);
+            lightSourcesStruct.Lights[i].Near = light.NearPlane;
+            lightSourcesStruct.Lights[i].Far = light.FarPlane;
 
-            SetMatrix4($"lightSources[{i}].lightSpaceMatrix", light.Projections[0]);
+            lightSourcesStruct.Lights[i].LightSpaceMatrix = light.Projections[0];
+
+            lightSourcesStruct.Lights[i].HasShadows = light.UseShadows && Engine.LightManager.Lights[i].Shadows.Count > 0;
+            lightSourcesStruct.Lights[i].UsePcss = light.UseShadows && light.UsePcss;
 
             if (light.UseShadows && Engine.LightManager.Lights[i].Shadows.Count > 0)
             {
                 BindTexture(first_light_shadow_unit + (uint)i, Engine.LightManager.Lights[i].Shadows[0].RenderTarget);
             }
-
-            SetBool($"lightSources[{i}].hasShadows", light.UseShadows && Engine.LightManager.Lights[i].Shadows.Count > 0);
-            SetBool($"lightSources[{i}].usePcss", light.UseShadows && light.UsePcss);
         }
         SetInt("lightSourcesCount", totalLights);
 
@@ -110,28 +119,26 @@ public class Main : Shader
         {
             var sun = Engine.LightManager.Sun.Source;
 
+            lightSourcesStruct.Sun.Diffuse = new Vector4(sun.Color.X, sun.Color.Y, sun.Color.Z, 0);
+            lightSourcesStruct.Sun.Ambient = new Vector4(sun.Ambient.X, sun.Ambient.Y, sun.Ambient.Z, 0);
+
             var rotationVector = Vector3.Transform(-Vector3.UnitY, sun.Rotation);
-            SetVector3("sun.direction", rotationVector);
+            lightSourcesStruct.Sun.Direction = new Vector4(rotationVector);
 
-            SetVector3("sun.diffuse", new Vector3(sun.Color.X, sun.Color.Y, sun.Color.Z));
-            SetVector3("sun.ambient", new Vector3(sun.Ambient.X, sun.Ambient.Y, sun.Ambient.Z));
-            SetFloat("sun.brightness", sun.Brightness);
+            lightSourcesStruct.Sun.Brightness = sun.Brightness;
+            lightSourcesStruct.Sun.LightSpaceMatrix = sun.Projections.ToArray();
+            lightSourcesStruct.Sun.CascadeFar = Sun.CascadeRanges.Select(x=> x.Far).ToArray();
+            lightSourcesStruct.Sun.CascadeNear = Sun.CascadeRanges.Select(x => x.Near).ToArray();
 
-            for (var i = 0; i < sun.Projections.Count; i++)
+            lightSourcesStruct.Sun.HasShadows = sun.UseShadows && Engine.LightManager.Sun.Shadows.Count > 0 ? 1 : 0;
+            lightSourcesStruct.Sun.UsePcss = sun.UseShadows && sun.UsePcss ? 1 : 0;
+
+            if (Engine.LightManager.Sun.Source.UseShadows)
             {
-                SetMatrix4($"sun.lightSpaceMatrix[{i}]", sun.Projections[i]);
-                SetFloat($"sun.cascadeFar[{i}]", Sun.CascadeRanges[i].Far);
-                SetFloat($"sun.cascadeNear[{i}]", Sun.CascadeRanges[i].Near);
-            }
-            SetBool("sun.hasShadows", sun.UseShadows && Engine.LightManager.Sun.Shadows.Count > 0);
-            SetBool("sun.usePcss", sun.UseShadows && sun.UsePcss);
-        }
-
-        if (Engine.LightManager.Sun != null && Engine.LightManager.Sun.Source.Enabled && Engine.LightManager.Sun.Source.UseShadows)
-        {
-            for (uint i = 0; i < Sun.cascades; i++)
-            {
-                BindTexture(sun_shadow_unit + i, Engine.LightManager.Sun.Shadows[(int)i].RenderTarget);
+                for (uint i = 0; i < Sun.cascades; i++)
+                {
+                    BindTexture(sun_shadow_unit + i, Engine.LightManager.Sun.Shadows[(int)i].RenderTarget);
+                }
             }
         }
         SetBool("sunEnabled", Engine.LightManager.Sun != null && Engine.LightManager.Sun.Source.Enabled);
@@ -141,6 +148,9 @@ public class Main : Shader
         SetBool("useTransparency", _alphaTest);
         SetInt("prefilterMips", _prefilterMap?.Levels ?? 0);
         SetBool("iblEnabled", ConVarStorage.Get<bool>("mat_ibl_enabled"));
+
+        Engine.LightManager.LightSourcesSsbo.UpdateData(lightSourcesStruct);
+        Engine.LightManager.LightSourcesSsbo.Bind(0);
 
         BindTexture(0, _diffuse);
         BindTexture(1, _normal);

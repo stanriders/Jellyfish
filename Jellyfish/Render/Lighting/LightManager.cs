@@ -7,6 +7,8 @@ using OpenTK.Graphics.OpenGL;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Jellyfish.Render.Shaders.Structs;
+using Sun = Jellyfish.Entities.Sun;
 
 namespace Jellyfish.Render.Lighting;
 
@@ -26,11 +28,20 @@ public class LightManager
 
     }
 
-    public IReadOnlyList<Light> Lights => lights.AsReadOnly();
+    public IReadOnlyList<Light> Lights => _lights.AsReadOnly();
     public Light? Sun { get; private set; }
 
-    public const int max_lights = 12;
-    private readonly List<Light> lights = new(max_lights);
+    public const int max_lights = 16;
+    public const int max_shadows = 16;
+
+    private readonly List<Light> _lights = new(max_lights);
+
+    public readonly ShaderStorageBuffer<LightSources> LightSourcesSsbo;
+
+    public LightManager()
+    {
+        LightSourcesSsbo = new ShaderStorageBuffer<LightSources>("lightSourcesSSBO", new LightSources());
+    }
 
     public void AddLight(ILightSource source)
     {
@@ -44,9 +55,9 @@ public class LightManager
             return;
         }
 
-        if (lights.Count < max_lights)
+        if (_lights.Count < max_lights)
         {
-            lights.Add(new Light
+            _lights.Add(new Light
             {
                 Source = source
             });
@@ -68,7 +79,7 @@ public class LightManager
             return;
         }
 
-        var light = lights.Find(x => x.Source == source);
+        var light = _lights.Find(x => x.Source == source);
         if (light != null)
         {
             foreach (var shadow in light.Shadows)
@@ -78,7 +89,7 @@ public class LightManager
                 shadow.Shader.Unload();
             }
 
-            lights.Remove(light);
+            _lights.Remove(light);
         }
     }
 
@@ -103,12 +114,18 @@ public class LightManager
             }
         }
 
-        foreach (var light in lights.Where(x=> x.Source.Enabled && x.Source.UseShadows))
+        foreach (var light in _lights.Where(x=> x.Source.Enabled))
         {
             // create shadows lazily
-            if (light.Shadows.Count == 0)
+            if (light.Source.UseShadows && light.Shadows.Count == 0)
             {
                 CreateShadow(light);
+            }
+
+            if (!light.Source.UseShadows && light.Shadows.Any())
+            {
+                DestroyShadows(light);
+                continue;
             }
 
             foreach (var shadow in light.Shadows)
@@ -138,6 +155,9 @@ public class LightManager
 
     private void CreateShadow(Light light, string subname = "")
     {
+        if (Lights.Sum(x => x.Shadows.Count) >= max_shadows)
+            return;
+
         var framebuffer = new FrameBuffer();
         framebuffer.Bind();
 
@@ -145,7 +165,7 @@ public class LightManager
 
         var rt = Engine.TextureManager.CreateTexture(new TextureParams
         {
-            Name = $"_rt_Shadow{lights.IndexOf(light)}{subname}",
+            Name = $"_rt_Shadow{_lights.IndexOf(light)}{subname}",
             BorderColor = [1f, 1f, 1f, 1f],
             WrapMode = TextureWrapMode.ClampToBorder,
             MinFiltering = TextureMinFilter.Nearest,
@@ -172,5 +192,20 @@ public class LightManager
             Shader = shader,
             RenderTarget = rt
         });
+    }
+
+    private void DestroyShadows(Light light)
+    {
+        if (light.Shadows.Count == 0)
+            return;
+
+        foreach (var shadow in light.Shadows)
+        {
+            shadow.RenderTarget.Unload();
+            shadow.FrameBuffer.Unload();
+            shadow.Shader.Unload();
+        }
+
+        light.Shadows.Clear();
     }
 }
