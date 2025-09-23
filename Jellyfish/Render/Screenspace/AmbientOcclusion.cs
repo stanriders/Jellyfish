@@ -8,7 +8,7 @@ using Jellyfish.Render.Shaders;
 namespace Jellyfish.Render.Screenspace;
 
 public class GtaoEnabled() : ConVar<bool>("mat_gtao_enabled", true);
-public class GtaoQuality() : ConVar<int>("mat_gtao_quality", 2);
+public class GtaoQuality() : ConVar<int>("mat_gtao_quality", 1);
 public class GtaoRadius() : ConVar<float>("mat_gtao_radius", 1.0f);
 public class GtaoIntensity() : ConVar<float>("mat_gtao_intensity", 1.0f);
 public class GtaoThickness() : ConVar<float>("mat_gtao_thickness", 5.0f);
