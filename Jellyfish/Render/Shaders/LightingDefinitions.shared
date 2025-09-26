@@ -1,7 +1,7 @@
 #define MAX_LIGHTS 16
 #define CSM_CASCADES 4
 #define MAX_SHADOWS 16
-#define SUN_SAMPLER_BINDING 5
+#define SUN_SAMPLER_BINDING 6
 //#define CSM_DEBUG
 
 const float PI = 3.14159265359;
