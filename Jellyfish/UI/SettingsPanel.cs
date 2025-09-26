@@ -76,6 +76,22 @@ namespace Jellyfish.UI
                         if (ImGui.DragFloat("GTAO Thickness", ref gtaoThickness))
                             ConVarStorage.Set("mat_gtao_radius", gtaoThickness);
 
+                        ImGui.Separator();
+
+                        var sslrEnabled = ConVarStorage.Get<bool>("mat_sslr_enabled");
+                        if (ImGui.Checkbox("SSLR", ref sslrEnabled))
+                            ConVarStorage.Set("mat_sslr_enabled", sslrEnabled);
+
+                        ImGui.Separator();
+
+                        var iblEnabled = ConVarStorage.Get<bool>("mat_ibl_enabled");
+                        if (ImGui.Checkbox("IBL", ref iblEnabled))
+                            ConVarStorage.Set("mat_ibl_enabled", iblEnabled);
+
+                        var iblRenderWorld = ConVarStorage.Get<bool>("mat_ibl_render_world");
+                        if (ImGui.Checkbox("IBL Render World", ref iblRenderWorld))
+                            ConVarStorage.Set("mat_ibl_render_world", iblRenderWorld);
+
                         ImGui.EndTabItem();
                     }
 
