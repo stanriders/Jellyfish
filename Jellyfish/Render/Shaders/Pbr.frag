@@ -91,19 +91,19 @@ vec3 ComputeIBL(vec3 N, vec3 V, vec3 diffuseColor, float roughness, float metaln
         specularIBL = prefiltered * (F_env * brdf.x + brdf.y);
     }
 
-    if (sslrEnabled && roughness < 0.95) {
-        vec4 ssrSample = texture(reflectionMap, uv); // (rgb=color, a=confidence if you stored it)
+    if (sslrEnabled && roughness < 0.99)
+    {
+        vec4 ssrSample = texture(reflectionMap, uv);
         vec3 ssrColor = ssrSample.rgb;
-        float ssrConfidence = ssrSample.a;   // or 1.0 if you didnt write confidence
+        float ssrConfidence = ssrSample.a;
 
-        // Blend weight affected by roughness (more rough = less reflection)
-        float reflectionWeight = (1.0 - roughness) * (1.0 - F_env.r); // simple heuristic; tune per taste
+        float reflectionWeight = (1.0 - roughness) * F_env.r;
         reflectionWeight = clamp(reflectionWeight, 0.0, 1.0);
 
-        // Final composite: mix base color (lit) with reflection
-        ssrColor = mix(vec3(0.0), ssrColor, reflectionWeight);
+        float roughFade = 1.0 - smoothstep(0.4, 1.0, roughness);
+        reflectionWeight *= roughFade;
 
-        specularIBL = mix(specularIBL, ssrColor, ssrConfidence);
+        specularIBL = mix(specularIBL, ssrColor, ssrConfidence * reflectionWeight);
     }
 
     return kD * diffuseIBL + specularIBL;
