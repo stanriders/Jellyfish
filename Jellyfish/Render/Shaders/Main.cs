@@ -18,8 +18,9 @@ public class Main : Shader
 
     private readonly Texture? _prefilterMap;
     private readonly Texture? _irradianceMap;
+    private readonly Texture? _reflectionMap;
 
-    private const uint sun_shadow_unit = 5;
+    private const uint sun_shadow_unit = 6;
     private const uint first_light_shadow_unit = sun_shadow_unit + Sun.cascades + 1;
 
     public Main(Material material) : base("shaders/Main.vert", null, "shaders/Main.frag")
@@ -35,6 +36,7 @@ public class Main : Shader
 
         _prefilterMap = Engine.TextureManager.GetTexture("_rt_Prefilter");
         _irradianceMap = Engine.TextureManager.GetTexture("_rt_Irradiance");
+        _reflectionMap = Engine.TextureManager.GetTexture("_rt_ReflectionsBlurY");
 
         if (material.TryGetParam<bool>("AlphaTest", out var alphatest))
             _alphaTest = alphatest;
@@ -148,6 +150,8 @@ public class Main : Shader
         SetBool("useTransparency", _alphaTest);
         SetInt("prefilterMips", _prefilterMap?.Levels ?? 0);
         SetBool("iblEnabled", ConVarStorage.Get<bool>("mat_ibl_enabled"));
+        SetBool("sslrEnabled", ConVarStorage.Get<bool>("mat_sslr_enabled"));
+        SetVector2("screenSize", new Vector2(Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y));
 
         Engine.LightManager.LightSourcesSsbo.UpdateData(lightSourcesStruct);
         Engine.LightManager.LightSourcesSsbo.Bind(0);
@@ -157,6 +161,7 @@ public class Main : Shader
         BindTexture(2, _metRought);
         BindTexture(3, _prefilterMap);
         BindTexture(4, _irradianceMap);
+        BindTexture(5, _reflectionMap);
     }
 
     public override void Unload()

@@ -13,6 +13,7 @@ layout(binding=1) uniform sampler2D normalSampler;
 layout(binding=2) uniform sampler2D metroughSampler;
 layout(binding=3) uniform samplerCube prefilterMap;
 layout(binding=4) uniform samplerCube irradianceMap;
+layout(binding=5) uniform sampler2D reflectionMap;
 
 uniform mat4 view;
 uniform vec3 cameraPos;
@@ -21,6 +22,8 @@ uniform bool usePbr;
 uniform bool useTransparency;
 uniform int prefilterMips;
 uniform bool iblEnabled;
+uniform bool sslrEnabled;
+uniform vec2 screenSize;
 
 // late include to make sure we have all the uniforms
 #include Lighting.frag
@@ -69,9 +72,9 @@ void main()
     float roughness = metroughTex.g;
 
     vec3 lighting = vec3(0);
-    if (usePbr && iblEnabled) 
+    if (usePbr) 
     {
-        lighting += ComputeIBL(normal, viewDir, diffuseTex.rgb, roughness, metalness);
+        lighting += ComputeIBL(normal, viewDir, diffuseTex.rgb, roughness, metalness, gl_FragCoord.xy / screenSize);
     }
     
     vec3 dielectricCoefficient = mix(vec3(0.04), diffuseTex.rgb, metalness); // F0

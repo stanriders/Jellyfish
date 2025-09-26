@@ -1,4 +1,4 @@
-
+﻿
 float DistributionGGX(vec3 N, vec3 H, float roughness)
 {
     float alpha      = roughness*roughness;
@@ -70,7 +70,7 @@ BRDFResult ComputeBRDF(vec3 N, vec3 V, vec3 L, vec3 F0, float roughness, float m
     return BRDFResult(specular, kD);
 }
 
-vec3 ComputeIBL(vec3 N, vec3 V, vec3 diffuseColor, float roughness, float metalness)
+vec3 ComputeIBL(vec3 N, vec3 V, vec3 diffuseColor, float roughness, float metalness, vec2 uv)
 {
     vec3 F0 = mix(vec3(0.04), diffuseColor, metalness);
     float NdotV = max(dot(N, V), 0.0);
@@ -81,10 +81,30 @@ vec3 ComputeIBL(vec3 N, vec3 V, vec3 diffuseColor, float roughness, float metaln
 
     vec3 diffuseIBL = texture(irradianceMap, N).rgb * diffuseColor;
 
-    vec3 R = normalize(reflect(-V, N));
-    vec3 prefiltered = textureLod(prefilterMap, R, roughness * prefilterMips).rgb;
-    vec2 brdf = integrateBRDFApprox(NdotV, roughness);
-    vec3 specularIBL = prefiltered * (F_env * brdf.x + brdf.y);
+    vec3 specularIBL = vec3(0);
+
+    if (iblEnabled) 
+    {
+        vec3 R = normalize(reflect(-V, N));
+        vec3 prefiltered = textureLod(prefilterMap, R, roughness * prefilterMips).rgb;
+        vec2 brdf = integrateBRDFApprox(NdotV, roughness);
+        specularIBL = prefiltered * (F_env * brdf.x + brdf.y);
+    }
+
+    if (sslrEnabled && roughness < 0.95) {
+        vec4 ssrSample = texture(reflectionMap, uv); // (rgb=color, a=confidence if you stored it)
+        vec3 ssrColor = ssrSample.rgb;
+        float ssrConfidence = ssrSample.a;   // or 1.0 if you didnt write confidence
+
+        // Blend weight affected by roughness (more rough = less reflection)
+        float reflectionWeight = (1.0 - roughness) * (1.0 - F_env.r); // simple heuristic; tune per taste
+        reflectionWeight = clamp(reflectionWeight, 0.0, 1.0);
+
+        // Final composite: mix base color (lit) with reflection
+        ssrColor = mix(vec3(0.0), ssrColor, reflectionWeight);
+
+        specularIBL = mix(specularIBL, ssrColor, ssrConfidence);
+    }
 
     return kD * diffuseIBL + specularIBL;
 }
