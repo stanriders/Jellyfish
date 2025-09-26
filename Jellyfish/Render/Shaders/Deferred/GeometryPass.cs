@@ -1,6 +1,4 @@
-﻿using OpenTK.Graphics.OpenGL;
-
-namespace Jellyfish.Render.Shaders.Deferred;
+﻿namespace Jellyfish.Render.Shaders.Deferred;
 
 public class GeometryPass : Shader
 {
@@ -25,7 +23,7 @@ public class GeometryPass : Shader
         SetBool("hasNormalMap", _normal != null);
 
         //_diffuse?.Bind(0);
-        _normal?.Bind(1);
+        BindTexture(1, _normal);
     }
 
     public override void Unload()

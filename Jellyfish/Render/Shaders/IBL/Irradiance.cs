@@ -1,5 +1,3 @@
-using OpenTK.Graphics.OpenGL;
-
 namespace Jellyfish.Render.Shaders.IBL;
 
 public class Irradiance : Shader
@@ -15,16 +13,10 @@ public class Irradiance : Shader
     {
         base.Bind();
 
-        _rtEnvMap.Bind(0);
+        BindTexture(0, _rtEnvMap);
 
         SetMatrix4("view", Engine.MainViewport.GetViewMatrix().ClearTranslation());
         SetMatrix4("projection", Engine.MainViewport.GetProjectionMatrix());
-    }
-
-    public override void Unbind()
-    {
-        GL.BindTextureUnit(0, 0);
-        base.Unbind();
     }
 
     public override void Unload()
