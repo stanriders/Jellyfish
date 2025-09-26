@@ -75,8 +75,6 @@ public class ImageBasedLighting
             Name = "_rt_EnvironmentMap",
             Type = TextureTarget.TextureCubeMap,
             WrapMode = TextureWrapMode.ClampToEdge,
-            MinFiltering = TextureMinFilter.Nearest,
-            MagFiltering = TextureMagFilter.Nearest,
             RenderTargetParams = new RenderTargetParams
             {
                 Width = size,
@@ -102,8 +100,7 @@ public class ImageBasedLighting
             Name = "_rt_Irradiance",
             Type = TextureTarget.TextureCubeMap,
             WrapMode = TextureWrapMode.ClampToEdge,
-            MinFiltering = TextureMinFilter.Nearest,
-            MagFiltering = TextureMagFilter.Nearest,
+            MinFiltering = TextureMinFilter.Linear,
             RenderTargetParams = new RenderTargetParams
             {
                 Width = irradiance_size,
@@ -133,7 +130,6 @@ public class ImageBasedLighting
             Type = TextureTarget.TextureCubeMap,
             WrapMode = TextureWrapMode.ClampToEdge,
             MaxLevels = null,
-            MinFiltering = TextureMinFilter.LinearMipmapLinear,
             RenderTargetParams = new RenderTargetParams
             {
                 Width = size,
@@ -205,6 +201,8 @@ public class ImageBasedLighting
                 Engine.MeshManager.Draw(false, frustum: Engine.MainViewport.GetFrustum());
             }
         }
+
+        GL.GenerateTextureMipmap(_cubemapBuffer.Handle);
 
         _cubemapBuffer.Unbind();
     }
