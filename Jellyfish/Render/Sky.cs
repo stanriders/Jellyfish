@@ -29,6 +29,9 @@ namespace Jellyfish.Render
 
         public void Draw()
         {
+            if (Engine.LightManager.Sun == null)
+                return;
+
             _shader.Bind();
             _vao.Bind();
 

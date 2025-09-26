@@ -9,12 +9,9 @@ public class Skybox : Shader
 
     public override void Bind()
     {
-        if (Engine.LightManager.Sun == null)
-            return;
-
         base.Bind();
 
-        var rotationVector = Vector3.Transform(Vector3.UnitY, Engine.LightManager.Sun.Source.Rotation);
+        var rotationVector = Vector3.Transform(Vector3.UnitY, Engine.LightManager.Sun!.Source.Rotation);
         SetVector3("uSunPos", rotationVector);
         SetFloat("uViewHeight", Math.Max(0f, Engine.MainViewport.Position.Y));
         SetFloat("uSunIntensity", Engine.LightManager.Sun.Source.Brightness * 4f);
