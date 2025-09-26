@@ -21,7 +21,7 @@ public class ScreenspaceReflections : Shader
         base.Bind();
 
         SetMatrix4("uProjection", Engine.MainViewport.GetProjectionMatrix());
-        SetVector2("uCameraParams", new Vector2(Viewport.NearPlane, Viewport.FarPlane));
+        SetVector2("uCameraParams", new Vector2(Engine.MainViewport.NearPlane, Engine.MainViewport.FarPlane));
 
         BindTexture(0, _rtColor);
         BindTexture(1, _rtDepth);

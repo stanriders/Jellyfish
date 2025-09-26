@@ -24,6 +24,10 @@ namespace Jellyfish.Render
         public Matrix4? ViewMatrixOverride { get; set; } = null;
         public Matrix4? ProjectionMatrixOverride { get; set; } = null;
 
+        private Matrix4? _frameProjectionMatrix;
+        private Matrix4? _frameViewMatrix;
+        private Frustum? _frameFrustum;
+
         public float Pitch
         {
             get => MathHelper.RadiansToDegrees(_pitch);
@@ -57,28 +61,31 @@ namespace Jellyfish.Render
             set => _fov = MathHelper.DegreesToRadians(value);
         }
 
-        public static float NearPlane => 1f;
-        public static float FarPlane => 20000f;
+        public float NearPlane { get; init; } = 1f;
+        public float FarPlane { get; init; } = 20000f;
 
         public Matrix4 GetViewMatrix()
         {
             if (ViewMatrixOverride != null)
                 return ViewMatrixOverride.Value;
 
-            return Matrix4.LookAt(Position, Position + _front, Up);
+            return _frameViewMatrix ??= Matrix4.LookAt(Position, Position + _front, Up);
         }
 
-        public Matrix4 GetProjectionMatrix(float? nearPlane = null, float? farPlane = null)
+        public Matrix4 GetProjectionMatrix()
         {
             if (ProjectionMatrixOverride != null)
                 return ProjectionMatrixOverride.Value;
 
-            return Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, nearPlane ?? NearPlane, farPlane ?? FarPlane);
+            return _frameProjectionMatrix ??= Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, NearPlane, FarPlane);
         }
 
-        public Frustum GetFrustum(float? nearPlane = null, float? farPlane = null)
+        public Frustum GetFrustum()
         {
-            return new Frustum(GetViewMatrix() * GetProjectionMatrix(nearPlane, farPlane));
+            if (ProjectionMatrixOverride != null || ViewMatrixOverride != null)
+                return new Frustum(GetViewMatrix() * GetProjectionMatrix());
+
+            return _frameFrustum ??= new Frustum(GetViewMatrix() * GetProjectionMatrix());
         }
 
         public Ray GetCameraToViewportRay(Vector2 screenPosition)
@@ -100,6 +107,11 @@ namespace Jellyfish.Render
 
         public void Think()
         {
+            // new frame - reset matrices 
+            _frameProjectionMatrix = null;
+            _frameViewMatrix = null;
+            _frameFrustum = null;
+
             UpdateVectors();
         }
 

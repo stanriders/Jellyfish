@@ -23,7 +23,7 @@ public class AmbientOcclusion : Shader
         BindTexture(1, _rtNormals);
 
         SetVector2("screenSize", new Vector2(Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y));
-        SetVector3("cameraParams", new Vector3(Engine.MainViewport.Fov, Viewport.NearPlane, Viewport.FarPlane));
+        SetVector3("cameraParams", new Vector3(Engine.MainViewport.Fov, Engine.MainViewport.NearPlane, Engine.MainViewport.FarPlane));
         SetVector4("gtaoParams", new Vector4(ConVarStorage.Get<int>("mat_gtao_quality"), ConVarStorage.Get<float>("mat_gtao_radius"), ConVarStorage.Get<float>("mat_gtao_intensity"), ConVarStorage.Get<float>("mat_gtao_thickness")));
     }
 

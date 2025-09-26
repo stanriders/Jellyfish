@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Jellyfish.Render;
 using Jellyfish.Render.Lighting;
+using Jellyfish.Utils;
 using OpenTK.Mathematics;
 
 namespace Jellyfish.Entities;
@@ -62,13 +63,16 @@ public class Sun : BaseEntity, ILightSource
 
             for (var i = 0; i < cascades; i++)
             {
-                var frustum = Engine.MainViewport.GetFrustum(CascadeRanges[i].Near, CascadeRanges[i].Far);
+                var projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(Engine.MainViewport.Fov), 
+                    Engine.MainViewport.AspectRatio, 
+                    CascadeRanges[i].Near, 
+                    CascadeRanges[i].Far);
 
-                var center = frustum.Corners.Aggregate(new Vector3(0, 0, 0), (current, v) => current + v) / frustum.Corners.Length;
+                var frustum = new Frustum(Engine.MainViewport.GetViewMatrix() * projection);
 
                 var direction = Vector3.Transform(Vector3.UnitY, Rotation).Normalized();
 
-                var lightView = Matrix4.LookAt(center + direction, center, Vector3.UnitY);
+                var lightView = Matrix4.LookAt(frustum.Center + direction, frustum.Center, Vector3.UnitY);
 
                 var minX = float.MaxValue;
                 var maxX = float.MinValue;
