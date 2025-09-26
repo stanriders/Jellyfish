@@ -1,6 +1,6 @@
 ﻿using Jellyfish.Debug;
 using Jellyfish.Render.Buffers;
-using Jellyfish.Render.Shaders.Deferred;
+using Jellyfish.Render.Shaders;
 using Jellyfish.Utils;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
@@ -39,7 +39,7 @@ public class Mesh
     private VertexBuffer _vbo = null!;
 
     private Shader? _shader;
-    private GeometryPass _gBufferShader = null!;
+    private Shaders.GBuffer _gBufferShader = null!;
 
     public Vector3 Position = Vector3.Zero;
     public Quaternion Rotation = Quaternion.Identity;
@@ -88,7 +88,7 @@ public class Mesh
     {
         Material = new Material(path, Model != null ? Model.Name : Name);
         _shader = Material.Shader;
-        _gBufferShader = new GeometryPass(Material);
+        _gBufferShader = new Shaders.GBuffer(Material);
     }
 
     protected void CreateBuffers()
