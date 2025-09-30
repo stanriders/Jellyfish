@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
 namespace Jellyfish.Audio;
@@ -32,7 +33,7 @@ public unsafe class AudioManager
     public const int ipl_frame_size = 512;
     public const int ipl_buffer_size_bytes = ipl_frame_size * sizeof(float);
     public const int update_rate = (int)(ipl_frame_size / (double)sampling_rate * 1000);
-        
+
     public AudioManager()
     {
         Bass.Init();
@@ -64,7 +65,7 @@ public unsafe class AudioManager
     public void AddMesh(Mesh mesh)
     {
         var transformationMatrix = mesh.GetTransformationMatrix();
-        var tranformedVertices = mesh.Vertices.Select(meshVertex =>(transformationMatrix * new Vector4(meshVertex.Coordinates, 1.0f)).Xyz.ToIplVector()).ToArray();
+        var tranformedVertices = mesh.Vertices.Select(meshVertex =>(new Vector4(meshVertex.Coordinates, 1.0f) * transformationMatrix).Xyz.ToIplVector()).ToArray();
 
         var triangles = new List<IPL.Triangle>();
         for (var i = 0; i < mesh.Vertices.Count; i += 3)

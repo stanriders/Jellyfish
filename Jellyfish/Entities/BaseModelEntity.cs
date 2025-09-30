@@ -20,7 +20,7 @@ public abstract class BaseModelEntity : BaseEntity
 
     public override void Load()
     {
-        if (!string.IsNullOrEmpty(ModelPath) && Path.Exists(ModelPath))
+        if (Model == null && !string.IsNullOrEmpty(ModelPath) && Path.Exists(ModelPath))
         {
             Model = ModelParser.Parse(ModelPath);
             Model.Position = GetPropertyValue<Vector3>("Position");
@@ -42,6 +42,14 @@ public abstract class BaseModelEntity : BaseEntity
         }
 
         base.Load();
+
+        if (Model != null)
+        {
+            foreach (var mesh in Model.Meshes)
+            {
+                Engine.AudioManager.AddMesh(mesh);
+            }
+        }
     }
 
     public override void Think(float frameTime)
