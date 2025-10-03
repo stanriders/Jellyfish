@@ -85,7 +85,7 @@ float PoissonPCF(sampler2D DepthSampler, vec3 projCoords, float baseRadius)
     for (int i = 0; i < PCSS_FILTER_SIZE; i++)
     {
         vec2 offset = poissonDisk[i] * radiusUV;
-        float pcfDepth = texture(DepthSampler, projCoords.xy + offset).r;
+        float pcfDepth = texture(DepthSampler, clamp(projCoords.xy + offset, 0.0, 1.0)).r;
 
         shadow += step(currentDepth, pcfDepth);
     }
@@ -124,9 +124,9 @@ float ShadowCalculation(int lightIndex, vec3 lightDir, vec3 normal)
         return 0.0;
         
     if (lightSources[lightIndex].usePcss)
-        return ShadowColor_PCSS4X4_PCF4X4(shadowSamplers[lightIndex], projCoords, lightSources[lightIndex].near, 3f);
+        return ShadowColor_PCSS4X4_PCF4X4(shadowSamplers[lightIndex], projCoords, lightSources[lightIndex].near, 3.0f);
 
-    return PoissonPCF(shadowSamplers[lightIndex], projCoords, 2f);
+    return PoissonPCF(shadowSamplers[lightIndex], projCoords, 2.0f);
     //return SimplePCF(shadowSamplers[lightIndex], projCoords, 4);
     //return SimpleShadow(shadowSamplers[lightIndex], projCoords);
 }  
@@ -226,7 +226,9 @@ LightContrib CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
 
         projCoords = projCoords * 0.5 + 0.5;
 
-        if(projCoords.z < 1.0)
+        if (projCoords.x >= 0.0 || projCoords.x <= 1.0 ||
+            projCoords.y >= 0.0 || projCoords.y <= 1.0 ||
+            projCoords.z >= 0.0 || projCoords.z < 1.0)
         {
             if (sun.usePcss && layer == 0)
             {
@@ -234,8 +236,8 @@ LightContrib CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
             }
             else
             {
-                shadow = PoissonPCF(sunShadowSampler[layer], projCoords, layer == 0 ? 4f : 1f);
-                //shadow = SimplePCF(sunShadowSampler[layer], projCoords, layer == 0 ? 4f : 1f);
+                shadow = PoissonPCF(sunShadowSampler[layer], projCoords, layer == 0 ? 4.0f : 1.0f);
+                //shadow = SimplePCF(sunShadowSampler[layer], projCoords, layer == 0 ? 4.0f : 1.0f);
                 //shadow = SimpleShadow(sunShadowSampler[layer], projCoords);
             }
 
