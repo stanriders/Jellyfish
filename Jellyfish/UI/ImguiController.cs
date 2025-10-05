@@ -4,6 +4,7 @@ using Hexa.NET.ImPlot;
 using Jellyfish.Console;
 using Jellyfish.Debug;
 using Jellyfish.Input;
+using Jellyfish.Render;
 using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Shaders;
 using OpenTK.Graphics.OpenGL;
@@ -17,7 +18,7 @@ using System.Text;
 using ErrorCode = OpenTK.Graphics.OpenGL.ErrorCode;
 using Vector2 = System.Numerics.Vector2;
 
-namespace Jellyfish.Render;
+namespace Jellyfish.UI;
 
 public sealed class ImguiController : IDisposable, IInputHandler
 {
