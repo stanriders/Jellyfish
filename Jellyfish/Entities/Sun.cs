@@ -74,8 +74,8 @@ public class Sun : BaseEntity, ILightSource
 
                 var lightView = Matrix4.LookAt(frustum.Center + direction, frustum.Center, Vector3.UnitY);
 
-                var min = new Vector3(float.MinValue);
-                var max = new Vector3(float.MaxValue);
+                var min = new Vector3(float.MaxValue);
+                var max = new Vector3(float.MinValue);
 
                 foreach (var v in frustum.Corners)
                 {
