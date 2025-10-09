@@ -150,6 +150,7 @@ public class Main : Shader
         SetBool("useTransparency", _alphaTest);
         SetInt("prefilterMips", _prefilterMap?.Levels ?? 0);
         SetBool("iblEnabled", ConVarStorage.Get<bool>("mat_ibl_enabled"));
+        SetBool("iblPrefilterEnabled", ConVarStorage.Get<bool>("mat_ibl_prefilter"));
         SetBool("sslrEnabled", ConVarStorage.Get<bool>("mat_sslr_enabled"));
         SetVector2("screenSize", new Vector2(Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y));
 

@@ -22,6 +22,7 @@ uniform bool usePbr;
 uniform bool useTransparency;
 uniform int prefilterMips;
 uniform bool iblEnabled;
+uniform bool iblPrefilterEnabled;
 uniform bool sslrEnabled;
 uniform vec2 screenSize;
 

@@ -79,16 +79,20 @@ vec3 ComputeIBL(vec3 N, vec3 V, vec3 diffuseColor, float roughness, float metaln
     vec3 kS = F_env;
     vec3 kD = (1.0 - kS) * (1.0 - metalness);
 
-    vec3 diffuseIBL = texture(irradianceMap, N).rgb * diffuseColor;
-
+    vec3 diffuseIBL = vec3(0);
     vec3 specularIBL = vec3(0);
 
     if (iblEnabled) 
     {
-        vec3 R = normalize(reflect(-V, N));
-        vec3 prefiltered = textureLod(prefilterMap, R, roughness * prefilterMips).rgb;
-        vec2 brdf = integrateBRDFApprox(NdotV, roughness);
-        specularIBL = prefiltered * (F_env * brdf.x + brdf.y);
+        diffuseIBL = diffuseColor * texture(irradianceMap, N).rgb;
+
+        if (iblPrefilterEnabled)
+        {
+            vec3 R = normalize(reflect(-V, N));
+            vec3 prefiltered = textureLod(prefilterMap, R, roughness * prefilterMips).rgb;
+            vec2 brdf = integrateBRDFApprox(NdotV, roughness);
+            specularIBL = prefiltered * (F_env * brdf.x + brdf.y);
+        }
     }
 
     if (sslrEnabled && roughness < 0.99)

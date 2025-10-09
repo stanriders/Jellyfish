@@ -9,7 +9,8 @@ using System.Diagnostics;
 
 namespace Jellyfish.Render.Lighting;
 
-public class IblEnabled() : ConVar<bool>("mat_ibl_enabled", false);
+public class IblEnabled() : ConVar<bool>("mat_ibl_enabled", true);
+public class IblPrefilter() : ConVar<bool>("mat_ibl_prefilter", false);
 public class IblRenderWorld() : ConVar<bool>("mat_ibl_render_world", false);
 
 public class ImageBasedLighting
@@ -52,7 +53,7 @@ public class ImageBasedLighting
         (new Vector3( 1,  0,  0), new Vector3(0, -1,  0)), // +X
     ];
 
-    private const int size = 128;
+    private const int size = 64;
     private const int irradiance_size = 32;
 
     public ImageBasedLighting()
@@ -163,7 +164,9 @@ public class ImageBasedLighting
 
             RenderCubemap(sky);
             RenderIrradience();
-            RenderPrefilter();
+
+            if (ConVarStorage.Get<bool>("mat_ibl_prefilter"))
+                RenderPrefilter();
 
             Engine.MainViewport.ViewMatrixOverride = null;
             Engine.MainViewport.ProjectionMatrixOverride = null;
