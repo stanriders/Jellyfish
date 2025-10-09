@@ -65,7 +65,7 @@ public static class CommonShapes
 
     public static Vector3[] Cube =
     [
-        // positions          
+        // positions
         new(-1.0f, 1.0f, -1.0f),
         new(-1.0f, -1.0f, -1.0f),
         new(1.0f, -1.0f, -1.0f),
@@ -103,9 +103,9 @@ public static class CommonShapes
 
         new(-1.0f, -1.0f, -1.0f),
         new(-1.0f, -1.0f, 1.0f),
+        new(1.0f, -1.0f, 1.0f),
+        new(1.0f, -1.0f, 1.0f),
         new(1.0f, -1.0f, -1.0f),
-        new(1.0f, -1.0f, -1.0f),
-        new(-1.0f, -1.0f, 1.0f),
-        new(1.0f, -1.0f, 1.0f)
+        new(-1.0f, -1.0f, -1.0f)
     ];
 }
