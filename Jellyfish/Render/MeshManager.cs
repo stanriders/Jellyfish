@@ -26,9 +26,6 @@ public class MeshManager
             _singleFrameMeshes.Add(mesh);
 
         SceneBoundingBox = new BoundingBox([SceneBoundingBox, mesh.BoundingBox]);
-
-        if (!mesh.IsDev)
-            Engine.AudioManager.AddMesh(mesh);
     }
 
     public void RemoveMesh(Mesh mesh)
