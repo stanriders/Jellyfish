@@ -149,6 +149,7 @@ public class LightManager
                 shadow.FrameBuffer.Bind();
 
                 GL.Viewport(0, 0, light.Source.ShadowResolution, light.Source.ShadowResolution);
+                GL.ClearDepth(1.0);
                 GL.Clear(ClearBufferMask.DepthBufferBit);
 
                 Engine.MeshManager.Draw(false, shadow.Shader, frustum);
@@ -177,8 +178,8 @@ public class LightManager
             Name = $"_rt_Shadow{_lights.IndexOf(light)}{subname}",
             BorderColor = [1f, 1f, 1f, 1f],
             WrapMode = TextureWrapMode.ClampToBorder,
-            MinFiltering = TextureMinFilter.Nearest,
-            MagFiltering = TextureMagFilter.Nearest,
+            MinFiltering = TextureMinFilter.Linear,
+            MagFiltering = TextureMagFilter.Linear,
             RenderTargetParams = new RenderTargetParams
             {
                 Width = light.Source.ShadowResolution,

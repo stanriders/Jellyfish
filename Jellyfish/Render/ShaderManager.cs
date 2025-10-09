@@ -93,7 +93,7 @@ namespace Jellyfish.Render
             catch (Exception ex)
             {
                 Log.Context(this).Error(ex, "Failed to load shader {Path}", path);
-                return string.Empty;
+                throw;
             }
         }
 

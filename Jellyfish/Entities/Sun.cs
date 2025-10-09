@@ -74,30 +74,22 @@ public class Sun : BaseEntity, ILightSource
 
                 var lightView = Matrix4.LookAt(frustum.Center + direction, frustum.Center, Vector3.UnitY);
 
-                var minX = float.MaxValue;
-                var maxX = float.MinValue;
-                var minY = float.MaxValue;
-                var maxY = float.MinValue;
-                var minZ = float.MaxValue;
-                var maxZ = float.MinValue;
+                var min = new Vector3(float.MinValue);
+                var max = new Vector3(float.MaxValue);
 
                 foreach (var v in frustum.Corners)
                 {
                     var trf = Vector3.TransformPosition(v, lightView);
-                    minX = Math.Min(minX, trf.X);
-                    maxX = Math.Max(maxX, trf.X);
-                    minY = Math.Min(minY, trf.Y);
-                    maxY = Math.Max(maxY, trf.Y);
-                    minZ = Math.Min(minZ, trf.Z);
-                    maxZ = Math.Max(maxZ, trf.Z);
+                    min = Vector3.ComponentMin(min, trf);
+                    max = Vector3.ComponentMax(max, trf);
                 }
 
                 // pullback factor
                 const float zMult = 10.0f;
-                minZ = minZ < 0 ? minZ * zMult : minZ / zMult;
-                maxZ = maxZ < 0 ? maxZ / zMult : maxZ * zMult;
+                min.Z = min.Z < 0 ? min.Z * zMult : min.Z / zMult;
+                max.Z = max.Z < 0 ? max.Z / zMult : max.Z * zMult;
 
-                var lightProjection = Matrix4.CreateOrthographicOffCenter(minX, maxX, minY, maxY, minZ, maxZ);
+                var lightProjection = Matrix4.CreateOrthographicOffCenter(min.X, max.X, min.Y, max.Y, min.Z, max.Z);
                 projections.Add(lightView * lightProjection);
             }
 
