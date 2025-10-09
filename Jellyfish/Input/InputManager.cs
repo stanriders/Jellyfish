@@ -1,6 +1,7 @@
 ﻿using OpenTK.Windowing.GraphicsLibraryFramework;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Jellyfish.Debug;
 
 namespace Jellyfish.Input;
@@ -47,7 +48,7 @@ public class InputManager
         }
         else
         {
-            foreach (var inputHandler in _inputHandlers)
+            foreach (var inputHandler in _inputHandlers.AsEnumerable().Reverse())
             {
                 if (inputHandler.HandleInput(keyboardState, mouseState, frameTime))
                 {

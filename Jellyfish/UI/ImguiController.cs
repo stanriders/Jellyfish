@@ -416,6 +416,9 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
     public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
     {
+        if (Engine.InputManager.IsControllingCursor)
+            return false;
+
         var io = ImGui.GetIO();
 
         io.AddMousePosEvent(mouseState.X, mouseState.Y);
