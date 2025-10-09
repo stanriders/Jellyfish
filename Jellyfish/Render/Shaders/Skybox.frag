@@ -124,9 +124,9 @@ void main()
     const float rayleighScaleHeight = 8e3;
     float rAtmos = rPlanet + max(100e3, 5.0 * rayleighScaleHeight);
 
-    vec3 color = atmosphere(
+    vec3 color = clamp(atmosphere(
         normalize(TexCoords),           // normalized ray direction
-        vec3(0, rPlanet + uViewHeight, 0), // ray origin
+        vec3(0, rPlanet + 100 + uViewHeight, 0), // ray origin
         uSunPos,                        // position of the sun
         uSunIntensity,                  // intensity of the sun
         rPlanet,                        // radius of the planet in meters
@@ -136,7 +136,7 @@ void main()
         8e3,                            // Rayleigh scale height
         1.2e3,                          // Mie scale height
         0.758                           // Mie preferred scattering direction
-    );
+    ), 0.0, 1.0);
 
     const float sunAngularRadius = 0.007;
     float cosAngle = dot(normalize(TexCoords), normalize(uSunPos));
