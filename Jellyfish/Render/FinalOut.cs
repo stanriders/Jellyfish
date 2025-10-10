@@ -16,8 +16,8 @@ public class FinalOut : IInputHandler
 
     public FinalOut()
     {
-        _vertexBuffer = new VertexBuffer("FinalQuad", CommonShapes.Quad, 4 * sizeof(float));
-        _vertexArray = new VertexArray(_vertexBuffer, null);
+        _vertexBuffer = new VertexBuffer("FinalQuad", CommonShapes.Quad);
+        _vertexArray = new VertexArray(_vertexBuffer, null, 4 * sizeof(float));
 
         _shader = new Shaders.PostProcessing();
 

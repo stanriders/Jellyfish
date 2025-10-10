@@ -58,8 +58,8 @@ public class ImageBasedLighting
 
     public ImageBasedLighting()
     {
-        _cubeVbo = new VertexBuffer("IrradianceCube", CommonShapes.CubeFloat, 3 * sizeof(float));
-        _cubeVao = new VertexArray(_cubeVbo, null);
+        _cubeVbo = new VertexBuffer("IrradianceCube", CommonShapes.CubeFloat);
+        _cubeVao = new VertexArray(_cubeVbo, null, 3 * sizeof(float));
 
         GL.EnableVertexArrayAttrib(_cubeVao.Handle, 0);
         GL.VertexArrayAttribFormat(_cubeVao.Handle, 0, 3, VertexAttribType.Float, false, 0);

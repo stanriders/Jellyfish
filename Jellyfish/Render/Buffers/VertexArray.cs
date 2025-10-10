@@ -5,12 +5,14 @@ namespace Jellyfish.Render.Buffers;
 public class VertexArray
 {
     public readonly int Handle;
+    public readonly int Stride;
 
-    public VertexArray(VertexBuffer vbo, IndexBuffer? ibo)
+    public VertexArray(VertexBuffer vbo, IndexBuffer? ibo, int stride)
     {
+        Stride = stride;
         GL.CreateVertexArray(out Handle);
 
-        GL.VertexArrayVertexBuffer(Handle, 0, vbo.Handle, 0, vbo.Stride);
+        GL.VertexArrayVertexBuffer(Handle, 0, vbo.Handle, 0, Stride);
         if (ibo != null)
             GL.VertexArrayElementBuffer(Handle, ibo.Handle);
     }

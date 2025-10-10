@@ -40,8 +40,8 @@ public abstract class ScreenspaceEffect
         Buffer.Check();
         Buffer.Unbind();
 
-        VertexBuffer = new VertexBuffer($"Screenspace_{rtName}", CommonShapes.Quad, 4 * sizeof(float));
-        VertexArray = new VertexArray(VertexBuffer, null);
+        VertexBuffer = new VertexBuffer($"Screenspace_{rtName}", CommonShapes.Quad);
+        VertexArray = new VertexArray(VertexBuffer, null, 4 * sizeof(float));
 
         var vertexLocation = Shader.GetAttribLocation("aPos");
         if (vertexLocation != null)

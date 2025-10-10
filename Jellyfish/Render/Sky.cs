@@ -14,8 +14,8 @@ namespace Jellyfish.Render
 
         public Sky()
         {
-            _vbo = new VertexBuffer("Skybox", CommonShapes.CubeFloat, 3 * sizeof(float));
-            _vao = new VertexArray(_vbo, null);
+            _vbo = new VertexBuffer("Skybox", CommonShapes.CubeFloat);
+            _vao = new VertexArray(_vbo, null, 3 * sizeof(float));
             _shader = new Skybox();
 
             var vertexLocation = _shader.GetAttribLocation("aPosition");
