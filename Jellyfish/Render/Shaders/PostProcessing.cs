@@ -48,7 +48,7 @@ public class PostProcessing : Shader
 
             if (!double.IsNaN(luminance))
             {
-                const float key = 0.12f;
+                const float key = 0.18f;
                 var targetExposure = key / luminance;
 
                 sceneExposure = float.Lerp(sceneExposure, targetExposure, adj_speed);
@@ -56,7 +56,7 @@ public class PostProcessing : Shader
             }
 
             SetFloat("exposure", sceneExposure);
-            SetInt("toneMappingMode", 3);
+            SetInt("toneMappingMode", 2);
         }
     }
 
