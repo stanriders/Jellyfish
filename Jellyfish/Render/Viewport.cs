@@ -12,7 +12,18 @@ namespace Jellyfish.Render
         private float _yaw = -MathHelper.PiOver2; // Without this you would be started rotated 90 degrees right
         private float _fov = MathHelper.PiOver2;
 
-        public Vector3 Position { get; set; }
+        private Vector3 _position;
+        public Vector3 Position
+        {
+            get
+            {
+                if (ViewMatrixOverride != null)
+                    return ViewMatrixOverride.Value.Inverted().ExtractTranslation();
+
+                return _position;
+            }
+            set => _position = value;
+        }
         public Quaternion Rotation { get; set; }
         public float AspectRatio => Size.X / (float)Size.Y;
         public Vector2i Size { get; set; }
