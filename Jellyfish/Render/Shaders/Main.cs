@@ -16,11 +16,9 @@ public class Main : Shader
     private readonly Texture? _normal;
     private readonly Texture? _metRought;
 
-    private readonly Texture? _prefilterMap;
-    private readonly Texture? _irradianceMap;
     private readonly Texture? _reflectionMap;
 
-    private const uint sun_shadow_unit = 6;
+    private const uint sun_shadow_unit = 4;
     private const uint first_light_shadow_unit = sun_shadow_unit + Sun.cascades + 1;
 
     public Main(Material material) : base("shaders/Main.vert", null, "shaders/Main.frag")
@@ -34,8 +32,6 @@ public class Main : Shader
         if (material.TryGetParam<string>("MetalRoughness", out var metroughtPath))
             _metRought = Engine.TextureManager.GetTexture(new TextureParams { Name = $"{material.Directory}/{metroughtPath}"}).Texture;
 
-        _prefilterMap = Engine.TextureManager.GetTexture("_rt_Prefilter");
-        _irradianceMap = Engine.TextureManager.GetTexture("_rt_Irradiance");
         _reflectionMap = Engine.TextureManager.GetTexture("_rt_ReflectionsBlurY");
 
         if (material.TryGetParam<bool>("AlphaTest", out var alphatest))
@@ -148,7 +144,7 @@ public class Main : Shader
         SetBool("useNormals", _normal != null);
         SetBool("usePbr", _metRought != null);
         SetBool("useTransparency", _alphaTest);
-        SetInt("prefilterMips", _prefilterMap?.Levels ?? 0);
+        SetInt("prefilterMips", 6); // todo: unhardcode
         SetBool("iblEnabled", ConVarStorage.Get<bool>("mat_ibl_enabled"));
         SetBool("iblPrefilterEnabled", ConVarStorage.Get<bool>("mat_ibl_prefilter"));
         SetBool("sslrEnabled", ConVarStorage.Get<bool>("mat_sslr_enabled"));
@@ -156,13 +152,12 @@ public class Main : Shader
 
         Engine.LightManager.LightSourcesSsbo.UpdateData(lightSourcesStruct);
         Engine.LightManager.LightSourcesSsbo.Bind(0);
+        Engine.Renderer.ImageBasedLighting?.LightProbesSsbo.Bind(1);
 
         BindTexture(0, _diffuse);
         BindTexture(1, _normal);
         BindTexture(2, _metRought);
-        BindTexture(3, _prefilterMap);
-        BindTexture(4, _irradianceMap);
-        BindTexture(5, _reflectionMap);
+        BindTexture(3, _reflectionMap);
     }
 
     public override void Unload()
@@ -170,8 +165,6 @@ public class Main : Shader
         _diffuse?.Unload();
         _normal?.Unload();
         _metRought?.Unload();
-        _prefilterMap?.Unload();
-        _irradianceMap?.Unload();
 
         base.Unload();
     }

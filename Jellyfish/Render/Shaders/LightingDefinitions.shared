@@ -1,7 +1,7 @@
 #define MAX_LIGHTS 16
 #define CSM_CASCADES 4
 #define MAX_SHADOWS 16
-#define SUN_SAMPLER_BINDING 6
+#define SUN_SAMPLER_BINDING 4
 //#define CSM_DEBUG
 
 const float PI = 3.14159265359;
@@ -80,4 +80,16 @@ const vec2 poissonDisk[PCSS_FILTER_SIZE] =
         vec2( -0.81409955, 0.91437590 ),
         vec2( 0.19984126, 0.78641367 ),
         vec2( 0.14383161, -0.14100790 )
+};
+
+#define MAX_PROBES 512
+struct LightProbe {
+    samplerCube irradiance;
+    samplerCube prefilter;
+    vec3 position;    float _pad0;
+};
+
+layout(std430, binding = 1) buffer LightProbes {
+    LightProbe lightProbes[MAX_PROBES];
+    int probeCount;
 };

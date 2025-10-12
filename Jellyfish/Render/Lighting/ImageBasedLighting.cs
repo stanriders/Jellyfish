@@ -2,19 +2,25 @@
 using Jellyfish.Debug;
 using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Shaders.IBL;
+using Jellyfish.Render.Shaders.Structs;
 using Jellyfish.Utils;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Jellyfish.Render.Lighting;
 
 public class IblEnabled() : ConVar<bool>("mat_ibl_enabled", true);
 public class IblPrefilter() : ConVar<bool>("mat_ibl_prefilter", false);
-public class IblRenderWorld() : ConVar<bool>("mat_ibl_render_world", false);
+public class IblRenderWorld() : ConVar<bool>("mat_ibl_render_world", true);
 
-public class ImageBasedLighting
+public class LightProbe
 {
+    public Vector3 Position { get; set; }
+    public ulong IrradianceBindlessHandle { get; }
+    public ulong PrefilterBindlessHandle { get; }
+
     private readonly FrameBuffer _cubemapBuffer;
     private readonly Texture _cubemapRenderTarget;
 
@@ -27,10 +33,8 @@ public class ImageBasedLighting
     private readonly Texture _prefilterRenderTarget;
     private readonly Prefiltering _prefilterShader;
 
-    private readonly VertexBuffer _cubeVbo;
-    private readonly VertexArray _cubeVao;
-
-    private bool _renderedLastFrame;
+    private const int size = 128;
+    private const int irradiance_size = 16;
 
     private readonly (Vector3 target, Vector3 up)[] _cubemapViews =
     [
@@ -53,18 +57,8 @@ public class ImageBasedLighting
         (new Vector3( 1,  0,  0), new Vector3(0, -1,  0)), // +X
     ];
 
-    private const int size = 64;
-    private const int irradiance_size = 32;
-
-    public ImageBasedLighting()
+    public LightProbe(int index)
     {
-        _cubeVbo = new VertexBuffer("IrradianceCube", CommonShapes.CubeFloat);
-        _cubeVao = new VertexArray(_cubeVbo, null, 3 * sizeof(float));
-
-        GL.EnableVertexArrayAttrib(_cubeVao.Handle, 0);
-        GL.VertexArrayAttribFormat(_cubeVao.Handle, 0, 3, VertexAttribType.Float, false, 0);
-        GL.VertexArrayAttribBinding(_cubeVao.Handle, 0, 0);
-
         #region cubemap
         _cubemapBuffer = new FrameBuffer();
         _cubemapBuffer.Bind();
@@ -73,7 +67,7 @@ public class ImageBasedLighting
 
         _cubemapRenderTarget = Engine.TextureManager.CreateTexture(new TextureParams
         {
-            Name = "_rt_EnvironmentMap",
+            Name = $"_rt_EnvironmentMap_{index}",
             Type = TextureTarget.TextureCubeMap,
             WrapMode = TextureWrapMode.ClampToEdge,
             RenderTargetParams = new RenderTargetParams
@@ -83,7 +77,7 @@ public class ImageBasedLighting
                 InternalFormat = SizedInternalFormat.Rgb16f,
                 Attachment = FramebufferAttachment.ColorAttachment0
             }
-        }); 
+        });
         GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
 
         _cubemapBuffer.Check();
@@ -91,14 +85,14 @@ public class ImageBasedLighting
         #endregion
 
         #region irradiance
-        _irradianceShader = new Irradiance();
+        _irradianceShader = new Irradiance(_cubemapRenderTarget);
         _irradianceBuffer = new FrameBuffer();
         _irradianceBuffer.Bind();
         RenderBuffer.Create(InternalFormat.DepthComponent, FramebufferAttachment.DepthAttachment, irradiance_size, irradiance_size);
 
         _irradianceRenderTarget = Engine.TextureManager.CreateTexture(new TextureParams
         {
-            Name = "_rt_Irradiance",
+            Name = $"_rt_Irradiance_{index}",
             Type = TextureTarget.TextureCubeMap,
             WrapMode = TextureWrapMode.ClampToEdge,
             MinFiltering = TextureMinFilter.Linear,
@@ -115,11 +109,13 @@ public class ImageBasedLighting
 
         _irradianceBuffer.Check();
         _irradianceBuffer.Unbind();
+
+        IrradianceBindlessHandle = GL.ARB.GetTextureHandleARB(_irradianceRenderTarget.Handle);
         #endregion
 
         #region prefilter
 
-        _prefilterShader = new Prefiltering();
+        _prefilterShader = new Prefiltering(_cubemapRenderTarget);
         _prefilterBuffer = new FrameBuffer();
         _prefilterBuffer.Bind();
 
@@ -127,7 +123,7 @@ public class ImageBasedLighting
 
         _prefilterRenderTarget = Engine.TextureManager.CreateTexture(new TextureParams
         {
-            Name = "_rt_Prefilter",
+            Name = $"_rt_Prefilter_{index}",
             Type = TextureTarget.TextureCubeMap,
             WrapMode = TextureWrapMode.ClampToEdge,
             MaxLevels = null,
@@ -144,34 +140,12 @@ public class ImageBasedLighting
 
         _prefilterBuffer.Check();
         _prefilterBuffer.Unbind();
-        
+
+        PrefilterBindlessHandle = GL.ARB.GetTextureHandleARB(_prefilterRenderTarget.Handle);
         #endregion
-    }
 
-    public void Frame(Sky? sky)
-    {
-        var stopwatch = Stopwatch.StartNew();
-        if (ConVarStorage.Get<bool>("mat_ibl_enabled"))
-        {
-            // only render every second frame
-            if (_renderedLastFrame)
-            {
-                _renderedLastFrame = false;
-                return;
-            }
-
-            _renderedLastFrame = true;
-
-            RenderCubemap(sky);
-            RenderIrradience();
-
-            if (ConVarStorage.Get<bool>("mat_ibl_prefilter"))
-                RenderPrefilter();
-
-            Engine.MainViewport.ViewMatrixOverride = null;
-            Engine.MainViewport.ProjectionMatrixOverride = null;
-        }
-        PerformanceMeasurment.Add("IBL.Frame", stopwatch.Elapsed.TotalMilliseconds);
+        GL.ARB.MakeTextureHandleResidentARB(PrefilterBindlessHandle);
+        GL.ARB.MakeTextureHandleResidentARB(IrradianceBindlessHandle);
     }
 
     public void RenderCubemap(Sky? sky)
@@ -200,7 +174,7 @@ public class ImageBasedLighting
             if (renderWorld)
             {
                 // todo: very, VERY expensive
-                Engine.MainViewport.ViewMatrixOverride = Matrix4.LookAt(Engine.MainViewport.Position, Engine.MainViewport.Position + _cubemapViews[i].target, _cubemapViews[i].up);
+                Engine.MainViewport.ViewMatrixOverride = Matrix4.LookAt(Position, Position + _cubemapViews[i].target, _cubemapViews[i].up);
                 Engine.MeshManager.Draw(false, frustum: Engine.MainViewport.GetFrustum());
             }
         }
@@ -215,7 +189,7 @@ public class ImageBasedLighting
         GL.Viewport(0, 0, irradiance_size, irradiance_size);
 
         _irradianceBuffer.Bind();
-        _cubeVao.Bind();
+        CommonShapes.CubeVertexArray?.Bind();
 
         Engine.MainViewport.ProjectionMatrixOverride = Matrix4.CreatePerspectiveFieldOfView(float.DegreesToRadians(90f), 1.0f, 0.1f, 2f);
 
@@ -239,7 +213,7 @@ public class ImageBasedLighting
             _irradianceShader.Unbind();
         }
 
-        _cubeVao.Unbind();
+        CommonShapes.CubeVertexArray?.Unbind();
         _irradianceBuffer.Unbind();
     }
 
@@ -248,7 +222,7 @@ public class ImageBasedLighting
         GL.Viewport(0, 0, size, size);
 
         _prefilterBuffer.Bind();
-        _cubeVao.Bind();
+        CommonShapes.CubeVertexArray?.Bind();
 
         Engine.MainViewport.ProjectionMatrixOverride = Matrix4.CreatePerspectiveFieldOfView(float.DegreesToRadians(90f), 1.0f, 0.1f, 2f);
 
@@ -288,12 +262,15 @@ public class ImageBasedLighting
             }
         }
 
-        _cubeVao.Unbind();
+        CommonShapes.CubeVertexArray?.Unbind();
         _prefilterBuffer.Unbind();
     }
 
     public void Unload()
     {
+        GL.ARB.MakeTextureHandleNonResidentARB(IrradianceBindlessHandle);
+        GL.ARB.MakeTextureHandleNonResidentARB(PrefilterBindlessHandle);
+
         _cubemapRenderTarget.Unload();
         _irradianceRenderTarget.Unload();
         _prefilterRenderTarget.Unload();
@@ -302,7 +279,105 @@ public class ImageBasedLighting
         _prefilterBuffer.Unload();
         _irradianceBuffer.Unload();
 
-        _cubeVao.Unload();
-        _cubeVbo.Unload();
+        _prefilterShader.Unload();
+        _irradianceShader.Unload();
+    }
+}
+
+public class ImageBasedLighting
+{
+    public List<LightProbe> Probes { get; } = new();
+    private int _currentProbe;
+
+    public readonly ShaderStorageBuffer<LightProbes> LightProbesSsbo;
+    public const int max_probes = 512;
+
+    private bool _renderedLastFrame;
+    public ImageBasedLighting()
+    {
+        LightProbesSsbo = new ShaderStorageBuffer<LightProbes>("lightProbesSSBO", new LightProbes());
+
+        //AddProbe(); // 0,0,0 probe
+    }
+
+    public LightProbe AddProbe()
+    {
+        var probe = new LightProbe(Probes.Count);
+        Probes.Add(probe);
+
+        return probe;
+    }
+
+    public void RemoveProbe(LightProbe probe)
+    {
+        probe.Unload();
+        Probes.Remove(probe);
+    }
+
+    public void Frame(Sky? sky)
+    {
+        var stopwatch = Stopwatch.StartNew();
+
+        if (ConVarStorage.Get<bool>("mat_ibl_enabled"))
+        {
+            // only render every second frame
+            if (_renderedLastFrame)
+            {
+                _renderedLastFrame = false;
+                return;
+            }
+
+            _renderedLastFrame = true;
+
+            if (Probes.Count == 0)
+            {
+                LightProbesSsbo.UpdateData(new LightProbes
+                {
+                    Probes = new Jellyfish.Render.Shaders.Structs.LightProbe[max_probes],
+                    ProbeCount = 0
+                });
+
+                return;
+            }
+
+            if (_currentProbe >= Probes.Count)
+                _currentProbe = 0;
+
+            var lightProbe = Probes[_currentProbe];
+            lightProbe.RenderCubemap(sky);
+            lightProbe.RenderIrradience();
+
+            if (ConVarStorage.Get<bool>("mat_ibl_prefilter"))
+                lightProbe.RenderPrefilter();
+
+            _currentProbe++;
+
+            Engine.MainViewport.ViewMatrixOverride = null;
+            Engine.MainViewport.ProjectionMatrixOverride = null;
+
+            var gpuProbes = new Jellyfish.Render.Shaders.Structs.LightProbe[max_probes];
+            for (var i = 0; i < Probes.Count; i++)
+            {
+                gpuProbes[i].Position = new Vector4(Probes[i].Position);
+                gpuProbes[i].IrradianceTexture = Probes[i].IrradianceBindlessHandle;
+                gpuProbes[i].PrefilterTexture = Probes[i].PrefilterBindlessHandle;
+            }
+
+            LightProbesSsbo.UpdateData(new LightProbes
+            {
+                Probes = gpuProbes,
+                ProbeCount = Probes.Count
+            });
+        }
+
+        PerformanceMeasurment.Add("IBL.Frame", stopwatch.Elapsed.TotalMilliseconds);
+    }
+
+    public void Unload()
+    {
+        foreach (var lightProbe in Probes)
+        {
+            lightProbe.Unload();
+        }
     }
 }

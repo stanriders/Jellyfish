@@ -1,4 +1,5 @@
 ﻿#version 460
+#extension GL_ARB_bindless_texture : require
 #include CommonFrag.frag
 
 out vec4 outputColor;
@@ -11,9 +12,7 @@ in float frag_clipspaceZ;
 layout(binding=0) uniform sampler2D diffuseSampler;
 layout(binding=1) uniform sampler2D normalSampler;
 layout(binding=2) uniform sampler2D metroughSampler;
-layout(binding=3) uniform samplerCube prefilterMap;
-layout(binding=4) uniform samplerCube irradianceMap;
-layout(binding=5) uniform sampler2D reflectionMap;
+layout(binding=3) uniform sampler2D reflectionMap;
 
 uniform mat4 view;
 uniform vec3 cameraPos;

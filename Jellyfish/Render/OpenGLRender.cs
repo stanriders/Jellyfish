@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Jellyfish.Utils;
 
 namespace Jellyfish.Render;
 
@@ -21,7 +22,7 @@ public class OpenGLRender : IRender, IInputHandler
     private Texture? _depthRenderTarget;
     private Sky? _sky;
     private GBuffer? _gBuffer;
-    private ImageBasedLighting? _imageBasedLighting;
+    public ImageBasedLighting? ImageBasedLighting { get; private set; }
 
     private readonly List<ScreenspaceEffect> _screenspaceEffects = new();
 
@@ -43,6 +44,8 @@ public class OpenGLRender : IRender, IInputHandler
         GL.Viewport(0, 0, Engine.MainWindow.Size.X, Engine.MainWindow.Size.Y);
         GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+        CommonShapes.Initialize();
     }
 
     public void LoadScreenspaceEffects()
@@ -115,7 +118,7 @@ public class OpenGLRender : IRender, IInputHandler
 
         _gBuffer = new GBuffer(_depthRenderTarget);
         _sky = new Sky();
-        _imageBasedLighting = new ImageBasedLighting();
+        ImageBasedLighting = new ImageBasedLighting();
 
         LoadScreenspaceEffects();
         _outRender = new FinalOut();
@@ -145,7 +148,7 @@ public class OpenGLRender : IRender, IInputHandler
         _gBuffer?.GeometryPass();
         Engine.LightManager.DrawShadows();
 
-        _imageBasedLighting?.Frame(_sky);
+        ImageBasedLighting?.Frame(_sky);
 
         _mainFramebuffer?.Bind();
 
@@ -180,7 +183,7 @@ public class OpenGLRender : IRender, IInputHandler
         }
         _outRender?.Unload();
 
-        _imageBasedLighting?.Unload();
+        ImageBasedLighting?.Unload();
         _gBuffer?.Unload();
         _colorRenderTarget?.Unload();
         _depthRenderTarget?.Unload();
@@ -236,7 +239,7 @@ public class OpenGLRender : IRender, IInputHandler
         _screenspaceEffects.Clear();
         _outRender?.Unload();
 
-        _imageBasedLighting?.Unload();
+        ImageBasedLighting?.Unload();
         _gBuffer?.Unload();
         _colorRenderTarget?.Unload();
         _depthRenderTarget?.Unload();

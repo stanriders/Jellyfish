@@ -4,10 +4,10 @@ public class Prefiltering : Shader
 {
     private readonly Texture _rtEnvMap;
 
-    public Prefiltering() :
+    public Prefiltering(Texture envMap) :
         base("shaders/Prefiltering.vert", null, "shaders/Prefiltering.frag")
     {
-        _rtEnvMap = Engine.TextureManager.GetTexture("_rt_EnvironmentMap")!;
+        _rtEnvMap = envMap;
     }
     public override void Bind()
     {
