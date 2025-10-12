@@ -47,6 +47,7 @@ namespace Jellyfish
         public static TextureManager TextureManager => instance._textureManager;
         public static MainWindow MainWindow => instance._mainWindow;
         public static LightManager LightManager => instance._lightManager;
+        public static OpenGLRender Renderer => instance._render;
 
         public static double Frametime { get; set; }
         public static bool ShouldQuit { get; set; }
