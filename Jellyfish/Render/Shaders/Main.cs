@@ -51,13 +51,15 @@ public class Main : Shader
         SetMatrix4("view", Engine.MainViewport.GetViewMatrix());
         SetMatrix4("projection", Engine.MainViewport.GetProjectionMatrix());
 
+        var totalLights = Engine.LightManager.Lights.Count;
         var lightSourcesStruct = new LightSources
         {
             Lights = new Light[LightManager.max_lights],
-            Sun = new Structs.Sun()
+            LightsCount = totalLights,
+            Sun = new Structs.Sun(),
+            SunEnabled = Engine.LightManager.Sun != null && Engine.LightManager.Sun.Source.Enabled ? 1 : 0
         };
 
-        var totalLights = Engine.LightManager.Lights.Count;
         for (var i = 0; i < totalLights; i++)
         {
             var light = Engine.LightManager.Lights[i].Source;
@@ -111,7 +113,6 @@ public class Main : Shader
                 BindTexture(first_light_shadow_unit + (uint)i, Engine.LightManager.Lights[i].Shadows[0].RenderTarget);
             }
         }
-        SetInt("lightSourcesCount", totalLights);
 
         if (Engine.LightManager.Sun != null && Engine.LightManager.Sun.Source.Enabled)
         {
@@ -139,7 +140,6 @@ public class Main : Shader
                 }
             }
         }
-        SetBool("sunEnabled", Engine.LightManager.Sun != null && Engine.LightManager.Sun.Source.Enabled);
 
         SetBool("useNormals", _normal != null);
         SetBool("usePbr", _metRought != null);

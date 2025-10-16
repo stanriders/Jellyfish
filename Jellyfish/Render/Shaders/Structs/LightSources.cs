@@ -58,6 +58,8 @@ public struct LightSources : IGpuStruct
 {
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = LightManager.max_lights)]
     public Light[] Lights;
-
     public Sun Sun;
+
+    public int LightsCount;
+    public int SunEnabled;
 }
