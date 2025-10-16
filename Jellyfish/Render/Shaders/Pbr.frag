@@ -70,47 +70,84 @@ BRDFResult ComputeBRDF(vec3 N, vec3 V, vec3 L, vec3 F0, float roughness, float m
     return BRDFResult(specular, kD);
 }
 
-LightProbe GetClosestLightProbe(vec3 worldPos)
+void GetBlendedLightProbe(vec3 worldPos, vec3 N, vec3 R, float roughness, out vec3 outDiffuse, out vec3 outSpecular)
 {
-    float bestDist = 1e10;
-    int bestIndex = 0;
+    float distSq[PROBE_BLEND_COUNT];
+    int idx[PROBE_BLEND_COUNT];
+    for (int i = 0; i < PROBE_BLEND_COUNT; i++) {
+        distSq[i] = 1e20;
+        idx[i] = -1;
+    }
 
-    for (int i = 0; i < probeCount; ++i)
-    {
-        float d = distance(worldPos, lightProbes[i].position);
-        if (d < bestDist) {
-            bestDist = d;
-            bestIndex = i;
+    for (int i = 0; i < probeCount; i++) {
+        vec3 probePos = lightProbes[i].position;
+        float d2 = dot(worldPos - probePos, worldPos - probePos);
+
+        // Insert sorted (smallest first)
+        for (int j = 0; j < PROBE_BLEND_COUNT; j++) {
+            if (d2 < distSq[j]) {
+                for (int k = PROBE_BLEND_COUNT - 1; k > j; k--) {
+                    distSq[k] = distSq[k - 1];
+                    idx[k] = idx[k - 1];
+                }
+                distSq[j] = d2;
+                idx[j] = i;
+                break;
+            }
         }
     }
 
-    return lightProbes[bestIndex];
+    float weights[PROBE_BLEND_COUNT];
+    float total = 0.0;
+    for (int i = 0; i < PROBE_BLEND_COUNT; i++) {
+        if (idx[i] < 0) { weights[i] = 0.0; continue; }
+        float w = 1.0 / (distSq[i] + 1e-4);
+        weights[i] = w;
+        total += w;
+    }
+
+    outDiffuse = vec3(0);
+    outSpecular = vec3(0);
+
+    for (int i = 0; i < PROBE_BLEND_COUNT; i++) 
+    {
+        if (idx[i] < 0) continue;
+        float w = weights[i] / total;
+        LightProbe probe = lightProbes[idx[i]];
+
+        vec3 irradiance = texture(probe.irradiance, N).rgb;
+        vec3 prefiltered = textureLod(probe.prefilter, R, roughness * prefilterMips).rgb;
+
+        outDiffuse += irradiance * w;
+        outSpecular += prefiltered * w;
+    }
 }
 
 vec3 ComputeIBL(vec3 N, vec3 V, vec3 diffuseColor, float roughness, float metalness, vec2 uv)
 {
     vec3 F0 = mix(vec3(0.04), diffuseColor, metalness);
     float NdotV = max(dot(N, V), 0.0);
-
     vec3 F_env = fresnelSchlick(NdotV, F0);
     vec3 kS = F_env;
     vec3 kD = (1.0 - kS) * (1.0 - metalness);
+    vec3 R = normalize(reflect(-V, N));
 
     vec3 diffuseIBL = vec3(0);
     vec3 specularIBL = vec3(0);
 
     if (iblEnabled && probeCount > 0) 
     {
-        LightProbe probe = GetClosestLightProbe(frag_position);
+        vec3 blendedDiffuse;
+        vec3 blendedSpecular;
 
-        diffuseIBL = diffuseColor * texture(probe.irradiance, N).rgb;
+        GetBlendedLightProbe(frag_position, N, R, roughness, blendedDiffuse, blendedSpecular);
+
+        diffuseIBL = diffuseColor * blendedDiffuse;
 
         if (iblPrefilterEnabled)
         {
-            vec3 R = normalize(reflect(-V, N));
-            vec3 prefiltered = textureLod(probe.prefilter, R, roughness * prefilterMips).rgb;
             vec2 brdf = integrateBRDFApprox(NdotV, roughness);
-            specularIBL = prefiltered * (F_env * brdf.x + brdf.y);
+            specularIBL = blendedSpecular * (F_env * brdf.x + brdf.y);
         }
     }
 

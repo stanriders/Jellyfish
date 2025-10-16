@@ -82,6 +82,7 @@ const vec2 poissonDisk[PCSS_FILTER_SIZE] =
 };
 
 #define MAX_PROBES 512
+#define PROBE_BLEND_COUNT 4
 struct LightProbe {
     samplerCube irradiance;
     samplerCube prefilter;
