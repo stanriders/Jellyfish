@@ -24,8 +24,8 @@ public class LightManager
             public required Texture RenderTarget { get; set; }
             public required FrameBuffer FrameBuffer { get; set; }
             public required Shaders.Shadow Shader { get; set; }
+            public ulong BindlessHandle { get; set; }
         }
-
     }
 
     public IReadOnlyList<Light> Lights => _lights.AsReadOnly();
@@ -196,11 +196,15 @@ public class LightManager
         framebuffer.Check();
         framebuffer.Unbind();
 
+        var bindlessHandle = GL.ARB.GetTextureHandleARB(rt.Handle);
+        GL.ARB.MakeTextureHandleResidentARB(bindlessHandle);
+
         light.Shadows.Add(new Light.Shadow
         {
             FrameBuffer = framebuffer,
             Shader = shader,
-            RenderTarget = rt
+            RenderTarget = rt,
+            BindlessHandle = bindlessHandle
         });
     }
 
@@ -214,6 +218,7 @@ public class LightManager
             shadow.RenderTarget.Unload();
             shadow.FrameBuffer.Unload();
             shadow.Shader.Unload();
+            GL.ARB.MakeTextureHandleNonResidentARB(shadow.BindlessHandle);
         }
 
         light.Shadows.Clear();

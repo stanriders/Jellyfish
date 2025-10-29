@@ -15,11 +15,7 @@ public class Main : Shader
     private readonly Texture? _diffuse;
     private readonly Texture? _normal;
     private readonly Texture? _metRought;
-
     private readonly Texture? _reflectionMap;
-
-    private const uint sun_shadow_unit = 4;
-    private const uint first_light_shadow_unit = sun_shadow_unit + Sun.cascades + 1;
 
     public Main(Material material) : base("shaders/Main.vert", null, "shaders/Main.frag")
     {
@@ -55,11 +51,11 @@ public class Main : Shader
         var lightSourcesStruct = new LightSources
         {
             Lights = new Light[LightManager.max_lights],
-            LightsCount = totalLights,
-            Sun = new Structs.Sun(),
+            Sun = new Structs.Sun {ShadowTexture = new ulong[Sun.cascades]},
             SunEnabled = Engine.LightManager.Sun != null && Engine.LightManager.Sun.Source.Enabled ? 1 : 0
         };
 
+        var currentLight = 0;
         for (var i = 0; i < totalLights; i++)
         {
             var light = Engine.LightManager.Lights[i].Source;
@@ -68,51 +64,55 @@ public class Main : Shader
                 continue;
             }
 
-            lightSourcesStruct.Lights[i].Position = new Vector4(light.Position);
+            lightSourcesStruct.Lights[currentLight].Position = new Vector4(light.Position);
 
             var rotationVector = Vector3.Transform(-Vector3.UnitY, light.Rotation);
-            lightSourcesStruct.Lights[i].Direction = new Vector4(rotationVector);
+            lightSourcesStruct.Lights[currentLight].Direction = new Vector4(rotationVector);
 
-            lightSourcesStruct.Lights[i].Diffuse = new Vector4(light.Color.X, light.Color.Y, light.Color.Z, 0);
-            lightSourcesStruct.Lights[i].Ambient = new Vector4(light.Ambient.X, light.Ambient.Y, light.Ambient.Z, 0);
+            lightSourcesStruct.Lights[currentLight].Diffuse = new Vector4(light.Color.X, light.Color.Y, light.Color.Z, 0);
+            lightSourcesStruct.Lights[currentLight].Ambient = new Vector4(light.Ambient.X, light.Ambient.Y, light.Ambient.Z, 0);
 
-            lightSourcesStruct.Lights[i].Brightness = light.Brightness;
+            lightSourcesStruct.Lights[currentLight].Brightness = light.Brightness;
 
             var lightType = 0; // point
             if (light is Spotlight)
                 lightType = 1;
 
-            lightSourcesStruct.Lights[i].Type = lightType;
+            lightSourcesStruct.Lights[currentLight].Type = lightType;
 
             if (light is PointLight point)
             {
-                lightSourcesStruct.Lights[i].Constant = point.GetPropertyValue<float>("Constant");
-                lightSourcesStruct.Lights[i].Linear = point.GetPropertyValue<float>("Linear");
-                lightSourcesStruct.Lights[i].Quadratic = point.GetPropertyValue<float>("Quadratic");
+                lightSourcesStruct.Lights[currentLight].Constant = point.GetPropertyValue<float>("Constant");
+                lightSourcesStruct.Lights[currentLight].Linear = point.GetPropertyValue<float>("Linear");
+                lightSourcesStruct.Lights[currentLight].Quadratic = point.GetPropertyValue<float>("Quadratic");
             }
 
             if (light is Spotlight spot)
             {
-                lightSourcesStruct.Lights[i].Constant = spot.GetPropertyValue<float>("Constant");
-                lightSourcesStruct.Lights[i].Linear = spot.GetPropertyValue<float>("Linear");
-                lightSourcesStruct.Lights[i].Quadratic = spot.GetPropertyValue<float>("Quadratic");
-                lightSourcesStruct.Lights[i].Cone = (float)Math.Cos(MathHelper.DegreesToRadians(spot.GetPropertyValue<float>("Cone")));
-                lightSourcesStruct.Lights[i].Outcone = (float)Math.Cos(MathHelper.DegreesToRadians(spot.GetPropertyValue<float>("OuterCone")));
+                lightSourcesStruct.Lights[currentLight].Constant = spot.GetPropertyValue<float>("Constant");
+                lightSourcesStruct.Lights[currentLight].Linear = spot.GetPropertyValue<float>("Linear");
+                lightSourcesStruct.Lights[currentLight].Quadratic = spot.GetPropertyValue<float>("Quadratic");
+                lightSourcesStruct.Lights[currentLight].Cone = (float)Math.Cos(MathHelper.DegreesToRadians(spot.GetPropertyValue<float>("Cone")));
+                lightSourcesStruct.Lights[currentLight].Outcone = (float)Math.Cos(MathHelper.DegreesToRadians(spot.GetPropertyValue<float>("OuterCone")));
             }
 
-            lightSourcesStruct.Lights[i].Near = light.NearPlane;
-            lightSourcesStruct.Lights[i].Far = light.FarPlane;
+            lightSourcesStruct.Lights[currentLight].Near = light.NearPlane;
+            lightSourcesStruct.Lights[currentLight].Far = light.FarPlane;
 
-            lightSourcesStruct.Lights[i].LightSpaceMatrix = light.Projections[0];
+            lightSourcesStruct.Lights[currentLight].LightSpaceMatrix = light.Projections[0];
 
-            lightSourcesStruct.Lights[i].HasShadows = light.UseShadows && Engine.LightManager.Lights[i].Shadows.Count > 0;
-            lightSourcesStruct.Lights[i].UsePcss = light.UseShadows && light.UsePcss;
+            lightSourcesStruct.Lights[currentLight].HasShadows = light.UseShadows && Engine.LightManager.Lights[i].Shadows.Count > 0 ? 1 : 0;
+            lightSourcesStruct.Lights[currentLight].UsePcss = light.UseShadows && light.UsePcss ? 1 : 0;
 
             if (light.UseShadows && Engine.LightManager.Lights[i].Shadows.Count > 0)
             {
-                BindTexture(first_light_shadow_unit + (uint)i, Engine.LightManager.Lights[i].Shadows[0].RenderTarget);
+                lightSourcesStruct.Lights[currentLight].ShadowTexture = Engine.LightManager.Lights[i].Shadows[0].BindlessHandle;
             }
+
+            currentLight++;
         }
+
+        lightSourcesStruct.LightsCount = currentLight;
 
         if (Engine.LightManager.Sun != null && Engine.LightManager.Sun.Source.Enabled)
         {
@@ -136,7 +136,7 @@ public class Main : Shader
             {
                 for (uint i = 0; i < Sun.cascades; i++)
                 {
-                    BindTexture(sun_shadow_unit + i, Engine.LightManager.Sun.Shadows[(int)i].RenderTarget);
+                    lightSourcesStruct.Sun.ShadowTexture[i] = Engine.LightManager.Sun.Shadows[(int)i].BindlessHandle;
                 }
             }
         }

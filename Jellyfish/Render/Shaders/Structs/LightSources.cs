@@ -19,15 +19,17 @@ public struct Light : IGpuStruct
     public float Cone;
     public float Outcone;
     public float Brightness;
-    public bool HasShadows;
+    public int HasShadows;
 
     public Vector4 Ambient;
     public Vector4 Diffuse;
 
     public float Near;
     public float Far;
-    public bool UsePcss;
+    public int UsePcss;
     private float _pad;
+
+    public ulong ShadowTexture; private ulong _pad2;
 }
 
 [StructLayout(LayoutKind.Sequential)]
@@ -51,6 +53,9 @@ public struct Sun : IGpuStruct
 
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = Entities.Sun.cascades)]
     public int[] CascadeNear;
+
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = Entities.Sun.cascades)]
+    public ulong[] ShadowTexture;
 }
 
 [StructLayout(LayoutKind.Sequential)]

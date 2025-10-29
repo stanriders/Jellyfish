@@ -123,12 +123,14 @@ float ShadowCalculation(int lightIndex, vec3 lightDir, vec3 normal)
     if(projCoords.z > 1.0)
         return 0.0;
         
-    if (lightSources[lightIndex].usePcss)
-        return ShadowColor_PCSS4X4_PCF4X4(shadowSamplers[lightIndex], projCoords, lightSources[lightIndex].near, 3.0f);
+    sampler2D shadow = sampler2D(lightSources[lightIndex].shadow);
 
-    return PoissonPCF(shadowSamplers[lightIndex], projCoords, 2.0f);
-    //return SimplePCF(shadowSamplers[lightIndex], projCoords, 4);
-    //return SimpleShadow(shadowSamplers[lightIndex], projCoords);
+    if (lightSources[lightIndex].usePcss)
+        return ShadowColor_PCSS4X4_PCF4X4(shadow, projCoords, lightSources[lightIndex].near, 3.0f);
+
+    return PoissonPCF(shadow, projCoords, 2.0f);
+    //return SimplePCF(shadow, projCoords, 4);
+    //return SimpleShadow(shadow, projCoords);
 }  
 
 LightContrib CalcPointLight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
@@ -230,15 +232,16 @@ LightContrib CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
             projCoords.y >= 0.0 || projCoords.y <= 1.0 ||
             projCoords.z >= 0.0 || projCoords.z < 1.0)
         {
+            sampler2D shadowSampler = sampler2D(sun.shadow[layer]);
             if (sun.usePcss && layer == 0)
             {
-                shadow = ShadowColor_PCSS4X4_PCF4X4(sunShadowSampler[layer], projCoords, sun.cascadeNear[layer], 0.075f);
+                shadow = ShadowColor_PCSS4X4_PCF4X4(shadowSampler, projCoords, sun.cascadeNear[layer], 0.075f);
             }
             else
             {
-                shadow = PoissonPCF(sunShadowSampler[layer], projCoords, layer == 0 ? 4.0f : 1.0f);
-                //shadow = SimplePCF(sunShadowSampler[layer], projCoords, layer == 0 ? 4.0f : 1.0f);
-                //shadow = SimpleShadow(sunShadowSampler[layer], projCoords);
+                shadow = PoissonPCF(shadowSampler, projCoords, layer == 0 ? 4.0f : 1.0f);
+                //shadow = SimplePCF(shadowSampler, projCoords, layer == 0 ? 4.0f : 1.0f);
+                //shadow = SimpleShadow(shadowSampler, projCoords);
             }
 
 #ifdef CSM_DEBUG
