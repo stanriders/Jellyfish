@@ -288,6 +288,7 @@ public class ImageBasedLighting
 {
     public List<LightProbe> Probes { get; } = new();
     private int _currentProbe;
+    private readonly LightProbe _playerProbe;
 
     public readonly ShaderStorageBuffer<LightProbes> LightProbesSsbo;
     public const int max_probes = 512;
@@ -297,7 +298,7 @@ public class ImageBasedLighting
     {
         LightProbesSsbo = new ShaderStorageBuffer<LightProbes>("lightProbesSSBO", new LightProbes());
 
-        //AddProbe(); // 0,0,0 probe
+        _playerProbe = AddProbe();
     }
 
     public LightProbe AddProbe()
@@ -344,6 +345,9 @@ public class ImageBasedLighting
                 _currentProbe = 0;
 
             var lightProbe = Probes[_currentProbe];
+            if (lightProbe == _playerProbe)
+                lightProbe.Position = Engine.MainViewport.Position;
+
             lightProbe.RenderCubemap(sky);
             lightProbe.RenderIrradience();
 
