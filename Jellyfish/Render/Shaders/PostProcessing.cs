@@ -1,4 +1,5 @@
-﻿using OpenTK.Graphics.OpenGL;
+﻿using Jellyfish.Console;
+using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using System;
 
@@ -8,6 +9,7 @@ public class PostProcessing : Shader
 {
     private readonly Texture _rtColor;
     private readonly Texture _rtAmbientOcclusion;
+    private readonly Texture _rtBloom;
 
     private static float sceneExposure = 1.0f;
     private const float adj_speed = 0.035f;
@@ -19,6 +21,7 @@ public class PostProcessing : Shader
     {
         _rtColor = Engine.TextureManager.GetTexture("_rt_Color")!;
         _rtAmbientOcclusion = Engine.TextureManager.GetTexture("_rt_GtaoBlurY")!;
+        _rtBloom = Engine.TextureManager.GetTexture("_rt_BloomBlurY")!;
     }
 
     public override void Bind()
@@ -27,9 +30,11 @@ public class PostProcessing : Shader
 
         BindTexture(0, _rtColor);
         BindTexture(1, _rtAmbientOcclusion);
+        BindTexture(2, _rtBloom);
 
         SetVector2("screenSize", new Vector2(Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y));
         SetInt("isEnabled", IsEnabled ? 1 : 0);
+        SetFloat("bloomStrength", ConVarStorage.Get<float>("mat_bloom_strength"));
 
         if (IsEnabled)
         {
@@ -64,6 +69,7 @@ public class PostProcessing : Shader
     {
         _rtColor.Unload();
         _rtAmbientOcclusion.Unload();
+        _rtBloom.Unload();
 
         base.Unload();
     }

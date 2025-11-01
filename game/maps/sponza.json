@@ -10,17 +10,17 @@
         {
           "Name": "Position",
           "Value": {
-            "X": 0,
-            "Y": 60,
-            "Z": 120
+            "X": -2.9802322E-08,
+            "Y": 60.0,
+            "Z": 120.0
           }
         },
         {
           "Name": "Rotation",
           "Value": {
-            "Pitch": 0,
-            "Yaw": 0,
-            "Roll": 0
+            "Pitch": 0.0,
+            "Yaw": 0.0,
+            "Roll": 0.0
           }
         }
       ]
@@ -35,17 +35,29 @@
         {
           "Name": "Position",
           "Value": {
-            "X": 0,
-            "Y": 0,
-            "Z": 0
+            "X": 0.0,
+            "Y": 0.0,
+            "Z": 0.0
           }
         },
         {
           "Name": "Rotation",
           "Value": {
-            "Pitch": 0,
-            "Yaw": 0,
-            "Roll": 0
+            "Pitch": 0.0,
+            "Yaw": 0.0,
+            "Roll": 0.0
+          }
+        },
+        {
+          "Name": "Animation",
+          "Value": "idle3"
+        },
+        {
+          "Name": "Scale",
+          "Value": {
+            "X": 1.0,
+            "Y": 1.0,
+            "Z": 1.0
           }
         }
       ]
@@ -60,17 +72,25 @@
         {
           "Name": "Position",
           "Value": {
-            "X": -50,
-            "Y": 20,
-            "Z": 0
+            "X": -50.0,
+            "Y": 20.0,
+            "Z": 0.0
           }
         },
         {
           "Name": "Rotation",
           "Value": {
-            "Pitch": 0,
-            "Yaw": 0,
-            "Roll": 0
+            "Pitch": 0.0,
+            "Yaw": 0.0,
+            "Roll": 0.0
+          }
+        },
+        {
+          "Name": "Scale",
+          "Value": {
+            "X": 1.0,
+            "Y": 1.0,
+            "Z": 1.0
           }
         },
         {
@@ -79,7 +99,11 @@
         },
         {
           "Name": "BoundingBox",
-          "Value": "Cylinder"
+          "Value": 3
+        },
+        {
+          "Name": "EnablePhysics",
+          "Value": true
         }
       ]
     },
@@ -93,17 +117,25 @@
         {
           "Name": "Position",
           "Value": {
-            "X": 0,
-            "Y": 0,
-            "Z": 0
+            "X": 0.0,
+            "Y": 0.0,
+            "Z": 0.0
           }
         },
         {
           "Name": "Rotation",
           "Value": {
-            "Pitch": 0,
-            "Yaw": 0,
-            "Roll": 0
+            "Pitch": 0.0,
+            "Yaw": 0.0,
+            "Roll": 0.0
+          }
+        },
+        {
+          "Name": "Scale",
+          "Value": {
+            "X": 1.0,
+            "Y": 1.0,
+            "Z": 1.0
           }
         },
         {
@@ -122,17 +154,25 @@
         {
           "Name": "Position",
           "Value": {
-            "X": -10,
-            "Y": 20,
-            "Z": 10
+            "X": -10.0,
+            "Y": 20.0,
+            "Z": 10.0
           }
         },
         {
           "Name": "Rotation",
           "Value": {
-            "Pitch": 0,
-            "Yaw": 0,
-            "Roll": 0
+            "Pitch": 0.0,
+            "Yaw": 0.0,
+            "Roll": 0.0
+          }
+        },
+        {
+          "Name": "Scale",
+          "Value": {
+            "X": 1.0,
+            "Y": 1.0,
+            "Z": 1.0
           }
         },
         {
@@ -141,7 +181,11 @@
         },
         {
           "Name": "BoundingBox",
-          "Value": "Box"
+          "Value": 1
+        },
+        {
+          "Name": "EnablePhysics",
+          "Value": true
         }
       ]
     },
@@ -155,17 +199,25 @@
         {
           "Name": "Position",
           "Value": {
-            "X": -10,
-            "Y": 20,
-            "Z": 10
+            "X": -10.0,
+            "Y": 20.0,
+            "Z": 10.0
           }
         },
         {
           "Name": "Rotation",
           "Value": {
-            "Pitch": 0,
-            "Yaw": 0,
-            "Roll": 0
+            "Pitch": 0.0,
+            "Yaw": 0.0,
+            "Roll": 0.0
+          }
+        },
+        {
+          "Name": "Scale",
+          "Value": {
+            "X": 1.0,
+            "Y": 1.0,
+            "Z": 1.0
           }
         },
         {
@@ -174,7 +226,11 @@
         },
         {
           "Name": "BoundingBox",
-          "Value": "Cylinder"
+          "Value": 3
+        },
+        {
+          "Name": "EnablePhysics",
+          "Value": true
         }
       ]
     },
@@ -188,9 +244,17 @@
         {
           "Name": "Position",
           "Value": {
-            "X": 10,
-            "Y": 45,
-            "Z": 30
+            "X": 10.0,
+            "Y": 65.2,
+            "Z": 30.0
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0.0,
+            "Yaw": 0.0,
+            "Roll": 0.0
           }
         },
         {
@@ -198,9 +262,20 @@
           "Value": {
             "R": 0,
             "G": 128,
-            "B": 255,
-            "A": 255
+            "B": 255
           }
+        },
+        {
+          "Name": "Ambient",
+          "Value": {
+            "R": 25,
+            "G": 25,
+            "B": 25
+          }
+        },
+        {
+          "Name": "Brightness",
+          "Value": 3.02
         },
         {
           "Name": "Enabled",
@@ -209,6 +284,26 @@
         {
           "Name": "Shadows",
           "Value": true
+        },
+        {
+          "Name": "PCSS",
+          "Value": false
+        },
+        {
+          "Name": "Quadratic",
+          "Value": 0.8
+        },
+        {
+          "Name": "Linear",
+          "Value": 0.15
+        },
+        {
+          "Name": "Constant",
+          "Value": 0.05
+        },
+        {
+          "Name": "FarPlane",
+          "Value": 500.0
         }
       ]
     },
@@ -222,17 +317,17 @@
         {
           "Name": "Position",
           "Value": {
-            "X": -15,
-            "Y": 128,
-            "Z": 90
+            "X": -15.0,
+            "Y": 128.0,
+            "Z": 90.0
           }
         },
         {
           "Name": "Rotation",
           "Value": {
-            "Pitch": 40,
-            "Yaw": 0,
-            "Roll": 0
+            "Pitch": 39.999985,
+            "Yaw": 0.0,
+            "Roll": 0.0
           }
         },
         {
@@ -240,13 +335,44 @@
           "Value": {
             "R": 255,
             "G": 220,
-            "B": 200,
-            "A": 255
+            "B": 200
           }
         },
         {
+          "Name": "Ambient",
+          "Value": {
+            "R": 25,
+            "G": 25,
+            "B": 25
+          }
+        },
+        {
+          "Name": "Brightness",
+          "Value": 1.83
+        },
+        {
+          "Name": "Enabled",
+          "Value": true
+        },
+        {
+          "Name": "Shadows",
+          "Value": true
+        },
+        {
+          "Name": "PCSS",
+          "Value": false
+        },
+        {
           "Name": "Quadratic",
-          "Value": 0.02
+          "Value": 0.1
+        },
+        {
+          "Name": "Linear",
+          "Value": 0.15
+        },
+        {
+          "Name": "Constant",
+          "Value": 0.05
         },
         {
           "Name": "Cone",
@@ -257,55 +383,8 @@
           "Value": 55.0
         },
         {
-          "Name": "Enabled",
-          "Value": true
-        }
-      ]
-    },
-    {
-      "ClassName": "plane_bezier",
-      "Properties": [
-        {
-          "Name": "Name",
-          "Value": "bezier"
-        },
-        {
-          "Name": "Position",
-          "Value": {
-            "X": 0,
-            "Y": 10,
-            "Z": 100
-          }
-        },
-        {
-          "Name": "Rotation",
-          "Value": {
-            "Pitch": -90,
-            "Yaw": 0,
-            "Roll": 0
-          }
-        },
-        {
-          "Name": "Size",
-          "Value": {
-            "X": 20,
-            "Y": 20
-          }
-        },
-        {
-          "Name": "QuadSize",
-          "Value": 4
-        },
-        {
-          "Name": "Texture",
-          "Value": "tile.mat"
-        },
-        {
-          "Name": "TextureScale",
-          "Value": {
-            "X": 0.01,
-            "Y": 0.01
-          }
+          "Name": "FarPlane",
+          "Value": 300.0
         }
       ]
     },
@@ -319,17 +398,17 @@
         {
           "Name": "Position",
           "Value": {
-            "X": 0,
-            "Y": 4000,
-            "Z": 0
+            "X": 0.0,
+            "Y": 83.0,
+            "Z": 0.0
           }
         },
         {
           "Name": "Rotation",
           "Value": {
-            "Pitch": 15,
-            "Yaw": 0,
-            "Roll": -20
+            "Pitch": 14.999992,
+            "Yaw": 2.1344337E-07,
+            "Roll": -19.999992
           }
         },
         {
@@ -337,22 +416,32 @@
           "Value": {
             "R": 255,
             "G": 220,
-            "B": 150,
-            "A": 200
+            "B": 150
           }
         },
         {
           "Name": "Ambient",
           "Value": {
-            "R": 51,
-            "G": 44,
-            "B": 30,
-            "A": 0
+            "R": 5,
+            "G": 4,
+            "B": 3
           }
         },
         {
+          "Name": "Brightness",
+          "Value": 3.42
+        },
+        {
           "Name": "Enabled",
-          "Value": true
+          "Value": false
+        },
+        {
+          "Name": "Shadows",
+          "Value": false
+        },
+        {
+          "Name": "PCSS",
+          "Value": false
         }
       ]
     },
@@ -366,9 +455,17 @@
         {
           "Name": "Position",
           "Value": {
-            "X": 0,
-            "Y": 10,
-            "Z": 0
+            "X": 0.0,
+            "Y": 10.0,
+            "Z": 0.0
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0.0,
+            "Yaw": 0.0,
+            "Roll": 0.0
           }
         },
         {
@@ -378,6 +475,189 @@
         {
           "Name": "Autoplay",
           "Value": false
+        },
+        {
+          "Name": "UseAirAbsorption",
+          "Value": true
+        },
+        {
+          "Name": "Volume",
+          "Value": 1.0
+        }
+      ]
+    },
+    {
+      "ClassName": "light_probe",
+      "Properties": [
+        {
+          "Name": "Position",
+          "Value": {
+            "X": 0.0,
+            "Y": 600.0,
+            "Z": 0.0
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0.0,
+            "Yaw": 0.0,
+            "Roll": 0.0
+          }
+        },
+        {
+          "Name": "Radius",
+          "Value": 2408.0
+        }
+      ]
+    },
+    {
+      "ClassName": "light_probe",
+      "Properties": [
+        {
+          "Name": "Position",
+          "Value": {
+            "X": 0.0,
+            "Y": 1000.0,
+            "Z": 0.0
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0.0,
+            "Yaw": 0.0,
+            "Roll": 0.0
+          }
+        },
+        {
+          "Name": "Radius",
+          "Value": 3316.0
+        }
+      ]
+    },
+    {
+      "ClassName": "light_probe",
+      "Properties": [
+        {
+          "Name": "Position",
+          "Value": {
+            "X": 1100.0,
+            "Y": 100.0,
+            "Z": 0.0
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0.0,
+            "Yaw": 0.0,
+            "Roll": 0.0
+          }
+        },
+        {
+          "Name": "Radius",
+          "Value": 2166.0
+        }
+      ]
+    },
+    {
+      "ClassName": "light_probe",
+      "Properties": [
+        {
+          "Name": "Position",
+          "Value": {
+            "X": -1100.0,
+            "Y": 100.0,
+            "Z": 0.0
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0.0,
+            "Yaw": 0.0,
+            "Roll": 0.0
+          }
+        },
+        {
+          "Name": "Radius",
+          "Value": 2118.0
+        }
+      ]
+    },
+    {
+      "ClassName": "light_probe",
+      "Properties": [
+        {
+          "Name": "Position",
+          "Value": {
+            "X": 0.0,
+            "Y": 100.0,
+            "Z": 0.0
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0.0,
+            "Yaw": 0.0,
+            "Roll": 0.0
+          }
+        },
+        {
+          "Name": "Radius",
+          "Value": 2088.0
+        }
+      ]
+    },
+    {
+      "ClassName": "light_probe",
+      "Properties": [
+        {
+          "Name": "Position",
+          "Value": {
+            "X": -780.0,
+            "Y": 1000.0,
+            "Z": 0.0
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0.0,
+            "Yaw": 0.0,
+            "Roll": 0.0
+          }
+        },
+        {
+          "Name": "Radius",
+          "Value": 2175.0
+        }
+      ]
+    },
+    {
+      "ClassName": "light_probe",
+      "Properties": [
+        {
+          "Name": "Position",
+          "Value": {
+            "X": 600.0,
+            "Y": 1000.0,
+            "Z": 0.0
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0.0,
+            "Yaw": 0.0,
+            "Roll": 0.0
+          }
+        },
+        {
+          "Name": "Radius",
+          "Value": 1346.0
         }
       ]
     }

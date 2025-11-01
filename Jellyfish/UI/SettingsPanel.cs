@@ -96,6 +96,12 @@ namespace Jellyfish.UI
                         if (ImGui.Checkbox("IBL Render World", ref iblRenderWorld))
                             ConVarStorage.Set("mat_ibl_render_world", iblRenderWorld);
 
+                        ImGui.Separator();
+
+                        var bloomEnabled = ConVarStorage.Get<bool>("mat_bloom_enabled");
+                        if (ImGui.Checkbox("Bloom", ref bloomEnabled))
+                            ConVarStorage.Set("mat_bloom_enabled", bloomEnabled);
+
                         ImGui.EndTabItem();
                     }
 

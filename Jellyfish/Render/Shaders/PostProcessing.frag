@@ -12,8 +12,11 @@ uniform vec2 screenSize;
 uniform int toneMappingMode;
 #define SourceSizeRecp vec2(1.0 / screenSize)
 
+uniform float bloomStrength;
+
 layout(binding=0) uniform sampler2D screenTexture;
 layout(binding=1) uniform sampler2D aoTexture;
+layout(binding=2) uniform sampler2D bloomTexture;
 
 #define WhitePoint_Hejl 1.0f
 #define WhitePoint_Hable 6.0f
@@ -132,6 +135,9 @@ void main()
     vec3 screen = FxaaPixelShader(TexCoords, screenTexture, vec2(SourceSizeRecp.x, SourceSizeRecp.y));
     vec3 ao = vec3(texture(aoTexture, TexCoords).r);
     screen *= ao;
+    
+    vec3 bloomColor = texture(bloomTexture, TexCoords).rgb;
+    screen += bloomColor * bloomStrength;
 
     vec3 exposedColor = screen * exposure;
     vec3 mapped = ToneMap(exposedColor);
