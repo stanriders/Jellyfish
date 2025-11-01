@@ -8,7 +8,7 @@ public class MainWindow : GameWindow
 {
     public MainWindow() : base(
         new GameWindowSettings { UpdateFrequency = 0.0, Win32SuspendTimerOnDrag = true }, 
-        new NativeWindowSettings { APIVersion = new Version(4, 1), Title = "Jellyfish" })
+        new NativeWindowSettings { APIVersion = new Version(4, 6), Title = "Jellyfish" })
     {
         var config = Settings.Instance;
 
