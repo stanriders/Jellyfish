@@ -379,7 +379,10 @@ public class Editor : IUiPanel, IInputHandler
                 _selectedEntity.BoundingBox.Value);
 
         if (_selectedEntity is IHaveFrustum frustumEntity)
-            DebugRender.DrawFrustum(frustumEntity.GetFrustum());
+        {
+            using var frustum = frustumEntity.GetFrustum();
+            DebugRender.DrawFrustum(frustum);
+        }
     }
 
     public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)

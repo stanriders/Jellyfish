@@ -100,6 +100,7 @@ public class MeshManager
 
             _singleFrameMeshes.Clear();
         }
+        frustum?.Dispose();
         PerformanceMeasurment.Add("MeshManager.Draw", drawStopwatch.Elapsed.TotalMilliseconds);
     }
 
@@ -108,7 +109,7 @@ public class MeshManager
         _drawing = true;
         var drawStopwatch = Stopwatch.StartNew();
 
-        var playerFrustum = Engine.MainViewport.GetFrustum();
+        using var playerFrustum = Engine.MainViewport.GetFrustum();
         var playerPosition = playerFrustum.NearPlaneCenter;
         var opaqueObjects = _meshes.Where(x => !(x.Material?.GetParam<bool>("AlphaTest") ?? false)).ToArray();
         var transluscentObjects = _meshes.Where(x => !opaqueObjects.Contains(x))

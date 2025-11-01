@@ -1,10 +1,10 @@
-﻿using System;
-using System.Linq;
-using Jellyfish.Console;
+﻿using Jellyfish.Console;
 using Jellyfish.Entities;
 using Jellyfish.Render.Lighting;
 using Jellyfish.Render.Shaders.Structs;
 using OpenTK.Mathematics;
+using System;
+using System.Buffers;
 using Sun = Jellyfish.Entities.Sun;
 
 namespace Jellyfish.Render.Shaders;
@@ -47,11 +47,17 @@ public class Main : Shader
         SetMatrix4("view", Engine.MainViewport.GetViewMatrix());
         SetMatrix4("projection", Engine.MainViewport.GetProjectionMatrix());
 
+        var lights = ArrayPool<Light>.Shared.Rent(LightManager.max_lights);
+        var sunCascadeTextures = ArrayPool<ulong>.Shared.Rent(Sun.cascades);
+        var sunProjections = ArrayPool<Matrix4>.Shared.Rent(Sun.cascades);
+        var cascadeRangesFar = ArrayPool<int>.Shared.Rent(Sun.cascades);
+        var cascadeRangesNear = ArrayPool<int>.Shared.Rent(Sun.cascades);
+
         var totalLights = Engine.LightManager.Lights.Count;
         var lightSourcesStruct = new LightSources
         {
-            Lights = new Light[LightManager.max_lights],
-            Sun = new Structs.Sun {ShadowTexture = new ulong[Sun.cascades]},
+            Lights = lights,
+            Sun = new Structs.Sun { ShadowTexture = sunCascadeTextures },
             SunEnabled = Engine.LightManager.Sun != null && Engine.LightManager.Sun.Source.Enabled ? 1 : 0
         };
 
@@ -99,7 +105,7 @@ public class Main : Shader
             lightSourcesStruct.Lights[currentLight].Near = light.NearPlane;
             lightSourcesStruct.Lights[currentLight].Far = light.FarPlane;
 
-            lightSourcesStruct.Lights[currentLight].LightSpaceMatrix = light.Projections[0];
+            lightSourcesStruct.Lights[currentLight].LightSpaceMatrix = light.Projection(0);
 
             lightSourcesStruct.Lights[currentLight].HasShadows = light.UseShadows && Engine.LightManager.Lights[i].Shadows.Count > 0 ? 1 : 0;
             lightSourcesStruct.Lights[currentLight].UsePcss = light.UseShadows && light.UsePcss ? 1 : 0;
@@ -125,18 +131,26 @@ public class Main : Shader
             lightSourcesStruct.Sun.Direction = new Vector4(rotationVector);
 
             lightSourcesStruct.Sun.Brightness = sun.Brightness;
-            lightSourcesStruct.Sun.LightSpaceMatrix = sun.Projections.ToArray();
-            lightSourcesStruct.Sun.CascadeFar = Sun.CascadeRanges.Select(x=> x.Far).ToArray();
-            lightSourcesStruct.Sun.CascadeNear = Sun.CascadeRanges.Select(x => x.Near).ToArray();
+
+            for (var i = 0; i < Sun.cascades; i++)
+            {
+                sunProjections[i] = sun.Projection(i);
+                cascadeRangesFar[i] = Sun.CascadeRanges[i].Far;
+                cascadeRangesNear[i] = Sun.CascadeRanges[i].Near;
+            }
+
+            lightSourcesStruct.Sun.LightSpaceMatrix = sunProjections;
+            lightSourcesStruct.Sun.CascadeFar = cascadeRangesFar;
+            lightSourcesStruct.Sun.CascadeNear = cascadeRangesNear;
 
             lightSourcesStruct.Sun.HasShadows = sun.UseShadows && Engine.LightManager.Sun.Shadows.Count > 0 ? 1 : 0;
             lightSourcesStruct.Sun.UsePcss = sun.UseShadows && sun.UsePcss ? 1 : 0;
 
             if (Engine.LightManager.Sun.Source.UseShadows)
             {
-                for (uint i = 0; i < Sun.cascades; i++)
+                for (var i = 0; i < Sun.cascades; i++)
                 {
-                    lightSourcesStruct.Sun.ShadowTexture[i] = Engine.LightManager.Sun.Shadows[(int)i].BindlessHandle;
+                    lightSourcesStruct.Sun.ShadowTexture[i] = Engine.LightManager.Sun.Shadows[i].BindlessHandle;
                 }
             }
         }
@@ -158,6 +172,12 @@ public class Main : Shader
         BindTexture(1, _normal);
         BindTexture(2, _metRought);
         BindTexture(3, _reflectionMap);
+
+        ArrayPool<Light>.Shared.Return(lights, true);
+        ArrayPool<ulong>.Shared.Return(sunCascadeTextures);
+        ArrayPool<Matrix4>.Shared.Return(sunProjections);
+        ArrayPool<int>.Shared.Return(cascadeRangesNear);
+        ArrayPool<int>.Shared.Return(cascadeRangesFar);
     }
 
     public override void Unload()

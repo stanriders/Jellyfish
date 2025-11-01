@@ -4,6 +4,7 @@ using Jellyfish.Utils;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Jellyfish.Render;
 
@@ -63,6 +64,10 @@ public class Mesh
                                                 Matrix4.CreateFromQuaternion(Rotation));
         }
     }
+
+    private static readonly string[] BoneUniformNames = Enumerable.Range(0, 250)
+        .Select(i => $"bones[{i}]")
+        .ToArray();
 
     public Mesh(string name, List<Vertex>? vertices = null, List<uint>? indices = null, string? texture = null, Model? model = null)
     {
@@ -168,7 +173,7 @@ public class Mesh
             drawShader.SetInt("boneCount", boneMatrices.Length);
             for (var i = 0; i < boneMatrices.Length; i++)
             {
-                drawShader.SetMatrix4($"bones[{i}]", boneMatrices[i]);
+                drawShader.SetMatrix4(BoneUniformNames[i], boneMatrices[i]);
             }
         }
 

@@ -1,7 +1,6 @@
 ﻿using Jellyfish.Utils;
 using OpenTK.Mathematics;
 using System;
-using System.Collections.Generic;
 
 namespace Jellyfish.Entities;
 
@@ -23,19 +22,17 @@ public class Spotlight : LightEntity, IHaveFrustum
     public override int ShadowResolution => 1024;
     public override float NearPlane => 1f;
     public override float FarPlane => GetPropertyValue<float>("FarPlane");
+    public override int ProjectionCount => 1;
 
-    public override List<Matrix4> Projections
+    public override Matrix4 Projection(int index)
     {
-        get
-        {
-            var lightProjection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(Math.Min(90, GetPropertyValue<float>("OuterCone"))) * 2.0f, 1.0f, NearPlane, FarPlane);
-            var lightView = Matrix4.LookAt(Position, Position + Vector3.Transform(-Vector3.UnitY, Rotation), Vector3.UnitZ);
-            return [lightView * lightProjection];
-        }
+        var lightProjection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(Math.Min(90, GetPropertyValue<float>("OuterCone"))) * 2.0f, 1.0f, NearPlane, FarPlane);
+        var lightView = Matrix4.LookAt(Position, Position + Vector3.Transform(-Vector3.UnitY, Rotation), Vector3.UnitZ);
+        return lightView * lightProjection;
     }
 
     public Frustum GetFrustum()
     {
-        return new Frustum(Projections[0]);
+        return new Frustum(Projection(0));
     }
 }

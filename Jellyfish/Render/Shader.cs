@@ -7,11 +7,11 @@ using OpenTK.Mathematics;
 
 namespace Jellyfish.Render;
 
-public class Uniform
+public struct Uniform
 {
     public required int Location { get; set; }
     public required string Name { get; set; }
-    public object? Value { get; set; }
+    public int? ValueHash { get; set; }
 }
 
 public abstract class Shader
@@ -289,16 +289,18 @@ public abstract class Shader
             return null;
         }
 
-        if (uniform.Value != null)
+        if (uniform.ValueHash != null)
         {
-            if (((T)uniform.Value).Equals(data))
+            if (uniform.ValueHash == data?.GetHashCode())
                 return null;
         }
 
-        uniform.Value = data;
+        uniform.ValueHash = data?.GetHashCode();
 
         if (bind)
             Bind();
+
+        _uniforms[name] = uniform;
 
         return uniform;
     }
@@ -313,7 +315,7 @@ public abstract class Shader
     {
         var uniform = SetUniform(name, data, bind);
         if (uniform != null)
-            GL.Uniform1i(uniform.Location, data ? 1 : 0);
+            GL.Uniform1i(uniform.Value.Location, data ? 1 : 0);
     }
 
     /// <summary>
@@ -326,7 +328,7 @@ public abstract class Shader
     {
         var uniform = SetUniform(name, data, bind);
         if (uniform != null)
-            GL.Uniform1i(uniform.Location, data);
+            GL.Uniform1i(uniform.Value.Location, data);
     }
 
     /// <summary>
@@ -339,7 +341,7 @@ public abstract class Shader
     {
         var uniform = SetUniform(name, data, bind);
         if (uniform != null)
-            GL.Uniform1f(uniform.Location, data);
+            GL.Uniform1f(uniform.Value.Location, data);
     }
 
     /// <summary>
@@ -353,7 +355,7 @@ public abstract class Shader
     {
         var uniform = SetUniform(name, data, bind);
         if (uniform != null)
-            GL.UniformMatrix4f(uniform.Location, 1, transpose, ref data);
+            GL.UniformMatrix4f(uniform.Value.Location, 1, transpose, ref data);
     }
 
     /// <summary>
@@ -366,7 +368,7 @@ public abstract class Shader
     {
         var uniform = SetUniform(name, data, bind);
         if (uniform != null)
-            GL.Uniform2f(uniform.Location, data.X, data.Y);
+            GL.Uniform2f(uniform.Value.Location, data.X, data.Y);
     }
 
     /// <summary>
@@ -379,7 +381,7 @@ public abstract class Shader
     {
         var uniform = SetUniform(name, data, bind);
         if (uniform != null)
-            GL.Uniform3f(uniform.Location, data.X, data.Y, data.Z);
+            GL.Uniform3f(uniform.Value.Location, data.X, data.Y, data.Z);
     }
 
     /// <summary>
@@ -392,7 +394,7 @@ public abstract class Shader
     {
         var uniform = SetUniform(name, data, bind);
         if (uniform != null)
-            GL.Uniform3f(uniform.Location, data[0], data[1], data[2]);
+            GL.Uniform3f(uniform.Value.Location, data[0], data[1], data[2]);
     }
 
     /// <summary>
@@ -405,7 +407,7 @@ public abstract class Shader
     {
         var uniform = SetUniform(name, data, bind);
         if (uniform != null)
-            GL.Uniform4f(uniform.Location, data.X, data.Y, data.Z, data.W);
+            GL.Uniform4f(uniform.Value.Location, data.X, data.Y, data.Z, data.W);
     }
 
     /// <summary>
@@ -418,7 +420,7 @@ public abstract class Shader
     {
         var uniform = SetUniform(name, data, bind);
         if (uniform != null)
-            GL.Uniform4f(uniform.Location, data[0], data[1], data[2], data[3]);
+            GL.Uniform4f(uniform.Value.Location, data[0], data[1], data[2], data[3]);
     }
 
     public void BindTexture(uint sampler, Texture? texture)

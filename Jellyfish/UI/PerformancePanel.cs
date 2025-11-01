@@ -30,6 +30,9 @@ namespace Jellyfish.UI
 
         public unsafe void Frame(double timeElapsed)
         {
+            if (!_isEnabled)
+                return;
+
             if (_elapsedSinceLastUpdate > 0.075)
             {
                 if (_timedMeasurements != null)
@@ -72,7 +75,7 @@ namespace Jellyfish.UI
 
             _elapsedSinceLastUpdate += timeElapsed;
 
-            if (!_isEnabled || _timedMeasurements == null || _incrementalMeasurements == null)
+            if (_timedMeasurements == null || _incrementalMeasurements == null)
                 return;
 
             if (ImGui.Begin("Performance"))

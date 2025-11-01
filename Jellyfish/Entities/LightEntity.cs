@@ -1,6 +1,5 @@
 ﻿using Jellyfish.Render.Lighting;
 using OpenTK.Mathematics;
-using System.Collections.Generic;
 
 namespace Jellyfish.Entities
 {
@@ -38,7 +37,8 @@ namespace Jellyfish.Entities
         public bool UsePcss => GetPropertyValue<bool>("PCSS");
         public abstract float NearPlane { get; }
         public abstract float FarPlane { get; }
-        public abstract List<Matrix4> Projections { get; }
+        public abstract int ProjectionCount { get; }
+        public abstract Matrix4 Projection(int index);
         public abstract int ShadowResolution { get; }
     }
 }

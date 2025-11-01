@@ -1,5 +1,4 @@
 ﻿using OpenTK.Mathematics;
-using System.Collections.Generic;
 
 namespace Jellyfish.Entities;
 
@@ -19,16 +18,13 @@ public class PointLight : LightEntity
     public override float NearPlane => 0.1f;
     public override float FarPlane => GetPropertyValue<float>("FarPlane");
     public override int ShadowResolution => 1024;
+    public override int ProjectionCount => 1;
 
-    public override List<Matrix4> Projections
+    public override Matrix4 Projection(int index)
     {
-        get
-        {
-            var lightProjection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(160f), 1.0f, NearPlane, FarPlane);
-            var lightView = Matrix4.LookAt(Position, Position + Vector3.Transform(-Vector3.UnitY, Rotation), Vector3.UnitZ);
+        var lightProjection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(160f), 1.0f, NearPlane, FarPlane);
+        var lightView = Matrix4.LookAt(Position, Position + Vector3.Transform(-Vector3.UnitY, Rotation), Vector3.UnitZ);
 
-            return [lightView * lightProjection];
-        }
+        return lightView * lightProjection;
     }
-
 }

@@ -18,7 +18,8 @@ public interface ILightSource
     float NearPlane { get; }
     float FarPlane { get; }
 
-    List<Matrix4> Projections { get; }
+    int ProjectionCount { get; }
+    Matrix4 Projection(int index);
 
     bool UsePcss { get; }
 

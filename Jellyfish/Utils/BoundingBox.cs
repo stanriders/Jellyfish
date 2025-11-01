@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
-using Jellyfish.Render;
+﻿using Jellyfish.Render;
 using OpenTK.Mathematics;
+using System.Buffers;
+using System.Collections.Generic;
 
 namespace Jellyfish.Utils;
 
@@ -166,17 +167,15 @@ public readonly struct BoundingBox
 
     public BoundingBox Translate(Matrix4 transform)
     {
-        var corners = new[]
-        {
-            new Vector3(Min.X, Min.Y, Min.Z),
-            new Vector3(Max.X, Min.Y, Min.Z),
-            new Vector3(Min.X, Max.Y, Min.Z),
-            new Vector3(Max.X, Max.Y, Min.Z),
-            new Vector3(Min.X, Min.Y, Max.Z),
-            new Vector3(Max.X, Min.Y, Max.Z),
-            new Vector3(Min.X, Max.Y, Max.Z),
-            new Vector3(Max.X, Max.Y, Max.Z),
-        };
+        var corners = ArrayPool<Vector3>.Shared.Rent(8);
+        corners[0] = new Vector3(Min.X, Min.Y, Min.Z);
+        corners[1] = new Vector3(Max.X, Min.Y, Min.Z);
+        corners[2] = new Vector3(Min.X, Max.Y, Min.Z);
+        corners[3] = new Vector3(Max.X, Max.Y, Min.Z);
+        corners[4] = new Vector3(Min.X, Min.Y, Max.Z);
+        corners[5] = new Vector3(Max.X, Min.Y, Max.Z);
+        corners[6] = new Vector3(Min.X, Max.Y, Max.Z);
+        corners[7] = new Vector3(Max.X, Max.Y, Max.Z);
 
         for (var i = 0; i < corners.Length; i++)
             corners[i] = Vector3.TransformPosition(corners[i], transform);
@@ -189,6 +188,7 @@ public readonly struct BoundingBox
             newMin = Vector3.ComponentMin(newMin, corner);
             newMax = Vector3.ComponentMax(newMax, corner);
         }
+        ArrayPool<Vector3>.Shared.Return(corners);
 
         return new BoundingBox(newMax, newMin);
     }

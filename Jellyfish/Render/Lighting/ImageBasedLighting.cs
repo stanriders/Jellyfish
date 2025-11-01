@@ -6,6 +6,7 @@ using Jellyfish.Render.Shaders.Structs;
 using Jellyfish.Utils;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -330,14 +331,17 @@ public class ImageBasedLighting
 
             _renderedLastFrame = true;
 
+            var gpuProbes = ArrayPool<Jellyfish.Render.Shaders.Structs.LightProbe>.Shared.Rent(max_probes);
+
             if (Probes.Count == 0)
             {
                 LightProbesSsbo.UpdateData(new LightProbes
                 {
-                    Probes = new Jellyfish.Render.Shaders.Structs.LightProbe[max_probes],
+                    Probes = gpuProbes,
                     ProbeCount = 0
                 });
 
+                ArrayPool<Jellyfish.Render.Shaders.Structs.LightProbe>.Shared.Return(gpuProbes);
                 return;
             }
 
@@ -359,7 +363,6 @@ public class ImageBasedLighting
             Engine.MainViewport.ViewMatrixOverride = null;
             Engine.MainViewport.ProjectionMatrixOverride = null;
 
-            var gpuProbes = new Jellyfish.Render.Shaders.Structs.LightProbe[max_probes];
             for (var i = 0; i < Probes.Count; i++)
             {
                 gpuProbes[i].Position = new Vector4(Probes[i].Position);
@@ -372,6 +375,8 @@ public class ImageBasedLighting
                 Probes = gpuProbes,
                 ProbeCount = Probes.Count
             });
+
+            ArrayPool<Jellyfish.Render.Shaders.Structs.LightProbe>.Shared.Return(gpuProbes);
         }
 
         PerformanceMeasurment.Add("IBL.Frame", stopwatch.Elapsed.TotalMilliseconds);

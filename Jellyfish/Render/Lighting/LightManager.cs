@@ -28,13 +28,12 @@ public class LightManager
         }
     }
 
-    public IReadOnlyList<Light> Lights => _lights.AsReadOnly();
     public Light? Sun { get; private set; }
 
     public const int max_lights = 16;
     public const int max_shadows = 16;
 
-    private readonly List<Light> _lights = new(max_lights);
+    public readonly List<Light> Lights = new(max_lights);
 
     public readonly ShaderStorageBuffer<LightSources> LightSourcesSsbo;
 
@@ -55,9 +54,9 @@ public class LightManager
             return;
         }
 
-        if (_lights.Count < max_lights)
+        if (Lights.Count < max_lights)
         {
-            _lights.Add(new Light
+            Lights.Add(new Light
             {
                 Source = source
             });
@@ -79,7 +78,7 @@ public class LightManager
             return;
         }
 
-        var light = _lights.Find(x => x.Source == source);
+        var light = Lights.Find(x => x.Source == source);
         if (light != null)
         {
             foreach (var shadow in light.Shadows)
@@ -89,7 +88,7 @@ public class LightManager
                 shadow.Shader.Unload();
             }
 
-            _lights.Remove(light);
+            Lights.Remove(light);
         }
     }
 
@@ -108,18 +107,18 @@ public class LightManager
 
                 GL.Viewport(0, 0, Sun.Source.ShadowResolution, Sun.Source.ShadowResolution);
                 GL.Clear(ClearBufferMask.DepthBufferBit);
-                Engine.MeshManager.Draw(false, shadow.Shader, new Frustum(Sun.Source.Projections[i]));
+                Engine.MeshManager.Draw(false, shadow.Shader, new Frustum(Sun.Source.Projection(i)));
 
                 shadow.FrameBuffer.Unbind();
             }
         }
 
-        foreach (var light in _lights.Where(x=> x.Source.Enabled))
+        foreach (var light in Lights.Where(x=> x.Source.Enabled))
         {
             // create shadows lazily
             if (light.Source.UseShadows && light.Shadows.Count == 0)
             {
-                for (var i = 0; i < light.Source.Projections.Count; i++)
+                for (var i = 0; i < light.Source.ProjectionCount; i++)
                 {
                     CreateShadow(light, i.ToString());
                 }
@@ -138,12 +137,18 @@ public class LightManager
                 {
                     frustum = frustumEntity.GetFrustum();
                     if (!Engine.MainViewport.GetFrustum().IsInside(frustum.Value))
+                    {
+                        frustum?.Dispose();
                         continue;
+                    }
                 }
                 else
                 {
                     if (!Engine.MainViewport.GetFrustum().IsInside(light.Source.Position, light.Source.FarPlane))
+                    {
+                        frustum?.Dispose();
                         continue;
+                    }
                 }
 
                 shadow.FrameBuffer.Bind();
@@ -155,6 +160,7 @@ public class LightManager
                 Engine.MeshManager.Draw(false, shadow.Shader, frustum);
 
                 shadow.FrameBuffer.Unbind();
+                frustum?.Dispose();
             }
         }
 
@@ -175,7 +181,7 @@ public class LightManager
 
         var rt = Engine.TextureManager.CreateTexture(new TextureParams
         {
-            Name = $"_rt_Shadow{_lights.IndexOf(light)}{subname}",
+            Name = $"_rt_Shadow{Lights.IndexOf(light)}{subname}",
             BorderColor = [1f, 1f, 1f, 1f],
             WrapMode = TextureWrapMode.ClampToBorder,
             MinFiltering = TextureMinFilter.Linear,
