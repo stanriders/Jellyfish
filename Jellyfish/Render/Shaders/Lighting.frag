@@ -1,6 +1,35 @@
 
 #include LightingDefinitions.shared
 
+// general PCF
+float InterleavedGradientNoise(vec2 uv)
+{
+    const float a = 0.06711056;
+    const float b = 0.00583715;
+    const float c = 52.9829189;
+    return fract(c * fract(dot(uv, vec2(a, b))));
+}
+
+float PoissonPCF(sampler2D depthMap, vec3 projCoords, float filterRadiusUV)
+{
+    float shadow = 0.0;
+
+    float noise = InterleavedGradientNoise(gl_FragCoord.xy);
+    float angle = noise * PI; // 0..2pi
+    mat2 rot = mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
+
+    for (int i = 0; i < PCSS_FILTER_SIZE; i++)
+    {
+        vec2 offset = rot * poissonDisk[i] * filterRadiusUV;
+        float shadowDepth = texture(depthMap, projCoords.xy + offset).r;
+
+        shadow += step(projCoords.z, shadowDepth);
+    }
+
+    return shadow / float(PCSS_FILTER_SIZE);
+}
+
+// PCSS
 void FindBlocker4x4
 (
     out float avgBlockerDepth,
@@ -17,7 +46,7 @@ void FindBlocker4x4
     for (int i = 0; i < PCSS_FILTER_SIZE; i++)
     {
         float shadowMapDepth = texture( depthMap, uv + poissonDisk[i] * searchWidth ).r;
-        if ( shadowMapDepth < zReceiver ) 
+        if ( shadowMapDepth > zReceiver ) 
         {
             blockerSum += shadowMapDepth;
             numBlockers++;
@@ -32,20 +61,8 @@ float PenumbraSize( float zReceiver, float zBlocker ) //Parallel plane estimatio
     return (zReceiver - zBlocker) / zBlocker;
 }
 
-float PCFForPCSS4X4( vec2 uv, sampler2D depthMap, float zReceiver, float filterRadiusUV )
-{
-    float sum = 0;
-    
-    for (int i = 0; i < PCSS_FILTER_SIZE; i++)
-    {
-        float shadowMapDepth = texture( depthMap, uv + poissonDisk[i] * filterRadiusUV ).r;
-        sum += shadowMapDepth < zReceiver ? 0.0625 : 0;
-    }
-    
-    return sum;
-}
-
-float ShadowColor_PCSS4X4_PCF4X4( sampler2D depthMap, vec3 uvw, float zNear, float lightSizeUV )
+// shadowing options
+float PoissonPCSSShadow( sampler2D depthMap, vec3 uvw, float zNear, float lightSizeUV )
 {
     float avgBlockerDepth = 0;
     float numBlockers = 0;
@@ -60,40 +77,21 @@ float ShadowColor_PCSS4X4_PCF4X4( sampler2D depthMap, vec3 uvw, float zNear, flo
         float penumbraRatio = PenumbraSize( uvw.z, avgBlockerDepth );
         float filterRadiusUV = penumbraRatio * lightSizeUV / uvw.z;
 
-        flOut = PCFForPCSS4X4( uvw.xy, depthMap, uvw.z, filterRadiusUV );
+        flOut = PoissonPCF( depthMap, uvw, filterRadiusUV );
     }
 
-    return 1 - flOut;
+    return flOut;
 }
 
-float SimpleShadow(sampler2D DepthSampler, vec3 projCoords)
+float PoissonPCFShadow(sampler2D depthMap, vec3 projCoords, float baseRadius)
 {
-    float currentDepth = projCoords.z;
+    float texelSize = 1.0 / textureSize(depthMap, 0).x;
+    float filterRadiusUV = baseRadius * texelSize;
 
-    float shadow = texture(DepthSampler, projCoords.xy).r;  
-
-    return step(currentDepth, shadow);
-}  
-
-float PoissonPCF(sampler2D DepthSampler, vec3 projCoords, float baseRadius)
-{
-    float currentDepth = projCoords.z;
-    float shadow = 0.0;
-
-    vec2 texelSize = vec2(1.0f / textureSize(DepthSampler, 0).x);
-    float radiusUV = baseRadius * texelSize.x;
-    for (int i = 0; i < PCSS_FILTER_SIZE; i++)
-    {
-        vec2 offset = poissonDisk[i] * radiusUV;
-        float pcfDepth = texture(DepthSampler, clamp(projCoords.xy + offset, 0.0, 1.0)).r;
-
-        shadow += step(currentDepth, pcfDepth);
-    }
-
-    return shadow / float(PCSS_FILTER_SIZE);
+    return PoissonPCF(depthMap, projCoords, filterRadiusUV);
 }
 
-float SimplePCF(sampler2D DepthSampler, vec3 projCoords, int halfkernelWidth)
+float SimplePCFShadow(sampler2D DepthSampler, vec3 projCoords, int halfkernelWidth)
 {
     float currentDepth = projCoords.z;
     float shadow = 0.0f;
@@ -112,6 +110,14 @@ float SimplePCF(sampler2D DepthSampler, vec3 projCoords, int halfkernelWidth)
     return shadow;
 }
 
+float SimpleShadow(sampler2D DepthSampler, vec3 projCoords)
+{
+    float currentDepth = projCoords.z;
+
+    float shadow = texture(DepthSampler, projCoords.xy).r;  
+
+    return step(currentDepth, shadow);
+}  
 
 float ShadowCalculation(int lightIndex, vec3 lightDir, vec3 normal)
 {
@@ -126,13 +132,14 @@ float ShadowCalculation(int lightIndex, vec3 lightDir, vec3 normal)
     sampler2D shadow = sampler2D(lightSources[lightIndex].shadow);
 
     if (lightSources[lightIndex].usePcss)
-        return ShadowColor_PCSS4X4_PCF4X4(shadow, projCoords, lightSources[lightIndex].near, 3.0f);
+        return PoissonPCSSShadow(shadow, projCoords, lightSources[lightIndex].near, 6.0f);
 
-    return PoissonPCF(shadow, projCoords, 2.0f);
-    //return SimplePCF(shadow, projCoords, 4);
+    return PoissonPCFShadow(shadow, projCoords, 2.0f);
+    //return SimplePCFShadow(shadow, projCoords, 4);
     //return SimpleShadow(shadow, projCoords);
 }  
 
+// lights
 LightContrib CalcPointLight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
 {
     Light light = lightSources[lightIndex];
@@ -235,12 +242,12 @@ LightContrib CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
             sampler2D shadowSampler = sampler2D(sun.shadow[layer]);
             if (sun.usePcss && layer == 0)
             {
-                shadow = ShadowColor_PCSS4X4_PCF4X4(shadowSampler, projCoords, sun.cascadeNear[layer], 0.075f);
+                shadow = PoissonPCSSShadow(shadowSampler, projCoords, sun.cascadeNear[layer], 0.1f);
             }
             else
             {
-                shadow = PoissonPCF(shadowSampler, projCoords, layer == 0 ? 4.0f : 1.0f);
-                //shadow = SimplePCF(shadowSampler, projCoords, layer == 0 ? 4.0f : 1.0f);
+                shadow = PoissonPCFShadow(shadowSampler, projCoords, layer == 0 ? 4.0f : 1.0f);
+                //shadow = SimplePCFShadow(shadowSampler, projCoords, layer == 0 ? 4.0f : 1.0f);
                 //shadow = SimpleShadow(shadowSampler, projCoords);
             }
 
