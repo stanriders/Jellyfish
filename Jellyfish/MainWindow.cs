@@ -7,14 +7,13 @@ namespace Jellyfish;
 public class MainWindow : GameWindow
 {
     public MainWindow() : base(
-        new GameWindowSettings { UpdateFrequency = 0.0 }, NativeWindowSettings.Default)
+        new GameWindowSettings { UpdateFrequency = 0.0, Win32SuspendTimerOnDrag = true }, 
+        new NativeWindowSettings { APIVersion = new Version(4, 1), Title = "Jellyfish" })
     {
         var config = Settings.Instance;
 
         ClientSize = config.Video.WindowSize;
         WindowState = config.Video.Fullscreen ? WindowState.Fullscreen : WindowState.Normal;
-        Title = "Jellyfish";
-
         CenterWindow();
 
         Load += OnFinishedLoading;
