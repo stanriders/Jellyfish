@@ -41,14 +41,14 @@ public class AmbientOcclusion : ScreenspaceEffect
 
 public class AmbientOcclusionBlurX : ScreenspaceEffect
 {
-    public AmbientOcclusionBlurX() : base("GtaoBlurX", SizedInternalFormat.R8, new Blur("_rt_Gtao", Blur.Direction.Horizontal, Blur.Size.Blur5))
+    public AmbientOcclusionBlurX() : base("GtaoBlurX", SizedInternalFormat.R8, new Blur("_rt_Gtao", Blur.Direction.Horizontal, Blur.Size.Blur5Slow))
     {
     }
 }
 
 public class AmbientOcclusionBlurY : ScreenspaceEffect
 {
-    public AmbientOcclusionBlurY() : base("GtaoBlurY", SizedInternalFormat.R8, new Blur("_rt_GtaoBlurX", Blur.Direction.Vertical, Blur.Size.Blur5))
+    public AmbientOcclusionBlurY() : base("GtaoBlurY", SizedInternalFormat.R8, new Blur("_rt_GtaoBlurX", Blur.Direction.Vertical, Blur.Size.Blur5Slow))
     {
     }
 }

@@ -1,5 +1,4 @@
-﻿using OpenTK.Graphics.OpenGL;
-using OpenTK.Mathematics;
+﻿using OpenTK.Mathematics;
 
 namespace Jellyfish.Render.Shaders;
 
@@ -15,7 +14,10 @@ public class Blur : Shader
     {
         Blur5,
         Blur9,
-        Blur13
+        Blur13,
+        Blur5Slow,
+        Blur9Slow,
+        Blur13Slow
     }
 
     private readonly Direction _direction;

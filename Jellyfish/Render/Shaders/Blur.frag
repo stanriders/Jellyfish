@@ -46,6 +46,36 @@ vec4 blur5(sampler2D image, vec2 uv, vec2 resolution, vec2 direction) {
   return color; 
 }
 
+const float weight[13] = float[](
+    0.196482, 0.176032, 0.120981, 0.064759, 0.027994,
+    0.009300, 0.002841, 0.000736, 0.000157,
+    0.000028, 0.000004, 0.000001, 0.0000002
+);
+
+vec4 blur_slow(sampler2D image, vec2 uv, vec2 resolution, int direction, int weightCount)
+{             
+    vec2 tex_offset = 1.0 / textureSize(image, 0); // gets size of single texel
+    vec3 result = texture(image, uv).rgb * weight[0]; // current fragment's contribution
+
+    if(direction == 0)
+    {
+        for(int i = 1; i < weightCount; ++i)
+        {
+            result += texture(image, uv + vec2(tex_offset.x * i, 0.0)).rgb * weight[i];
+            result += texture(image, uv - vec2(tex_offset.x * i, 0.0)).rgb * weight[i];
+        }
+    }
+    else
+    {
+        for(int i = 1; i < weightCount; ++i)
+        {
+            result += texture(image, uv + vec2(0.0, tex_offset.y * i)).rgb * weight[i];
+            result += texture(image, uv - vec2(0.0, tex_offset.y * i)).rgb * weight[i];
+        }
+    }
+    return vec4(result, 1.0);
+}
+
 void main()
 { 
     vec2 directionVec = vec2(1, 0);
@@ -65,5 +95,21 @@ void main()
     else if (size == 2)
     {
         FragColor = blur13(sourceSampler, TexCoords, screenSize, directionVec);
+        return;
+    }
+    else if (size == 3)
+    {
+        FragColor = blur_slow(sourceSampler, TexCoords, screenSize, direction, 5);
+        return;
+    }
+    else if (size == 4)
+    {
+        FragColor = blur_slow(sourceSampler, TexCoords, screenSize, direction, 9);
+        return;
+    }
+    else if (size == 5)
+    {
+        FragColor = blur_slow(sourceSampler, TexCoords, screenSize, direction, 13);
+        return;
     }
 }
