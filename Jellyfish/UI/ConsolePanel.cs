@@ -139,6 +139,9 @@ namespace Jellyfish.UI
                 return true;
             }
 
+            if (_history.Count <= 0) 
+                return false;
+
             if (keyboardState.IsKeyPressed(Keys.Up))
             {
                 if (_history.Count == 1 || _historyPosition == 0)
@@ -159,7 +162,7 @@ namespace Jellyfish.UI
                 else if (_historyPosition == 0)
                     _currentCommandInput = _history[0];
                 else
-                            _currentCommandInput = _history[^_historyPosition];
+                    _currentCommandInput = _history[^_historyPosition];
                 if (_historyPosition > 0)
                     _historyPosition--;
 
