@@ -11,6 +11,7 @@
 		<FragShaders Include="Render\Shaders\**\*.frag" />
 		<VertShaders Include="Render\Shaders\**\*.vert" />
 		<CompShaders Include="Render\Shaders\**\*.comp" />
+		<SharedShaders Include="Render\Shaders\**\*.shared" />
 		<AllFiles Include="$(OutDir)/**/*.*" />
 	</ItemGroup>
 
@@ -19,12 +20,14 @@
 		<Copy SourceFiles="@(FragShaders)" DestinationFolder="$(OutDir)\shaders" />
 		<Copy SourceFiles="@(VertShaders)" DestinationFolder="$(OutDir)\shaders" />
 		<Copy SourceFiles="@(CompShaders)" DestinationFolder="$(OutDir)\shaders" />
+		<Copy SourceFiles="@(SharedShaders)" DestinationFolder="$(OutDir)\shaders" />
 	</Target>
 
 	<ItemGroup>
 		<Watch Include="@(FragShaders)" />
 		<Watch Include="@(VertShaders)" />
 		<Watch Include="@(CompShaders)" />
+		<Watch Include="@(SharedShaders)" />
 	</ItemGroup>
 
 	<Target Name="CopyDLLs" AfterTargets="Build">
@@ -35,15 +38,14 @@
 	<ItemGroup>
 		<!--<PackageReference Include="AssimpNet" Version="4.1.0" />-->
 		<PackageReference Include="AssimpNet" Version="5.0.0-beta1" />
-		<PackageReference Include="Hexa.NET.ImGuizmo" Version="2.2.8.4" />
-		<PackageReference Include="Hexa.NET.ImPlot" Version="2.2.8.4" />
-		<PackageReference Include="JoltPhysics.Native" Version="1.0.0" />
-		<PackageReference Include="JoltPhysicsSharp" Version="2.18.2" />
-		<PackageReference Include="ManagedBass" Version="4.0.0" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-		<PackageReference Include="OpenTK" Version="5.0.0-pre.14" />
+		<PackageReference Include="Hexa.NET.ImGuizmo" Version="2.2.9" />
+		<PackageReference Include="Hexa.NET.ImPlot" Version="2.2.9" />
+		<PackageReference Include="JoltPhysicsSharp" Version="2.19.1" />
+		<PackageReference Include="ManagedBass" Version="4.0.2" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+		<PackageReference Include="OpenTK" Version="5.0.0-pre.15" />
 		<PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
-		<PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.9.0" />
+		<PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.9.1" />
 		<PackageReference Include="SteamAudio.NET" Version="4.6.1" />
 		<PackageReference Include="SteamAudio.NET.Natives" Version="4.6.1" />
 	</ItemGroup>

@@ -84,7 +84,7 @@ public class Player : BaseEntity, IInputHandler, IHaveFrustum
         if (_physCharacter == null) 
             return;
 
-        SetPropertyValue("Position", _physCharacter.Position.ToOpentkVector());
+        SetPropertyValue("Position", (Vector3)_physCharacter.Position);
 
         // apply gravity
         _physCharacter.LinearVelocity += System.Numerics.Vector3.UnitY * Engine.PhysicsManager.Gravity * frameTime;
@@ -125,7 +125,7 @@ public class Player : BaseEntity, IInputHandler, IHaveFrustum
         var desiredVelocity = Vector3.Zero;
 
         // clamp desired ground velocity
-        var directionVelocity = Vector3.Dot(_physCharacter.LinearVelocity.ToOpentkVector(), direction);
+        var directionVelocity = Vector3.Dot((Vector3)_physCharacter.LinearVelocity, direction);
         if (directionVelocity < cameraSpeed)
         {
             var airStrafeMultiplier = 1f;
@@ -138,7 +138,7 @@ public class Player : BaseEntity, IInputHandler, IHaveFrustum
         // jump
         if (keyboardState.IsKeyPressed(Keys.Space) && _physCharacter.IsSupported && _physCharacter.GroundState == GroundState.OnGround)
         {
-            var verticalVelocity = Vector3.Dot(_physCharacter.LinearVelocity.ToOpentkVector(), Vector3.UnitY);
+            var verticalVelocity = Vector3.Dot((Vector3)_physCharacter.LinearVelocity, Vector3.UnitY);
             if (verticalVelocity < jump_velocity)
                 desiredVelocity += Vector3.UnitY * jump_velocity;
         }

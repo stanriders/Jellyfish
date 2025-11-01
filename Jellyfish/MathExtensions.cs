@@ -7,21 +7,6 @@ namespace Jellyfish;
 
 public static class MathExtensions
 {
-    public static Vector3 ToOpentkVector(this System.Numerics.Vector3 v)
-    {
-        return (Vector3)v;
-    }
-
-    public static Vector3 ToOpentkVector(this SteamAudio.IPL.Vector3 v)
-    {
-        return new Vector3(v.X, v.Y, v.Z);
-    }
-
-    public static Vector3 ToOpentkVector(this JoltPhysicsSharp.Double3 v)
-    {
-        return new Vector3((float)v.X, (float)v.Y, (float)v.Z);
-    }
-
     public static System.Numerics.Vector3 ToNumericsVector(this Vector3 v)
     {
         return (System.Numerics.Vector3)v;
@@ -37,20 +22,10 @@ public static class MathExtensions
         return new SteamAudio.IPL.Vector3(v.X, v.Y, v.Z);
     }
 
-    public static Quaternion ToOpentkQuaternion(this System.Numerics.Quaternion v)
-    {
-        return (Quaternion)v;
-    }
-
     public static System.Numerics.Quaternion ToNumericsQuaternion(this Quaternion v)
     {
         return (System.Numerics.Quaternion)v;
     }
-
-    /*public static Matrix4 ToOpentkMatrix(this Assimp.Matrix4x4 mat)
-    {
-        return new Matrix4(mat.A1, mat.A2, mat.A3, mat.A4, mat.B1, mat.B2, mat.B3, mat.B4, mat.C1, mat.C2, mat.C3, mat.C4, mat.D1, mat.D2, mat.D3, mat.D4);
-    }*/
 
     public static float[] ToFloatArray(this Matrix4 mat)
     {
@@ -108,7 +83,7 @@ public static class MathExtensions
 
     public static System.Numerics.Vector2 ToScreenspace(this System.Numerics.Vector3 vector)
     {
-        var clipSpacePos = new Vector4(vector.ToOpentkVector(), 1.0f) * Engine.MainViewport.GetViewMatrix() * Engine.MainViewport.GetProjectionMatrix();
+        var clipSpacePos = new Vector4((Vector3)vector, 1.0f) * Engine.MainViewport.GetViewMatrix() * Engine.MainViewport.GetProjectionMatrix();
 
         if (clipSpacePos.W > 0.0f)
         {

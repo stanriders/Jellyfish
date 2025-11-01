@@ -289,11 +289,11 @@ public class PhysicsManager
             {
                 if (_bodyInterface.IsActive(bodyId))
                 {
-                    var position = _bodyInterface.GetPosition(bodyId).ToOpentkVector();
-                    var rotation = _bodyInterface.GetRotation(bodyId).ToOpentkQuaternion();
+                    var position = _bodyInterface.GetPosition(bodyId);
+                    var rotation = _bodyInterface.GetRotation(bodyId);
 
-                    entity.OnPhysicsPositionChanged(position);
-                    entity.OnPhysicsRotationChanged(rotation);
+                    entity.OnPhysicsPositionChanged((Vector3)position);
+                    entity.OnPhysicsRotationChanged((Quaternion)rotation);
                 }
             }
 
@@ -313,11 +313,11 @@ public class PhysicsManager
         Foundation.Shutdown();
     }
 
-    private void OnContactAdded(PhysicsSystem system, in Body body1, in Body body2, in ContactManifold manifold, in ContactSettings settings)
+    private void OnContactAdded(PhysicsSystem system, in Body body1, in Body body2, in ContactManifold manifold, ref ContactSettings settings)
     {
         if (_impactSound != null)
         {
-            _impactSound.Position = manifold.GetWorldSpaceContactPointOn1(1).ToOpentkVector();
+            _impactSound.Position = (Vector3)manifold.GetWorldSpaceContactPointOn1(1);
             _impactSound.Play();
         }
     }
@@ -340,20 +340,20 @@ public class PhysicsManager
 
         protected override void DrawLine(System.Numerics.Vector3 from, System.Numerics.Vector3 to, JoltColor color)
         {
-            DebugRender.DrawLine(from.ToOpentkVector(), to.ToOpentkVector());
+            DebugRender.DrawLine((Vector3)from, (Vector3)to);
         }
 
         protected override void DrawText3D(System.Numerics.Vector3 position, string? text, JoltColor color, float height = 0.5f)
         {
-            DebugRender.DrawText(position.ToOpentkVector(), text ?? "");
+            DebugRender.DrawText((Vector3)position, text ?? "");
         }
         
         protected override void DrawTriangle(System.Numerics.Vector3 v1, System.Numerics.Vector3 v2, System.Numerics.Vector3 v3, JoltColor color, CastShadow castShadow = CastShadow.Off)
         {
             _vertices.AddRange([
-                new Vertex { Coordinates = v1.ToOpentkVector(), Normal = new Vector3(1), UV = new Vector2(0,1) },
-                new Vertex { Coordinates = v2.ToOpentkVector(), Normal = new Vector3(1), UV = new Vector2(0,1) },
-                new Vertex { Coordinates = v3.ToOpentkVector(), Normal = new Vector3(1), UV = new Vector2(0,1) }
+                new Vertex { Coordinates = (Vector3)v1, Normal = new Vector3(1), UV = new Vector2(0,1) },
+                new Vertex { Coordinates = (Vector3)v2, Normal = new Vector3(1), UV = new Vector2(0,1) },
+                new Vertex { Coordinates = (Vector3)v3, Normal = new Vector3(1), UV = new Vector2(0,1) }
             ]);
         }
 

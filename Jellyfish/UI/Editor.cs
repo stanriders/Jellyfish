@@ -295,7 +295,7 @@ public class Editor : IUiPanel, IInputHandler
 
                 ImGuizmo.SetID(0);
                 if (ImGuizmo.Manipulate(ref Unsafe.AsRef<float>(view), ref Unsafe.AsRef<float>(proj),
-                        operations, ImGuizmoMode.World,
+                        operations, ImGuizmoMode.Local,
                         ref Unsafe.AsRef<float>(transformArrayPinned),
                         null,
                         ref Unsafe.AsRef<float>(snap)))
@@ -448,7 +448,7 @@ public class Editor : IUiPanel, IInputHandler
             var val = new Vector2(valueCasted.X, valueCasted.Y);
             if (ImGui.DragFloat2(elementLabel, ref val))
             {
-                entity.SetPropertyValue(propertyName, new OpenTK.Mathematics.Vector2(val.X, val.Y));
+                entity.SetPropertyValue(propertyName, (OpenTK.Mathematics.Vector2)val);
             }
         }
         else if (entityProperty.Type == typeof(Vector3))
@@ -458,7 +458,7 @@ public class Editor : IUiPanel, IInputHandler
             var val = valueCasted.ToNumericsVector();
             if (ImGui.DragFloat3(elementLabel, ref val))
             {
-                entity.SetPropertyValue(propertyName, val.ToOpentkVector());
+                entity.SetPropertyValue(propertyName, (Vector3)val);
             }
         }
         else if (entityProperty.Type == typeof(Vector3[]))
@@ -471,7 +471,7 @@ public class Editor : IUiPanel, IInputHandler
                 var val = valueCasted[i].ToNumericsVector();
                 if (ImGui.DragFloat3($"##{elementLabel}_{i}", ref val))
                 {
-                    valueCasted[i] = val.ToOpentkVector();
+                    valueCasted[i] = (Vector3)val;
                     updated = true;
                 }
             }
