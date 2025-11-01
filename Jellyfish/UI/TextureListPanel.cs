@@ -1,6 +1,5 @@
 ﻿using Hexa.NET.ImGui;
 using Jellyfish.Console;
-using Jellyfish.Render;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
@@ -13,9 +12,17 @@ public class EnableTextureList() : ConVar<bool>("edt_texturelist");
 
 public class TextureListPanel : IUiPanel
 {
+    private enum Tabs
+    {
+        All, 
+        RTs,
+        Textures
+    }
+
     private const int item_width = 250;
     private int? _expandedTexture;
     private readonly Dictionary<string, int> _cubemapAtlases = new();
+    private Tabs _currentTab = Tabs.All;
 
     public unsafe void Frame(double timeElapsed)
     {
@@ -27,20 +34,48 @@ public class TextureListPanel : IUiPanel
         if (ImGui.Begin("Texture list"))
         {
             ImGui.Text($"{textureCount} textures");
+            ImGui.BeginTabBar("Tabs");
+
+            if (ImGui.TabItemButton("All", _currentTab == Tabs.All ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None))
+                _currentTab = Tabs.All;
+
+            if (ImGui.TabItemButton("RTs", _currentTab == Tabs.RTs ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None))
+                _currentTab = Tabs.RTs;
+
+            if (ImGui.TabItemButton("World Textures", _currentTab == Tabs.Textures ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None))
+                _currentTab = Tabs.Textures;
+
+            ImGui.EndTabBar();
+
             for (int i = 0; i < textureCount; i++)
             {
                 var texture = Engine.TextureManager.Textures.ElementAt(i);
+
+                if (texture.Params.RenderTargetParams != null && _currentTab == Tabs.Textures)
+                    continue;
+
+                if (texture.Params.RenderTargetParams == null && _currentTab == Tabs.RTs)
+                    continue;
+
                 ImGui.BeginGroup();
                 var expanded = _expandedTexture == i;
 
-                ImGui.PushTextWrapPos(ImGui.GetCursorPos().X + item_width);
+                var size = expanded ? item_width * 2 : item_width;
+
+                ImGui.PushTextWrapPos(ImGui.GetCursorPos().X + size);
+
                 if (expanded)
-                    ImGui.Text($"{texture.Params.Name}: {(texture.Params.Srgb ? "[SRGB] " : "")}{texture.References} references, {texture.Levels} levels, {texture.Format}");
+                {
+                    var rtParams = texture.Params.RenderTargetParams != null ? 
+                        $", {texture.Params.RenderTargetParams?.Width}x{texture.Params.RenderTargetParams?.Heigth}, {texture.Params.RenderTargetParams?.Attachment}" : 
+                        string.Empty;
+
+                    ImGui.Text($"{texture.Params.Name}\n{(texture.Params.Srgb ? "[SRGB] " : "")}{texture.References} references, {texture.Levels} levels, {texture.Format}{rtParams}");
+                }
                 else
                     ImGui.Text($"{texture.Params.Name} ({texture.References} references)");
                 ImGui.PopTextWrapPos();
 
-                var size = expanded ? item_width * 2 : item_width;
                 bool pressed;
                 // flip RTs upside down
                 if (texture.Params.RenderTargetParams != null)
