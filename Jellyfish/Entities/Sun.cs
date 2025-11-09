@@ -45,10 +45,10 @@ public class Sun : BaseEntity, ILightSource
 
     public static (int Near, int Far)[] CascadeRanges =
     [
-        (1, 200),
+        ((int)Engine.MainViewport.NearPlane, 200),
         (200, 1000),
         (1000, 3000),
-        (3000, 10000)
+        (3000, (int)Engine.MainViewport.FarPlane)
     ];
 
     public int ProjectionCount => cascades;
@@ -76,12 +76,14 @@ public class Sun : BaseEntity, ILightSource
             max = Vector3.ComponentMax(max, trf);
         }
 
+        var size = Vector3.ComponentMax(max, Vector3.Abs(min)); 
+
         // pullback factor
         const float zMult = 10.0f;
         min.Z = min.Z < 0 ? min.Z * zMult : min.Z / zMult;
         max.Z = max.Z < 0 ? max.Z / zMult : max.Z * zMult;
 
-        var lightProjection = Matrix4.CreateOrthographicOffCenter(min.X, max.X, min.Y, max.Y, min.Z, max.Z);
+        var lightProjection = Matrix4.CreateOrthographicOffCenter(-size.X, size.X, -size.Y, size.Y, min.Z, max.Z);
         return lightView * lightProjection;
     }
 }
