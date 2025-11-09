@@ -10,6 +10,8 @@ public abstract class ScreenspaceEffect
     protected readonly Texture RenderTarget;
     protected readonly Shader Shader;
 
+    public int Priority { get; protected set; } = int.MaxValue;
+
     protected ScreenspaceEffect(string rtName, SizedInternalFormat format, Shader shader)
     {
         Shader = shader;
@@ -31,6 +33,21 @@ public abstract class ScreenspaceEffect
                 Attachment = FramebufferAttachment.ColorAttachment0,
             }
         });
+
+        GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
+
+        Buffer.Check();
+        Buffer.Unbind();
+    }
+
+    protected ScreenspaceEffect(TextureParams textureParams, Shader shader)
+    {
+        Shader = shader;
+
+        Buffer = new FrameBuffer();
+        Buffer.Bind();
+
+        RenderTarget = Engine.TextureManager.CreateTexture(textureParams);
 
         GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
 

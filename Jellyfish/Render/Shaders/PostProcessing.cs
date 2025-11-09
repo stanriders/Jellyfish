@@ -21,7 +21,7 @@ public class PostProcessing : Shader
     {
         _rtColor = Engine.TextureManager.GetTexture("_rt_Color")!;
         _rtAmbientOcclusion = Engine.TextureManager.GetTexture("_rt_GtaoBlurY")!;
-        _rtBloom = Engine.TextureManager.GetTexture("_rt_BloomBlurY")!;
+        _rtBloom = Engine.TextureManager.GetTexture("_rt_Bloom")!;
     }
 
     public override void Bind()
