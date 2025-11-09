@@ -31,11 +31,6 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
     return ggx1 * ggx2;
 }
 
-vec3 fresnelSchlick(float cosTheta, vec3 F0)
-{
-    return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
-}
-
 vec2 integrateBRDFApprox(float NdotV, float roughness)
 {
     const vec4 c0 = vec4(-1.0, -0.0275, -0.572, 0.022);
@@ -58,7 +53,7 @@ BRDFResult ComputeBRDF(vec3 N, vec3 V, vec3 L, vec3 F0, float roughness, float m
 
     float NDF = DistributionGGX(N, H, roughness);
     float G   = GeometrySmith(N, V, L, roughness);
-    vec3  F   = fresnelSchlick(max(dot(H, V), 0.0), F0);
+    vec3  F   = FresnelSchlickRoughness(max(dot(H, V), 0.0), F0, roughness);
 
     vec3 kS = F;
     vec3 kD = (1.0 - kS) * (1.0 - metalness);
@@ -127,7 +122,7 @@ vec3 ComputeIBL(vec3 N, vec3 V, vec3 diffuseColor, float roughness, float metaln
 {
     vec3 F0 = mix(vec3(0.04), diffuseColor, metalness);
     float NdotV = max(dot(N, V), 0.0);
-    vec3 F_env = fresnelSchlick(NdotV, F0);
+    vec3 F_env = FresnelSchlickRoughness(NdotV, F0, roughness);
     vec3 kS = F_env;
     vec3 kD = (1.0 - kS) * (1.0 - metalness);
     vec3 R = normalize(reflect(-V, N));

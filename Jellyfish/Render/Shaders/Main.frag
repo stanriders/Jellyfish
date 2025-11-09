@@ -34,17 +34,10 @@ vec3 ApplyLight(LightContrib lc, vec3 diffuseColor, vec3 L, vec3 N, vec3 V, vec3
 {
     float NdotL = max(dot(N, L), 0.0);
 
-    if (usePbr)
-    {
-        BRDFResult brdf = ComputeBRDF(N, V, L, F0, roughness, metalness);
+    BRDFResult brdf = ComputeBRDF(N, V, L, F0, roughness, metalness);
 
-        vec3 diffuse = brdf.kD * diffuseColor;
-        return diffuse * lc.ambient + max(vec3(0.0), (diffuse + brdf.specular) * lc.direct * NdotL);
-    }
-    else
-    {
-        return (lc.direct + lc.ambient) * NdotL;
-    }
+    vec3 diffuse = brdf.kD * diffuseColor;
+    return diffuse * lc.ambient + max(vec3(0.0), (diffuse + brdf.specular) * lc.direct * NdotL);
 }
 
 void main()
@@ -65,18 +58,14 @@ void main()
 
     vec3 viewDir = normalize(cameraPos - frag_position);
     
-    vec3 metroughTex = vec3(0);
+    vec3 metroughTex = vec3(0, 0.9f, 0); // defaults for non-PBR textures
     if (usePbr)
         metroughTex = texture(metroughSampler, frag_texCoord * vec2(1.0, -1.0)).rgb;
-
-    float metalness = metroughTex.b;
+        
     float roughness = metroughTex.g;
+    float metalness = metroughTex.b;
 
-    vec3 lighting = vec3(0);
-    if (usePbr) 
-    {
-        lighting += ComputeIBL(normal, viewDir, diffuseTex.rgb, roughness, metalness, gl_FragCoord.xy / screenSize);
-    }
+    vec3 lighting = ComputeIBL(normal, viewDir, diffuseTex.rgb, roughness, metalness, gl_FragCoord.xy / screenSize);
     
     vec3 dielectricCoefficient = mix(vec3(0.04), diffuseTex.rgb, metalness); // F0
 
@@ -110,9 +99,6 @@ void main()
 
         lighting += ApplyLight(lightContrib, diffuseTex.rgb, lightDir, normal, viewDir, dielectricCoefficient, roughness, metalness);
     }
-
-    if (!usePbr)
-        lighting *= diffuseTex.rgb;
 
     if (!useTransparency)
         outputColor = vec4(lighting, 1.0);

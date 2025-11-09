@@ -34,11 +34,6 @@ vec2 ProjectToUV(vec3 viewPos)
     return clip.xy * 0.5 + 0.5;
 }
 
-vec3 fresnelSchlick(vec3 F0, float cosTheta) 
-{
-    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
-}
-
 bool screenIntersect(in vec3 originVS, in vec3 dirVS, out vec2 hitUV, out vec3 hitVS, out float hitDepthView) 
 {
     float step = uStride;
