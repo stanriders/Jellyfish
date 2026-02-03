@@ -141,7 +141,7 @@ void main()
     const float sunAngularRadius = 0.007;
     float cosAngle = dot(normalize(TexCoords), normalize(uSunPos));
     float sun = smoothstep(cos(sunAngularRadius), cos(0.0), cosAngle);
-    color += vec3(uSunIntensity * 0.02) * sun;
+    color += vec3(uSunIntensity * 0.25) * sun;
 
     //vec3 groundColor = vec3(0.3, 0.25, 0.2);
     //color = mix(groundColor, color, smoothstep(0.0, 0.1, TexCoords.y));
