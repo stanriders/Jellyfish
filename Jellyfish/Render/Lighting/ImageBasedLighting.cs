@@ -1,4 +1,5 @@
-﻿using Jellyfish.Console;
+﻿using System;
+using Jellyfish.Console;
 using Jellyfish.Debug;
 using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Shaders.IBL;
@@ -9,12 +10,14 @@ using OpenTK.Mathematics;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Jellyfish.Render.Lighting;
 
 public class IblEnabled() : ConVar<bool>("mat_ibl_enabled", true);
 public class IblPrefilter() : ConVar<bool>("mat_ibl_prefilter", false);
 public class IblRenderWorld() : ConVar<bool>("mat_ibl_render_world", true);
+public class IblUpdate() : ConVar<bool>("mat_ibl_update", true);
 
 public class LightProbe
 {
@@ -289,7 +292,7 @@ public class ImageBasedLighting
 {
     public List<LightProbe> Probes { get; } = new();
     private int _currentProbe;
-    private readonly LightProbe _playerProbe;
+    private readonly List<(LightProbe probe, Vector3 offset)> _playerProbes = new();
 
     public readonly ShaderStorageBuffer<LightProbes> LightProbesSsbo;
     public const int max_probes = 512;
@@ -299,7 +302,8 @@ public class ImageBasedLighting
     {
         LightProbesSsbo = new ShaderStorageBuffer<LightProbes>("lightProbesSSBO", new LightProbes());
 
-        _playerProbe = AddProbe();
+        _playerProbes.Add((AddProbe(), new Vector3(0, 48, 0)));
+        //GeneratePlayerProbeGrid();
     }
 
     public LightProbe AddProbe()
@@ -320,7 +324,7 @@ public class ImageBasedLighting
     {
         var stopwatch = Stopwatch.StartNew();
 
-        if (ConVarStorage.Get<bool>("mat_ibl_enabled"))
+        if (ConVarStorage.Get<bool>("mat_ibl_enabled") && ConVarStorage.Get<bool>("mat_ibl_update"))
         {
             // only render every second frame
             if (_renderedLastFrame)
@@ -349,8 +353,10 @@ public class ImageBasedLighting
                 _currentProbe = 0;
 
             var lightProbe = Probes[_currentProbe];
-            if (lightProbe == _playerProbe)
-                lightProbe.Position = Engine.MainViewport.Position;
+
+            var playerProbe = _playerProbes.FirstOrDefault(x => x.probe == lightProbe);
+            if (playerProbe != default)
+                lightProbe.Position = Engine.MainViewport.Position + playerProbe.offset;
 
             lightProbe.RenderCubemap(sky);
             lightProbe.RenderIrradience();
@@ -384,9 +390,35 @@ public class ImageBasedLighting
 
     public void Unload()
     {
+        _playerProbes.Clear();
+
         foreach (var lightProbe in Probes)
         {
             lightProbe.Unload();
+        }
+    }
+
+    private void GeneratePlayerProbeGrid()
+    {
+        _playerProbes.Add((AddProbe(), Vector3.Zero));
+
+        for (int ring = 0; ring < 2; ring++)
+        {
+            for (int xOffset = -8; xOffset <= 8; xOffset += 4)
+            {
+                for (int yOffset = -8; yOffset <= 8; yOffset += 8)
+                {
+                    for (int zOffset = -8; zOffset <= 8; zOffset += 8)
+                    {
+                        var ringXOffset = Math.Pow(xOffset, ring + 1);
+                        var ringYOffset = Math.Pow(yOffset, ring + 1);
+                        var ringZOffset = Math.Pow(zOffset, ring + 1);
+                        var offset = new Vector3((float)ringXOffset, (float)ringYOffset, (float)ringZOffset);
+                        if (!_playerProbes.Any(x=> x.offset == offset))
+                            _playerProbes.Add((AddProbe(), offset));
+                    }
+                }
+            }
         }
     }
 }
