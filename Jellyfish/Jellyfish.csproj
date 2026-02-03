@@ -45,7 +45,7 @@
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
 		<PackageReference Include="OpenTK" Version="5.0.0-pre.15" />
 		<PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
-		<PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.10.1" />
+		<PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.10.2" />
 		<PackageReference Include="SteamAudio.NET" Version="4.6.1" />
 		<PackageReference Include="SteamAudio.NET.Natives" Version="4.6.1" />
 	</ItemGroup>
