@@ -162,6 +162,7 @@ public class Editor : IUiPanel, IInputHandler
 
                 if (_selectedEntity != null)
                 {
+                    ImGui.Text(_selectedEntity.GetType().ToString());
                     foreach (var entityProperty in _selectedEntity.EntityProperties)
                     {
                         AddProperty(_selectedEntity, entityProperty);
