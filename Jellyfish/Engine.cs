@@ -13,6 +13,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using Jellyfish.Render.Lighting;
+using Serilog.Core;
 
 namespace Jellyfish
 {
@@ -101,6 +102,7 @@ namespace Jellyfish
 
             UpdateLoadingScreen("Starting physics...");
             _physicsManager = new PhysicsManager();
+            _physicsManager.Initialise();
 
             UpdateLoadingScreen("Starting lighting system...");
             _lightManager = new LightManager();
@@ -193,6 +195,8 @@ namespace Jellyfish
 
         private void UpdateLoadingScreen(string text = "Loading...")
         {
+            Log.Context(this).Information(text);
+
             _imguiController?.Update(_mainWindow.ClientSize.X, _mainWindow.ClientSize.Y);
 
             var windowFlags = ImGuiWindowFlags.NoDecoration |

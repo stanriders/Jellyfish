@@ -16,10 +16,38 @@ using Quaternion = OpenTK.Mathematics.Quaternion;
 namespace Jellyfish;
 
 public class EnableDebugRenderer() : ConVar<bool>("phys_debug", false);
+
+public class DummyPhysicsManager : PhysicsManager
+{
+    public override bool IsReady => true;
+    public override void Initialise() { }
+    public override void RemoveObject(BodyID body) { }
+    public override void RemovePlayerController() { }
+    public override void SetPosition(BodyID bodyId, Vector3 newPosition) { }
+    public override void SetRotation(BodyID bodyId, Quaternion newRotation) { }
+    public override void SetVelocity(BodyID bodyId, Vector3 newVelocity) { }
+    public override BodyID? AddDynamicObject(ShapeSettings shape, IPhysicsEntity entity)
+    {
+        return null;
+    }
+
+    public override CharacterVirtual? AddPlayerController(BaseEntity entity, BoxShape shape)
+    {
+        return null;
+    }
+
+    public override BodyID? AddStaticObject(Mesh[] meshes, IPhysicsEntity entity)
+    {
+        return null;
+    }
+
+    public override System.Numerics.Vector3 Gravity => System.Numerics.Vector3.UnitY;
+}
+
 public class PhysicsManager
 {
-    public bool ShouldSimulate { get; set; }
-    public bool IsReady { get; private set; }
+    public virtual bool ShouldSimulate { get; set; }
+    public virtual bool IsReady { get; private set; }
 
     private static class Layers
     {
@@ -33,7 +61,7 @@ public class PhysicsManager
         public static readonly BroadPhaseLayer Moving = 1;
     }
 
-    public System.Numerics.Vector3 Gravity => _physicsSystem.Gravity;
+    public virtual System.Numerics.Vector3 Gravity => _physicsSystem.Gravity;
 
     private PhysicsSystem _physicsSystem = null!;
     private BodyInterface _bodyInterface;
@@ -49,14 +77,18 @@ public class PhysicsManager
     private Sound? _impactSound;
 
     private PhysicsDebugRenderer? _debugRenderer;
-    private readonly Mesh _debugMesh;
+    private Mesh? _debugMesh;
     private readonly PhysicsDebugDrawFilter _debugDrawFilter = new();
 
     public PhysicsManager()
     {
+    }
+
+    public virtual void Initialise()
+    {
         _debugMesh = new Mesh("physdebug", texture: "materials/error.mat")
         {
-            IsDev = true, 
+            IsDev = true,
             Usage = BufferUsage.StreamDraw
         };
         Engine.MeshManager.AddMesh(_debugMesh);
@@ -65,7 +97,7 @@ public class PhysicsManager
         physicsThread.Start();
     }
 
-    public BodyID? AddStaticObject(Mesh[] meshes, IPhysicsEntity entity)
+    public virtual BodyID? AddStaticObject(Mesh[] meshes, IPhysicsEntity entity)
     {
         if (entity is not BaseEntity baseEntity)
         {
@@ -119,7 +151,7 @@ public class PhysicsManager
         return bodyId;
     }
 
-    public BodyID? AddDynamicObject(ShapeSettings shape, IPhysicsEntity entity)
+    public virtual BodyID? AddDynamicObject(ShapeSettings shape, IPhysicsEntity entity)
     {
         if (entity is not BaseEntity baseEntity)
         {
@@ -150,7 +182,7 @@ public class PhysicsManager
         return bodyId;
     }
 
-    public CharacterVirtual? AddPlayerController(BaseEntity entity, BoxShape shape)
+    public virtual CharacterVirtual? AddPlayerController(BaseEntity entity, BoxShape shape)
     {
         var initialPosition = entity.GetPropertyValue<Vector3>("Position");
 
@@ -166,7 +198,7 @@ public class PhysicsManager
         return _character;
     }
 
-    public void RemovePlayerController()
+    public virtual void RemovePlayerController()
     {
         if (_character == null)
             return;
@@ -175,22 +207,22 @@ public class PhysicsManager
         _character = null;
     }
 
-    public void SetPosition(BodyID bodyId, Vector3 newPosition)
+    public virtual void SetPosition(BodyID bodyId, Vector3 newPosition)
     {
         _bodyInterface.SetPosition(bodyId, newPosition.ToNumericsVector(), Activation.Activate);
     }
 
-    public void SetRotation(BodyID bodyId, Quaternion newRotation)
+    public virtual void SetRotation(BodyID bodyId, Quaternion newRotation)
     {
         _bodyInterface.SetRotation(bodyId, newRotation.ToNumericsQuaternion(), Activation.Activate);
     }
 
-    public void SetVelocity(BodyID bodyId, Vector3 newVelocity)
+    public virtual void SetVelocity(BodyID bodyId, Vector3 newVelocity)
     {
         _bodyInterface.SetLinearVelocity(bodyId, newVelocity.ToNumericsVector());
     }
 
-    public void RemoveObject(BodyID body)
+    public virtual void RemoveObject(BodyID body)
     {
         _deletionQueue.Enqueue(body);
     }
@@ -322,7 +354,7 @@ public class PhysicsManager
         }
     }
 
-    public void Unload()
+    public virtual void Unload()
     {
         _shouldStop = true;
     }
@@ -331,9 +363,9 @@ public class PhysicsManager
     {
         private readonly List<Vertex> _vertices = new();
 
-        private readonly Mesh _mesh;
+        private readonly Mesh? _mesh;
 
-        public PhysicsDebugRenderer(Mesh mesh)
+        public PhysicsDebugRenderer(Mesh? mesh)
         {
             _mesh = mesh;
         }
@@ -359,7 +391,8 @@ public class PhysicsManager
 
         public void Render()
         {
-            Engine.MeshManager.UpdateMesh(_mesh, _vertices.ToList());
+            if (_mesh != null)
+                Engine.MeshManager.UpdateMesh(_mesh, _vertices.ToList());
 
             _vertices.Clear();
         }
