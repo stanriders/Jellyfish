@@ -1,9 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using Jellyfish.Console;
+﻿using Jellyfish.Console;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection.Metadata;
+using System.Text;
 
 namespace Jellyfish.Render;
 
@@ -163,19 +165,34 @@ public abstract class Shader
         var tesselationEvaluationShader = Engine.ShaderManager.GetShader(_tessEvalPath, ShaderType.TessEvaluationShader);
 
         if (vertexShader != null)
+        {
+            CompileShader(_vertPath, vertexShader.Value);
             GL.AttachShader(handle, vertexShader.Value);
+        }
 
         if (geometryShader != null)
+        {
+            CompileShader(_geomPath, geometryShader.Value);
             GL.AttachShader(handle, geometryShader.Value);
+        }
 
         if (fragmentShader != null)
+        {
+            CompileShader(_fragPath, fragmentShader.Value);
             GL.AttachShader(handle, fragmentShader.Value);
+        }
 
         if (tesselationControlShader != null)
+        {
+            CompileShader(_tessControlPath, tesselationControlShader.Value);
             GL.AttachShader(handle, tesselationControlShader.Value);
+        }
 
         if (tesselationEvaluationShader != null)
+        {
+            CompileShader(_tessEvalPath, tesselationEvaluationShader.Value);
             GL.AttachShader(handle, tesselationEvaluationShader.Value);
+        }
 
         LinkProgram(handle);
 
@@ -433,5 +450,76 @@ public abstract class Shader
 
         texture.Bind(sampler);
         _boundTextures.Add(sampler);
+    }
+
+    private void CompileShader(string? path, int shader)
+    {
+        if (string.IsNullOrEmpty(path))
+            return;
+
+        var shaderSource = LoadSource(path);
+        GL.ShaderSource(shader, shaderSource);
+
+        GL.CompileShader(shader);
+
+        GL.GetShaderi(shader, ShaderParameterName.CompileStatus, out var code);
+        if (code != (int)All.True)
+        {
+            GL.GetShaderInfoLog(shader, out var error);
+            Log.Context(this).Error("Failed to compile shader {Path}: {Error}", path, error);
+            throw new Exception($"Failed to compile shader {path}:\n{error}");
+        }
+    }
+
+    private string LoadSource(string path)
+    {
+        try
+        {
+            var builder = new StringBuilder();
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read);
+            using var sr = new StreamReader(stream, Encoding.UTF8);
+            while (!sr.EndOfStream)
+            {
+                var line = sr.ReadLine();
+                if (line == null)
+                    break;
+
+                if (line.StartsWith("#include"))
+                {
+                    var includePath = Path.Combine(Path.GetDirectoryName(path) ?? string.Empty, line.Replace("#include", "").Trim());
+
+                    var includedFile = LoadDependency(includePath);
+                    var fileLines = includedFile.Split('\n');
+                    foreach (var fileLine in fileLines)
+                    {
+                        if (fileLine.StartsWith("#include"))
+                        {
+                            var subIncludePath = Path.Combine(Path.GetDirectoryName(path) ?? string.Empty, fileLine.Replace("#include", "").Trim());
+                            builder.AppendLine(LoadDependency(subIncludePath));
+                            continue;
+                        }
+                        builder.AppendLine(fileLine);
+                    }
+                    continue;
+                }
+                builder.AppendLine(line);
+            }
+            return builder.ToString();
+        }
+        catch (Exception ex)
+        {
+            Log.Context(this).Error(ex, "Failed to load shader {Path}", path);
+            throw;
+        }
+    }
+
+    private string LoadDependency(string includePath)
+    {
+        if (!File.Exists(includePath))
+            throw new FileNotFoundException();
+
+        var includedFile = File.ReadAllText(includePath);
+
+        return includedFile;
     }
 }
