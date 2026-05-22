@@ -71,7 +71,7 @@ public static class ModelParser
                     boneId = bones.Count;
                     boneMap[bone.Name] = boneId;
 
-                    var offsetMatrix = bone.OffsetMatrix.ToOpentkMatrix();
+                    var offsetMatrix = ((Matrix4)bone.OffsetMatrix).Transposed();
                     if (prerotate)
                     {
                         var corr = Matrix4.CreateFromQuaternion(new Quaternion(MathHelper.DegreesToRadians(90), 0, 0));

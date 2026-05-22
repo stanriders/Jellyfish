@@ -37,7 +37,7 @@
 
 	<ItemGroup>
 		<!--<PackageReference Include="AssimpNet" Version="4.1.0" />-->
-		<PackageReference Include="AssimpNet" Version="5.0.0-beta1" />
+		<PackageReference Include="AssimpNetter" Version="6.0.4" />
 		<PackageReference Include="Hexa.NET.ImGuizmo" Version="2.2.9" />
 		<PackageReference Include="Hexa.NET.ImPlot" Version="2.2.9" />
 		<PackageReference Include="JoltPhysicsSharp" Version="2.19.1" />
