@@ -34,48 +34,56 @@ void FindBlocker4x4
 (
     out float avgBlockerDepth,
     out float numBlockers,
-    sampler2D depthMap, vec2 uv, float zReceiver, float zNear, float lightSizeUV
+    sampler2D depthMap, vec2 uv, float zReceiver, float zNear, float zFar, float lightSizeUV
 )
 {
     //This uses similar triangles to compute what //area of the shadow map we should search
-    float searchWidth = lightSizeUV * (zReceiver - zNear) / zNear;
+    float searchWidth = lightSizeUV * (zReceiver - zNear) / zReceiver;
+    searchWidth = clamp(searchWidth, 0.0, 0.05);
 
     float blockerSum = 0;
     numBlockers = 0;
 
     for (int i = 0; i < PCSS_FILTER_SIZE; i++)
     {
-        float shadowMapDepth = texture( depthMap, uv + poissonDisk[i] * searchWidth ).r;
-        if ( shadowMapDepth > zReceiver ) 
+        float shadowMapDepth = GetDepth(depthMap, uv + poissonDisk[i] * searchWidth, zNear, zFar);
+        if ( shadowMapDepth < zReceiver ) 
         {
             blockerSum += shadowMapDepth;
             numBlockers++;
         }
     }
 
-    avgBlockerDepth = blockerSum / numBlockers;
+    avgBlockerDepth =
+        numBlockers > 0
+        ? blockerSum / numBlockers
+        : 0.0;
 }
 
 float PenumbraSize( float zReceiver, float zBlocker ) //Parallel plane estimation
 {
+    zBlocker = max(zBlocker, 0.001);
     return (zReceiver - zBlocker) / zBlocker;
 }
 
 // shadowing options
-float PoissonPCSSShadow( sampler2D depthMap, vec3 uvw, float zNear, float lightSizeUV )
+float PoissonPCSSShadow( sampler2D depthMap, vec3 uvw, float zNear, float zFar, float lightSizeUV )
 {
     float avgBlockerDepth = 0;
     float numBlockers = 0;
 
-    FindBlocker4x4( avgBlockerDepth, numBlockers, depthMap, uvw.xy, uvw.z, zNear, lightSizeUV );
+    float zReceiver = LinearizeDepth(uvw.z, zNear, zFar);
 
-    float flOut = 0.0f;
+    FindBlocker4x4( avgBlockerDepth, numBlockers, depthMap, uvw.xy, zReceiver, zNear, zFar, lightSizeUV );
+
+    float flOut = 1.0f;
     
     if( numBlockers >= 1 )
     {
         // STEP 2: penumbra size
-        float penumbraRatio = PenumbraSize( uvw.z, avgBlockerDepth );
-        float filterRadiusUV = penumbraRatio * lightSizeUV / uvw.z;
+        float penumbraRatio = PenumbraSize( zReceiver, avgBlockerDepth );
+        float filterRadiusUV = penumbraRatio * lightSizeUV;
+        filterRadiusUV = min(filterRadiusUV, 0.01);
 
         flOut = PoissonPCF( depthMap, uvw, filterRadiusUV );
     }
@@ -125,14 +133,18 @@ float ShadowCalculation(int lightIndex, vec3 lightDir, vec3 normal)
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 
     projCoords = projCoords * 0.5 + 0.5;
-    
-    if(projCoords.z > 1.0)
+
+    if(projCoords.x < 0.0 || projCoords.x > 1.0 ||
+       projCoords.y < 0.0 || projCoords.y > 1.0 ||
+       projCoords.z < 1.0 || projCoords.z > 1.0)
+    {
         return 0.0;
-        
+    }
+
     sampler2D shadow = sampler2D(lightSources[lightIndex].shadow);
 
     if (lightSources[lightIndex].usePcss)
-        return PoissonPCSSShadow(shadow, projCoords, lightSources[lightIndex].near, 6.0f);
+        return PoissonPCSSShadow(shadow, projCoords, lightSources[lightIndex].near, lightSources[lightIndex].far, 0.01f);
 
     return PoissonPCFShadow(shadow, projCoords, 2.0f);
     //return SimplePCFShadow(shadow, projCoords, 4);
@@ -240,9 +252,9 @@ LightContrib CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
             projCoords.z >= 0.0 || projCoords.z < 1.0)
         {
             sampler2D shadowSampler = sampler2D(sun.shadow[layer]);
-            if (sun.usePcss && layer == 0)
+            if (sun.usePcss)
             {
-                shadow = PoissonPCSSShadow(shadowSampler, projCoords, sun.cascadeNear[layer], 0.1f);
+                shadow = PoissonPCSSShadow(shadowSampler, projCoords, sun.cascadeNear[layer], sun.cascadeFar[layer], 0.1f);
             }
             else
             {
