@@ -37,7 +37,7 @@ void FindBlocker4x4
     sampler2D depthMap, vec2 uv, float zReceiver, float zNear, float zFar, float lightSizeUV
 )
 {
-    //This uses similar triangles to compute what //area of the shadow map we should search
+    //This uses similar triangles to compute what area of the shadow map we should search
     float searchWidth = lightSizeUV * (zReceiver - zNear) / zReceiver;
     searchWidth = clamp(searchWidth, 0.0, 0.05);
 
@@ -136,7 +136,7 @@ float ShadowCalculation(int lightIndex, vec3 lightDir, vec3 normal)
 
     if(projCoords.x < 0.0 || projCoords.x > 1.0 ||
        projCoords.y < 0.0 || projCoords.y > 1.0 ||
-       projCoords.z < 1.0 || projCoords.z > 1.0)
+       projCoords.z < 0.0 || projCoords.z > 1.0)
     {
         return 0.0;
     }
