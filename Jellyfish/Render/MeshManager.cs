@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using Jellyfish.Debug;
@@ -9,11 +10,13 @@ namespace Jellyfish.Render;
 
 public class MeshManager
 {
-    private readonly List<Mesh> _meshes = new();
+    private readonly List<Mesh> _opaqueMeshes = new();
+    private readonly List<Mesh> _translucentMeshes = new();
+
     private readonly List<Mesh> _singleFrameMeshes = new();
     private readonly List<(Mesh, List<Vertex>)> _updateQueue = new();
 
-    public IReadOnlyList<Mesh> Meshes => _meshes.AsReadOnly();
+    public IReadOnlyList<Mesh> Meshes => new ReadOnlyCollection<Mesh>([.._opaqueMeshes, .._translucentMeshes]);
     public BoundingBox SceneBoundingBox { get; private set; }
 
     private bool _drawing;
@@ -21,7 +24,16 @@ public class MeshManager
     public void AddMesh(Mesh mesh, bool singleFrame = false)
     {
         mesh.Load();
-        _meshes.Add(mesh);
+
+        if (mesh.Material?.GetParam<bool>("AlphaTest") ?? false)
+        {
+            _translucentMeshes.Add(mesh);
+        }
+        else
+        {
+            _opaqueMeshes.Add(mesh);
+        }
+
         if (singleFrame)
             _singleFrameMeshes.Add(mesh);
 
@@ -35,11 +47,15 @@ public class MeshManager
             // never remove meshes mid-drawing
         }
 
-        _meshes.Remove(mesh);
+        if (_translucentMeshes.Contains(mesh))
+            _translucentMeshes.Remove(mesh);
+        else
+            _opaqueMeshes.Remove(mesh);
+
         mesh.Unload();
 
         // sounds expensive?
-        SceneBoundingBox = new BoundingBox(_meshes.Select(x => x.BoundingBox).ToArray());
+        SceneBoundingBox = new BoundingBox(Meshes.Select(x => x.BoundingBox).ToArray());
     }
 
     public void UpdateMesh(Mesh mesh, List<Vertex> vertices)
@@ -86,10 +102,9 @@ public class MeshManager
 
     private void DrawOpaque(bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null, bool gBuffer = false)
     {
-        var opaqueObjects = _meshes.Where(x => !(x.Material?.GetParam<bool>("AlphaTest") ?? false)).ToArray();
-
         var stopwatch = Stopwatch.StartNew();
-        foreach (var mesh in opaqueObjects)
+
+        foreach (var mesh in _opaqueMeshes)
             DrawMesh(mesh, drawDev, shaderToUse, frustum, gBuffer);
 
         PerformanceMeasurment.Add("MeshManager.Draw.Opaque", stopwatch.Elapsed.TotalMilliseconds);
@@ -99,7 +114,7 @@ public class MeshManager
     {
         var sortingPosition = frustum?.NearPlaneCenter ?? Engine.MainViewport.Position;
 
-        var transluscentObjects = _meshes.Where(x => x.Material?.GetParam<bool>("AlphaTest") ?? false)
+        var transluscentObjects = _translucentMeshes
             .OrderByDescending(x => ((x.Position + x.BoundingBox.Center) - sortingPosition).Length)
             .ToArray();
 
@@ -158,7 +173,10 @@ public class MeshManager
 
     public void Unload()
     {
-        foreach (var mesh in _meshes)
+        foreach (var mesh in _opaqueMeshes)
+            mesh.Unload();
+
+        foreach (var mesh in _translucentMeshes)
             mesh.Unload();
     }
 }
