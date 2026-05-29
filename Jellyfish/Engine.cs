@@ -116,6 +116,7 @@ namespace Jellyfish
 
             Log.Context(this).Information("Finished loading!");
 
+            _render.IsReady = true;
 #if DEBUG
             QueuedMap = "test";
             Paused = true;
