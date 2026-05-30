@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Linq;
+﻿using System.Linq;
 using Jellyfish.Render;
 using Jellyfish.Utils;
 using OpenTK.Mathematics;
@@ -20,9 +19,12 @@ public abstract class BaseModelEntity : BaseEntity
 
     public override void Load()
     {
-        if (Model == null && !string.IsNullOrEmpty(ModelPath) && Path.Exists(ModelPath))
+        if (Model == null && !string.IsNullOrEmpty(ModelPath))
         {
             Model = ModelParser.Parse(ModelPath);
+            if (Model == null)
+                return;
+
             Model.Position = GetPropertyValue<Vector3>("Position");
             Model.Rotation = GetPropertyValue<Quaternion>("Rotation");
             Model.Scale = GetPropertyValue<Vector3>("Scale");

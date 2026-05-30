@@ -11,7 +11,7 @@ public class StaticModel : BaseModelEntity, IPhysicsEntity
 
     public StaticModel()
     {
-        AddProperty<string>("Model", editable: false);
+        AddProperty<string>("Model", editable: false, flags: EntityPropertyFlags.FilePath);
 
         var position = GetProperty<Vector3>("Position");
         position!.Editable = false;
@@ -22,7 +22,7 @@ public class StaticModel : BaseModelEntity, IPhysicsEntity
 
     public override void Load()
     {
-        ModelPath = $"models/{GetPropertyValue<string>("Model")}";
+        ModelPath = GetPropertyValue<string>("Model");
         base.Load();
         _physicsBodyId = Engine.PhysicsManager.AddStaticObject(Model!.Meshes.ToArray(), this) ?? 0;
     }

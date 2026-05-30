@@ -1,4 +1,5 @@
 ﻿using Hexa.NET.ImGui;
+using Hexa.NET.ImGui.Widgets.Dialogs;
 using Hexa.NET.ImGuizmo;
 using Jellyfish.Console;
 using Jellyfish.Entities;
@@ -7,6 +8,7 @@ using Jellyfish.Render;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Quaternion = OpenTK.Mathematics.Quaternion;
@@ -562,6 +564,18 @@ public class Editor : IUiPanel, IInputHandler
                 if (ImGui.InputText(elementLabel, ref val, 1024))
                 {
                     entity.SetPropertyValue(propertyName, val);
+                }
+                if (entityProperty.Flags == EntityPropertyFlags.FilePath && ImGui.Button("Open"))
+                {
+                    OpenFileDialog openFileDialog = new(Path.GetDirectoryName(val));
+                    openFileDialog.Show((_, result) =>
+                    {
+                        if (result == DialogResult.Ok)
+                        {
+                            var relativePath = Path.GetRelativePath(Environment.CurrentDirectory, openFileDialog.SelectedFile!);
+                            entity.SetPropertyValue(propertyName, relativePath);
+                        }
+                    });
                 }
             }
         }

@@ -60,9 +60,9 @@ public abstract class BaseEntity
     protected virtual void OnPositionChanged(Vector3 position) { }
     protected virtual void OnRotationChanged(Quaternion rotation) { }
 
-    protected void AddProperty<T>(string name, T defaultValue = default!, T[]? possibleValues = null, bool editable = true, bool showGizmo = false, Action<T>? changeCallback = null)
+    protected void AddProperty<T>(string name, T defaultValue = default!, T[]? possibleValues = null, bool editable = true, bool showGizmo = false, Action<T>? changeCallback = null, EntityPropertyFlags flags = EntityPropertyFlags.None)
     {
-        _entityProperties.Add(name, new EntityProperty<T>(name, defaultValue, possibleValues, editable, showGizmo, changeCallback));
+        _entityProperties.Add(name, new EntityProperty<T>(name, defaultValue, possibleValues, editable, showGizmo, changeCallback, flags));
     }
 
     protected EntityProperty<T>? GetProperty<T>(string name)

@@ -1,4 +1,5 @@
 ﻿using Hexa.NET.ImGui;
+using Hexa.NET.ImGui.Widgets;
 using Hexa.NET.ImGuizmo;
 using Hexa.NET.ImPlot;
 using Jellyfish.Console;
@@ -12,6 +13,7 @@ using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -56,12 +58,15 @@ public sealed class ImguiController : IDisposable, IInputHandler
         ImGui.PushStyleColor(ImGuiCol.TitleBgCollapsed, new System.Numerics.Vector4(0.04f, 0.04f, 0.04f, 0.20f));
         ImGui.PushStyleColor(ImGuiCol.ScrollbarBg, new System.Numerics.Vector4(0.00f, 0.00f, 0.00f, 0.20f));
 
+        WidgetManager.Init();
+
         var io = ImGui.GetIO();
         io.Fonts.AddFontFromFileTTF("fonts/Roboto-Regular.ttf", 15f);
         io.Fonts.AddFontDefault();
         io.DisplaySize = new Vector2(800, 600);
         io.DisplayFramebufferScale = new Vector2(1);
         io.DeltaTime = 1 / 60f;
+        io.ConfigDebugIsDebuggerPresent = Debugger.IsAttached;
 
         io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset | ImGuiBackendFlags.RendererHasTextures;
         io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
@@ -138,6 +143,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
         }
 
         ImGui.NewFrame();
+        WidgetManager.Draw();
         ImGuizmo.BeginFrame();
         ImGuizmo.SetRect(0, 0, io.DisplaySize.X, io.DisplaySize.Y);
 
@@ -404,6 +410,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
     public void Dispose()
     {
+        WidgetManager.Dispose();
         _vao.Unload();
         _vbo.Unload();
         _ibo.Unload();

@@ -14,9 +14,20 @@ namespace Jellyfish;
 
 public static class ModelParser
 {
-    public static Model Parse(string path, bool isDev = false)
+    public static Model? Parse(string path, bool isDev = false)
     {
         Log.Context("ModelParser").Information("Loading model {Path}...", path);
+
+        if (!Path.Exists(path))
+        {
+            path = $"models/{path}";
+
+            if (!Path.Exists(path))
+            {
+                Log.Context("ModelParser").Error("Can't find model {Model}", path);
+                return null;
+            }
+        }
 
         var modelName = Path.GetFileNameWithoutExtension(path);
 

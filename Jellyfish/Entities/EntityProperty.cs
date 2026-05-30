@@ -3,6 +3,13 @@ using System.Linq;
 
 namespace Jellyfish.Entities;
 
+[Flags]
+public enum EntityPropertyFlags
+{
+    None, 
+    FilePath
+}
+
 public abstract class EntityProperty
 {
     public string Name { get; set; } = null!;
@@ -12,6 +19,7 @@ public abstract class EntityProperty
     public object[]? PossibleValues { get; set; }
     public bool Editable { get; set; } = true;
     public bool ShowGizmo { get; set; } = false;
+    public EntityPropertyFlags Flags { get; set; }
     public Action<object>? OnChangeAction { get; set; }
 
     public void SetValue(object? value)
@@ -38,7 +46,7 @@ public abstract class EntityProperty
 
 public class EntityProperty<T> : EntityProperty
 {
-    public EntityProperty(string name, T? defaultValue = default, T[]? possibleValues = null, bool editable = true, bool showGizmo = false, Action<T>? changeCallback = null)
+    public EntityProperty(string name, T? defaultValue = default, T[]? possibleValues = null, bool editable = true, bool showGizmo = false, Action<T>? changeCallback = null, EntityPropertyFlags flags = EntityPropertyFlags.None)
     {
         Name = name;
         Type = typeof(T);
@@ -47,6 +55,7 @@ public class EntityProperty<T> : EntityProperty
         PossibleValues = possibleValues?.Cast<object>().ToArray();
         Editable = editable;
         ShowGizmo = showGizmo;
+        Flags = flags;
 
         if (changeCallback != null)
             OnChangeAction = x => changeCallback((T)x);

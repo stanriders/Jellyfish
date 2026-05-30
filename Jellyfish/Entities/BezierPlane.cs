@@ -13,7 +13,7 @@ public class BezierPlane : BaseModelEntity, IPhysicsEntity
     public BezierPlane()
     {
         AddProperty("QuadSize", 20, changeCallback: _ => UpdateMesh());
-        AddProperty("Texture", "test.png", changeCallback: OnTextureChanged);
+        AddProperty("Texture", "test.png", changeCallback: OnTextureChanged, flags: EntityPropertyFlags.FilePath);
         AddProperty("TextureScale", new Vector2(1.0f), changeCallback: _ => UpdateMesh());
         AddProperty("ControlPoints", GenerateInitialControlPoints(), showGizmo: true, changeCallback: _ => UpdateMesh());
     }
