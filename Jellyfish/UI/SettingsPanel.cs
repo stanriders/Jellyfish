@@ -92,10 +92,6 @@ namespace Jellyfish.UI
                         if (ImGui.Checkbox("IBL Prefilter", ref iblPrefilter))
                             ConVarStorage.Set("mat_ibl_prefilter", iblPrefilter);
 
-                        var iblRenderWorld = ConVarStorage.Get<bool>("mat_ibl_render_world");
-                        if (ImGui.Checkbox("IBL Render World", ref iblRenderWorld))
-                            ConVarStorage.Set("mat_ibl_render_world", iblRenderWorld);
-
                         ImGui.Separator();
 
                         var bloomEnabled = ConVarStorage.Get<bool>("mat_bloom_enabled");

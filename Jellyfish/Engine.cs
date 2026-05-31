@@ -203,7 +203,7 @@ namespace Jellyfish
                               ImGuiWindowFlags.NoNav |
                               ImGuiWindowFlags.NoMove;
 
-            const int loadingSteps = 10;
+            const int loadingSteps = 11;
             const float fracIncrease = 1.0f / loadingSteps;
 
             const int pad = 10;
@@ -234,6 +234,7 @@ namespace Jellyfish
             UpdateLoadingScreen("Cleaning up entities...");
             _entityManager.Unload();
             _audioManager.ClearScene();
+            _render.ImageBasedLighting?.Reset();
 
             UpdateLoadingScreen($"Loading map '{map}'...");
             MapLoader.Load(map);
@@ -243,6 +244,10 @@ namespace Jellyfish
             var player = EntityManager.FindEntity("player") ?? EntityManager.CreateEntity("player");
 
             _viewport.Position = player?.GetPropertyValue<Vector3>("Position") ?? Vector3.Zero;
+
+            UpdateLoadingScreen("Baking lighting probes...");
+
+            _render.OnMapLoad();
 
             UpdateLoadingScreen("Finishing loading...");
 

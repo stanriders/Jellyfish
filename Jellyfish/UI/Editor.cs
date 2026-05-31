@@ -105,6 +105,12 @@ public class Editor : IUiPanel, IInputHandler
                     }
                     ImGui.EndMenu();
                 }
+
+                if (ImGui.Button("Update light probes"))
+                {
+                    Engine.Renderer.UpdateIBL();
+                }
+
                 ImGui.EndMainMenuBar();
             }
         }
@@ -567,7 +573,7 @@ public class Editor : IUiPanel, IInputHandler
                 }
                 if (entityProperty.Flags == EntityPropertyFlags.FilePath && ImGui.Button("Open"))
                 {
-                    OpenFileDialog openFileDialog = new(Path.GetDirectoryName(val));
+                    OpenFileDialog openFileDialog = new(Path.GetDirectoryName(val) ?? "");
                     openFileDialog.Show((_, result) =>
                     {
                         if (result == DialogResult.Ok)

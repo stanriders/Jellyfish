@@ -1,5 +1,4 @@
-﻿using System;
-using Jellyfish.Console;
+﻿using Jellyfish.Console;
 using Jellyfish.Debug;
 using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Shaders.IBL;
@@ -9,33 +8,22 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using System.Buffers;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace Jellyfish.Render.Lighting;
 
 public class IblEnabled() : ConVar<bool>("mat_ibl_enabled", true);
-public class IblPrefilter() : ConVar<bool>("mat_ibl_prefilter", false);
-public class IblRenderWorld() : ConVar<bool>("mat_ibl_render_world", true);
-public class IblUpdate() : ConVar<bool>("mat_ibl_update", true);
+public class IblPrefilter() : ConVar<bool>("mat_ibl_prefilter", true);
 
 public class LightProbe
 {
+    private readonly int _index;
     public Vector3 Position { get; set; }
     public ulong IrradianceBindlessHandle { get; }
     public ulong PrefilterBindlessHandle { get; }
 
-    private readonly FrameBuffer _cubemapBuffer;
-    private readonly Texture _cubemapRenderTarget;
-
-    private readonly FrameBuffer _irradianceBuffer;
     private readonly Texture _irradianceRenderTarget;
-    private readonly Irradiance _irradianceShader;
-
-    private readonly FrameBuffer _prefilterBuffer;
-    private readonly RenderBuffer _prefilterRenderbuffer;
     private readonly Texture _prefilterRenderTarget;
-    private readonly Prefiltering _prefilterShader;
 
     private const int size = 128;
     private const int irradiance_size = 16;
@@ -63,36 +51,7 @@ public class LightProbe
 
     public LightProbe(int index)
     {
-        #region cubemap
-        _cubemapBuffer = new FrameBuffer();
-        _cubemapBuffer.Bind();
-
-        RenderBuffer.Create(InternalFormat.DepthComponent, FramebufferAttachment.DepthAttachment, size, size);
-
-        _cubemapRenderTarget = Engine.TextureManager.CreateTexture(new TextureParams
-        {
-            Name = $"_rt_EnvironmentMap_{index}",
-            Type = TextureTarget.TextureCubeMap,
-            WrapMode = TextureWrapMode.ClampToEdge,
-            RenderTargetParams = new RenderTargetParams
-            {
-                Width = size,
-                Heigth = size,
-                InternalFormat = SizedInternalFormat.Rgb16f,
-                Attachment = FramebufferAttachment.ColorAttachment0
-            }
-        });
-        GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
-
-        _cubemapBuffer.Check();
-        _cubemapBuffer.Unbind();
-        #endregion
-
-        #region irradiance
-        _irradianceShader = new Irradiance(_cubemapRenderTarget);
-        _irradianceBuffer = new FrameBuffer();
-        _irradianceBuffer.Bind();
-        RenderBuffer.Create(InternalFormat.DepthComponent, FramebufferAttachment.DepthAttachment, irradiance_size, irradiance_size);
+        _index = index;
 
         _irradianceRenderTarget = Engine.TextureManager.CreateTexture(new TextureParams
         {
@@ -109,22 +68,6 @@ public class LightProbe
             }
         });
 
-        GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
-
-        _irradianceBuffer.Check();
-        _irradianceBuffer.Unbind();
-
-        IrradianceBindlessHandle = GL.ARB.GetTextureHandleARB(_irradianceRenderTarget.Handle);
-        #endregion
-
-        #region prefilter
-
-        _prefilterShader = new Prefiltering(_cubemapRenderTarget);
-        _prefilterBuffer = new FrameBuffer();
-        _prefilterBuffer.Bind();
-
-        _prefilterRenderbuffer = new RenderBuffer(InternalFormat.DepthComponent, FramebufferAttachment.DepthAttachment, size, size);
-
         _prefilterRenderTarget = Engine.TextureManager.CreateTexture(new TextureParams
         {
             Name = $"_rt_Prefilter_{index}",
@@ -140,66 +83,114 @@ public class LightProbe
             }
         });
 
-        GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
-
-        _prefilterBuffer.Check();
-        _prefilterBuffer.Unbind();
-
+        IrradianceBindlessHandle = GL.ARB.GetTextureHandleARB(_irradianceRenderTarget.Handle);
         PrefilterBindlessHandle = GL.ARB.GetTextureHandleARB(_prefilterRenderTarget.Handle);
-        #endregion
 
         GL.ARB.MakeTextureHandleResidentARB(PrefilterBindlessHandle);
         GL.ARB.MakeTextureHandleResidentARB(IrradianceBindlessHandle);
     }
 
-    public void RenderCubemap(Sky? sky)
+    public void Render(Sky? sky)
     {
-        var renderWorld = ConVarStorage.Get<bool>("mat_ibl_render_world");
-        GL.Viewport(0, 0, size, size);
+        var envMap = RenderCubemap(sky);
+        RenderIrradience(envMap);
 
-        _cubemapBuffer.Bind();
+        if (ConVarStorage.Get<bool>("mat_ibl_prefilter"))
+            RenderPrefilter(envMap);
 
-        Engine.MainViewport.ProjectionMatrixOverride = Matrix4.CreatePerspectiveFieldOfView(float.DegreesToRadians(90f), 1.0f, 0.1f, renderWorld ? 2000f : 2.0f);
+        envMap.Unload();
+    }
+
+    private Texture RenderCubemap(Sky? sky)
+    {
+        var cubemapBuffer = new FrameBuffer();
+        cubemapBuffer.Bind();
+
+        RenderBuffer.Create(InternalFormat.DepthComponent, FramebufferAttachment.DepthAttachment, size, size);
+
+        var cubemapRenderTarget = Engine.TextureManager.CreateTexture(new TextureParams
+        {
+            Name = $"_rt_EnvironmentMap_{_index}",
+            Type = TextureTarget.TextureCubeMap,
+            WrapMode = TextureWrapMode.ClampToEdge,
+            RenderTargetParams = new RenderTargetParams
+            {
+                Width = size,
+                Heigth = size,
+                InternalFormat = SizedInternalFormat.Rgb16f,
+                Attachment = FramebufferAttachment.ColorAttachment0
+            }
+        });
+        GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
+
+        cubemapBuffer.Check();
+        cubemapBuffer.Unbind();
+
+        Engine.MainViewport.ProjectionMatrixOverride = Matrix4.CreatePerspectiveFieldOfView(float.DegreesToRadians(90f), 1.0f, 0.1f, 2000f);
 
         for (uint i = 0; i < 6; i++)
         {
-            GL.NamedFramebufferTextureLayer(_cubemapBuffer.Handle,
+            Engine.MainViewport.ViewMatrixOverride = Matrix4.LookAt(Position, Position + _cubemapViews[i].target, _cubemapViews[i].up);
+            Engine.Renderer.PreFrame();
+
+            GL.Viewport(0, 0, size, size);
+
+            cubemapBuffer.Bind();
+
+            GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
+            GL.NamedFramebufferTextureLayer(cubemapBuffer.Handle,
                 FramebufferAttachment.ColorAttachment0,
-                _cubemapRenderTarget.Handle,
+                cubemapRenderTarget.Handle,
                 level: 0,
                 layer: (int)i); // faceIndex = 0..5
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             Engine.MainViewport.ViewMatrixOverride = Matrix4.LookAt(Vector3.Zero, _cubemapViews[i].target, _cubemapViews[i].up);
-
             sky?.Draw();
 
-            if (renderWorld)
-            {
-                // todo: very, VERY expensive
-                Engine.MainViewport.ViewMatrixOverride = Matrix4.LookAt(Position, Position + _cubemapViews[i].target, _cubemapViews[i].up);
-                Engine.MeshManager.Draw(false, frustum: Engine.MainViewport.GetFrustum());
-            }
+            Engine.MainViewport.ViewMatrixOverride = Matrix4.LookAt(Position, Position + _cubemapViews[i].target, _cubemapViews[i].up);
+            Engine.MeshManager.Draw(false, frustum: Engine.MainViewport.GetFrustum());
+
+            cubemapBuffer.Unbind();
         }
 
-        GL.GenerateTextureMipmap(_cubemapBuffer.Handle);
+        GL.GenerateTextureMipmap(cubemapRenderTarget.Handle);
 
-        _cubemapBuffer.Unbind();
+        cubemapBuffer.Unload();
+
+        return cubemapRenderTarget;
     }
 
-    public void RenderIrradience()
+    private void RenderIrradience(Texture envMap)
     {
+        var irradianceShader = new Irradiance(envMap);
+        envMap.References++; // todo: this should be done automatically
+
+        var irradianceBuffer = new FrameBuffer();
+        irradianceBuffer.Bind();
+
+        var name = $"ibl_{_index}_irradiance_framebuffer";
+        GL.ObjectLabel(ObjectIdentifier.Framebuffer, (uint)irradianceBuffer.Handle, name.Length, name);
+
+        RenderBuffer.Create(InternalFormat.DepthComponent, FramebufferAttachment.DepthAttachment, irradiance_size, irradiance_size);
+
+        GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
+
+        irradianceBuffer.Check();
+        irradianceBuffer.Unbind();
+
         GL.Viewport(0, 0, irradiance_size, irradiance_size);
 
-        _irradianceBuffer.Bind();
+        irradianceBuffer.Bind();
         CommonShapes.CubeVertexArray?.Bind();
 
         Engine.MainViewport.ProjectionMatrixOverride = Matrix4.CreatePerspectiveFieldOfView(float.DegreesToRadians(90f), 1.0f, 0.1f, 2f);
 
         for (uint i = 0; i < 6; i++)
         {
-            GL.NamedFramebufferTextureLayer(_irradianceBuffer.Handle,
+            GL.NamedFramebufferTextureLayer(irradianceBuffer.Handle,
                 FramebufferAttachment.ColorAttachment0,
                 _irradianceRenderTarget.Handle,
                 level: 0,
@@ -207,25 +198,44 @@ public class LightProbe
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            _irradianceShader.Bind();
+            irradianceShader.Bind();
 
             Engine.MainViewport.ViewMatrixOverride = Matrix4.LookAt(Vector3.Zero, _cubemapUsageViews[i].target, _cubemapUsageViews[i].up);
 
             GL.DrawArrays(PrimitiveType.Triangles, 0, CommonShapes.Cube.Length);
             PerformanceMeasurment.Increment("DrawCalls");
 
-            _irradianceShader.Unbind();
+            irradianceShader.Unbind();
         }
 
         CommonShapes.CubeVertexArray?.Unbind();
-        _irradianceBuffer.Unbind();
+        irradianceBuffer.Unbind();
+
+        irradianceBuffer.Unload();
+        irradianceShader.Unload();
     }
 
-    public void RenderPrefilter()
+    private void RenderPrefilter(Texture envMap)
     {
+        var prefilterShader = new Prefiltering(envMap);
+        envMap.References++; // todo: this should be done automatically
+
+        var prefilterBuffer = new FrameBuffer();
+        prefilterBuffer.Bind();
+
+        var name = $"ibl_{_index}_prefilter_framebuffer";
+        GL.ObjectLabel(ObjectIdentifier.Framebuffer, (uint)prefilterBuffer.Handle, name.Length, name);
+
+        var prefilterRenderbuffer = new RenderBuffer(InternalFormat.DepthComponent, FramebufferAttachment.DepthAttachment, size, size);
+
+        GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
+
+        prefilterBuffer.Check();
+        prefilterBuffer.Unbind();
+
         GL.Viewport(0, 0, size, size);
 
-        _prefilterBuffer.Bind();
+        prefilterBuffer.Bind();
         CommonShapes.CubeVertexArray?.Bind();
 
         Engine.MainViewport.ProjectionMatrixOverride = Matrix4.CreatePerspectiveFieldOfView(float.DegreesToRadians(90f), 1.0f, 0.1f, 2f);
@@ -237,14 +247,14 @@ public class LightProbe
             var mipHeight = size >> mip;
 
             GL.Viewport(0, 0, mipWidth, mipHeight);
-            _prefilterRenderbuffer.Bind();
-            _prefilterRenderbuffer.UpdateSize(mipWidth, mipHeight);
+            prefilterRenderbuffer.Bind();
+            prefilterRenderbuffer.UpdateSize(mipWidth, mipHeight);
 
             var roughness = mip / (float)(maxMipLevels - 1);
 
             for (uint face = 0; face < 6; face++)
             {
-                GL.NamedFramebufferTextureLayer(_prefilterBuffer.Handle,
+                GL.NamedFramebufferTextureLayer(prefilterBuffer.Handle,
                     FramebufferAttachment.ColorAttachment0,
                     _prefilterRenderTarget.Handle,
                     level: mip,
@@ -253,21 +263,24 @@ public class LightProbe
 
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-                _prefilterShader.Bind();
-                _prefilterShader.SetFloat("roughness", roughness);
-                _prefilterShader.SetInt("mip", mip);
+                prefilterShader.Bind();
+                prefilterShader.SetFloat("roughness", roughness);
+                prefilterShader.SetInt("mip", mip);
 
                 Engine.MainViewport.ViewMatrixOverride = Matrix4.LookAt(Vector3.Zero, _cubemapUsageViews[face].target, _cubemapUsageViews[face].up);
 
                 GL.DrawArrays(PrimitiveType.Triangles, 0, CommonShapes.Cube.Length);
                 PerformanceMeasurment.Increment("DrawCalls");
 
-                _prefilterShader.Unbind();
+                prefilterShader.Unbind();
             }
         }
 
         CommonShapes.CubeVertexArray?.Unbind();
-        _prefilterBuffer.Unbind();
+        prefilterBuffer.Unbind();
+
+        prefilterBuffer.Unload();
+        prefilterShader.Unload();
     }
 
     public void Unload()
@@ -275,40 +288,27 @@ public class LightProbe
         GL.ARB.MakeTextureHandleNonResidentARB(IrradianceBindlessHandle);
         GL.ARB.MakeTextureHandleNonResidentARB(PrefilterBindlessHandle);
 
-        _cubemapRenderTarget.Unload();
         _irradianceRenderTarget.Unload();
         _prefilterRenderTarget.Unload();
-
-        _cubemapBuffer.Unload();
-        _prefilterBuffer.Unload();
-        _irradianceBuffer.Unload();
-
-        _prefilterShader.Unload();
-        _irradianceShader.Unload();
     }
 }
 
 public class ImageBasedLighting
 {
     public List<LightProbe> Probes { get; } = new();
-    private int _currentProbe;
-    private readonly List<(LightProbe probe, Vector3 offset)> _playerProbes = new();
 
-    public readonly ShaderStorageBuffer<LightProbes> LightProbesSsbo;
+    public readonly ShaderStorageBuffer<LightProbes> LightProbesSsbo = new("lightProbesSSBO", new LightProbes());
     public const int max_probes = 512;
 
-    private bool _renderedLastFrame;
-    public ImageBasedLighting()
+    public LightProbe? AddProbe(Vector3 position)
     {
-        LightProbesSsbo = new ShaderStorageBuffer<LightProbes>("lightProbesSSBO", new LightProbes());
+        if (Probes.Count >= max_probes)
+            return null;
 
-        _playerProbes.Add((AddProbe(), new Vector3(0, 48, 0)));
-        //GeneratePlayerProbeGrid();
-    }
-
-    public LightProbe AddProbe()
-    {
-        var probe = new LightProbe(Probes.Count);
+        var probe = new LightProbe(Probes.Count)
+        {
+            Position = position
+        };
         Probes.Add(probe);
 
         return probe;
@@ -322,101 +322,94 @@ public class ImageBasedLighting
 
     public void Frame(Sky? sky)
     {
-        var stopwatch = Stopwatch.StartNew();
+        //Render(sky);
+    }
 
-        if (ConVarStorage.Get<bool>("mat_ibl_enabled") && ConVarStorage.Get<bool>("mat_ibl_update"))
+    public void Render(Sky? sky)
+    {
+        var gpuProbes = ArrayPool<Jellyfish.Render.Shaders.Structs.LightProbe>.Shared.Rent(max_probes);
+
+        if (Probes.Count == 0)
         {
-            // only render every second frame
-            if (_renderedLastFrame)
-            {
-                _renderedLastFrame = false;
-                return;
-            }
-
-            _renderedLastFrame = true;
-
-            var gpuProbes = ArrayPool<Jellyfish.Render.Shaders.Structs.LightProbe>.Shared.Rent(max_probes);
-
-            if (Probes.Count == 0)
-            {
-                LightProbesSsbo.UpdateData(new LightProbes
-                {
-                    Probes = gpuProbes,
-                    ProbeCount = 0
-                });
-
-                ArrayPool<Jellyfish.Render.Shaders.Structs.LightProbe>.Shared.Return(gpuProbes);
-                return;
-            }
-
-            if (_currentProbe >= Probes.Count)
-                _currentProbe = 0;
-
-            var lightProbe = Probes[_currentProbe];
-
-            var playerProbe = _playerProbes.FirstOrDefault(x => x.probe == lightProbe);
-            if (playerProbe != default)
-                lightProbe.Position = Engine.MainViewport.Position + playerProbe.offset;
-
-            lightProbe.RenderCubemap(sky);
-            lightProbe.RenderIrradience();
-
-            if (ConVarStorage.Get<bool>("mat_ibl_prefilter"))
-                lightProbe.RenderPrefilter();
-
-            _currentProbe++;
-
-            Engine.MainViewport.ViewMatrixOverride = null;
-            Engine.MainViewport.ProjectionMatrixOverride = null;
-
-            for (var i = 0; i < Probes.Count; i++)
-            {
-                gpuProbes[i].Position = new Vector4(Probes[i].Position);
-                gpuProbes[i].IrradianceTexture = Probes[i].IrradianceBindlessHandle;
-                gpuProbes[i].PrefilterTexture = Probes[i].PrefilterBindlessHandle;
-            }
-
             LightProbesSsbo.UpdateData(new LightProbes
             {
                 Probes = gpuProbes,
-                ProbeCount = Probes.Count
+                ProbeCount = 0
             });
 
             ArrayPool<Jellyfish.Render.Shaders.Structs.LightProbe>.Shared.Return(gpuProbes);
+            return;
         }
 
-        PerformanceMeasurment.Add("IBL.Frame", stopwatch.Elapsed.TotalMilliseconds);
+        var iblState = ConVarStorage.Get<bool>("mat_ibl_enabled");
+        var sslrState = ConVarStorage.Get<bool>("mat_sslr_enabled");
+
+        ConVarStorage.Set("mat_ibl_enabled", false);
+        ConVarStorage.Set("mat_sslr_enabled", false);
+
+        foreach (var lightProbe in Probes)
+        {
+            lightProbe.Render(sky);
+        }
+
+        ConVarStorage.Set("mat_ibl_enabled", iblState);
+        ConVarStorage.Set("mat_sslr_enabled", sslrState);
+
+        Engine.MainViewport.ViewMatrixOverride = null;
+        Engine.MainViewport.ProjectionMatrixOverride = null;
+
+        for (var i = 0; i < Probes.Count; i++)
+        {
+            gpuProbes[i].Position = new Vector4(Probes[i].Position);
+            gpuProbes[i].IrradianceTexture = Probes[i].IrradianceBindlessHandle;
+            gpuProbes[i].PrefilterTexture = Probes[i].PrefilterBindlessHandle;
+        }
+
+        LightProbesSsbo.UpdateData(new LightProbes
+        {
+            Probes = gpuProbes,
+            ProbeCount = Probes.Count
+        });
+
+        ArrayPool<Jellyfish.Render.Shaders.Structs.LightProbe>.Shared.Return(gpuProbes);
     }
 
-    public void Unload()
+    public void Reset()
     {
-        _playerProbes.Clear();
-
         foreach (var lightProbe in Probes)
         {
             lightProbe.Unload();
         }
+
+        Probes.Clear();
     }
 
-    private void GeneratePlayerProbeGrid()
+    public void Unload()
     {
-        _playerProbes.Add((AddProbe(), Vector3.Zero));
+        Reset();
+    }
 
-        for (int ring = 0; ring < 2; ring++)
+    public void GenerateProbeGrid()
+    {
+        var xStep = (int)(Engine.MeshManager.SceneBoundingBox.Size.X / 6);
+        var yStep = (int)(Engine.MeshManager.SceneBoundingBox.Size.Y / 4);
+        var zStep = (int)(Engine.MeshManager.SceneBoundingBox.Size.Z / 6);
+
+        for (var xOffset = (int)Engine.MeshManager.SceneBoundingBox.Min.X + xStep;
+             xOffset < (int)Engine.MeshManager.SceneBoundingBox.Max.X;
+             xOffset += xStep)
         {
-            for (int xOffset = -8; xOffset <= 8; xOffset += 4)
+            for (var yOffset = (int)Engine.MeshManager.SceneBoundingBox.Min.Y + yStep;
+                 yOffset < (int)Engine.MeshManager.SceneBoundingBox.Max.Y;
+                 yOffset += yStep)
             {
-                for (int yOffset = -8; yOffset <= 8; yOffset += 8)
+                for (var zOffset = (int)Engine.MeshManager.SceneBoundingBox.Min.Z + zStep;
+                     zOffset < (int)Engine.MeshManager.SceneBoundingBox.Max.Z;
+                     zOffset += zStep)
                 {
-                    for (int zOffset = -8; zOffset <= 8; zOffset += 8)
-                    {
-                        var ringXOffset = Math.Pow(xOffset, ring + 1);
-                        var ringYOffset = Math.Pow(yOffset, ring + 1);
-                        var ringZOffset = Math.Pow(zOffset, ring + 1);
-                        var offset = new Vector3((float)ringXOffset, (float)ringYOffset, (float)ringZOffset);
-                        if (!_playerProbes.Any(x=> x.offset == offset))
-                            _playerProbes.Add((AddProbe(), offset));
-                    }
+                    var offset = new Vector3(xOffset, yOffset, zOffset);
+                    if (!Probes.Any(x => x.Position == offset))
+                        AddProbe(offset);
                 }
             }
         }

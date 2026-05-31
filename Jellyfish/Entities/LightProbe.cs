@@ -10,11 +10,7 @@ public class LightProbe : BaseEntity
     public override void Load()
     {
         base.Load();
-        _probe = Engine.Renderer.ImageBasedLighting?.AddProbe();
-        if (_probe != null)
-        {
-            _probe.Position = GetPropertyValue<Vector3>("Position");
-        }
+        _probe = Engine.Renderer.ImageBasedLighting?.AddProbe(GetPropertyValue<Vector3>("Position"));
     }
 
     protected override void OnPositionChanged(Vector3 position)

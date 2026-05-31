@@ -406,9 +406,9 @@
         {
           "Name": "Rotation",
           "Value": {
-            "Pitch": 14.999992,
-            "Yaw": 2.1344337E-07,
-            "Roll": -19.999992
+            "Pitch": 14.9999895,
+            "Yaw": 4.2688674E-07,
+            "Roll": -19.99999
           }
         },
         {
@@ -429,15 +429,15 @@
         },
         {
           "Name": "Brightness",
-          "Value": 3.42
+          "Value": 2.0
         },
         {
           "Name": "Enabled",
-          "Value": false
+          "Value": true
         },
         {
           "Name": "Shadows",
-          "Value": false
+          "Value": true
         },
         {
           "Name": "PCSS",
@@ -504,10 +504,6 @@
             "Yaw": 0.0,
             "Roll": 0.0
           }
-        },
-        {
-          "Name": "Radius",
-          "Value": 2408.0
         }
       ]
     },
@@ -529,10 +525,6 @@
             "Yaw": 0.0,
             "Roll": 0.0
           }
-        },
-        {
-          "Name": "Radius",
-          "Value": 3316.0
         }
       ]
     },
@@ -554,10 +546,6 @@
             "Yaw": 0.0,
             "Roll": 0.0
           }
-        },
-        {
-          "Name": "Radius",
-          "Value": 2166.0
         }
       ]
     },
@@ -579,10 +567,6 @@
             "Yaw": 0.0,
             "Roll": 0.0
           }
-        },
-        {
-          "Name": "Radius",
-          "Value": 2118.0
         }
       ]
     },
@@ -604,10 +588,6 @@
             "Yaw": 0.0,
             "Roll": 0.0
           }
-        },
-        {
-          "Name": "Radius",
-          "Value": 2088.0
         }
       ]
     },
@@ -629,10 +609,6 @@
             "Yaw": 0.0,
             "Roll": 0.0
           }
-        },
-        {
-          "Name": "Radius",
-          "Value": 2175.0
         }
       ]
     },
@@ -654,10 +630,6 @@
             "Yaw": 0.0,
             "Roll": 0.0
           }
-        },
-        {
-          "Name": "Radius",
-          "Value": 1346.0
         }
       ]
     }
