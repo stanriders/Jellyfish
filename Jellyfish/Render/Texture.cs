@@ -37,6 +37,7 @@ public class Texture
     public string Format { get; private set; } = string.Empty;
 
     private readonly bool _isError;
+    private bool _isDeleted;
 
     public const string error_texture = "materials/error.png";
 
@@ -144,6 +145,9 @@ public class Texture
 
     public void Bind(uint unit)
     {
+        if (_isDeleted)
+            throw new Exception("Trying to bind a deleted texture!");
+
         if (Handle != 0)
         {
             GL.BindTextureUnit(unit, Handle);
@@ -162,5 +166,14 @@ public class Texture
     {
         var maxDim = Math.Max(width, height);
         return (int)Math.Floor(Math.Log(maxDim, 2)) + 1;
+    }
+
+    public void Delete()
+    {
+        if (References > 0)
+            Log.Context(this).Warning("Trying to delete a texture with >0 references!");
+
+        GL.DeleteTexture(Handle);
+        _isDeleted = true;
     }
 }
