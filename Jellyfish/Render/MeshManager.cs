@@ -36,8 +36,6 @@ public class MeshManager
 
         if (singleFrame)
             _singleFrameMeshes.Add(mesh);
-
-        SceneBoundingBox = new BoundingBox([SceneBoundingBox, mesh.BoundingBox]);
     }
 
     public void RemoveMesh(Mesh mesh)
@@ -55,7 +53,7 @@ public class MeshManager
         mesh.Unload();
 
         // sounds expensive?
-        SceneBoundingBox = new BoundingBox(Meshes.Select(x => x.BoundingBox).ToArray());
+        UpdateSceneBoundingBox();
     }
 
     public void UpdateMesh(Mesh mesh, List<Vertex> vertices)
@@ -178,5 +176,10 @@ public class MeshManager
 
         foreach (var mesh in _translucentMeshes)
             mesh.Unload();
+    }
+
+    public void UpdateSceneBoundingBox()
+    {
+        SceneBoundingBox = new BoundingBox(Meshes.Select(x => x.BoundingBox).ToArray());
     }
 }

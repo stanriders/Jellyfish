@@ -52,6 +52,8 @@ public abstract class BaseModelEntity : BaseEntity
                 Engine.AudioManager.AddMesh(mesh);
             }
         }
+
+        Engine.MeshManager.UpdateSceneBoundingBox();
     }
 
     public override void Think(float frameTime)
