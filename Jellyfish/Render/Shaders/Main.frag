@@ -38,7 +38,7 @@ vec3 ApplyLight(vec3 light, vec3 diffuseColor, vec3 L, vec3 N, vec3 V, vec3 F0, 
 
     vec3 diffuse = brdf.kD * diffuseColor;
     return max(vec3(0.0), (diffuse + brdf.specular) * light * NdotL) +
-           diffuse * vec3(0.003); // very slight ambient to make sure we never end up with pitch black textures
+           diffuse * vec3(0.002); // very slight ambient to make sure we never end up with pitch black textures
 }
 
 void main()
