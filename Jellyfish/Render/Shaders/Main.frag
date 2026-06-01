@@ -30,14 +30,15 @@ uniform vec2 screenSize;
 #include Lighting.frag
 #include Pbr.frag
 
-vec3 ApplyLight(LightContrib lc, vec3 diffuseColor, vec3 L, vec3 N, vec3 V, vec3 F0, float roughness, float metalness)
+vec3 ApplyLight(vec3 light, vec3 diffuseColor, vec3 L, vec3 N, vec3 V, vec3 F0, float roughness, float metalness)
 {
     float NdotL = max(dot(N, L), 0.0);
 
     BRDFResult brdf = ComputeBRDF(N, V, L, F0, roughness, metalness);
 
     vec3 diffuse = brdf.kD * diffuseColor;
-    return diffuse * lc.ambient + max(vec3(0.0), (diffuse + brdf.specular) * lc.direct * NdotL);
+    return max(vec3(0.0), (diffuse + brdf.specular) * light * NdotL) +
+           diffuse * vec3(0.003); // very slight ambient to make sure we never end up with pitch black textures
 }
 
 void main()
@@ -74,7 +75,7 @@ void main()
         Light light = lightSources[i];
         vec3 lightDir = normalize(light.position - frag_position);
 
-        LightContrib lightContrib;
+        vec3 lightContrib;
         switch(lightSources[i].type)
         {
             case 0: // point
@@ -95,7 +96,7 @@ void main()
     if (sunEnabled) 
     {
         vec3 lightDir = normalize(-sun.direction);
-        LightContrib lightContrib = CalcSun(normal, frag_position, viewDir);
+        vec3 lightContrib = CalcSun(normal, frag_position, viewDir);
 
         lighting += ApplyLight(lightContrib, diffuseTex.rgb, lightDir, normal, viewDir, dielectricCoefficient, roughness, metalness);
     }

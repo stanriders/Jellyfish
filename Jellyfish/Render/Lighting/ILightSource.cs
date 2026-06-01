@@ -9,7 +9,6 @@ public interface ILightSource
     Quaternion Rotation { get; }
 
     Color3<Rgb> Color { get; }
-    Color3<Rgb> Ambient { get; }
     float Brightness { get; }
 
     bool Enabled { get; }

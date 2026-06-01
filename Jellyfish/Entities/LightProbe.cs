@@ -7,6 +7,8 @@ public class LightProbe : BaseEntity
 {
     private Render.Lighting.LightProbe? _probe;
 
+    public override bool DrawDevCone { get; set; } = true;
+
     public override void Load()
     {
         base.Load();

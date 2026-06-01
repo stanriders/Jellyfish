@@ -76,7 +76,6 @@ public class Main : Shader
             lightSourcesStruct.Lights[currentLight].Direction = new Vector4(rotationVector);
 
             lightSourcesStruct.Lights[currentLight].Diffuse = new Vector4(light.Color.X, light.Color.Y, light.Color.Z, 0);
-            lightSourcesStruct.Lights[currentLight].Ambient = new Vector4(light.Ambient.X, light.Ambient.Y, light.Ambient.Z, 0);
 
             lightSourcesStruct.Lights[currentLight].Brightness = light.Brightness;
 
@@ -125,7 +124,6 @@ public class Main : Shader
             var sun = Engine.LightManager.Sun.Source;
 
             lightSourcesStruct.Sun.Diffuse = new Vector4(sun.Color.X, sun.Color.Y, sun.Color.Z, 0);
-            lightSourcesStruct.Sun.Ambient = new Vector4(sun.Ambient.X, sun.Ambient.Y, sun.Ambient.Z, 0);
 
             var rotationVector = Vector3.Transform(-Vector3.UnitY, sun.Rotation);
             lightSourcesStruct.Sun.Direction = new Vector4(rotationVector);

@@ -20,12 +20,11 @@ struct Light {
     float brightness;
     bool hasShadows;
 
-    vec3 ambient;    float _pad2;
-    vec3 diffuse;    float _pad3;
+    vec3 diffuse;    float _pad2;
 
     float near;
     float far;
-    bool usePcss;    float _pad4;
+    bool usePcss;    float _pad3;
 
     uint64_t shadow;
 };
@@ -35,12 +34,11 @@ struct Sun {
 
     mat4 lightSpaceMatrix[CSM_CASCADES];
 
-    vec3 ambient;    float _pad1;
-    vec3 diffuse;    float _pad2;
+    vec3 diffuse;    float _pad1;
 
     float brightness;
     bool   hasShadows;
-    bool   usePcss;   int _pad3;
+    bool   usePcss;   int _pad2;
 
     int cascadeFar[CSM_CASCADES];
     int cascadeNear[CSM_CASCADES];
@@ -52,11 +50,6 @@ layout(std430, binding = 0) buffer LightSources {
     Sun   sun;
     int   lightSourcesCount;
     bool  sunEnabled;
-};
-
-struct LightContrib {
-    vec3 ambient;
-    vec3 direct;
 };
 
 #define PCSS_FILTER_SIZE 16
@@ -81,7 +74,7 @@ const vec2 poissonDisk[PCSS_FILTER_SIZE] =
 };
 
 #define MAX_PROBES 512
-#define PROBE_BLEND_COUNT 4
+#define PROBE_BLEND_COUNT 12
 struct LightProbe {
     uint64_t irradiance;
     uint64_t prefilter;

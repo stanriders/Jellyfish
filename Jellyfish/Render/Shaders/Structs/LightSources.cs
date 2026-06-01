@@ -21,7 +21,6 @@ public struct Light : IGpuStruct
     public float Brightness;
     public int HasShadows;
 
-    public Vector4 Ambient;
     public Vector4 Diffuse;
 
     public float Near;
@@ -40,7 +39,6 @@ public struct Sun : IGpuStruct
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = Entities.Sun.cascades)]
     public Matrix4[] LightSpaceMatrix;
 
-    public Vector4 Ambient;
     public Vector4 Diffuse;
 
     public float Brightness;
