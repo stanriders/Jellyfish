@@ -406,9 +406,9 @@
         {
           "Name": "Rotation",
           "Value": {
-            "Pitch": 14.9999895,
-            "Yaw": 4.2688674E-07,
-            "Roll": -19.99999
+            "Pitch": 14.999988,
+            "Yaw": 6.4033014E-07,
+            "Roll": -19.999989
           }
         },
         {
@@ -494,7 +494,7 @@
           "Value": {
             "X": 0.0,
             "Y": 600.0,
-            "Z": 0.0
+            "Z": -34.0
           }
         },
         {
@@ -555,7 +555,7 @@
         {
           "Name": "Position",
           "Value": {
-            "X": -1100.0,
+            "X": -1197.6001,
             "Y": 100.0,
             "Z": 0.0
           }
@@ -621,6 +621,90 @@
             "X": 600.0,
             "Y": 1000.0,
             "Z": 0.0
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0.0,
+            "Yaw": 0.0,
+            "Roll": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "ClassName": "light_probe",
+      "Properties": [
+        {
+          "Name": "Position",
+          "Value": {
+            "X": 0.0,
+            "Y": 125.4,
+            "Z": -471.50003
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0.0,
+            "Yaw": 0.0,
+            "Roll": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "ClassName": "light_probe",
+      "Properties": [
+        {
+          "Name": "Position",
+          "Value": {
+            "X": 0.0,
+            "Y": 152.20001,
+            "Z": 386.50003
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0.0,
+            "Yaw": 0.0,
+            "Roll": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "ClassName": "light_probe",
+      "Properties": [
+        {
+          "Name": "Position",
+          "Value": {
+            "X": 0.0,
+            "Y": 613.1,
+            "Z": 384.40002
+          }
+        },
+        {
+          "Name": "Rotation",
+          "Value": {
+            "Pitch": 0.0,
+            "Yaw": 0.0,
+            "Roll": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "ClassName": "light_probe",
+      "Properties": [
+        {
+          "Name": "Position",
+          "Value": {
+            "X": 0.0,
+            "Y": 603.0,
+            "Z": -477.7
           }
         },
         {
