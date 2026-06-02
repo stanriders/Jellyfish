@@ -17,6 +17,7 @@ public class AmbientOcclusion : ScreenspaceEffect
 {
     public AmbientOcclusion() : base("Gtao", SizedInternalFormat.R8, new Shaders.AmbientOcclusion())
     {
+        Priority = 0;
     }
 
     public override void Draw()
@@ -43,6 +44,7 @@ public class AmbientOcclusionBlurX : ScreenspaceEffect
 {
     public AmbientOcclusionBlurX() : base("GtaoBlurX", SizedInternalFormat.R8, new Blur("_rt_Gtao", Blur.Direction.Horizontal, Blur.Size.Blur5Slow))
     {
+        Priority = 1;
     }
 }
 
@@ -50,5 +52,6 @@ public class AmbientOcclusionBlurY : ScreenspaceEffect
 {
     public AmbientOcclusionBlurY() : base("GtaoBlurY", SizedInternalFormat.R8, new Blur("_rt_GtaoBlurX", Blur.Direction.Vertical, Blur.Size.Blur5Slow))
     {
+        Priority = 2;
     }
 }

@@ -24,7 +24,7 @@ public class OpenGLRender : IRender, IInputHandler
     private GBuffer? _gBuffer;
     public ImageBasedLighting? ImageBasedLighting { get; private set; }
 
-    private readonly List<ScreenspaceEffect> _screenspaceEffects = new();
+    private List<ScreenspaceEffect> _screenspaceEffects = new();
 
     private bool _wireframe;
 
@@ -65,6 +65,8 @@ public class OpenGLRender : IRender, IInputHandler
                 Log.Context(this).Error("Can't create screenspace effect {Type}", effectType.Name);
             }
         }
+
+        _screenspaceEffects = _screenspaceEffects.OrderBy(x => x.Priority).ToList();
     }
 
     public void CreateBuffers()
