@@ -5,6 +5,7 @@ using Jellyfish.Render.Shaders.Structs;
 using OpenTK.Mathematics;
 using System;
 using System.Buffers;
+using LightProbe = Jellyfish.Render.Lighting.LightProbe;
 using Sun = Jellyfish.Entities.Sun;
 
 namespace Jellyfish.Render.Shaders;
@@ -156,11 +157,11 @@ public class Main : Shader
         SetBool("useNormals", _normal != null);
         SetBool("usePbr", _metRought != null);
         SetBool("useTransparency", _alphaTest);
-        SetInt("prefilterMips", 6); // todo: unhardcode
+        SetInt("prefilterMips", LightProbe.PrefilterMips);
         SetBool("iblEnabled", ConVarStorage.Get<bool>("mat_ibl_enabled"));
         SetBool("iblPrefilterEnabled", ConVarStorage.Get<bool>("mat_ibl_prefilter"));
         SetBool("sslrEnabled", ConVarStorage.Get<bool>("mat_sslr_enabled"));
-        SetVector2("screenSize", new Vector2(Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y));
+        SetVector2("screenSize", Engine.MainViewport.Size);
 
         Engine.LightManager.LightSourcesSsbo.UpdateData(lightSourcesStruct);
         Engine.LightManager.LightSourcesSsbo.Bind(0);

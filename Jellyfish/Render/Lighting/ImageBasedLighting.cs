@@ -25,6 +25,8 @@ public class LightProbe
     private readonly Texture _irradianceRenderTarget;
     private readonly Texture _prefilterRenderTarget;
 
+    public const int PrefilterMips = 6;
+
     private const int size = 128;
     private const int irradiance_size = 16;
 
@@ -73,7 +75,7 @@ public class LightProbe
             Name = $"_rt_Prefilter_{index}",
             Type = TextureTarget.TextureCubeMap,
             WrapMode = TextureWrapMode.ClampToEdge,
-            MaxLevels = null,
+            MaxLevels = PrefilterMips,
             RenderTargetParams = new RenderTargetParams
             {
                 Width = size,
