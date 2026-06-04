@@ -1,6 +1,7 @@
 ﻿using Jellyfish.Render.Buffers;
 using Jellyfish.Utils;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
 
 namespace Jellyfish.Render.Screenspace;
 
@@ -10,6 +11,7 @@ public abstract class ScreenspaceEffect
     protected readonly Texture RenderTarget;
     protected readonly Shader Shader;
 
+    protected Color4<Rgba> ClearColor { get; set; } = new Color4<Rgba>(1.0f, 1.0f, 1.0f, 1.0f);
     public int Priority { get; protected set; } = int.MaxValue;
 
     protected ScreenspaceEffect(string rtName, SizedInternalFormat format, Shader shader)
@@ -25,11 +27,11 @@ public abstract class ScreenspaceEffect
             WrapMode = TextureWrapMode.ClampToEdge,
             MinFiltering = TextureMinFilter.Nearest,
             MagFiltering = TextureMagFilter.Nearest,
+            InternalFormat = format,
             RenderTargetParams = new RenderTargetParams
             {
                 Width = Engine.MainViewport.Size.X,
                 Heigth = Engine.MainViewport.Size.Y,
-                InternalFormat = format,
                 Attachment = FramebufferAttachment.ColorAttachment0,
             }
         });
@@ -59,7 +61,7 @@ public abstract class ScreenspaceEffect
     {
         Buffer.Bind(FramebufferTarget.DrawFramebuffer);
 
-        GL.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        GL.ClearColor(ClearColor);
         GL.Clear(ClearBufferMask.ColorBufferBit);
         GL.Disable(EnableCap.DepthTest);
         GL.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);

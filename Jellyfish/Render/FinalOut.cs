@@ -1,20 +1,17 @@
 ﻿using Jellyfish.Debug;
-using Jellyfish.Input;
 using OpenTK.Graphics.OpenGL;
-using OpenTK.Windowing.GraphicsLibraryFramework;
 using System.Diagnostics;
 using Jellyfish.Utils;
 
 namespace Jellyfish.Render;
 
-public class FinalOut : IInputHandler
+public class FinalOut
 {
-    private readonly Shaders.PostProcessing _shader;
+    private readonly Shaders.SimpleOut _shader;
 
     public FinalOut()
     {
-        _shader = new Shaders.PostProcessing();
-        Engine.InputManager.RegisterInputHandler(this);
+        _shader = new Shaders.SimpleOut(Engine.TextureManager.GetTexture("_rt_SMAANeighborhoodBlending")!);
     }
 
     public void Draw()
@@ -33,20 +30,8 @@ public class FinalOut : IInputHandler
         PerformanceMeasurment.Add("FinalOut.Draw", stopwatch.Elapsed.TotalMilliseconds);
     }
 
-    public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
-    {
-        if (keyboardState.IsKeyPressed(Keys.P))
-        {
-            _shader.IsEnabled = !_shader.IsEnabled;
-            return true;
-        }
-
-        return false;
-    }
-
     public void Unload()
     {
         _shader.Unload();
-        Engine.InputManager.UnregisterInputHandler(this);
     }
 }

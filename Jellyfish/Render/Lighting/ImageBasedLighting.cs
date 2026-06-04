@@ -61,11 +61,11 @@ public class LightProbe
             Type = TextureTarget.TextureCubeMap,
             WrapMode = TextureWrapMode.ClampToEdge,
             MinFiltering = TextureMinFilter.Linear,
+            InternalFormat = SizedInternalFormat.Rgb16f,
             RenderTargetParams = new RenderTargetParams
             {
                 Width = irradiance_size,
                 Heigth = irradiance_size,
-                InternalFormat = SizedInternalFormat.Rgb16f,
                 Attachment = FramebufferAttachment.ColorAttachment0
             }
         });
@@ -76,11 +76,11 @@ public class LightProbe
             Type = TextureTarget.TextureCubeMap,
             WrapMode = TextureWrapMode.ClampToEdge,
             MaxLevels = PrefilterMips,
+            InternalFormat = SizedInternalFormat.Rgb16f,
             RenderTargetParams = new RenderTargetParams
             {
                 Width = size,
                 Heigth = size,
-                InternalFormat = SizedInternalFormat.Rgb16f,
                 Attachment = FramebufferAttachment.ColorAttachment0
             }
         });
@@ -115,11 +115,11 @@ public class LightProbe
             Name = $"_rt_EnvironmentMap_{_index}",
             Type = TextureTarget.TextureCubeMap,
             WrapMode = TextureWrapMode.ClampToEdge,
+            InternalFormat = SizedInternalFormat.Rgb16f,
             RenderTargetParams = new RenderTargetParams
             {
                 Width = size,
                 Heigth = size,
-                InternalFormat = SizedInternalFormat.Rgb16f,
                 Attachment = FramebufferAttachment.ColorAttachment0
             }
         });

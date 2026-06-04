@@ -10,11 +10,11 @@ public class Downsample : ScreenspaceEffect
         WrapMode = TextureWrapMode.ClampToEdge,
         MinFiltering = TextureMinFilter.Linear,
         MagFiltering = TextureMagFilter.Linear,
+        InternalFormat = SizedInternalFormat.Rgb16f,
         RenderTargetParams = new RenderTargetParams
         {
             Width = Engine.MainViewport.Size.X / 2,
             Heigth = Engine.MainViewport.Size.Y / 2,
-            InternalFormat = SizedInternalFormat.Rgb16f,
             Attachment = FramebufferAttachment.ColorAttachment0,
         }
     }, new Shaders.Downsample("_rt_Color"))
@@ -37,11 +37,11 @@ public class Downsample4 : ScreenspaceEffect
         WrapMode = TextureWrapMode.ClampToEdge,
         MinFiltering = TextureMinFilter.Linear,
         MagFiltering = TextureMagFilter.Linear,
+        InternalFormat = SizedInternalFormat.Rgb16f,
         RenderTargetParams = new RenderTargetParams
         {
             Width = Engine.MainViewport.Size.X / 4,
             Heigth = Engine.MainViewport.Size.Y / 4,
-            InternalFormat = SizedInternalFormat.Rgb16f,
             Attachment = FramebufferAttachment.ColorAttachment0,
         }
     }, new Shaders.Downsample("_rt_Downsample"))
@@ -64,11 +64,11 @@ public class Downsample8 : ScreenspaceEffect
         WrapMode = TextureWrapMode.ClampToEdge,
         MinFiltering = TextureMinFilter.Linear,
         MagFiltering = TextureMagFilter.Linear,
+        InternalFormat = SizedInternalFormat.Rgb16f,
         RenderTargetParams = new RenderTargetParams
         {
             Width = Engine.MainViewport.Size.X / 8,
             Heigth = Engine.MainViewport.Size.Y / 8,
-            InternalFormat = SizedInternalFormat.Rgb16f,
             Attachment = FramebufferAttachment.ColorAttachment0,
         }
     }, new Shaders.Downsample("_rt_Downsample4"))

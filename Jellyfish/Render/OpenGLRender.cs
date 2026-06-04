@@ -82,14 +82,14 @@ public class OpenGLRender : IRender, IInputHandler
         {
             Name = "_rt_Color",
             WrapMode = TextureWrapMode.ClampToEdge,
-            MaxLevels = null,
+            MaxLevels = -1,
             MinFiltering = TextureMinFilter.Nearest,
             MagFiltering = TextureMagFilter.Nearest,
+            InternalFormat = SizedInternalFormat.Rgb16f,
             RenderTargetParams = new RenderTargetParams
             {
                 Width = Engine.MainViewport.Size.X,
                 Heigth = Engine.MainViewport.Size.Y,
-                InternalFormat = SizedInternalFormat.Rgb16f,
                 Attachment = FramebufferAttachment.ColorAttachment0,
             }
         });
@@ -100,11 +100,11 @@ public class OpenGLRender : IRender, IInputHandler
             WrapMode = TextureWrapMode.ClampToEdge,
             MinFiltering = TextureMinFilter.Nearest,
             MagFiltering = TextureMagFilter.Nearest,
+            InternalFormat = SizedInternalFormat.DepthComponent24,
             RenderTargetParams = new RenderTargetParams
             {
                 Width = Engine.MainViewport.Size.X,
                 Heigth = Engine.MainViewport.Size.Y,
-                InternalFormat = SizedInternalFormat.DepthComponent24,
                 Attachment = FramebufferAttachment.DepthAttachment,
             }
         });

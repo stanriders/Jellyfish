@@ -1,5 +1,4 @@
 ﻿#version 460
-#include Fxaa.frag
 
 out vec4 FragColor;
   
@@ -132,7 +131,7 @@ void main()
         return;
     }
 
-    vec3 screen = FxaaPixelShader(TexCoords, screenTexture, vec2(SourceSizeRecp.x, SourceSizeRecp.y));
+    vec3 screen = texture(screenTexture, TexCoords).rgb;
     vec3 ao = vec3(texture(aoTexture, TexCoords).r);
     screen *= ao;
     

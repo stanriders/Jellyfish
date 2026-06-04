@@ -1,5 +1,4 @@
 ﻿using Jellyfish.Console;
-using Jellyfish.Render.Shaders;
 using OpenTK.Mathematics;
 using OpenTK.Graphics.OpenGL;
 
@@ -16,11 +15,11 @@ public class Upsample4 : ScreenspaceEffect
         WrapMode = TextureWrapMode.ClampToEdge,
         MinFiltering = TextureMinFilter.Linear,
         MagFiltering = TextureMagFilter.Linear,
+        InternalFormat = SizedInternalFormat.Rgb16f,
         RenderTargetParams = new RenderTargetParams
         {
             Width = Engine.MainViewport.Size.X / 4,
             Heigth = Engine.MainViewport.Size.Y / 4,
-            InternalFormat = SizedInternalFormat.Rgb16f,
             Attachment = FramebufferAttachment.ColorAttachment0,
         }
     }, new Shaders.Bloom("_rt_Downsample8", 1f))
@@ -42,11 +41,11 @@ public class Upsample2 : ScreenspaceEffect
         WrapMode = TextureWrapMode.ClampToEdge,
         MinFiltering = TextureMinFilter.Linear,
         MagFiltering = TextureMagFilter.Linear,
+        InternalFormat = SizedInternalFormat.Rgb16f,
         RenderTargetParams = new RenderTargetParams
         {
             Width = Engine.MainViewport.Size.X / 2,
             Heigth = Engine.MainViewport.Size.Y / 2,
-            InternalFormat = SizedInternalFormat.Rgb16f,
             Attachment = FramebufferAttachment.ColorAttachment0,
         }
     }, new Shaders.Bloom("_rt_Upsample4", 0.1f))
@@ -68,11 +67,11 @@ public class Bloom : ScreenspaceEffect
         WrapMode = TextureWrapMode.ClampToEdge,
         MinFiltering = TextureMinFilter.Linear,
         MagFiltering = TextureMagFilter.Linear,
+        InternalFormat = SizedInternalFormat.Rgb16f,
         RenderTargetParams = new RenderTargetParams
         {
             Width = Engine.MainViewport.Size.X,
             Heigth = Engine.MainViewport.Size.Y,
-            InternalFormat = SizedInternalFormat.Rgb16f,
             Attachment = FramebufferAttachment.ColorAttachment0,
         }
     }, new Shaders.Bloom("_rt_Upsample2", 0.01f))

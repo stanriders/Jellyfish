@@ -10,7 +10,6 @@ public class RenderTargetParams
 {
     public required int Width { get; set; }
     public required int Heigth { get; set; }
-    public required SizedInternalFormat InternalFormat { get; set; } // todo? this can probably be moved to the main TextureParams
     public required FramebufferAttachment Attachment { get; set; }
     public bool EnableCompare { get; set; } = false;
 }
@@ -22,10 +21,12 @@ public class TextureParams
     public bool Srgb { get; set; } = false;
     public RenderTargetParams? RenderTargetParams { get; set; }
     public float[]? BorderColor { get; set; } = null;
-    public int? MaxLevels { get; set; } = 1;
+    public int? MaxLevels { get; set; }
     public TextureMinFilter MinFiltering { get; set; } = TextureMinFilter.LinearMipmapLinear;
     public TextureMagFilter MagFiltering { get; set; } = TextureMagFilter.Linear;
     public TextureWrapMode WrapMode { get; set; } = TextureWrapMode.Repeat;
+    public SizedInternalFormat? InternalFormat { get; set; }
+    public PixelFormat? PixelFormat { get; set; }
 }
 
 public class Texture
@@ -65,11 +66,12 @@ public class Texture
         // procedural textures create themselves
         if (Params.Name.StartsWith("_"))
         {
+            Params.MaxLevels ??= 1;
             CreateRenderTarget();
             return;
         }
 
-        Params.MaxLevels = 8;
+        Params.MaxLevels ??= 8;
 
         if (!File.Exists(Params.Name))
         {
@@ -92,10 +94,12 @@ public class Texture
 
         var hasAlpha = image.ChannelCount == 4;
 
-        var pixelFormat = hasAlpha ? PixelFormat.Rgba : PixelFormat.Rgb;
-        var internalPixelFormat = hasAlpha ?
-            Params.Srgb ? SizedInternalFormat.Srgb8Alpha8 : SizedInternalFormat.Rgba8 :
-            Params.Srgb ? SizedInternalFormat.Srgb8 : SizedInternalFormat.Rgb8;
+        var pixelFormat = Params.PixelFormat ?? (hasAlpha ? PixelFormat.Rgba : PixelFormat.Rgb);
+
+        var internalPixelFormat = Params.InternalFormat ??
+                                  (hasAlpha
+                                      ? Params.Srgb ? SizedInternalFormat.Srgb8Alpha8 : SizedInternalFormat.Rgba8
+                                      : Params.Srgb ? SizedInternalFormat.Srgb8 : SizedInternalFormat.Rgb8);
 
         if (image.Depth == 16)
         {
@@ -108,7 +112,8 @@ public class Texture
         GL.TextureSubImage2D(Handle, 0, 0, 0, (int)image.Width, (int)image.Height, pixelFormat, PixelType.UnsignedByte,
             data.GetAreaPointer(0, 0, image.Width, image.Height));
 
-        GL.GenerateTextureMipmap(Handle);
+        if (Params.MaxLevels > 1)
+            GL.GenerateTextureMipmap(Handle);
 
         Levels = levels;
         Format = internalPixelFormat.ToString();
@@ -119,12 +124,12 @@ public class Texture
         if (Params.RenderTargetParams == null)
             return;
 
-        if (Params.MaxLevels != null)
-            Levels = Math.Clamp(Math.Min(Params.RenderTargetParams.Width, Params.RenderTargetParams.Heigth) / 64, 1, Params.MaxLevels.Value);
+        if (Params.MaxLevels != -1)
+            Levels = Math.Clamp(Math.Min(Params.RenderTargetParams.Width, Params.RenderTargetParams.Heigth) / 64, 1, Params.MaxLevels!.Value);
         else
             Levels = MaxLevels(Params.RenderTargetParams.Width, Params.RenderTargetParams.Heigth);
 
-        GL.TextureStorage2D(Handle, Levels, Params.RenderTargetParams.InternalFormat, Params.RenderTargetParams.Width, Params.RenderTargetParams.Heigth);
+        GL.TextureStorage2D(Handle, Levels, Params.InternalFormat!.Value, Params.RenderTargetParams.Width, Params.RenderTargetParams.Heigth);
 
         if (Params.RenderTargetParams.EnableCompare)
         {
@@ -140,7 +145,7 @@ public class Texture
 
         GL.BindTexture(Params.Type, 0);
 
-        Format = Params.RenderTargetParams.InternalFormat.ToString();
+        Format = Params.InternalFormat.ToString()!;
     }
 
     public void Bind(uint unit)
