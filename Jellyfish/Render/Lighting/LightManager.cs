@@ -30,8 +30,7 @@ public class LightManager
 
     public Light? Sun { get; private set; }
 
-    public const int max_lights = 16;
-    public const int max_shadows = 16;
+    public const int max_lights = 256;
 
     public readonly List<Light> Lights = new(max_lights);
 
@@ -171,9 +170,6 @@ public class LightManager
 
     private void CreateShadow(Light light, string subname = "")
     {
-        if (Lights.Sum(x => x.Shadows.Count) >= max_shadows)
-            return;
-
         var framebuffer = new FrameBuffer();
         framebuffer.Bind();
 

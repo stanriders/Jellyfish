@@ -5,6 +5,7 @@ using Jellyfish.Render.Shaders.Structs;
 using OpenTK.Mathematics;
 using System;
 using System.Buffers;
+using System.Diagnostics;
 using LightProbe = Jellyfish.Render.Lighting.LightProbe;
 using Sun = Jellyfish.Entities.Sun;
 
@@ -12,7 +13,7 @@ namespace Jellyfish.Render.Shaders;
 
 public class Main : Shader
 {
-    private readonly bool _alphaTest;
+    private readonly bool _hasTransparency;
     private readonly Texture? _diffuse;
     private readonly Texture? _normal;
     private readonly Texture? _metRought;
@@ -31,8 +32,8 @@ public class Main : Shader
 
         _reflectionMap = Engine.TextureManager.GetTexture("_rt_ReflectionsBlurY");
 
-        if (material.TryGetParam<bool>("AlphaTest", out var alphatest))
-            _alphaTest = alphatest;
+        if (material.TryGetParam<bool>("AlphaTest", out var hasTransparency))
+            _hasTransparency = hasTransparency;
     }
 
     public Main(Texture diffuse) : base("shaders/Main.vert", null, "shaders/Main.frag")
@@ -65,35 +66,35 @@ public class Main : Shader
         var currentLight = 0;
         for (var i = 0; i < totalLights; i++)
         {
-            var light = Engine.LightManager.Lights[i].Source;
-            if (!light.Enabled)
+            var source = Engine.LightManager.Lights[i].Source;
+            if (!source.Enabled)
             {
                 continue;
             }
 
-            lightSourcesStruct.Lights[currentLight].Position = new Vector4(light.Position);
+            lightSourcesStruct.Lights[currentLight].Position = new Vector4(source.Position);
 
-            var rotationVector = Vector3.Transform(-Vector3.UnitY, light.Rotation);
+            var rotationVector = Vector3.Transform(-Vector3.UnitY, source.Rotation);
             lightSourcesStruct.Lights[currentLight].Direction = new Vector4(rotationVector);
 
-            lightSourcesStruct.Lights[currentLight].Diffuse = new Vector4(light.Color.X, light.Color.Y, light.Color.Z, 0);
+            lightSourcesStruct.Lights[currentLight].Diffuse = new Vector4(source.Color.X, source.Color.Y, source.Color.Z, 0);
 
-            lightSourcesStruct.Lights[currentLight].Brightness = light.Brightness;
+            lightSourcesStruct.Lights[currentLight].Brightness = source.Brightness;
 
             var lightType = 0; // point
-            if (light is Spotlight)
+            if (source is Spotlight)
                 lightType = 1;
 
             lightSourcesStruct.Lights[currentLight].Type = lightType;
 
-            if (light is PointLight point)
+            if (source is PointLight point)
             {
                 lightSourcesStruct.Lights[currentLight].Constant = point.GetPropertyValue<float>("Constant");
                 lightSourcesStruct.Lights[currentLight].Linear = point.GetPropertyValue<float>("Linear");
                 lightSourcesStruct.Lights[currentLight].Quadratic = point.GetPropertyValue<float>("Quadratic");
             }
 
-            if (light is Spotlight spot)
+            if (source is Spotlight spot)
             {
                 lightSourcesStruct.Lights[currentLight].Constant = spot.GetPropertyValue<float>("Constant");
                 lightSourcesStruct.Lights[currentLight].Linear = spot.GetPropertyValue<float>("Linear");
@@ -102,15 +103,15 @@ public class Main : Shader
                 lightSourcesStruct.Lights[currentLight].Outcone = (float)Math.Cos(MathHelper.DegreesToRadians(spot.GetPropertyValue<float>("OuterCone")));
             }
 
-            lightSourcesStruct.Lights[currentLight].Near = light.NearPlane;
-            lightSourcesStruct.Lights[currentLight].Far = light.FarPlane;
+            lightSourcesStruct.Lights[currentLight].Near = source.NearPlane;
+            lightSourcesStruct.Lights[currentLight].Far = source.FarPlane;
 
-            lightSourcesStruct.Lights[currentLight].LightSpaceMatrix = light.Projection(0);
+            lightSourcesStruct.Lights[currentLight].LightSpaceMatrix = source.Projection(0);
 
-            lightSourcesStruct.Lights[currentLight].HasShadows = light.UseShadows && Engine.LightManager.Lights[i].Shadows.Count > 0 ? 1 : 0;
-            lightSourcesStruct.Lights[currentLight].UsePcss = light.UseShadows && light.UsePcss ? 1 : 0;
+            lightSourcesStruct.Lights[currentLight].HasShadows = source.UseShadows && Engine.LightManager.Lights[i].Shadows.Count > 0 ? 1 : 0;
+            lightSourcesStruct.Lights[currentLight].UsePcss = source.UseShadows && source.UsePcss ? 1 : 0;
 
-            if (light.UseShadows && Engine.LightManager.Lights[i].Shadows.Count > 0)
+            if (source.UseShadows && Engine.LightManager.Lights[i].Shadows.Count > 0)
             {
                 lightSourcesStruct.Lights[currentLight].ShadowTexture = Engine.LightManager.Lights[i].Shadows[0].BindlessHandle;
             }
@@ -156,7 +157,7 @@ public class Main : Shader
 
         SetBool("useNormals", _normal != null);
         SetBool("usePbr", _metRought != null);
-        SetBool("useTransparency", _alphaTest);
+        SetBool("useTransparency", _hasTransparency);
         SetInt("prefilterMips", LightProbe.PrefilterMips);
         SetBool("iblEnabled", ConVarStorage.Get<bool>("mat_ibl_enabled"));
         SetBool("iblPrefilterEnabled", ConVarStorage.Get<bool>("mat_ibl_prefilter"));
