@@ -130,7 +130,7 @@ public class OpenGLRender : IRender, IInputHandler
 
     public void PreFrame()
     {
-        Engine.LightManager.UpdateGpuBuffer();
+        Engine.LightManager.UpdateShaderBuffer();
         _gBuffer?.GeometryPass();
         Engine.LightManager.DrawShadows();
     }
