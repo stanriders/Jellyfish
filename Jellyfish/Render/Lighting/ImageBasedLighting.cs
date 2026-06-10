@@ -94,6 +94,10 @@ public class LightProbe
 
     public void Render(Sky? sky)
     {
+        GL.Enable(EnableCap.DepthTest);
+        GL.DepthFunc(DepthFunction.Less);
+        GL.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
+
         var envMap = RenderCubemap(sky);
         RenderIrradience(envMap);
 
