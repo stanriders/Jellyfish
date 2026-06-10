@@ -33,13 +33,7 @@ namespace Jellyfish.UI
             {
                 if (ImGui.Button("All ConVars"))
                 {
-                    ConsoleSink.Buffer.Add(new ConsoleLine
-                    {
-                        Color = Color4.Gray, 
-                        Timestamp = DateTime.Now, 
-                        Text = string.Join('\n', ConVarStorage.ConVarNames),
-                        Context = "Console"
-                    });
+                    Log.Context("Console").Information(string.Join('\n', ConVarStorage.ConVarNames));
                 }
                 var viewport = ImGui.GetMainViewport();
                 ImGui.SetWindowSize(new Vector2(viewport.Size.X * 0.75f, viewport.Size.Y * 0.75f), ImGuiCond.FirstUseEver);
@@ -91,13 +85,6 @@ namespace Jellyfish.UI
                         ImGuiInputTextFlags.CtrlEnterForNewLine | ImGuiInputTextFlags.EnterReturnsTrue))
                 {
                     _history.Add(_currentCommandInput);
-                    ConsoleSink.Buffer.Add(new ConsoleLine
-                    {
-                        Color = Color4.Gray,
-                        Timestamp = DateTime.Now,
-                        Text = _currentCommandInput,
-                        Context = "Console"
-                    });
 
                     var commandSplit = _currentCommandInput.Split(' ');
                     var commandConvar = commandSplit[0];
