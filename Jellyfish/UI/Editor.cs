@@ -576,9 +576,9 @@ public class Editor : IUiPanel, IInputHandler
                     OpenFileDialog openFileDialog = new(Path.GetDirectoryName(val) ?? "");
                     openFileDialog.Show((_, result) =>
                     {
-                        if (result == DialogResult.Ok)
+                        if (result == DialogResult.Ok && openFileDialog.SelectedFile != null)
                         {
-                            var relativePath = Path.GetRelativePath(Environment.CurrentDirectory, openFileDialog.SelectedFile!);
+                            var relativePath = Path.GetRelativePath(Environment.CurrentDirectory, openFileDialog.SelectedFile);
                             entity.SetPropertyValue(propertyName, relativePath);
                         }
                     });
