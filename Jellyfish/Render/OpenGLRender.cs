@@ -100,7 +100,7 @@ public class OpenGLRender : IRender, IInputHandler
             WrapMode = TextureWrapMode.ClampToEdge,
             MinFiltering = TextureMinFilter.Nearest,
             MagFiltering = TextureMagFilter.Nearest,
-            InternalFormat = SizedInternalFormat.DepthComponent24,
+            InternalFormat = SizedInternalFormat.DepthComponent32f,
             RenderTargetParams = new RenderTargetParams
             {
                 Width = Engine.MainViewport.Size.X,

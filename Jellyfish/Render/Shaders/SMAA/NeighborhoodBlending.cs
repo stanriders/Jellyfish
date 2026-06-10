@@ -20,7 +20,6 @@ public class NeighborhoodBlending : Shader
         BindTexture(0, _rtColor);
         BindTexture(1, _rtBlend);
 
-        SetVector2("uViewportSize", Engine.MainViewport.Size);
         SetVector2("uTexelSize", 1.0f / (Vector2)Engine.MainViewport.Size);
     }
 

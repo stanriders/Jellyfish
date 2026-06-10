@@ -1,7 +1,4 @@
-﻿
-using OpenTK.Mathematics;
-
-namespace Jellyfish.Render.Shaders.SMAA;
+﻿namespace Jellyfish.Render.Shaders.SMAA;
 
 public class EdgeDetection : Shader
 {
@@ -16,7 +13,6 @@ public class EdgeDetection : Shader
     {
         base.Bind();
         BindTexture(0, _rtColor);
-        SetVector2("uTexelSize", 1.0f / (Vector2)Engine.MainViewport.Size);
     }
 
     public override void Unload()

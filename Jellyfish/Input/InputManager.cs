@@ -48,7 +48,7 @@ public class InputManager
         }
         else
         {
-            foreach (var inputHandler in _inputHandlers.AsEnumerable().Reverse())
+            foreach (var inputHandler in _inputHandlers)
             {
                 if (inputHandler.HandleInput(keyboardState, mouseState, frameTime))
                 {
