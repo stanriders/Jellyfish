@@ -30,7 +30,7 @@ public abstract class BaseEntity
 
     protected BaseEntity()
     {
-        AddProperty("Name", Guid.NewGuid().ToString("n")[..8], editable: false);
+        AddProperty("Name", Guid.NewGuid().ToString("n")[..8]);
         AddProperty("Position", Vector3.Zero, changeCallback: OnPositionChanged);
         AddProperty("Rotation", Quaternion.Identity, changeCallback: OnRotationChanged);
 

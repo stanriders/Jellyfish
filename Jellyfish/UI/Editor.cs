@@ -155,7 +155,7 @@ public class Editor : IUiPanel, IInputHandler
             {
                 if (ImGui.BeginListBox("##Entity list", new Vector2(-1, 10 * ImGui.GetTextLineHeightWithSpacing())))
                 {
-                    foreach (var entity in EntityManager.Entities)
+                    foreach (var entity in EntityManager.Entities.OrderBy(x => x.Name))
                     {
                         if (ImGui.MenuItem(entity.Name, "", _selectedEntity?.Name == entity.Name))
                         {
