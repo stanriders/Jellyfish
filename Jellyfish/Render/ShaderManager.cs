@@ -1,10 +1,9 @@
-﻿using System;
+﻿using Jellyfish.Console;
+using OpenTK.Graphics.OpenGL;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using Jellyfish.Console;
-using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.Render
 {
@@ -21,6 +20,8 @@ namespace Jellyfish.Render
             {
                 return handle;
             }
+
+            Log.Context(this).Debug("Compiling shader {Path}...", path);
 
             handle = GL.CreateShader(type);
             if (handle != 0)
@@ -72,18 +73,8 @@ namespace Jellyfish.Render
                     {
                         var includePath = Path.Combine(Path.GetDirectoryName(path) ?? string.Empty, line.Replace("#include", "").Trim());
 
-                        var includedFile = LoadDependency(includePath);
-                        var fileLines = includedFile.Split('\n');
-                        foreach (var fileLine in fileLines)
-                        {
-                            if (fileLine.StartsWith("#include"))
-                            {
-                                var subIncludePath = Path.Combine(Path.GetDirectoryName(path) ?? string.Empty, fileLine.Replace("#include", "").Trim());
-                                builder.AppendLine(LoadDependency(subIncludePath));
-                                continue;
-                            }
-                            builder.AppendLine(fileLine);
-                        }
+                        var includedFile = LoadSource(includePath);
+                        builder.AppendLine(includedFile);
                         continue;
                     }
                     builder.AppendLine(line);
