@@ -48,6 +48,9 @@ public static class MapLoader
             Log.Context("MapLoader").Error("Couldn't parse map {Path}!", mapName);
             return;
         }
+
+        var createdEntities = new List<BaseEntity>();
+
         foreach (var ent in map.Entities)
         {
             var entity = EntityManager.CreateEntity(ent.ClassName);
@@ -64,20 +67,25 @@ public static class MapLoader
                     var propertyToken = ent.Properties.FirstOrDefault(x=> x.Name == entityProperty.Name);
                     if (propertyToken != null)
                     {
-                        var propertyValue = propertyToken.Value.ToObject(entityProperty.Type, deserializer);
-                        entityProperty.SetValue(propertyValue);
+                        dynamic? propertyValue = propertyToken.Value.ToObject(entityProperty.Type, deserializer);
+                        entity.SetPropertyValue(entityProperty.Name, propertyValue);
                     }
                     else
                     {
                         if (entityProperty.Type == typeof(Quaternion))
                         {
                             // otherwise it initializes into NaNs
-                            entityProperty.SetValue(Quaternion.Identity);
+                            entity.SetPropertyValue(entityProperty.Name, Quaternion.Identity);
                         }
                     }
                 }
             }
 
+            createdEntities.Add(entity);
+        }
+
+        foreach (var entity in createdEntities)
+        {
             entity.Load();
         }
 
