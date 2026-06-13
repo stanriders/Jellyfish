@@ -84,6 +84,9 @@ float PoissonPCSSShadow( sampler2D depthMap, vec3 uvw, float zNear, float zFar, 
         float penumbraRatio = PenumbraSize( zReceiver, avgBlockerDepth );
         float filterRadiusUV = penumbraRatio * lightSizeUV;
         filterRadiusUV = min(filterRadiusUV, 0.01);
+        
+        float texelSize = 1.0 / textureSize(depthMap, 0).x;
+        filterRadiusUV = clamp(filterRadiusUV, texelSize, 0.1);
 
         flOut = PoissonPCF( depthMap, uvw, filterRadiusUV );
     }
