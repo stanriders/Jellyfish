@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using Jellyfish.Debug;
@@ -9,11 +10,13 @@ namespace Jellyfish.Render;
 
 public class MeshManager
 {
-    private readonly List<Mesh> _meshes = new();
+    private readonly List<Mesh> _opaqueMeshes = new();
+    private readonly List<Mesh> _translucentMeshes = new();
+
     private readonly List<Mesh> _singleFrameMeshes = new();
     private readonly List<(Mesh, List<Vertex>)> _updateQueue = new();
 
-    public IReadOnlyList<Mesh> Meshes => _meshes.AsReadOnly();
+    public IReadOnlyList<Mesh> Meshes => new ReadOnlyCollection<Mesh>([.._opaqueMeshes, .._translucentMeshes]);
     public BoundingBox SceneBoundingBox { get; private set; }
 
     private bool _drawing;
@@ -21,11 +24,18 @@ public class MeshManager
     public void AddMesh(Mesh mesh, bool singleFrame = false)
     {
         mesh.Load();
-        _meshes.Add(mesh);
+
+        if (mesh.Material?.GetParam<bool>("AlphaTest") ?? false)
+        {
+            _translucentMeshes.Add(mesh);
+        }
+        else
+        {
+            _opaqueMeshes.Add(mesh);
+        }
+
         if (singleFrame)
             _singleFrameMeshes.Add(mesh);
-
-        SceneBoundingBox = new BoundingBox([SceneBoundingBox, mesh.BoundingBox]);
     }
 
     public void RemoveMesh(Mesh mesh)
@@ -35,11 +45,15 @@ public class MeshManager
             // never remove meshes mid-drawing
         }
 
-        _meshes.Remove(mesh);
+        if (_translucentMeshes.Contains(mesh))
+            _translucentMeshes.Remove(mesh);
+        else
+            _opaqueMeshes.Remove(mesh);
+
         mesh.Unload();
 
         // sounds expensive?
-        SceneBoundingBox = new BoundingBox(_meshes.Select(x => x.BoundingBox).ToArray());
+        UpdateSceneBoundingBox();
     }
 
     public void UpdateMesh(Mesh mesh, List<Vertex> vertices)
@@ -56,50 +70,16 @@ public class MeshManager
         _drawing = true;
         var drawStopwatch = Stopwatch.StartNew();
 
-        var sortingPosition = frustum?.NearPlaneCenter ?? Engine.MainViewport.Position;
+        DrawOpaque(drawDev, shaderToUse, frustum);
+        DrawTranslucent(drawDev, shaderToUse, frustum);
 
-        var opaqueObjects = _meshes.Where(x => !(x.Material?.GetParam<bool>("AlphaTest") ?? false)).ToArray();
-        var transluscentObjects = _meshes.Where(x => !opaqueObjects.Contains(x))
-            .OrderByDescending(x => ((x.Position + x.BoundingBox.Center) - sortingPosition).Length)
-            .ToArray();
-
-        var stopwatch = Stopwatch.StartNew();
-        foreach (var mesh in opaqueObjects)
-            DrawMesh(mesh, drawDev, shaderToUse, frustum);
-        PerformanceMeasurment.Add("MeshManager.Draw.Opaque", stopwatch.Elapsed.TotalMilliseconds);
-
-        GL.DepthMask(false);
-        GL.Enable(EnableCap.Blend);
-        GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-        GL.BlendEquation(BlendEquationMode.FuncAdd);
-
-        stopwatch.Restart();
-        foreach (var mesh in transluscentObjects)
-            DrawMesh(mesh, drawDev, shaderToUse, frustum);
-        PerformanceMeasurment.Add("MeshManager.Draw.Transluscent", stopwatch.Elapsed.TotalMilliseconds);
-
-        GL.Disable(EnableCap.Blend);
-        GL.DepthMask(true);
-
-        // ensures that all VBO updates happen post-rendering
-        foreach (var update in _updateQueue)
-        {
-            update.Item1.Update(update.Item2);
-        }
-
-        _updateQueue.Clear();
+        // ensure that all VBO updates happen post-rendering
+        UpdateMeshes();
 
         _drawing = false;
 
-        if (drawDev)
-        {
-            foreach (var singleFrameMesh in _singleFrameMeshes)
-            {
-                RemoveMesh(singleFrameMesh);
-            }
+        PostDraw();
 
-            _singleFrameMeshes.Clear();
-        }
         frustum?.Dispose();
         PerformanceMeasurment.Add("MeshManager.Draw", drawStopwatch.Elapsed.TotalMilliseconds);
     }
@@ -110,43 +90,48 @@ public class MeshManager
         var drawStopwatch = Stopwatch.StartNew();
 
         using var playerFrustum = Engine.MainViewport.GetFrustum();
-        var playerPosition = playerFrustum.NearPlaneCenter;
-        var opaqueObjects = _meshes.Where(x => !(x.Material?.GetParam<bool>("AlphaTest") ?? false)).ToArray();
-        var transluscentObjects = _meshes.Where(x => !opaqueObjects.Contains(x))
-            .OrderByDescending(x => ((x.Position + x.BoundingBox.Center) - playerPosition).Length)
+
+        DrawOpaque(drawDev, null, playerFrustum, true);
+        DrawTranslucent(drawDev, null, playerFrustum, true);
+
+        PerformanceMeasurment.Add("MeshManager.DrawGBuffer", drawStopwatch.Elapsed.TotalMilliseconds);
+        _drawing = false;
+    }
+
+    private void DrawOpaque(bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null, bool gBuffer = false)
+    {
+        var stopwatch = Stopwatch.StartNew();
+
+        foreach (var mesh in _opaqueMeshes)
+            DrawMesh(mesh, drawDev, shaderToUse, frustum, gBuffer);
+
+        PerformanceMeasurment.Add("MeshManager.Draw.Opaque", stopwatch.Elapsed.TotalMilliseconds);
+    }
+
+    private void DrawTranslucent(bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null, bool gBuffer = false)
+    {
+        var sortingPosition = frustum?.NearPlaneCenter ?? Engine.MainViewport.Position;
+
+        var transluscentObjects = _translucentMeshes
+            .OrderByDescending(x => ((x.Position + x.BoundingBox.Center) - sortingPosition).Length)
             .ToArray();
-
-        foreach (var mesh in opaqueObjects)
-        {
-            if (mesh.IsDev && !drawDev)
-                continue;
-
-            if (mesh.ShouldDraw && playerFrustum.IsInside(mesh.Position + mesh.BoundingBox.Center, mesh.BoundingBox.Length))
-                mesh.DrawGBuffer();
-        }
 
         GL.DepthMask(false);
         GL.Enable(EnableCap.Blend);
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         GL.BlendEquation(BlendEquationMode.FuncAdd);
 
+        var stopwatch = Stopwatch.StartNew();
         foreach (var mesh in transluscentObjects)
-        {
-            if (mesh.IsDev && !drawDev)
-                continue;
+            DrawMesh(mesh, drawDev, shaderToUse, frustum, gBuffer);
 
-            if (mesh.ShouldDraw && playerFrustum.IsInside(mesh.Position + mesh.BoundingBox.Center, mesh.BoundingBox.Length))
-                mesh.DrawGBuffer();
-        }
+        PerformanceMeasurment.Add("MeshManager.Draw.Translucent", stopwatch.Elapsed.TotalMilliseconds);
 
         GL.Disable(EnableCap.Blend);
         GL.DepthMask(true);
-
-        PerformanceMeasurment.Add("MeshManager.DrawGBuffer", drawStopwatch.Elapsed.TotalMilliseconds);
-        _drawing = false;
     }
 
-    private void DrawMesh(Mesh mesh, bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null)
+    private void DrawMesh(Mesh mesh, bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null, bool gBuffer = false)
     {
         if (mesh.IsDev && !drawDev)
             return;
@@ -156,13 +141,45 @@ public class MeshManager
             if (frustum != null && !frustum.Value.IsInside(mesh.Position + mesh.BoundingBox.Center, mesh.BoundingBox.Length))
                 return;
 
-            mesh.Draw(shaderToUse);
+            // todo: this is UGLY and needs to be completely remade
+            if (gBuffer)
+                mesh.DrawGBuffer();
+            else
+                mesh.Draw(shaderToUse);
         }
+    }
+
+    private void UpdateMeshes()
+    {
+        foreach (var update in _updateQueue)
+        {
+            update.Item1.Update(update.Item2);
+        }
+
+        _updateQueue.Clear();
+    }
+
+    private void PostDraw()
+    {
+        foreach (var singleFrameMesh in _singleFrameMeshes)
+        {
+            RemoveMesh(singleFrameMesh);
+        }
+
+        _singleFrameMeshes.Clear();
     }
 
     public void Unload()
     {
-        foreach (var mesh in _meshes)
+        foreach (var mesh in _opaqueMeshes)
             mesh.Unload();
+
+        foreach (var mesh in _translucentMeshes)
+            mesh.Unload();
+    }
+
+    public void UpdateSceneBoundingBox()
+    {
+        SceneBoundingBox = new BoundingBox(Meshes.Select(x => x.BoundingBox).ToArray());
     }
 }

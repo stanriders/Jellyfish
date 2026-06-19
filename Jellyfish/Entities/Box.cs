@@ -14,7 +14,7 @@ public class Box : BaseModelEntity, IPhysicsEntity
     public Box()
     {
         AddProperty("Size", new Vector3(20, 20, 20), changeCallback: OnSizeChanged);
-        AddProperty("Texture", "test.png", changeCallback: OnTextureChanged);
+        AddProperty("Texture", "test.png", changeCallback: OnTextureChanged, flags: EntityPropertyFlags.FilePath);
         AddProperty("TextureScale", new Vector2(1.0f), changeCallback: OnTextureScaleChanged);
     }
 

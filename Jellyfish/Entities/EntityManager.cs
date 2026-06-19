@@ -215,7 +215,7 @@ public class EntityManager
         public EntityDevCone(BaseEntity entity)
         {
             Entity = entity;
-            _model = ModelParser.Parse("models/spot_reference.smd", true);
+            _model = ModelParser.Parse("models/spot_reference.smd", true) ?? throw new Exception("Missing dev cone model");
         }
 
         public void Think()

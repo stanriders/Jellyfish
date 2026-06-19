@@ -1,6 +1,5 @@
 ﻿using Jellyfish.Console;
 using OpenTK.Graphics.OpenGL;
-using OpenTK.Mathematics;
 using System;
 
 namespace Jellyfish.Render.Shaders;
@@ -32,7 +31,6 @@ public class PostProcessing : Shader
         BindTexture(1, _rtAmbientOcclusion);
         BindTexture(2, _rtBloom);
 
-        SetVector2("screenSize", new Vector2(Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y));
         SetInt("isEnabled", IsEnabled ? 1 : 0);
         SetFloat("bloomStrength", ConVarStorage.Get<float>("mat_bloom_strength"));
 
@@ -53,11 +51,11 @@ public class PostProcessing : Shader
 
             if (!double.IsNaN(luminance))
             {
-                const float key = 0.18f;
+                const float key = 0.14f;
                 var targetExposure = key / luminance;
 
                 sceneExposure = float.Lerp(sceneExposure, targetExposure, adj_speed);
-                sceneExposure = Math.Clamp(sceneExposure, 0.03125f, 4.0f);
+                sceneExposure = Math.Clamp(sceneExposure, 0.01f, 8.0f);
             }
 
             SetFloat("exposure", sceneExposure);

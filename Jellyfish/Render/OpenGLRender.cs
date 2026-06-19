@@ -24,7 +24,7 @@ public class OpenGLRender : IRender, IInputHandler
     private GBuffer? _gBuffer;
     public ImageBasedLighting? ImageBasedLighting { get; private set; }
 
-    private readonly List<ScreenspaceEffect> _screenspaceEffects = new();
+    private List<ScreenspaceEffect> _screenspaceEffects = new();
 
     private bool _wireframe;
 
@@ -65,6 +65,8 @@ public class OpenGLRender : IRender, IInputHandler
                 Log.Context(this).Error("Can't create screenspace effect {Type}", effectType.Name);
             }
         }
+
+        _screenspaceEffects = _screenspaceEffects.OrderBy(x => x.Priority).ToList();
     }
 
     public void CreateBuffers()
@@ -80,14 +82,14 @@ public class OpenGLRender : IRender, IInputHandler
         {
             Name = "_rt_Color",
             WrapMode = TextureWrapMode.ClampToEdge,
-            MaxLevels = null,
+            MaxLevels = -1,
             MinFiltering = TextureMinFilter.Nearest,
             MagFiltering = TextureMagFilter.Nearest,
+            InternalFormat = SizedInternalFormat.Rgb16f,
             RenderTargetParams = new RenderTargetParams
             {
                 Width = Engine.MainViewport.Size.X,
                 Heigth = Engine.MainViewport.Size.Y,
-                InternalFormat = SizedInternalFormat.Rgb16f,
                 Attachment = FramebufferAttachment.ColorAttachment0,
             }
         });
@@ -98,11 +100,11 @@ public class OpenGLRender : IRender, IInputHandler
             WrapMode = TextureWrapMode.ClampToEdge,
             MinFiltering = TextureMinFilter.Nearest,
             MagFiltering = TextureMagFilter.Nearest,
+            InternalFormat = SizedInternalFormat.DepthComponent32f,
             RenderTargetParams = new RenderTargetParams
             {
                 Width = Engine.MainViewport.Size.X,
                 Heigth = Engine.MainViewport.Size.Y,
-                InternalFormat = SizedInternalFormat.DepthComponent24,
                 Attachment = FramebufferAttachment.DepthAttachment,
             }
         });
@@ -126,6 +128,13 @@ public class OpenGLRender : IRender, IInputHandler
         Engine.InputManager.RegisterInputHandler(this);
     }
 
+    public void PreFrame()
+    {
+        Engine.LightManager.UpdateShaderBuffer();
+        _gBuffer?.GeometryPass();
+        Engine.LightManager.DrawShadows();
+    }
+
     public void Frame()
     {
         if (NeedToRecreateBuffers)
@@ -145,10 +154,9 @@ public class OpenGLRender : IRender, IInputHandler
         GL.Enable(EnableCap.DepthTest);
         GL.DepthFunc(DepthFunction.Less);
 
-        _gBuffer?.GeometryPass();
-        Engine.LightManager.DrawShadows();
-
         ImageBasedLighting?.Frame(_sky);
+
+        PreFrame();
 
         _mainFramebuffer?.Bind();
 
@@ -239,7 +247,7 @@ public class OpenGLRender : IRender, IInputHandler
         _screenspaceEffects.Clear();
         _outRender?.Unload();
 
-        ImageBasedLighting?.Unload();
+        ImageBasedLighting?.Reset();
         _gBuffer?.Unload();
         _colorRenderTarget?.Unload();
         _depthRenderTarget?.Unload();
@@ -248,5 +256,16 @@ public class OpenGLRender : IRender, IInputHandler
         CreateBuffers();
 
         NeedToRecreateBuffers = false;
+    }
+
+    public void OnMapLoad()
+    {
+        ImageBasedLighting?.GenerateProbeGrid();
+        ImageBasedLighting?.Render(_sky);
+    }
+
+    public void UpdateIBL()
+    {
+        ImageBasedLighting?.Render(_sky);
     }
 }

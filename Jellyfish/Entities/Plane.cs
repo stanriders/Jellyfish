@@ -13,7 +13,7 @@ public class Plane : BaseModelEntity, IPhysicsEntity
     public Plane()
     {
         AddProperty("Size", new Vector2(20, 20), changeCallback: OnSizeChanged);
-        AddProperty("Texture", "test.png", changeCallback: OnTextureChanged);
+        AddProperty("Texture", "test.png", changeCallback: OnTextureChanged, flags: EntityPropertyFlags.FilePath);
         AddProperty("TextureScale", new Vector2(1.0f), changeCallback: OnSizeChanged);
     }
 

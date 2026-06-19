@@ -56,7 +56,7 @@ public class TextureManager
         if (texture.References <= 0)
         {
             _textures.Remove(texture);
-            GL.DeleteTexture(texture.Handle);
+            texture.Delete();
         }
     }
 }

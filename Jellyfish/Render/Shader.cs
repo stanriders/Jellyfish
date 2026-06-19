@@ -487,18 +487,8 @@ public abstract class Shader
                 {
                     var includePath = Path.Combine(Path.GetDirectoryName(path) ?? string.Empty, line.Replace("#include", "").Trim());
 
-                    var includedFile = LoadDependency(includePath);
-                    var fileLines = includedFile.Split('\n');
-                    foreach (var fileLine in fileLines)
-                    {
-                        if (fileLine.StartsWith("#include"))
-                        {
-                            var subIncludePath = Path.Combine(Path.GetDirectoryName(path) ?? string.Empty, fileLine.Replace("#include", "").Trim());
-                            builder.AppendLine(LoadDependency(subIncludePath));
-                            continue;
-                        }
-                        builder.AppendLine(fileLine);
-                    }
+                    var includedFile = LoadSource(includePath);
+                    builder.AppendLine(includedFile);
                     continue;
                 }
                 builder.AppendLine(line);

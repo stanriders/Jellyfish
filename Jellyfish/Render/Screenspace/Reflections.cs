@@ -10,7 +10,9 @@ public class Reflections : ScreenspaceEffect
 {
     public Reflections() : base("Reflections", SizedInternalFormat.Rgba16f, new ScreenspaceReflections())
     {
+        Priority = 0;
     }
+
     public override void Draw()
     {
         if (!ConVarStorage.Get<bool>("mat_sslr_enabled"))
@@ -31,6 +33,7 @@ public class ReflectionsBlurX : ScreenspaceEffect
 {
     public ReflectionsBlurX() : base("ReflectionsBlurX", SizedInternalFormat.Rgba16f, new Blur("_rt_Reflections", Blur.Direction.Horizontal, Blur.Size.Blur9Slow))
     {
+        Priority = 1;
     }
 }
 
@@ -38,5 +41,6 @@ public class ReflectionsBlurY : ScreenspaceEffect
 {
     public ReflectionsBlurY() : base("ReflectionsBlurY", SizedInternalFormat.Rgba16f, new Blur("_rt_ReflectionsBlurX", Blur.Direction.Vertical, Blur.Size.Blur9Slow))
     {
+        Priority = 2;
     }
 }

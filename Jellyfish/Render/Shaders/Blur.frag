@@ -81,35 +81,37 @@ void main()
     vec2 directionVec = vec2(1, 0);
     if (direction == 1)
         directionVec = vec2(0, 1);
+
+    float alpha = texture(sourceSampler, TexCoords).a;
     
     if (size == 0)
     {
-        FragColor = blur5(sourceSampler, TexCoords, screenSize, directionVec);
+        FragColor = vec4(blur5(sourceSampler, TexCoords, screenSize, directionVec).rgb, alpha);
         return;
     }
     else if (size == 1)
     {
-        FragColor = blur9(sourceSampler, TexCoords, screenSize, directionVec);
+        FragColor = vec4(blur9(sourceSampler, TexCoords, screenSize, directionVec).rgb, alpha);
         return;
     }
     else if (size == 2)
     {
-        FragColor = blur13(sourceSampler, TexCoords, screenSize, directionVec);
+        FragColor = vec4(blur13(sourceSampler, TexCoords, screenSize, directionVec).rgb, alpha);
         return;
     }
     else if (size == 3)
     {
-        FragColor = blur_slow(sourceSampler, TexCoords, screenSize, direction, 5);
+        FragColor = vec4(blur_slow(sourceSampler, TexCoords, screenSize, direction, 5).rgb, alpha);
         return;
     }
     else if (size == 4)
     {
-        FragColor = blur_slow(sourceSampler, TexCoords, screenSize, direction, 9);
+        FragColor = vec4(blur_slow(sourceSampler, TexCoords, screenSize, direction, 9).rgb, alpha);
         return;
     }
     else if (size == 5)
     {
-        FragColor = blur_slow(sourceSampler, TexCoords, screenSize, direction, 13);
+        FragColor = vec4(blur_slow(sourceSampler, TexCoords, screenSize, direction, 13).rgb, alpha);
         return;
     }
 }

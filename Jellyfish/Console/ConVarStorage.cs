@@ -70,7 +70,13 @@ public static class ConVarStorage
         if (!ConVars.TryGetValue(name, out var convar))
             return;
 
-        (convar as ConVar<T>)!.Value = value;
+        var convarTyped = convar as ConVar<T>;
+#if DEBUG
+        if (!convarTyped!.Value.Equals(value))
+            Log.Context("Console").Debug($"{name} {value}");
+#endif
+
+        convarTyped.Value = value;
     }
 
     public static void Set(string name, object value)
@@ -80,6 +86,11 @@ public static class ConVarStorage
 
         if (!ConVars.TryGetValue(name, out var convar))
             return;
+
+#if DEBUG
+        if (convar.UntypedValue != value)
+            Log.Context("Console").Debug($"{name} {value}");
+#endif
 
         convar.UntypedValue = value;
     }

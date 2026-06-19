@@ -23,7 +23,7 @@ public class DynamicModel : BaseModelEntity, IPhysicsEntity
 
     public DynamicModel()
     {
-        AddProperty<string>("Model", editable: false);
+        AddProperty<string>("Model", editable: false, flags: EntityPropertyFlags.FilePath);
         AddProperty<BoundingBoxType>("BoundingBox", editable: false);
         AddProperty("EnablePhysics", true, changeCallback: enablePhysics =>
         {
@@ -44,7 +44,7 @@ public class DynamicModel : BaseModelEntity, IPhysicsEntity
 
     public override void Load()
     {
-        ModelPath = $"models/{GetPropertyValue<string>("Model")}";
+        ModelPath = GetPropertyValue<string>("Model");
         base.Load();
 
         if (GetPropertyValue<bool>("EnablePhysics") && Model != null)

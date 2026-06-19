@@ -14,9 +14,20 @@ namespace Jellyfish;
 
 public static class ModelParser
 {
-    public static Model Parse(string path, bool isDev = false)
+    public static Model? Parse(string path, bool isDev = false)
     {
         Log.Context("ModelParser").Information("Loading model {Path}...", path);
+
+        if (!Path.Exists(path))
+        {
+            path = $"models/{path}";
+
+            if (!Path.Exists(path))
+            {
+                Log.Context("ModelParser").Error("Can't find model {Model}", path);
+                return null;
+            }
+        }
 
         var modelName = Path.GetFileNameWithoutExtension(path);
 
@@ -71,7 +82,7 @@ public static class ModelParser
                     boneId = bones.Count;
                     boneMap[bone.Name] = boneId;
 
-                    var offsetMatrix = bone.OffsetMatrix.ToOpentkMatrix();
+                    var offsetMatrix = ((Matrix4)bone.OffsetMatrix).Transposed();
                     if (prerotate)
                     {
                         var corr = Matrix4.CreateFromQuaternion(new Quaternion(MathHelper.DegreesToRadians(90), 0, 0));
