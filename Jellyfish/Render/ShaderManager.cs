@@ -21,7 +21,7 @@ namespace Jellyfish.Render
                 return handle;
             }
 
-            Log.Context(this).Debug("Compiling shader {Path}...", path);
+            Log.Context(this).Debug("Compiling shader {Path}...", name);
 
             handle = GL.CreateShader(type);
 
