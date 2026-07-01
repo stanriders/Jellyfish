@@ -25,7 +25,7 @@ struct Light {
     float far;
     bool usePcss;    float _pad3;
 
-    uint64_t shadow;
+    sampler2D shadow;
 };
 
 struct Sun {
@@ -41,7 +41,7 @@ struct Sun {
 
     int cascadeFar[CSM_CASCADES];
     int cascadeNear[CSM_CASCADES];
-    uint64_t shadow[CSM_CASCADES];
+    sampler2D shadow[CSM_CASCADES];
 };
 
 layout(std430, binding = 0) buffer LightSources {
@@ -75,8 +75,8 @@ const vec2 poissonDisk[PCSS_FILTER_SIZE] =
 #define MAX_PROBES 512
 #define PROBE_BLEND_COUNT 12
 struct LightProbe {
-    uint64_t irradiance;
-    uint64_t prefilter;
+    samplerCube irradiance;
+    samplerCube prefilter;
     vec3        position;
 };
 
