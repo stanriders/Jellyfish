@@ -19,7 +19,7 @@ public class StaticModel : BaseModelEntity, IPhysicsEntity
         var rotation = GetProperty<Quaternion>("Rotation");
         rotation!.Editable = false;
 
-        var scale = GetProperty<Quaternion>("Scale");
+        var scale = GetProperty<Vector3>("Scale");
         scale!.Editable = false;
     }
 
