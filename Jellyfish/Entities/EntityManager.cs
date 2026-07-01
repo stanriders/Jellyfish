@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Jellyfish.Console;
@@ -74,7 +73,8 @@ public class EntityManager
 
     public void Frame(float frameTime)
     {
-        var stopwatch = Stopwatch.StartNew();
+        using var _ = new PerformanceMeasure("EntityManager.Frame");
+
         while (_killQueue.Count > 0)
         {
             var entity = _killQueue.Dequeue();
@@ -107,8 +107,6 @@ public class EntityManager
             foreach (var entity in _entityList)
                 entity.Think(frameTime);
         }
-
-        PerformanceMeasurment.Add("EntityManager.Frame", stopwatch.Elapsed.TotalMilliseconds);
     }
 
     public static BaseEntity? CreateEntity(string className)

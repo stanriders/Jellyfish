@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Jellyfish.Debug;
 
@@ -25,5 +27,22 @@ public static class PerformanceMeasurment
     public static void Reset(string key)
     {
         incrementalMeasurements[key] = 0;
+    }
+}
+
+public class PerformanceMeasure : IDisposable
+{
+    private readonly string _key;
+    private readonly Stopwatch _stopwatch;
+
+    public PerformanceMeasure(string key)
+    {
+        _key = key;
+        _stopwatch = Stopwatch.StartNew();
+    }
+
+    public void Dispose()
+    {
+        PerformanceMeasurment.Add(_key, _stopwatch.Elapsed.TotalMilliseconds);
     }
 }

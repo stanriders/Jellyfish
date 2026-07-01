@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Jellyfish.Audio;
@@ -292,7 +291,7 @@ public class PhysicsManager
         {
             Thread.Sleep(update_rate);
 
-            var stopwatch = Stopwatch.StartNew();
+            using var _ = new PerformanceMeasure("PhysicsManager.Run");
 
             var drawSettings = new DrawSettings
             {
@@ -306,7 +305,6 @@ public class PhysicsManager
 
             if (!ShouldSimulate)
             {
-                PerformanceMeasurment.Add("PhysicsManager.Run", stopwatch.Elapsed.TotalMilliseconds);
                 continue;
             }
 
@@ -335,8 +333,6 @@ public class PhysicsManager
             {
                 Log.Context(this).Warning("Physics simulation reported error {Error}!", error);
             }
-
-            PerformanceMeasurment.Add("PhysicsManager.Run", stopwatch.Elapsed.TotalMilliseconds);
         }
 
         _jobSystem.Dispose();

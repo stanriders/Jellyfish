@@ -16,7 +16,8 @@ public class FinalOut
 
     public void Draw()
     {
-        var stopwatch = Stopwatch.StartNew();
+        using var _ = new PerformanceMeasure("FinalOut.Draw");
+
         GL.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         GL.Clear(ClearBufferMask.ColorBufferBit);
         GL.Disable(EnableCap.DepthTest);
@@ -26,8 +27,6 @@ public class FinalOut
         _shader.Bind();
         CommonShapes.DrawQuad();
         _shader.Unbind();
-
-        PerformanceMeasurment.Add("FinalOut.Draw", stopwatch.Elapsed.TotalMilliseconds);
     }
 
     public void Unload()

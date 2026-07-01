@@ -91,7 +91,8 @@ public class LightManager
 
     public void DrawShadows()
     {
-        var stopwatch = Stopwatch.StartNew();
+        using var _ = new PerformanceMeasure("LightManager.DrawShadows");
+
         GL.Disable(EnableCap.CullFace);
         GL.CullFace(TriangleFace.Front);
 
@@ -163,7 +164,6 @@ public class LightManager
 
         GL.CullFace(TriangleFace.Back);
         GL.Enable(EnableCap.CullFace);
-        PerformanceMeasurment.Add("LightManager.DrawShadows", stopwatch.Elapsed.TotalMilliseconds);
     }
 
     public void UpdateShaderBuffer()

@@ -10,10 +10,8 @@ using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
-using System.Diagnostics;
 using System.Threading;
 using Jellyfish.Render.Lighting;
-using Serilog.Core;
 
 namespace Jellyfish
 {
@@ -127,7 +125,7 @@ namespace Jellyfish
 
         public void UpdateFrame(FrameEventArgs e)
         {
-            var stopwatch = Stopwatch.StartNew();
+            using var _ = new PerformanceMeasure("UpdateTotal");
 
             Frametime = e.Time;
             _viewport.Think();
@@ -169,19 +167,15 @@ namespace Jellyfish
 
             _physicsManager.ShouldSimulate = !Paused;
             _entityManager.Frame((float)e.Time);
-
-            PerformanceMeasurment.Add("UpdateTotal", stopwatch.Elapsed.TotalMilliseconds);
         }
 
         public void RenderFrame(FrameEventArgs e)
         {
             PerformanceMeasurment.Reset("DrawCalls");
-            var stopwatch = Stopwatch.StartNew();
+            using var _ = new PerformanceMeasure("RenderTotal");
 
             RenderScheduler.Run();
             Render();
-
-            PerformanceMeasurment.Add("RenderTotal", stopwatch.Elapsed.TotalMilliseconds);
         }
 
         private void Render()
@@ -189,9 +183,10 @@ namespace Jellyfish
             _render.Frame();
             _imguiController?.Render();
 
-            var stopwatch = Stopwatch.StartNew();
-            _mainWindow.SwapBuffers();
-            PerformanceMeasurment.Add("SwapBuffers", stopwatch.Elapsed.TotalMilliseconds);
+            using (new PerformanceMeasure("SwapBuffers"))
+            {
+                _mainWindow.SwapBuffers();
+            }
         }
 
         private void UpdateLoadingScreen(string text = "Loading...")

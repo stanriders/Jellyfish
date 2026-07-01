@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using Jellyfish.Debug;
 using Jellyfish.Utils;
@@ -67,8 +66,9 @@ public class MeshManager
 
     public void Draw(bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null)
     {
+        using var _ = new PerformanceMeasure("MeshManager.Draw");
+
         _drawing = true;
-        var drawStopwatch = Stopwatch.StartNew();
 
         DrawOpaque(drawDev, shaderToUse, frustum);
         DrawTranslucent(drawDev, shaderToUse, frustum);
@@ -81,35 +81,33 @@ public class MeshManager
         PostDraw();
 
         frustum?.Dispose();
-        PerformanceMeasurment.Add("MeshManager.Draw", drawStopwatch.Elapsed.TotalMilliseconds);
     }
 
     public void DrawGBuffer(bool drawDev = true)
     {
+        using var _ = new PerformanceMeasure("MeshManager.DrawGBuffer");
+
         _drawing = true;
-        var drawStopwatch = Stopwatch.StartNew();
 
         using var playerFrustum = Engine.MainViewport.GetFrustum();
 
         DrawOpaque(drawDev, null, playerFrustum, true);
         DrawTranslucent(drawDev, null, playerFrustum, true);
 
-        PerformanceMeasurment.Add("MeshManager.DrawGBuffer", drawStopwatch.Elapsed.TotalMilliseconds);
         _drawing = false;
     }
 
     private void DrawOpaque(bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null, bool gBuffer = false)
     {
-        var stopwatch = Stopwatch.StartNew();
+        using var _ = new PerformanceMeasure("MeshManager.Draw.Opaque");
 
         foreach (var mesh in _opaqueMeshes)
             DrawMesh(mesh, drawDev, shaderToUse, frustum, gBuffer);
-
-        PerformanceMeasurment.Add("MeshManager.Draw.Opaque", stopwatch.Elapsed.TotalMilliseconds);
     }
 
     private void DrawTranslucent(bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null, bool gBuffer = false)
     {
+        using var _ = new PerformanceMeasure("MeshManager.Draw.Translucent");
         var sortingPosition = frustum?.NearPlaneCenter ?? Engine.MainViewport.Position;
 
         var transluscentObjects = _translucentMeshes
@@ -121,11 +119,8 @@ public class MeshManager
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         GL.BlendEquation(BlendEquationMode.FuncAdd);
 
-        var stopwatch = Stopwatch.StartNew();
         foreach (var mesh in transluscentObjects)
             DrawMesh(mesh, drawDev, shaderToUse, frustum, gBuffer);
-
-        PerformanceMeasurment.Add("MeshManager.Draw.Translucent", stopwatch.Elapsed.TotalMilliseconds);
 
         GL.Disable(EnableCap.Blend);
         GL.DepthMask(true);
