@@ -1,9 +1,11 @@
 ﻿using Jellyfish.Console;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 
 namespace Jellyfish.Render.Shaders;
 
+public class PostprocessingEnabled() : ConVar<bool>("mat_postprocess_enabled", true, Keys.P);
 public class PostProcessing : Shader
 {
     private readonly Texture _rtColor;
@@ -13,7 +15,7 @@ public class PostProcessing : Shader
     private static float sceneExposure = 1.0f;
     private const float adj_speed = 0.035f;
 
-    public bool IsEnabled { get; set; } = true;
+    private bool _ranPreviousFrame;
 
     public PostProcessing() : 
         base("shaders/Screenspace.vert", null, "shaders/PostProcessing.frag")
@@ -31,35 +33,49 @@ public class PostProcessing : Shader
         BindTexture(1, _rtAmbientOcclusion);
         BindTexture(2, _rtBloom);
 
-        SetInt("isEnabled", IsEnabled ? 1 : 0);
+        var isEnabled = ConVarStorage.Get<bool>("mat_postprocess_enabled");
+
+        SetInt("isEnabled", isEnabled ? 1 : 0);
         SetFloat("bloomStrength", ConVarStorage.Get<float>("mat_bloom_strength"));
 
-        if (IsEnabled)
+        if (isEnabled)
         {
-            GL.GenerateTextureMipmap(_rtColor.Handle); // TODO: This generates mipmaps every frame, replace with a histogram calculation
-
-            var pixel = new float[3];
-            GL.GetTextureSubImage(_rtColor.Handle,
-                _rtColor.Levels - 1,
-                0, 0, 0,
-                1, 1, 1,
-                PixelFormat.Rgb, PixelType.Float,
-                pixel.Length * sizeof(float), pixel);
-
-            var luminance = 0.2126f * pixel[0] + 0.7152f * pixel[1] + 0.0722f * pixel[2]; // Calculate a weighted average
-            luminance = Math.Max(luminance, 0.00001f);
-
-            if (!double.IsNaN(luminance))
+            if (!_ranPreviousFrame)
             {
-                const float key = 0.14f;
-                var targetExposure = key / luminance;
+                GL.GenerateTextureMipmap(_rtColor
+                    .Handle); // TODO: This generates mipmaps every frame, replace with a histogram calculation
 
-                sceneExposure = float.Lerp(sceneExposure, targetExposure, adj_speed);
-                sceneExposure = Math.Clamp(sceneExposure, 0.01f, 8.0f);
+                var pixel = new float[3];
+                GL.GetTextureSubImage(_rtColor.Handle,
+                    _rtColor.Levels - 1,
+                    0, 0, 0,
+                    1, 1, 1,
+                    PixelFormat.Rgb, PixelType.Float,
+                    pixel.Length * sizeof(float), pixel);
+
+                var luminance = 0.2126f * pixel[0] + 
+                                0.7152f * pixel[1] + 
+                                0.0722f * pixel[2]; // Calculate a weighted average
+
+                luminance = Math.Max(luminance, 0.00001f);
+
+                if (!double.IsNaN(luminance))
+                {
+                    const float key = 0.14f;
+                    var targetExposure = key / luminance;
+
+                    sceneExposure = float.Lerp(sceneExposure, targetExposure, adj_speed);
+                    sceneExposure = Math.Clamp(sceneExposure, 0.01f, 8.0f);
+                }
+
+                SetFloat("exposure", sceneExposure);
+                SetInt("toneMappingMode", 2);
+                _ranPreviousFrame = true;
             }
-
-            SetFloat("exposure", sceneExposure);
-            SetInt("toneMappingMode", 2);
+            else
+            {
+                _ranPreviousFrame = false;
+            }
         }
     }
 
