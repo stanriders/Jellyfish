@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OpenTK.Windowing.GraphicsLibraryFramework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -73,7 +74,7 @@ public static class ConVarStorage
         var convarTyped = convar as ConVar<T>;
 #if DEBUG
         if (!convarTyped!.Value.Equals(value))
-            Log.Context("Console").Debug($"{name} {value}");
+            Log.Context("Console").Debug("{Name} {Value}", name, value);
 #endif
 
         convarTyped.Value = value;
@@ -89,9 +90,23 @@ public static class ConVarStorage
 
 #if DEBUG
         if (convar.UntypedValue != value)
-            Log.Context("Console").Debug($"{name} {value}");
+            Log.Context("Console").Debug("{Name} {Value}", name, value);
 #endif
 
         convar.UntypedValue = value;
+    }
+
+    public static bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
+    {
+        foreach (var conVar in ConVars)
+        {
+            if (conVar.Value.Bind != null && keyboardState.IsKeyPressed(conVar.Value.Bind.Value))
+            {
+                Set(conVar.Key, !(bool)conVar.Value.UntypedValue);
+                return true;
+            }
+        }
+
+        return false;
     }
 }

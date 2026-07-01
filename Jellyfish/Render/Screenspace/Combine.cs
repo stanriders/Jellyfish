@@ -1,11 +1,9 @@
-﻿using Jellyfish.Input;
-using Jellyfish.Render.Shaders;
+﻿using Jellyfish.Render.Shaders;
 using OpenTK.Graphics.OpenGL;
-using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace Jellyfish.Render.Screenspace;
 
-public class Combine : ScreenspaceEffect, IInputHandler
+public class Combine : ScreenspaceEffect
 {
     public Combine() : base(new TextureParams
     {
@@ -23,24 +21,5 @@ public class Combine : ScreenspaceEffect, IInputHandler
     }, new PostProcessing())
     {
         Priority = 100; // must be as late as possible
-        Engine.InputManager.RegisterInputHandler(this);
-    }
-
-    public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
-    {
-        if (keyboardState.IsKeyPressed(Keys.P))
-        {
-            var shader = (PostProcessing)Shader;
-            shader.IsEnabled = !shader.IsEnabled;
-            return true;
-        }
-
-        return false;
-    }
-
-    public override void Unload()
-    {
-        base.Unload();
-        Engine.InputManager.UnregisterInputHandler(this);
     }
 }

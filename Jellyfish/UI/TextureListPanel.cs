@@ -5,10 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace Jellyfish.UI;
 
-public class EnableTextureList() : ConVar<bool>("edt_texturelist");
+public class EnableTextureList() : ConVar<bool>("edt_texturelist", defaultBind: Keys.T);
 
 public class TextureListPanel : IUiPanel
 {

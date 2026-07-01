@@ -4,4 +4,6 @@
 	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=SMAA/@EntryIndexedValue">SMAA</s:String>
 	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=sslr/@EntryIndexedValue">sslr</s:String>
 	<s:String x:Key="/Default/CodeStyle/Naming/CSharpNaming/Abbreviations/=gtao/@EntryIndexedValue">gtao</s:String>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=convar/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/UserDictionary/Words/=Imgui/@EntryIndexedValue">True</s:Boolean>
+</wpf:ResourceDictionary>
