@@ -2,7 +2,6 @@
 using Jellyfish.Debug;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
-using System.Diagnostics;
 using Jellyfish.Render.Shaders;
 
 namespace Jellyfish.Render.Screenspace;
@@ -22,7 +21,8 @@ public class AmbientOcclusion : ScreenspaceEffect
 
     public override void Draw()
     {
-        var stopwatch = Stopwatch.StartNew();
+        using var _ = new PerformanceMeasure("AmbientOcclusion.Draw");
+
         if (!ConVarStorage.Get<bool>("mat_gtao_enabled"))
         {
             Buffer.Bind(FramebufferTarget.DrawFramebuffer);
@@ -31,12 +31,10 @@ public class AmbientOcclusion : ScreenspaceEffect
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
             Buffer.Unbind();
-            PerformanceMeasurment.Add("AmbientOcclusion.Draw", stopwatch.Elapsed.TotalMilliseconds);
             return;
         }
 
         base.Draw();
-        PerformanceMeasurment.Add("AmbientOcclusion.Draw", stopwatch.Elapsed.TotalMilliseconds);
     }
 }
 
