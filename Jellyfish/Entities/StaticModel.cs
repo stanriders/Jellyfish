@@ -18,6 +18,9 @@ public class StaticModel : BaseModelEntity, IPhysicsEntity
 
         var rotation = GetProperty<Quaternion>("Rotation");
         rotation!.Editable = false;
+
+        var scale = GetProperty<Quaternion>("Scale");
+        scale!.Editable = false;
     }
 
     public override void Load()
