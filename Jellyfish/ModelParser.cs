@@ -1,4 +1,5 @@
-﻿using Assimp;
+﻿using System.Collections.Concurrent;
+using Assimp;
 using Jellyfish.Console;
 using Jellyfish.FileFormats.Models;
 using Jellyfish.Render;
@@ -14,6 +15,8 @@ namespace Jellyfish;
 
 public static class ModelParser
 {
+    private static readonly ConcurrentDictionary<string, Scene> _meshesCache = new ConcurrentDictionary<string, Scene>();
+
     public static Model? Parse(string path, bool isDev = false)
     {
         Log.Context("ModelParser").Information("Loading model {Path}...", path);
@@ -35,14 +38,19 @@ public static class ModelParser
             return new Model(modelName, MDL.Load(path[..^4]).Vtx.Meshes, [], [], isDev);
 
         var importer = new AssimpContext();
-        var scene = importer.ImportFile(path, PostProcessSteps.Triangulate | 
-                                              PostProcessSteps.GenerateUVCoords | 
-                                              PostProcessSteps.JoinIdenticalVertices | 
-                                              PostProcessSteps.OptimizeMeshes | 
-                                              PostProcessSteps.OptimizeGraph | 
-                                              PostProcessSteps.SplitLargeMeshes | 
-                                              PostProcessSteps.SortByPrimitiveType | 
-                                              PostProcessSteps.ImproveCacheLocality);
+
+        if (!_meshesCache.TryGetValue(path, out var scene))
+        {
+            scene = importer.ImportFile(path, PostProcessSteps.Triangulate |
+                                                  PostProcessSteps.GenerateUVCoords |
+                                                  PostProcessSteps.JoinIdenticalVertices |
+                                                  PostProcessSteps.OptimizeMeshes |
+                                                  PostProcessSteps.OptimizeGraph |
+                                                  PostProcessSteps.SplitLargeMeshes |
+                                                  PostProcessSteps.SortByPrimitiveType |
+                                                  PostProcessSteps.ImproveCacheLocality);
+            _meshesCache.TryAdd(path, scene);
+        }
 
         var isSmd = Path.GetExtension(path) == ".smd";
         var prerotate = isSmd;
