@@ -42,55 +42,20 @@ public abstract class Shader
         _tessEvalPath = tessEvalPath;
 
         _shaderHandle = LoadShader();
+    }
 
-        var vertWatcher = new FileSystemWatcher(Path.GetDirectoryName(vertPath)!, Path.GetFileName(vertPath))
+    private void AddWatcher(string? path)
+    {
+        if (string.IsNullOrEmpty(path)) 
+            return;
+
+        var watcher = new FileSystemWatcher(Path.GetDirectoryName(path)!, Path.GetFileName(path))
         {
             NotifyFilter = NotifyFilters.LastWrite,
             EnableRaisingEvents = true
         };
-        vertWatcher.Changed += OnChanged;
-        _watchers.Add(vertWatcher);
-
-        if (!string.IsNullOrEmpty(geomPath))
-        {
-            var geomWatcher = new FileSystemWatcher(Path.GetDirectoryName(geomPath)!, Path.GetFileName(geomPath))
-            {
-                NotifyFilter = NotifyFilters.LastWrite,
-                EnableRaisingEvents = true
-            };
-            geomWatcher.Changed += OnChanged;
-            _watchers.Add(geomWatcher);
-        }
-
-        var fragWatcher = new FileSystemWatcher(Path.GetDirectoryName(fragPath)!, Path.GetFileName(fragPath))
-        {
-            NotifyFilter = NotifyFilters.LastWrite,
-            EnableRaisingEvents = true
-        };
-        fragWatcher.Changed += OnChanged;
-        _watchers.Add(fragWatcher);
-
-        if (!string.IsNullOrEmpty(tessControlPath))
-        {
-            var tessControlWatcher = new FileSystemWatcher(Path.GetDirectoryName(tessControlPath)!, Path.GetFileName(tessControlPath))
-            {
-                NotifyFilter = NotifyFilters.LastWrite,
-                EnableRaisingEvents = true
-            };
-            tessControlWatcher.Changed += OnChanged;
-            _watchers.Add(tessControlWatcher);
-        }
-
-        if (!string.IsNullOrEmpty(tessEvalPath))
-        {
-            var tessEvalWatcher = new FileSystemWatcher(Path.GetDirectoryName(tessEvalPath)!, Path.GetFileName(tessEvalPath))
-            {
-                NotifyFilter = NotifyFilters.LastWrite,
-                EnableRaisingEvents = true
-            };
-            tessEvalWatcher.Changed += OnChanged;
-            _watchers.Add(tessEvalWatcher);
-        }
+        watcher.Changed += OnChanged;
+        _watchers.Add(watcher);
     }
 
     private void OnChanged(object sender, FileSystemEventArgs e)
@@ -167,30 +132,35 @@ public abstract class Shader
         {
             CompileShader(_vertPath, vertexShader.Value);
             GL.AttachShader(handle, vertexShader.Value);
+            AddWatcher(_vertPath);
         }
 
         if (geometryShader != null)
         {
             CompileShader(_geomPath, geometryShader.Value);
             GL.AttachShader(handle, geometryShader.Value);
+            AddWatcher(_geomPath);
         }
 
         if (fragmentShader != null)
         {
             CompileShader(_fragPath, fragmentShader.Value);
             GL.AttachShader(handle, fragmentShader.Value);
+            AddWatcher(_fragPath);
         }
 
         if (tesselationControlShader != null)
         {
             CompileShader(_tessControlPath, tesselationControlShader.Value);
             GL.AttachShader(handle, tesselationControlShader.Value);
+            AddWatcher(_tessControlPath);
         }
 
         if (tesselationEvaluationShader != null)
         {
             CompileShader(_tessEvalPath, tesselationEvaluationShader.Value);
             GL.AttachShader(handle, tesselationEvaluationShader.Value);
+            AddWatcher(_tessEvalPath);
         }
 
         LinkProgram(handle);
@@ -500,15 +470,5 @@ public abstract class Shader
             Log.Context(this).Error(ex, "Failed to load shader {Path}", path);
             throw;
         }
-    }
-
-    private string LoadDependency(string includePath)
-    {
-        if (!File.Exists(includePath))
-            throw new FileNotFoundException();
-
-        var includedFile = File.ReadAllText(includePath);
-
-        return includedFile;
     }
 }
