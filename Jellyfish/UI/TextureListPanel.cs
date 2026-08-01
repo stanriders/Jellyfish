@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Jellyfish.Render;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace Jellyfish.UI;
@@ -24,6 +25,11 @@ public class TextureListPanel : IUiPanel
     private int? _expandedTexture;
     private readonly Dictionary<string, int> _cubemapAtlases = new();
     private Tabs _currentTab = Tabs.All;
+    private readonly Texture _cubeTexture = Engine.TextureManager.GetTexture(new TextureParams()
+    {
+        Srgb = false, 
+        Name = "materials/engine/cube.png"
+    }).Texture;
 
     public unsafe void Frame(double timeElapsed)
     {
@@ -83,16 +89,25 @@ public class TextureListPanel : IUiPanel
                 {
                     if (texture.Params.Type == TextureTarget.TextureCubeMap)
                     {
-                        _cubemapAtlases.TryAdd(texture.Params.Name, 0);
+                        if (expanded)
+                        {
+                            _cubemapAtlases.TryAdd(texture.Params.Name, 0);
 
-                        if (_cubemapAtlases[texture.Params.Name] != 0)
-                            GL.DeleteTexture(_cubemapAtlases[texture.Params.Name]);
+                            if (_cubemapAtlases[texture.Params.Name] != 0)
+                                GL.DeleteTexture(_cubemapAtlases[texture.Params.Name]);
 
-                        _cubemapAtlases[texture.Params.Name] = CreateCubemapCross(texture.Handle, texture.Params.RenderTargetParams.Width);
+                            _cubemapAtlases[texture.Params.Name] = CreateCubemapCross(texture.Handle,
+                                texture.Params.RenderTargetParams.Width);
 
-                        pressed = ImGui.ImageButton(texture.Params.Name, new ImTextureRef(texId: _cubemapAtlases[texture.Params.Name]),
-                            new Vector2(size, size), new Vector2(0, 1),
-                            new Vector2(1, 0));
+                            pressed = ImGui.ImageButton(texture.Params.Name,
+                                new ImTextureRef(texId: _cubemapAtlases[texture.Params.Name]),
+                                new Vector2(size, size), new Vector2(0, 1),
+                                new Vector2(1, 0));
+                        }
+                        else
+                        {
+                            pressed = ImGui.ImageButton(texture.Params.Name, new ImTextureRef(texId: _cubeTexture.Handle), new Vector2(size, size));
+                        }
                     }
                     else
                     {
