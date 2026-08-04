@@ -14,13 +14,13 @@ public class Main : Shader
     public Main(Material material) : base("shaders/Main.vert", null, "shaders/Main.frag")
     {
         if (material.TryGetParam<string>("Diffuse", out var diffusePath))
-            _diffuse = Engine.TextureManager.GetTexture(new TextureParams {Name = $"{material.Directory}/{diffusePath}", Srgb = true}).Texture;
+            _diffuse = Engine.TextureManager.GetTexture(new TextureParams { Path = $"{material.Directory}/{diffusePath}", Srgb = true}).Texture;
 
         if (material.TryGetParam<string>("Normal", out var normalPath))
-            _normal = Engine.TextureManager.GetTexture(new TextureParams { Name = $"{material.Directory}/{normalPath}"}).Texture;
+            _normal = Engine.TextureManager.GetTexture(new TextureParams { Path = $"{material.Directory}/{normalPath}"}).Texture;
 
         if (material.TryGetParam<string>("MetalRoughness", out var metroughtPath))
-            _metRought = Engine.TextureManager.GetTexture(new TextureParams { Name = $"{material.Directory}/{metroughtPath}"}).Texture;
+            _metRought = Engine.TextureManager.GetTexture(new TextureParams { Path = $"{material.Directory}/{metroughtPath}"}).Texture;
 
         _reflectionMap = Engine.TextureManager.GetTexture("_rt_ReflectionsBlurY");
 

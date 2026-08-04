@@ -161,39 +161,47 @@ public sealed class ImguiController : IDisposable, IInputHandler
             for (int i = 0; i < drawData.Textures.Size; i++)
             {
                 var imTexture = drawData.Textures[i];
-                var id = $"_imgui_{imTexture.UniqueID}"; 
+                var id = $"_rt_imgui_{imTexture.UniqueID}"; 
 
                 if (imTexture.Status == ImTextureStatus.Ok || imTexture.Status == ImTextureStatus.Destroyed)
                     continue;
 
-                var mips = (int)Math.Floor(Math.Log(Math.Max(imTexture.Width, imTexture.Height), 2));
-
-                var (texture, alreadyExists) = Engine.TextureManager.GetTexture(new TextureParams
-                {
-                    Name = id,
-                    Type = TextureTarget.Texture2d,
-                    Srgb = false,
-                    MinFiltering = TextureMinFilter.Linear
-                });
-
                 if (imTexture.Status == ImTextureStatus.WantCreate)
                 {
-                    if (!alreadyExists)
+                    var mips = (int)Math.Floor(Math.Log(Math.Max(imTexture.Width, imTexture.Height), 2)) - 1;
+
+                    var newTexture = Engine.TextureManager.CreateTexture(new TextureParams
                     {
-                        GL.TextureStorage2D(texture.Handle, mips, SizedInternalFormat.Rgba32f, imTexture.Width, imTexture.Height);
+                        Name = id,
+                        Type = TextureTarget.Texture2d,
+                        Srgb = false,
+                        MinFiltering = TextureMinFilter.Linear,
+                        MaxLevels = mips,
+                        InternalFormat = SizedInternalFormat.Rgba32f,
+                        PixelFormat = PixelFormat.Bgra,
+                        RenderTargetParams = new RenderTargetParams
+                        {
+                            Width = imTexture.Width,
+                            Heigth = imTexture.Height,
+                            Attachment = null
+                        }
+                    });
 
-                        GL.TextureSubImage2D(texture.Handle, 0, 0, 0, imTexture.Width, imTexture.Height, PixelFormat.Bgra, PixelType.UnsignedByte,
-                            imTexture.GetPixels());
+                    GL.TextureSubImage2D(newTexture.Handle, 0, 0, 0, imTexture.Width, imTexture.Height,
+                        PixelFormat.Bgra, PixelType.UnsignedByte,
+                        imTexture.GetPixels());
 
-                        GL.GenerateTextureMipmap(texture.Handle);
+                    GL.GenerateTextureMipmap(newTexture.Handle);
 
-                        GL.TextureParameteri(texture.Handle, TextureParameterName.TextureMaxLevel, mips - 1);
-                    }
+                    GL.TextureParameteri(newTexture.Handle, TextureParameterName.TextureMaxLevel, mips);
 
-                    imTexture.SetTexID(texture.Handle);
+                    imTexture.SetTexID(newTexture.Handle);
                     imTexture.SetStatus(ImTextureStatus.Ok);
                 }
-                if (imTexture.Status == ImTextureStatus.WantUpdates)
+
+                var texture = Engine.TextureManager.GetTexture(id);
+
+                if (imTexture.Status == ImTextureStatus.WantUpdates && texture != null)
                 {
                     // TODO: update rects instead of the full texture
                     GL.TextureSubImage2D(texture.Handle, 0, 0, 0, imTexture.Width, imTexture.Height, PixelFormat.Bgra, PixelType.UnsignedByte,
@@ -203,7 +211,8 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
                     imTexture.SetStatus(ImTextureStatus.Ok);
                 }
-                if (imTexture.Status == ImTextureStatus.WantDestroy && imTexture.UnusedFrames > 0)
+
+                if (imTexture.Status == ImTextureStatus.WantDestroy && imTexture.UnusedFrames > 0 && texture != null)
                 {
                     Engine.TextureManager.RemoveTexture(texture);
                     imTexture.SetTexID(ImTextureID.Null);

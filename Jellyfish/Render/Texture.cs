@@ -3,6 +3,7 @@ using Jellyfish.Console;
 using OpenTK.Graphics.OpenGL;
 using System;
 using System.IO;
+using OpenTK.Mathematics;
 
 namespace Jellyfish.Render;
 
@@ -10,13 +11,14 @@ public class RenderTargetParams
 {
     public required int Width { get; set; }
     public required int Heigth { get; set; }
-    public required FramebufferAttachment Attachment { get; set; }
+    public required FramebufferAttachment? Attachment { get; set; }
     public bool EnableCompare { get; set; } = false;
 }
 
 public class TextureParams
 {
-    public required string Name { get; set; }
+    public string? Path { get; set; }
+    public string? Name { get; set; }
     public TextureTarget Type { get; set; } = TextureTarget.Texture2d;
     public bool Srgb { get; set; } = false;
     public RenderTargetParams? RenderTargetParams { get; set; }
@@ -36,6 +38,8 @@ public class Texture
     public int References { get; set; } = 1;
     public int Levels { get; private set; }
     public string Format { get; private set; } = string.Empty;
+    public bool HasAlpha { get; private set; }
+    public Vector2 Size { get; private set; }
 
     private readonly bool _isError;
     private bool _isDeleted;
@@ -47,7 +51,17 @@ public class Texture
         Params = textureParams;
 
         if (string.IsNullOrEmpty(Params.Name))
-            return;
+        {
+            if (!string.IsNullOrEmpty(Params.Path))
+            {
+                Params.Name = Params.Path;
+            }
+            else
+            {
+                Log.Context(this).Warning("Trying to create a texture with null Name and Path");
+                return;
+            }
+        }
 
         Handle = GL.CreateTexture(Params.Type);
 
@@ -64,7 +78,7 @@ public class Texture
         }
 
         // procedural textures create themselves
-        if (Params.Name.StartsWith("_"))
+        if (Params.Name.StartsWith("_rt_"))
         {
             Params.MaxLevels ??= 1;
             CreateRenderTarget();
@@ -73,16 +87,18 @@ public class Texture
 
         Params.MaxLevels ??= 8;
 
-        if (!File.Exists(Params.Name))
+        var path = Params.Path ?? Params.Name;
+        if (!File.Exists(path))
         {
             Log.Context(this).Warning("Texture {Path} doesn't exist!", Params.Name);
             Params.Name = error_texture;
+            path = error_texture;
         }
 
         if (Params.Name == error_texture)
             _isError = true;
 
-        using var image = new MagickImage(Params.Name);
+        using var image = new MagickImage(path);
 
         // downsample sRGB-expected textures since ogl doesn't support 16-bit sRGB
         if (image.Depth == 16 && Params.Srgb)
@@ -92,18 +108,18 @@ public class Texture
 
         using var data = image.GetPixelsUnsafe(); // feels scary
 
-        var hasAlpha = image.ChannelCount == 4;
+        HasAlpha = image.ChannelCount == 4;
 
-        var pixelFormat = Params.PixelFormat ?? (hasAlpha ? PixelFormat.Rgba : PixelFormat.Rgb);
+        var pixelFormat = Params.PixelFormat ?? (HasAlpha ? PixelFormat.Rgba : PixelFormat.Rgb);
 
         var internalPixelFormat = Params.InternalFormat ??
-                                  (hasAlpha
+                                  (HasAlpha
                                       ? Params.Srgb ? SizedInternalFormat.Srgb8Alpha8 : SizedInternalFormat.Rgba8
                                       : Params.Srgb ? SizedInternalFormat.Srgb8 : SizedInternalFormat.Rgb8);
 
         if (image.Depth == 16)
         {
-            internalPixelFormat = hasAlpha ? SizedInternalFormat.Rgba16 : SizedInternalFormat.Rgb16;
+            internalPixelFormat = HasAlpha ? SizedInternalFormat.Rgba16 : SizedInternalFormat.Rgb16;
         }
 
         var levels = Math.Clamp(Math.Min((int)image.Width, (int)image.Height) / 16, 1, Params.MaxLevels.Value);
@@ -117,6 +133,7 @@ public class Texture
 
         Levels = levels;
         Format = internalPixelFormat.ToString();
+        Size = new Vector2(image.Width, image.Height);
     }
 
     private void CreateRenderTarget()
@@ -138,14 +155,15 @@ public class Texture
         }
 
         // other types should bind manually
-        if (Params.Type == TextureTarget.Texture2d)
+        if (Params.Type == TextureTarget.Texture2d && Params.RenderTargetParams.Attachment != null)
         {
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, Params.RenderTargetParams.Attachment, Params.Type, Handle, 0);
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, Params.RenderTargetParams.Attachment.Value, Params.Type, Handle, 0);
         }
 
         GL.BindTexture(Params.Type, 0);
 
         Format = Params.InternalFormat.ToString()!;
+        Size = new Vector2(Params.RenderTargetParams.Width, Params.RenderTargetParams.Heigth);
     }
 
     public void Bind(uint unit)
@@ -165,7 +183,7 @@ public class Texture
             Engine.TextureManager.RemoveTexture(this);
     }
 
-    public override string ToString() => Params.Name;
+    public override string ToString() => Params.Name ?? Params.Path ?? "Unknown ???";
 
     private int MaxLevels(int width, int height)
     {

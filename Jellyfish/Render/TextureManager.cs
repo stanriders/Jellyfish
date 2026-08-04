@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.Render;
 
@@ -12,7 +11,7 @@ public class TextureManager
 
     public Texture CreateTexture(TextureParams textureParams)
     {
-        var existingTexture = _textures.FirstOrDefault(x => x.Params.Name == textureParams.Name);
+        var existingTexture = _textures.FirstOrDefault(x => x.Params.Name == (textureParams.Name ?? textureParams.Path));
         if (existingTexture != null)
             throw new Exception($"Texture {textureParams.Name} already exists");
 
@@ -24,7 +23,7 @@ public class TextureManager
 
     public (Texture Texture, bool AlreadyExists) GetTexture(TextureParams textureParams)
     {
-        var existingTexture = _textures.FirstOrDefault(x => x.Params.Name == textureParams.Name);
+        var existingTexture = _textures.FirstOrDefault(x => x.Params.Name == (textureParams.Name ?? textureParams.Path));
         if (existingTexture != null)
         {
             existingTexture.References++;

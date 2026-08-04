@@ -14,7 +14,8 @@ public class BlendingWeightCalculation : Shader
         _rtEdges = Engine.TextureManager.GetTexture("_rt_SMAAEdgeDetection")!;
         _areaTexture = Engine.TextureManager.GetTexture(new TextureParams
         {
-            Name = "materials/engine/smaa_area.dds", 
+            Name = "_engine_SmaaArea",
+            Path = "materials/engine/smaa_area.dds", 
             MaxLevels = 1, 
             MagFiltering = TextureMagFilter.Linear, 
             MinFiltering = TextureMinFilter.Linear, 
@@ -24,9 +25,10 @@ public class BlendingWeightCalculation : Shader
             PixelFormat = PixelFormat.Rgb,
         }).Texture;
 
-        _searchTexture = Engine.TextureManager.GetTexture(new TextureParams 
-        { 
-            Name = "materials/engine/smaa_search.dds",
+        _searchTexture = Engine.TextureManager.GetTexture(new TextureParams
+        {
+            Name = "_engine_SmaaSearch",
+            Path = "materials/engine/smaa_search.dds",
             MaxLevels = 1,
             MagFiltering = TextureMagFilter.Linear,
             MinFiltering = TextureMinFilter.Linear,

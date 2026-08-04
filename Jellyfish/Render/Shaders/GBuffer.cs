@@ -8,10 +8,10 @@ public class GBuffer : Shader
     public GBuffer(Material material) : base("shaders/Main.vert", null, "shaders/GBuffer.frag")
     {
         //if (material.TryGetParam<string>("Diffuse", out var diffusePath))
-        //    _diffuse = Engine.TextureManager.GetTexture(new TextureParams { Name = $"{material.Directory}/{diffusePath}", Srgb = true}).Texture;
+        //    _diffuse = Engine.TextureManager.GetTexture(new TextureParams { Path = $"{material.Directory}/{diffusePath}", Srgb = true}).Texture;
 
         if (material.TryGetParam<string>("Normal", out var normalPath))
-            _normal = Engine.TextureManager.GetTexture(new TextureParams { Name = $"{material.Directory}/{normalPath}"}).Texture;
+            _normal = Engine.TextureManager.GetTexture(new TextureParams { Path = $"{material.Directory}/{normalPath}"}).Texture;
     }
 
     public override void Bind()
