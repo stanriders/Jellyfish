@@ -46,14 +46,14 @@ bool screenIntersect(in vec3 originVS, in vec3 dirVS, out vec2 hitUV, out vec3 h
         traveled += step;
         pos = originVS + dirVS * traveled;
 
-        if (traveled > uMaxDistance) break;
+        if (traveled > uMaxDistance)
+            return false;
 
         vec2 uv = ProjectToUV(pos);
         if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
             continue;
         }
 
-        float depthSample = GetDepth(uDepth, uv, Near, Far);
         vec3 sampleVS = GetViewPos(uv, Near, Far);
 
         // Because view-space z is negative forward, an intersection occurs when sampled geometry
@@ -128,7 +128,7 @@ void main()
     float hitDepthView;
     bool hit = screenIntersect(originVS, R, hitUV, hitVS, hitDepthView);
 
-    float confidence = 1.0;
+    float confidence = 0.0;
     vec3 reflColor = vec3(0.0);
     if (hit) 
     {
@@ -136,15 +136,11 @@ void main()
 
         float NdotV = max(dot(normalVS, V), 0.0);
         float fresnel = pow(1.0 - NdotV, 3.0);
-        confidence *= fresnel;
+        confidence = fresnel;
 
         float edgeFade = clamp(min(min(hitUV.x, 1.0 - hitUV.x), min(hitUV.y, 1.0 - hitUV.y)) * 10.0, 0.0, 1.0);
         confidence *= edgeFade;
     } 
-    else 
-    {
-        confidence = 0.0;
-    }
 
     FragColor = vec4(reflColor, confidence);
 }
