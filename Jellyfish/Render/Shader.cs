@@ -197,11 +197,11 @@ public abstract class Shader
             GL.GetActiveUniform(handle, i, 128, out _, out var size, out var uniformType, out var key);
             var location = GL.GetUniformLocation(handle, key);
 
-            // what if it's not an array somehow?..
-            var nameWithoutArray = key[..^3];
-
             if (size > 1)
             {
+                // what if it's not an array somehow?..
+                var nameWithoutArray = key[..^3];
+
                 for (var j = 0; j < size; j++)
                 {
                     _uniforms.Add($"{nameWithoutArray}[{j}]", new Uniform { Location = location + j, Name = $"{nameWithoutArray}[{j}]" });
@@ -383,6 +383,12 @@ public abstract class Shader
             GL.Uniform3f(uniform.Value.Location, data[0], data[1], data[2]);
     }
 
+    public void SetVector3(string name, double[] data, bool bind = false)
+    {
+        var uniform = SetUniform(name, data, bind);
+        if (uniform != null)
+            GL.Uniform3d(uniform.Value.Location, data[0], data[1], data[2]);
+    }
     /// <summary>
     ///     Set a uniform Vector3 on this shader.
     /// </summary>
