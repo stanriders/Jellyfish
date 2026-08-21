@@ -4,18 +4,19 @@ namespace Jellyfish.Render.Screenspace;
 
 public class Downsample : ScreenspaceEffect
 {
-    public Downsample() : base(new TextureParams
-    {
-        Name = "_rt_Downsample",
-        WrapMode = TextureWrapMode.ClampToEdge,
-        MinFiltering = TextureMinFilter.Linear,
-        MagFiltering = TextureMagFilter.Linear,
-        InternalFormat = SizedInternalFormat.Rgb16f
-    }, new RenderTargetParams
+    public Downsample() : base(new RenderTargetParams
     {
         Width = Engine.MainViewport.Size.X / 2,
         Heigth = Engine.MainViewport.Size.Y / 2,
         Attachment = FramebufferAttachment.ColorAttachment0,
+        TextureParams = new TextureParams
+        {
+            Name = "_rt_Downsample",
+            WrapMode = TextureWrapMode.ClampToEdge,
+            MinFiltering = TextureMinFilter.Linear,
+            MagFiltering = TextureMagFilter.Linear,
+            InternalFormat = SizedInternalFormat.Rgb16f
+        }
     }, new Shaders.Downsample("_rt_Color"))
     {
         Priority = 0;
@@ -30,18 +31,19 @@ public class Downsample : ScreenspaceEffect
 }
 public class Downsample4 : ScreenspaceEffect
 {
-    public Downsample4() : base(new TextureParams
-    {
-        Name = "_rt_Downsample4",
-        WrapMode = TextureWrapMode.ClampToEdge,
-        MinFiltering = TextureMinFilter.Linear,
-        MagFiltering = TextureMagFilter.Linear,
-        InternalFormat = SizedInternalFormat.Rgb16f
-    }, new RenderTargetParams
+    public Downsample4() : base(new RenderTargetParams
     {
         Width = Engine.MainViewport.Size.X / 4,
         Heigth = Engine.MainViewport.Size.Y / 4,
         Attachment = FramebufferAttachment.ColorAttachment0,
+        TextureParams = new TextureParams
+        {
+            Name = "_rt_Downsample4",
+            WrapMode = TextureWrapMode.ClampToEdge,
+            MinFiltering = TextureMinFilter.Linear,
+            MagFiltering = TextureMagFilter.Linear,
+            InternalFormat = SizedInternalFormat.Rgb16f
+        }
     }, new Shaders.Downsample("_rt_Downsample"))
     {
         Priority = 1;
@@ -56,18 +58,19 @@ public class Downsample4 : ScreenspaceEffect
 }
 public class Downsample8 : ScreenspaceEffect
 {
-    public Downsample8() : base(new TextureParams
-    {
-        Name = "_rt_Downsample8",
-        WrapMode = TextureWrapMode.ClampToEdge,
-        MinFiltering = TextureMinFilter.Linear,
-        MagFiltering = TextureMagFilter.Linear,
-        InternalFormat = SizedInternalFormat.Rgb16f
-    }, new RenderTargetParams
+    public Downsample8() : base(new RenderTargetParams
     {
         Width = Engine.MainViewport.Size.X / 8,
         Heigth = Engine.MainViewport.Size.Y / 8,
         Attachment = FramebufferAttachment.ColorAttachment0,
+        TextureParams = new TextureParams
+        {
+            Name = "_rt_Downsample8",
+            WrapMode = TextureWrapMode.ClampToEdge,
+            MinFiltering = TextureMinFilter.Linear,
+            MagFiltering = TextureMagFilter.Linear,
+            InternalFormat = SizedInternalFormat.Rgb16f
+        }
     }, new Shaders.Downsample("_rt_Downsample4"))
     {
         Priority = 2;

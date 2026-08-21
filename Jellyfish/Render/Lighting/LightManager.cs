@@ -323,19 +323,20 @@ public class LightManager
 
         var shader = new Shadow(light.Source, light.Shadows.Count);
 
-        var rt = Engine.TextureManager.CreateTexture(new TextureParams
-        {
-            Name = $"_rt_Shadow{Lights.IndexOf(light)}{subname}",
-            BorderColor = [1f, 1f, 1f, 1f],
-            WrapMode = TextureWrapMode.ClampToBorder,
-            MinFiltering = TextureMinFilter.Linear,
-            MagFiltering = TextureMagFilter.Linear,
-            InternalFormat = SizedInternalFormat.DepthComponent32f
-        }, new RenderTargetParams
+        var rt = Engine.TextureManager.CreateTexture(new RenderTargetParams
         {
             Width = light.Source.ShadowResolution,
             Heigth = light.Source.ShadowResolution,
             Attachment = FramebufferAttachment.DepthAttachment,
+            TextureParams = new TextureParams
+            {
+                Name = $"_rt_Shadow{Lights.IndexOf(light)}{subname}",
+                BorderColor = [1f, 1f, 1f, 1f],
+                WrapMode = TextureWrapMode.ClampToBorder,
+                MinFiltering = TextureMinFilter.Linear,
+                MagFiltering = TextureMagFilter.Linear,
+                InternalFormat = SizedInternalFormat.DepthComponent32f
+            }
         });
 
         GL.BindTexture(TextureTarget.Texture2d, rt.Handle);

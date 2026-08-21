@@ -78,33 +78,35 @@ public class OpenGLRender : IRender, IInputHandler
         _mainFramebuffer = new FrameBuffer();
         _mainFramebuffer.Bind();
 
-        _colorRenderTarget = Engine.TextureManager.CreateTexture(new TextureParams
-        {
-            Name = "_rt_Color",
-            WrapMode = TextureWrapMode.ClampToEdge,
-            MaxLevels = -1,
-            MinFiltering = TextureMinFilter.Nearest,
-            MagFiltering = TextureMagFilter.Nearest,
-            InternalFormat = SizedInternalFormat.Rgb16f
-        }, new RenderTargetParams
+        _colorRenderTarget = Engine.TextureManager.CreateTexture(new RenderTargetParams
         {
             Width = Engine.MainViewport.Size.X,
             Heigth = Engine.MainViewport.Size.Y,
             Attachment = FramebufferAttachment.ColorAttachment0,
+            TextureParams = new TextureParams
+            {
+                Name = "_rt_Color",
+                WrapMode = TextureWrapMode.ClampToEdge,
+                MaxLevels = -1,
+                MinFiltering = TextureMinFilter.Nearest,
+                MagFiltering = TextureMagFilter.Nearest,
+                InternalFormat = SizedInternalFormat.Rgb16f
+            }
         });
 
-        _depthRenderTarget = Engine.TextureManager.CreateTexture(new TextureParams
-        {
-            Name = "_rt_Depth",
-            WrapMode = TextureWrapMode.ClampToEdge,
-            MinFiltering = TextureMinFilter.Nearest,
-            MagFiltering = TextureMagFilter.Nearest,
-            InternalFormat = SizedInternalFormat.DepthComponent32f
-        }, new RenderTargetParams
+        _depthRenderTarget = Engine.TextureManager.CreateTexture(new RenderTargetParams
         {
             Width = Engine.MainViewport.Size.X,
             Heigth = Engine.MainViewport.Size.Y,
             Attachment = FramebufferAttachment.DepthAttachment,
+            TextureParams = new TextureParams
+            {
+                Name = "_rt_Depth",
+                WrapMode = TextureWrapMode.ClampToEdge,
+                MinFiltering = TextureMinFilter.Nearest,
+                MagFiltering = TextureMagFilter.Nearest,
+                InternalFormat = SizedInternalFormat.DepthComponent32f
+            }
         });
 
         if (!_mainFramebuffer.Check())

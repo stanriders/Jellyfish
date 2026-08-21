@@ -36,16 +36,15 @@ public class TextureManager
         }
     }
 
-    public Texture CreateTexture(TextureParams textureParams, RenderTargetParams rtParams)
+    public Texture CreateTexture(RenderTargetParams rtParams)
     {
-        var existingTexture = _textures.FirstOrDefault(x => x.Params.Path == (textureParams.Path ?? textureParams.Name) ||
-                                                            x.Params.Name == (textureParams.Name ?? textureParams.Path));
+        var existingTexture = _textures.FirstOrDefault(x => x.Params.Name == rtParams.TextureParams.Name);
         if (existingTexture != null)
-            throw new Exception($"Texture {textureParams.Name} already exists");
+            throw new Exception($"Texture {rtParams.TextureParams.Name} already exists");
 
         try
         {
-            var texture = new Texture(textureParams, rtParams);
+            var texture = new Texture(rtParams);
             _textures.Add(texture);
 
             return texture;
@@ -78,10 +77,10 @@ public class TextureManager
             return (GetTexture(error_texture)!, false);
         }
     }
-    public (Texture Texture, bool AlreadyExists) GetTexture(TextureParams textureParams, RenderTargetParams rtParams)
+
+    public (Texture Texture, bool AlreadyExists) GetTexture(RenderTargetParams rtParams)
     {
-        var existingTexture = _textures.FirstOrDefault(x => x.Params.Path == (textureParams.Path ?? textureParams.Name) ||
-                                                            x.Params.Name == (textureParams.Name ?? textureParams.Path));
+        var existingTexture = _textures.FirstOrDefault(x => x.Params.Name == rtParams.TextureParams.Name);
         if (existingTexture != null)
         {
             existingTexture.References++;
@@ -90,7 +89,7 @@ public class TextureManager
 
         try
         {
-            var texture = new Texture(textureParams, rtParams);
+            var texture = new Texture(rtParams);
             _textures.Add(texture);
 
             return (texture, false);

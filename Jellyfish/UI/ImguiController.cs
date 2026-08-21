@@ -170,20 +170,21 @@ public sealed class ImguiController : IDisposable, IInputHandler
                 {
                     var mips = (int)Math.Floor(Math.Log(Math.Max(imTexture.Width, imTexture.Height), 2)) - 1;
 
-                    var newTexture = Engine.TextureManager.CreateTexture(new TextureParams
-                    {
-                        Name = id,
-                        Type = TextureTarget.Texture2d,
-                        Srgb = false,
-                        MinFiltering = TextureMinFilter.Linear,
-                        MaxLevels = mips,
-                        InternalFormat = SizedInternalFormat.Rgba32f,
-                        PixelFormat = PixelFormat.Bgra
-                    }, new RenderTargetParams
+                    var newTexture = Engine.TextureManager.CreateTexture(new RenderTargetParams
                     {
                         Width = imTexture.Width,
                         Heigth = imTexture.Height,
-                        Attachment = null
+                        Attachment = null,
+                        TextureParams = new TextureParams
+                        {
+                            Name = id,
+                            Type = TextureTarget.Texture2d,
+                            Srgb = false,
+                            MinFiltering = TextureMinFilter.Linear,
+                            MaxLevels = mips,
+                            InternalFormat = SizedInternalFormat.Rgba32f,
+                            PixelFormat = PixelFormat.Bgra
+                        }
                     });
 
                     GL.TextureSubImage2D(newTexture.Handle, 0, 0, 0, imTexture.Width, imTexture.Height,

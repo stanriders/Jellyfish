@@ -55,32 +55,34 @@ public class LightProbe
     {
         _index = index;
 
-        _irradianceRenderTarget = Engine.TextureManager.CreateTexture(new TextureParams
-        {
-            Name = $"_rt_Irradiance_{index}",
-            Type = TextureTarget.TextureCubeMap,
-            WrapMode = TextureWrapMode.ClampToEdge,
-            MinFiltering = TextureMinFilter.Linear,
-            InternalFormat = SizedInternalFormat.Rgb16f
-        }, new RenderTargetParams
+        _irradianceRenderTarget = Engine.TextureManager.CreateTexture(new RenderTargetParams
         {
             Width = irradiance_size,
             Heigth = irradiance_size,
-            Attachment = FramebufferAttachment.ColorAttachment0
+            Attachment = FramebufferAttachment.ColorAttachment0,
+            TextureParams = new TextureParams
+            {
+                Name = $"_rt_Irradiance_{index}",
+                Type = TextureTarget.TextureCubeMap,
+                WrapMode = TextureWrapMode.ClampToEdge,
+                MinFiltering = TextureMinFilter.Linear,
+                InternalFormat = SizedInternalFormat.Rgb16f
+            }
         });
 
-        _prefilterRenderTarget = Engine.TextureManager.CreateTexture(new TextureParams
-        {
-            Name = $"_rt_Prefilter_{index}",
-            Type = TextureTarget.TextureCubeMap,
-            WrapMode = TextureWrapMode.ClampToEdge,
-            MaxLevels = PrefilterMips,
-            InternalFormat = SizedInternalFormat.Rgb16f
-        }, new RenderTargetParams
+        _prefilterRenderTarget = Engine.TextureManager.CreateTexture(new RenderTargetParams
         {
             Width = size,
             Heigth = size,
-            Attachment = FramebufferAttachment.ColorAttachment0
+            Attachment = FramebufferAttachment.ColorAttachment0,
+            TextureParams = new TextureParams
+            {
+                Name = $"_rt_Prefilter_{index}",
+                Type = TextureTarget.TextureCubeMap,
+                WrapMode = TextureWrapMode.ClampToEdge,
+                MaxLevels = PrefilterMips,
+                InternalFormat = SizedInternalFormat.Rgb16f
+            }
         });
 
         IrradianceBindlessHandle = GL.ARB.GetTextureHandleARB(_irradianceRenderTarget.Handle);
@@ -112,17 +114,18 @@ public class LightProbe
 
         RenderBuffer.Create(InternalFormat.DepthComponent, FramebufferAttachment.DepthAttachment, size, size);
 
-        var cubemapRenderTarget = Engine.TextureManager.CreateTexture(new TextureParams
-        {
-            Name = $"_rt_EnvironmentMap_{_index}",
-            Type = TextureTarget.TextureCubeMap,
-            WrapMode = TextureWrapMode.ClampToEdge,
-            InternalFormat = SizedInternalFormat.Rgb16f,
-        }, new RenderTargetParams
+        var cubemapRenderTarget = Engine.TextureManager.CreateTexture(new RenderTargetParams
         {
             Width = size,
             Heigth = size,
-            Attachment = FramebufferAttachment.ColorAttachment0
+            Attachment = FramebufferAttachment.ColorAttachment0,
+            TextureParams = new TextureParams
+            {
+                Name = $"_rt_EnvironmentMap_{_index}",
+                Type = TextureTarget.TextureCubeMap,
+                WrapMode = TextureWrapMode.ClampToEdge,
+                InternalFormat = SizedInternalFormat.Rgb16f,
+            }
         });
         GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
 

@@ -21,18 +21,19 @@ public class GBuffer
                 ? SizedInternalFormat.Rgba16f
                 : SizedInternalFormat.Rgb16f;
             */
-            _renderTargets.Add(Engine.TextureManager.CreateTexture(new TextureParams
-            {
-                Name = $"_rt_{(GBufferType)i}",
-                WrapMode = TextureWrapMode.ClampToEdge,
-                MinFiltering = TextureMinFilter.Nearest,
-                MagFiltering = TextureMagFilter.Nearest,
-                InternalFormat = SizedInternalFormat.Rgb16f
-            }, new RenderTargetParams
+            _renderTargets.Add(Engine.TextureManager.CreateTexture(new RenderTargetParams
             {
                 Width = Engine.MainViewport.Size.X,
                 Heigth = Engine.MainViewport.Size.Y,
                 Attachment = FramebufferAttachment.ColorAttachment0 + i,
+                TextureParams = new TextureParams
+                {
+                    Name = $"_rt_{(GBufferType)i}",
+                    WrapMode = TextureWrapMode.ClampToEdge,
+                    MinFiltering = TextureMinFilter.Nearest,
+                    MagFiltering = TextureMagFilter.Nearest,
+                    InternalFormat = SizedInternalFormat.Rgb16f
+                }
             }));
         }
 

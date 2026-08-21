@@ -9,18 +9,19 @@ public class SMAAEnabled() : ConVar<bool>("mat_smaa_enabled", true);
 
 public class SMAAEdgeDetection : ScreenspaceEffect
 {
-    public SMAAEdgeDetection() : base(new TextureParams
-    {
-        Name = "_rt_SMAAEdgeDetection",
-        WrapMode = TextureWrapMode.ClampToEdge,
-        MinFiltering = TextureMinFilter.Linear,
-        MagFiltering = TextureMagFilter.Linear,
-        InternalFormat = SizedInternalFormat.Rgba8
-    }, new RenderTargetParams
+    public SMAAEdgeDetection() : base(new RenderTargetParams
     {
         Width = Engine.MainViewport.Size.X,
         Heigth = Engine.MainViewport.Size.Y,
         Attachment = FramebufferAttachment.ColorAttachment0,
+        TextureParams = new TextureParams
+        {
+            Name = "_rt_SMAAEdgeDetection",
+            WrapMode = TextureWrapMode.ClampToEdge,
+            MinFiltering = TextureMinFilter.Linear,
+            MagFiltering = TextureMagFilter.Linear,
+            InternalFormat = SizedInternalFormat.Rgba8
+        }
     }, new EdgeDetection())
     {
         ClearColor = new Color4<Rgba>(0, 0, 0, 1);
@@ -46,18 +47,19 @@ public class SMAAEdgeDetection : ScreenspaceEffect
 
 public class SMAABlendingWeightCalculation : ScreenspaceEffect
 {
-    public SMAABlendingWeightCalculation() : base(new TextureParams
-    {
-        Name = "_rt_SMAABlendingWeightCalculation",
-        WrapMode = TextureWrapMode.ClampToEdge,
-        MinFiltering = TextureMinFilter.Linear,
-        MagFiltering = TextureMagFilter.Linear,
-        InternalFormat = SizedInternalFormat.Rgba8
-    }, new RenderTargetParams
+    public SMAABlendingWeightCalculation() : base(new RenderTargetParams
     {
         Width = Engine.MainViewport.Size.X,
         Heigth = Engine.MainViewport.Size.Y,
         Attachment = FramebufferAttachment.ColorAttachment0,
+        TextureParams = new TextureParams
+        {
+            Name = "_rt_SMAABlendingWeightCalculation",
+            WrapMode = TextureWrapMode.ClampToEdge,
+            MinFiltering = TextureMinFilter.Linear,
+            MagFiltering = TextureMagFilter.Linear,
+            InternalFormat = SizedInternalFormat.Rgba8
+        }
     }, new BlendingWeightCalculation())
     {
         ClearColor = new Color4<Rgba>(0, 0, 0, 1);
@@ -83,18 +85,19 @@ public class SMAABlendingWeightCalculation : ScreenspaceEffect
 
 public class SMAANeighborhoodBlending : ScreenspaceEffect
 {
-    public SMAANeighborhoodBlending() : base(new TextureParams
-    {
-        Name = "_rt_SMAANeighborhoodBlending",
-        WrapMode = TextureWrapMode.ClampToEdge,
-        MinFiltering = TextureMinFilter.Linear,
-        MagFiltering = TextureMagFilter.Linear,
-        InternalFormat = SizedInternalFormat.Rgb8
-    }, new RenderTargetParams
+    public SMAANeighborhoodBlending() : base(new RenderTargetParams
     {
         Width = Engine.MainViewport.Size.X,
         Heigth = Engine.MainViewport.Size.Y,
         Attachment = FramebufferAttachment.ColorAttachment0,
+        TextureParams = new TextureParams
+        {
+            Name = "_rt_SMAANeighborhoodBlending",
+            WrapMode = TextureWrapMode.ClampToEdge,
+            MinFiltering = TextureMinFilter.Linear,
+            MagFiltering = TextureMagFilter.Linear,
+            InternalFormat = SizedInternalFormat.Rgb8
+        }
     }, new NeighborhoodBlending())
     {
         ClearColor = new Color4<Rgba>(0, 0, 0, 1);

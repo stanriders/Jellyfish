@@ -13,6 +13,7 @@ public class RenderTargetParams
     public required int Heigth { get; set; }
     public required FramebufferAttachment? Attachment { get; set; }
     public bool EnableCompare { get; set; } = false;
+    public required TextureParams TextureParams { get; set; }
 }
 
 public class TextureParams
@@ -45,10 +46,9 @@ public class Texture
 
     private bool _isDeleted;
 
-    public Texture(TextureParams textureParams, RenderTargetParams? rtParams = null)
+    public Texture(TextureParams textureParams)
     {
         Params = textureParams;
-        RenderTargetParams = rtParams;
 
         if (string.IsNullOrEmpty(Params.Name))
         {
@@ -77,47 +77,6 @@ public class Texture
             GL.TextureParameterf(Handle, TextureParameterName.TextureBorderColor, textureParams.BorderColor);
         }
 
-        if (RenderTargetParams != null)
-        {
-            CreateRenderTarget();
-        }
-        else
-        {
-            CreateNormalTexture();
-        }
-    }
-
-    private void CreateRenderTarget()
-    {
-        Params.MaxLevels ??= 1;
-
-        if (Params.MaxLevels != -1)
-            Levels = Math.Clamp(Math.Min(RenderTargetParams!.Width, RenderTargetParams.Heigth) / 64, 1, Params.MaxLevels!.Value);
-        else
-            Levels = MaxLevels(RenderTargetParams!.Width, RenderTargetParams.Heigth);
-
-        GL.TextureStorage2D(Handle, Levels, Params.InternalFormat!.Value, RenderTargetParams.Width, RenderTargetParams.Heigth);
-
-        if (RenderTargetParams.EnableCompare)
-        {
-            GL.TextureParameteri(Handle, TextureParameterName.TextureCompareMode, (int)TextureCompareMode.CompareRefToTexture);
-            GL.TextureParameteri(Handle, TextureParameterName.TextureCompareFunc, (int)DepthFunction.Lequal);
-        }
-
-        // other types should bind manually
-        if (Params.Type == TextureTarget.Texture2d && RenderTargetParams.Attachment != null)
-        {
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, RenderTargetParams.Attachment.Value, Params.Type, Handle, 0);
-        }
-
-        GL.BindTexture(Params.Type, 0);
-
-        Format = Params.InternalFormat.ToString()!;
-        Size = new Vector2(RenderTargetParams.Width, RenderTargetParams.Heigth);
-    }
-
-    private void CreateNormalTexture()
-    {
         Params.MaxLevels ??= 8;
 
         var path = Params.Path ?? Params.Name;
@@ -163,6 +122,58 @@ public class Texture
         Levels = levels;
         Format = internalPixelFormat.ToString();
         Size = new Vector2(image.Width, image.Height);
+    }
+
+    public Texture(RenderTargetParams rtParams)
+    {
+        Params = rtParams.TextureParams;
+        RenderTargetParams = rtParams;
+
+        if (string.IsNullOrEmpty(Params.Name))
+        {
+            Log.Context(this).Warning("Trying to create a render target texture with null Name");
+            throw new InvalidTextureException("Trying to create a render target texture with null Name");
+        }
+
+        Handle = GL.CreateTexture(Params.Type);
+
+        GL.ObjectLabel(ObjectIdentifier.Texture, (uint)Handle, Params.Name.Length, Params.Name);
+
+        GL.TextureParameteri(Handle, TextureParameterName.TextureMinFilter, (int)Params.MinFiltering);
+        GL.TextureParameteri(Handle, TextureParameterName.TextureMagFilter, (int)Params.MagFiltering);
+        GL.TextureParameteri(Handle, TextureParameterName.TextureWrapS, (int)Params.WrapMode);
+        GL.TextureParameteri(Handle, TextureParameterName.TextureWrapT, (int)Params.WrapMode);
+
+        if (Params.BorderColor != null)
+        {
+            GL.TextureParameterf(Handle, TextureParameterName.TextureBorderColor, Params.BorderColor);
+        }
+
+        Params.MaxLevels ??= 1;
+
+        if (Params.MaxLevels != -1)
+            Levels = Math.Clamp(Math.Min(RenderTargetParams!.Width, RenderTargetParams.Heigth) / 64, 1, Params.MaxLevels!.Value);
+        else
+            Levels = MaxLevels(RenderTargetParams!.Width, RenderTargetParams.Heigth);
+
+        GL.TextureStorage2D(Handle, Levels, Params.InternalFormat!.Value, RenderTargetParams.Width, RenderTargetParams.Heigth);
+
+        if (RenderTargetParams.EnableCompare)
+        {
+            GL.TextureParameteri(Handle, TextureParameterName.TextureCompareMode, (int)TextureCompareMode.CompareRefToTexture);
+            GL.TextureParameteri(Handle, TextureParameterName.TextureCompareFunc, (int)DepthFunction.Lequal);
+        }
+
+        // other types should bind manually
+        if (Params.Type == TextureTarget.Texture2d && RenderTargetParams.Attachment != null)
+        {
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, RenderTargetParams.Attachment.Value, Params.Type, Handle, 0);
+        }
+
+        GL.BindTexture(Params.Type, 0);
+
+        Format = Params.InternalFormat.ToString()!;
+        Size = new Vector2(RenderTargetParams.Width, RenderTargetParams.Heigth);
     }
 
     public void Bind(uint unit)

@@ -9,18 +9,19 @@ public class BloomStrength() : ConVar<float>("mat_bloom_strength", 0.04f);
 
 public class Upsample4 : ScreenspaceEffect
 {
-    public Upsample4() : base(new TextureParams
-    {
-        Name = "_rt_Upsample4",
-        WrapMode = TextureWrapMode.ClampToEdge,
-        MinFiltering = TextureMinFilter.Linear,
-        MagFiltering = TextureMagFilter.Linear,
-        InternalFormat = SizedInternalFormat.Rgb16f
-    }, new RenderTargetParams
+    public Upsample4() : base(new RenderTargetParams
     {
         Width = Engine.MainViewport.Size.X / 4,
         Heigth = Engine.MainViewport.Size.Y / 4,
         Attachment = FramebufferAttachment.ColorAttachment0,
+        TextureParams = new TextureParams
+        {
+            Name = "_rt_Upsample4",
+            WrapMode = TextureWrapMode.ClampToEdge,
+            MinFiltering = TextureMinFilter.Linear,
+            MagFiltering = TextureMagFilter.Linear,
+            InternalFormat = SizedInternalFormat.Rgb16f
+        }
     }, new Shaders.Bloom("_rt_Downsample8", 1f))
     {
         Priority = 10;
@@ -34,18 +35,19 @@ public class Upsample4 : ScreenspaceEffect
 }
 public class Upsample2 : ScreenspaceEffect
 {
-    public Upsample2() : base(new TextureParams
-    {
-        Name = "_rt_Upsample2",
-        WrapMode = TextureWrapMode.ClampToEdge,
-        MinFiltering = TextureMinFilter.Linear,
-        MagFiltering = TextureMagFilter.Linear,
-        InternalFormat = SizedInternalFormat.Rgb16f
-    }, new RenderTargetParams
+    public Upsample2() : base(new RenderTargetParams
     {
         Width = Engine.MainViewport.Size.X / 2,
         Heigth = Engine.MainViewport.Size.Y / 2,
         Attachment = FramebufferAttachment.ColorAttachment0,
+        TextureParams = new TextureParams
+        {
+            Name = "_rt_Upsample2",
+            WrapMode = TextureWrapMode.ClampToEdge,
+            MinFiltering = TextureMinFilter.Linear,
+            MagFiltering = TextureMagFilter.Linear,
+            InternalFormat = SizedInternalFormat.Rgb16f
+        }
     }, new Shaders.Bloom("_rt_Upsample4", 0.1f))
     {
         Priority = 11;
@@ -59,18 +61,19 @@ public class Upsample2 : ScreenspaceEffect
 }
 public class Bloom : ScreenspaceEffect
 {
-    public Bloom() : base(new TextureParams
-    {
-        Name = "_rt_Bloom",
-        WrapMode = TextureWrapMode.ClampToEdge,
-        MinFiltering = TextureMinFilter.Linear,
-        MagFiltering = TextureMagFilter.Linear,
-        InternalFormat = SizedInternalFormat.Rgb16f
-    }, new RenderTargetParams
+    public Bloom() : base(new RenderTargetParams
     {
         Width = Engine.MainViewport.Size.X,
         Heigth = Engine.MainViewport.Size.Y,
         Attachment = FramebufferAttachment.ColorAttachment0,
+        TextureParams = new TextureParams
+        {
+            Name = "_rt_Bloom",
+            WrapMode = TextureWrapMode.ClampToEdge,
+            MinFiltering = TextureMinFilter.Linear,
+            MagFiltering = TextureMagFilter.Linear,
+            InternalFormat = SizedInternalFormat.Rgb16f
+        }
     }, new Shaders.Bloom("_rt_Upsample2", 0.01f))
     {
         Priority = 12;
