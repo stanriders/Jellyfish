@@ -85,13 +85,12 @@ public class OpenGLRender : IRender, IInputHandler
             MaxLevels = -1,
             MinFiltering = TextureMinFilter.Nearest,
             MagFiltering = TextureMagFilter.Nearest,
-            InternalFormat = SizedInternalFormat.Rgb16f,
-            RenderTargetParams = new RenderTargetParams
-            {
-                Width = Engine.MainViewport.Size.X,
-                Heigth = Engine.MainViewport.Size.Y,
-                Attachment = FramebufferAttachment.ColorAttachment0,
-            }
+            InternalFormat = SizedInternalFormat.Rgb16f
+        }, new RenderTargetParams
+        {
+            Width = Engine.MainViewport.Size.X,
+            Heigth = Engine.MainViewport.Size.Y,
+            Attachment = FramebufferAttachment.ColorAttachment0,
         });
 
         _depthRenderTarget = Engine.TextureManager.CreateTexture(new TextureParams
@@ -100,13 +99,12 @@ public class OpenGLRender : IRender, IInputHandler
             WrapMode = TextureWrapMode.ClampToEdge,
             MinFiltering = TextureMinFilter.Nearest,
             MagFiltering = TextureMagFilter.Nearest,
-            InternalFormat = SizedInternalFormat.DepthComponent32f,
-            RenderTargetParams = new RenderTargetParams
-            {
-                Width = Engine.MainViewport.Size.X,
-                Heigth = Engine.MainViewport.Size.Y,
-                Attachment = FramebufferAttachment.DepthAttachment,
-            }
+            InternalFormat = SizedInternalFormat.DepthComponent32f
+        }, new RenderTargetParams
+        {
+            Width = Engine.MainViewport.Size.X,
+            Heigth = Engine.MainViewport.Size.Y,
+            Attachment = FramebufferAttachment.DepthAttachment,
         });
 
         if (!_mainFramebuffer.Check())

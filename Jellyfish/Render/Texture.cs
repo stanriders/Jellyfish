@@ -21,7 +21,6 @@ public class TextureParams
     public string? Name { get; set; }
     public TextureTarget Type { get; set; } = TextureTarget.Texture2d;
     public bool Srgb { get; set; } = false;
-    public RenderTargetParams? RenderTargetParams { get; set; }
     public float[]? BorderColor { get; set; } = null;
     public int? MaxLevels { get; set; }
     public TextureMinFilter MinFiltering { get; set; } = TextureMinFilter.LinearMipmapLinear;
@@ -35,6 +34,7 @@ public class InvalidTextureException(string message) : Exception(message);
 
 public class Texture
 {
+    public RenderTargetParams? RenderTargetParams { get; }
     public TextureParams Params { get; }
     public int Handle { get; }
     public int References { get; set; } = 1;
@@ -45,9 +45,10 @@ public class Texture
 
     private bool _isDeleted;
 
-    public Texture(TextureParams textureParams)
+    public Texture(TextureParams textureParams, RenderTargetParams? rtParams = null)
     {
         Params = textureParams;
+        RenderTargetParams = rtParams;
 
         if (string.IsNullOrEmpty(Params.Name))
         {
@@ -76,7 +77,7 @@ public class Texture
             GL.TextureParameterf(Handle, TextureParameterName.TextureBorderColor, textureParams.BorderColor);
         }
 
-        if (Params.Name.StartsWith("_rt_"))
+        if (RenderTargetParams != null)
         {
             CreateRenderTarget();
         }
@@ -88,34 +89,31 @@ public class Texture
 
     private void CreateRenderTarget()
     {
-        if (Params.RenderTargetParams == null)
-            return;
-
         Params.MaxLevels ??= 1;
 
         if (Params.MaxLevels != -1)
-            Levels = Math.Clamp(Math.Min(Params.RenderTargetParams.Width, Params.RenderTargetParams.Heigth) / 64, 1, Params.MaxLevels!.Value);
+            Levels = Math.Clamp(Math.Min(RenderTargetParams!.Width, RenderTargetParams.Heigth) / 64, 1, Params.MaxLevels!.Value);
         else
-            Levels = MaxLevels(Params.RenderTargetParams.Width, Params.RenderTargetParams.Heigth);
+            Levels = MaxLevels(RenderTargetParams!.Width, RenderTargetParams.Heigth);
 
-        GL.TextureStorage2D(Handle, Levels, Params.InternalFormat!.Value, Params.RenderTargetParams.Width, Params.RenderTargetParams.Heigth);
+        GL.TextureStorage2D(Handle, Levels, Params.InternalFormat!.Value, RenderTargetParams.Width, RenderTargetParams.Heigth);
 
-        if (Params.RenderTargetParams.EnableCompare)
+        if (RenderTargetParams.EnableCompare)
         {
             GL.TextureParameteri(Handle, TextureParameterName.TextureCompareMode, (int)TextureCompareMode.CompareRefToTexture);
             GL.TextureParameteri(Handle, TextureParameterName.TextureCompareFunc, (int)DepthFunction.Lequal);
         }
 
         // other types should bind manually
-        if (Params.Type == TextureTarget.Texture2d && Params.RenderTargetParams.Attachment != null)
+        if (Params.Type == TextureTarget.Texture2d && RenderTargetParams.Attachment != null)
         {
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, Params.RenderTargetParams.Attachment.Value, Params.Type, Handle, 0);
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, RenderTargetParams.Attachment.Value, Params.Type, Handle, 0);
         }
 
         GL.BindTexture(Params.Type, 0);
 
         Format = Params.InternalFormat.ToString()!;
-        Size = new Vector2(Params.RenderTargetParams.Width, Params.RenderTargetParams.Heigth);
+        Size = new Vector2(RenderTargetParams.Width, RenderTargetParams.Heigth);
     }
 
     private void CreateNormalTexture()

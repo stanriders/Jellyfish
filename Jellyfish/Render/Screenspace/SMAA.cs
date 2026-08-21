@@ -15,13 +15,12 @@ public class SMAAEdgeDetection : ScreenspaceEffect
         WrapMode = TextureWrapMode.ClampToEdge,
         MinFiltering = TextureMinFilter.Linear,
         MagFiltering = TextureMagFilter.Linear,
-        InternalFormat = SizedInternalFormat.Rgba8,
-        RenderTargetParams = new RenderTargetParams
-        {
-            Width = Engine.MainViewport.Size.X,
-            Heigth = Engine.MainViewport.Size.Y,
-            Attachment = FramebufferAttachment.ColorAttachment0,
-        }
+        InternalFormat = SizedInternalFormat.Rgba8
+    }, new RenderTargetParams
+    {
+        Width = Engine.MainViewport.Size.X,
+        Heigth = Engine.MainViewport.Size.Y,
+        Attachment = FramebufferAttachment.ColorAttachment0,
     }, new EdgeDetection())
     {
         ClearColor = new Color4<Rgba>(0, 0, 0, 1);
@@ -53,13 +52,12 @@ public class SMAABlendingWeightCalculation : ScreenspaceEffect
         WrapMode = TextureWrapMode.ClampToEdge,
         MinFiltering = TextureMinFilter.Linear,
         MagFiltering = TextureMagFilter.Linear,
-        InternalFormat = SizedInternalFormat.Rgba8,
-        RenderTargetParams = new RenderTargetParams
-        {
-            Width = Engine.MainViewport.Size.X,
-            Heigth = Engine.MainViewport.Size.Y,
-            Attachment = FramebufferAttachment.ColorAttachment0,
-        }
+        InternalFormat = SizedInternalFormat.Rgba8
+    }, new RenderTargetParams
+    {
+        Width = Engine.MainViewport.Size.X,
+        Heigth = Engine.MainViewport.Size.Y,
+        Attachment = FramebufferAttachment.ColorAttachment0,
     }, new BlendingWeightCalculation())
     {
         ClearColor = new Color4<Rgba>(0, 0, 0, 1);
@@ -91,13 +89,12 @@ public class SMAANeighborhoodBlending : ScreenspaceEffect
         WrapMode = TextureWrapMode.ClampToEdge,
         MinFiltering = TextureMinFilter.Linear,
         MagFiltering = TextureMagFilter.Linear,
-        InternalFormat = SizedInternalFormat.Rgb8,
-        RenderTargetParams = new RenderTargetParams
-        {
-            Width = Engine.MainViewport.Size.X,
-            Heigth = Engine.MainViewport.Size.Y,
-            Attachment = FramebufferAttachment.ColorAttachment0,
-        }
+        InternalFormat = SizedInternalFormat.Rgb8
+    }, new RenderTargetParams
+    {
+        Width = Engine.MainViewport.Size.X,
+        Heigth = Engine.MainViewport.Size.Y,
+        Attachment = FramebufferAttachment.ColorAttachment0,
     }, new NeighborhoodBlending())
     {
         ClearColor = new Color4<Rgba>(0, 0, 0, 1);

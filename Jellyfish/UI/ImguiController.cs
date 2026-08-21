@@ -178,13 +178,12 @@ public sealed class ImguiController : IDisposable, IInputHandler
                         MinFiltering = TextureMinFilter.Linear,
                         MaxLevels = mips,
                         InternalFormat = SizedInternalFormat.Rgba32f,
-                        PixelFormat = PixelFormat.Bgra,
-                        RenderTargetParams = new RenderTargetParams
-                        {
-                            Width = imTexture.Width,
-                            Heigth = imTexture.Height,
-                            Attachment = null
-                        }
+                        PixelFormat = PixelFormat.Bgra
+                    }, new RenderTargetParams
+                    {
+                        Width = imTexture.Width,
+                        Heigth = imTexture.Height,
+                        Attachment = null
                     });
 
                     GL.TextureSubImage2D(newTexture.Handle, 0, 0, 0, imTexture.Width, imTexture.Height,

@@ -11,13 +11,12 @@ public class Combine : ScreenspaceEffect
         WrapMode = TextureWrapMode.ClampToEdge,
         MinFiltering = TextureMinFilter.Linear,
         MagFiltering = TextureMagFilter.Linear,
-        InternalFormat = SizedInternalFormat.Rgb8,
-        RenderTargetParams = new RenderTargetParams
-        {
-            Width = Engine.MainViewport.Size.X,
-            Heigth = Engine.MainViewport.Size.Y,
-            Attachment = FramebufferAttachment.ColorAttachment0,
-        }
+        InternalFormat = SizedInternalFormat.Rgb8
+    }, new RenderTargetParams
+    {
+        Width = Engine.MainViewport.Size.X,
+        Heigth = Engine.MainViewport.Size.Y,
+        Attachment = FramebufferAttachment.ColorAttachment0,
     }, new PostProcessing())
     {
         Priority = 100; // must be as late as possible

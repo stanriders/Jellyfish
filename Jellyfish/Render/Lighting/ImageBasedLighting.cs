@@ -61,13 +61,12 @@ public class LightProbe
             Type = TextureTarget.TextureCubeMap,
             WrapMode = TextureWrapMode.ClampToEdge,
             MinFiltering = TextureMinFilter.Linear,
-            InternalFormat = SizedInternalFormat.Rgb16f,
-            RenderTargetParams = new RenderTargetParams
-            {
-                Width = irradiance_size,
-                Heigth = irradiance_size,
-                Attachment = FramebufferAttachment.ColorAttachment0
-            }
+            InternalFormat = SizedInternalFormat.Rgb16f
+        }, new RenderTargetParams
+        {
+            Width = irradiance_size,
+            Heigth = irradiance_size,
+            Attachment = FramebufferAttachment.ColorAttachment0
         });
 
         _prefilterRenderTarget = Engine.TextureManager.CreateTexture(new TextureParams
@@ -76,13 +75,12 @@ public class LightProbe
             Type = TextureTarget.TextureCubeMap,
             WrapMode = TextureWrapMode.ClampToEdge,
             MaxLevels = PrefilterMips,
-            InternalFormat = SizedInternalFormat.Rgb16f,
-            RenderTargetParams = new RenderTargetParams
-            {
-                Width = size,
-                Heigth = size,
-                Attachment = FramebufferAttachment.ColorAttachment0
-            }
+            InternalFormat = SizedInternalFormat.Rgb16f
+        }, new RenderTargetParams
+        {
+            Width = size,
+            Heigth = size,
+            Attachment = FramebufferAttachment.ColorAttachment0
         });
 
         IrradianceBindlessHandle = GL.ARB.GetTextureHandleARB(_irradianceRenderTarget.Handle);
@@ -120,12 +118,11 @@ public class LightProbe
             Type = TextureTarget.TextureCubeMap,
             WrapMode = TextureWrapMode.ClampToEdge,
             InternalFormat = SizedInternalFormat.Rgb16f,
-            RenderTargetParams = new RenderTargetParams
-            {
-                Width = size,
-                Heigth = size,
-                Attachment = FramebufferAttachment.ColorAttachment0
-            }
+        }, new RenderTargetParams
+        {
+            Width = size,
+            Heigth = size,
+            Attachment = FramebufferAttachment.ColorAttachment0
         });
         GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
 

@@ -27,13 +27,12 @@ public abstract class ScreenspaceEffect
             WrapMode = TextureWrapMode.ClampToEdge,
             MinFiltering = TextureMinFilter.Nearest,
             MagFiltering = TextureMagFilter.Nearest,
-            InternalFormat = format,
-            RenderTargetParams = new RenderTargetParams
-            {
-                Width = Engine.MainViewport.Size.X,
-                Heigth = Engine.MainViewport.Size.Y,
-                Attachment = FramebufferAttachment.ColorAttachment0,
-            }
+            InternalFormat = format
+        }, new RenderTargetParams
+        {
+            Width = Engine.MainViewport.Size.X,
+            Heigth = Engine.MainViewport.Size.Y,
+            Attachment = FramebufferAttachment.ColorAttachment0,
         });
 
         GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
@@ -42,14 +41,14 @@ public abstract class ScreenspaceEffect
         Buffer.Unbind();
     }
 
-    protected ScreenspaceEffect(TextureParams textureParams, Shader shader)
+    protected ScreenspaceEffect(TextureParams textureParams, RenderTargetParams rtParams, Shader shader)
     {
         Shader = shader;
 
         Buffer = new FrameBuffer();
         Buffer.Bind();
 
-        RenderTarget = Engine.TextureManager.CreateTexture(textureParams);
+        RenderTarget = Engine.TextureManager.CreateTexture(textureParams, rtParams);
 
         GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
 

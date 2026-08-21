@@ -27,13 +27,12 @@ public class GBuffer
                 WrapMode = TextureWrapMode.ClampToEdge,
                 MinFiltering = TextureMinFilter.Nearest,
                 MagFiltering = TextureMagFilter.Nearest,
-                InternalFormat = SizedInternalFormat.Rgb16f,
-                RenderTargetParams = new RenderTargetParams
-                {
-                    Width = Engine.MainViewport.Size.X,
-                    Heigth = Engine.MainViewport.Size.Y,
-                    Attachment = FramebufferAttachment.ColorAttachment0 + i,
-                }
+                InternalFormat = SizedInternalFormat.Rgb16f
+            }, new RenderTargetParams
+            {
+                Width = Engine.MainViewport.Size.X,
+                Heigth = Engine.MainViewport.Size.Y,
+                Attachment = FramebufferAttachment.ColorAttachment0 + i,
             }));
         }
 

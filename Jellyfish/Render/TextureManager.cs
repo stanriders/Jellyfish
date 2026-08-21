@@ -36,6 +36,26 @@ public class TextureManager
         }
     }
 
+    public Texture CreateTexture(TextureParams textureParams, RenderTargetParams rtParams)
+    {
+        var existingTexture = _textures.FirstOrDefault(x => x.Params.Path == (textureParams.Path ?? textureParams.Name) ||
+                                                            x.Params.Name == (textureParams.Name ?? textureParams.Path));
+        if (existingTexture != null)
+            throw new Exception($"Texture {textureParams.Name} already exists");
+
+        try
+        {
+            var texture = new Texture(textureParams, rtParams);
+            _textures.Add(texture);
+
+            return texture;
+        }
+        catch (InvalidTextureException)
+        {
+            return GetTexture(error_texture)!;
+        }
+    }
+
     public (Texture Texture, bool AlreadyExists) GetTexture(TextureParams textureParams)
     {
         var existingTexture = _textures.FirstOrDefault(x => x.Params.Path == (textureParams.Path ?? textureParams.Name) ||
@@ -49,6 +69,28 @@ public class TextureManager
         try
         {
             var texture = new Texture(textureParams);
+            _textures.Add(texture);
+
+            return (texture, false);
+        }
+        catch (InvalidTextureException)
+        {
+            return (GetTexture(error_texture)!, false);
+        }
+    }
+    public (Texture Texture, bool AlreadyExists) GetTexture(TextureParams textureParams, RenderTargetParams rtParams)
+    {
+        var existingTexture = _textures.FirstOrDefault(x => x.Params.Path == (textureParams.Path ?? textureParams.Name) ||
+                                                            x.Params.Name == (textureParams.Name ?? textureParams.Path));
+        if (existingTexture != null)
+        {
+            existingTexture.References++;
+            return (existingTexture, true);
+        }
+
+        try
+        {
+            var texture = new Texture(textureParams, rtParams);
             _textures.Add(texture);
 
             return (texture, false);

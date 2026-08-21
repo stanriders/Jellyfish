@@ -330,13 +330,12 @@ public class LightManager
             WrapMode = TextureWrapMode.ClampToBorder,
             MinFiltering = TextureMinFilter.Linear,
             MagFiltering = TextureMagFilter.Linear,
-            InternalFormat = SizedInternalFormat.DepthComponent32f,
-            RenderTargetParams = new RenderTargetParams
-            {
-                Width = light.Source.ShadowResolution,
-                Heigth = light.Source.ShadowResolution,
-                Attachment = FramebufferAttachment.DepthAttachment,
-            }
+            InternalFormat = SizedInternalFormat.DepthComponent32f
+        }, new RenderTargetParams
+        {
+            Width = light.Source.ShadowResolution,
+            Heigth = light.Source.ShadowResolution,
+            Attachment = FramebufferAttachment.DepthAttachment,
         });
 
         GL.BindTexture(TextureTarget.Texture2d, rt.Handle);

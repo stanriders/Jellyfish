@@ -10,13 +10,12 @@ public class Downsample : ScreenspaceEffect
         WrapMode = TextureWrapMode.ClampToEdge,
         MinFiltering = TextureMinFilter.Linear,
         MagFiltering = TextureMagFilter.Linear,
-        InternalFormat = SizedInternalFormat.Rgb16f,
-        RenderTargetParams = new RenderTargetParams
-        {
-            Width = Engine.MainViewport.Size.X / 2,
-            Heigth = Engine.MainViewport.Size.Y / 2,
-            Attachment = FramebufferAttachment.ColorAttachment0,
-        }
+        InternalFormat = SizedInternalFormat.Rgb16f
+    }, new RenderTargetParams
+    {
+        Width = Engine.MainViewport.Size.X / 2,
+        Heigth = Engine.MainViewport.Size.Y / 2,
+        Attachment = FramebufferAttachment.ColorAttachment0,
     }, new Shaders.Downsample("_rt_Color"))
     {
         Priority = 0;
@@ -37,13 +36,12 @@ public class Downsample4 : ScreenspaceEffect
         WrapMode = TextureWrapMode.ClampToEdge,
         MinFiltering = TextureMinFilter.Linear,
         MagFiltering = TextureMagFilter.Linear,
-        InternalFormat = SizedInternalFormat.Rgb16f,
-        RenderTargetParams = new RenderTargetParams
-        {
-            Width = Engine.MainViewport.Size.X / 4,
-            Heigth = Engine.MainViewport.Size.Y / 4,
-            Attachment = FramebufferAttachment.ColorAttachment0,
-        }
+        InternalFormat = SizedInternalFormat.Rgb16f
+    }, new RenderTargetParams
+    {
+        Width = Engine.MainViewport.Size.X / 4,
+        Heigth = Engine.MainViewport.Size.Y / 4,
+        Attachment = FramebufferAttachment.ColorAttachment0,
     }, new Shaders.Downsample("_rt_Downsample"))
     {
         Priority = 1;
@@ -64,13 +62,12 @@ public class Downsample8 : ScreenspaceEffect
         WrapMode = TextureWrapMode.ClampToEdge,
         MinFiltering = TextureMinFilter.Linear,
         MagFiltering = TextureMagFilter.Linear,
-        InternalFormat = SizedInternalFormat.Rgb16f,
-        RenderTargetParams = new RenderTargetParams
-        {
-            Width = Engine.MainViewport.Size.X / 8,
-            Heigth = Engine.MainViewport.Size.Y / 8,
-            Attachment = FramebufferAttachment.ColorAttachment0,
-        }
+        InternalFormat = SizedInternalFormat.Rgb16f
+    }, new RenderTargetParams
+    {
+        Width = Engine.MainViewport.Size.X / 8,
+        Heigth = Engine.MainViewport.Size.Y / 8,
+        Attachment = FramebufferAttachment.ColorAttachment0,
     }, new Shaders.Downsample("_rt_Downsample4"))
     {
         Priority = 2;

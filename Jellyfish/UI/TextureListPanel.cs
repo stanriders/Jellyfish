@@ -70,10 +70,10 @@ public class TextureListPanel : IUiPanel
                     if (_currentTab == Tabs.Engine && !texture.Params.Name!.StartsWith("_"))
                         continue;
 
-                    if (texture.Params.RenderTargetParams != null && _currentTab == Tabs.Textures)
+                    if (texture.RenderTargetParams != null && _currentTab == Tabs.Textures)
                         continue;
 
-                    if (texture.Params.RenderTargetParams == null && _currentTab == Tabs.RTs)
+                    if (texture.RenderTargetParams == null && _currentTab == Tabs.RTs)
                         continue;
 
                     ImGui.BeginGroup();
@@ -85,7 +85,7 @@ public class TextureListPanel : IUiPanel
 
                     bool pressed;
                     // flip RTs upside down
-                    if (texture.Params.RenderTargetParams != null)
+                    if (texture.RenderTargetParams != null)
                     {
                         if (texture.Params.Type == TextureTarget.TextureCubeMap)
                         {
@@ -151,9 +151,9 @@ public class TextureListPanel : IUiPanel
                     ImGui.Text($"Type: {_expandedTexture.Params.Type}\tMin filter: {_expandedTexture.Params.MinFiltering}\tMag filter: {_expandedTexture.Params.MagFiltering}");
                     ImGui.Text($"Wrap mode: {_expandedTexture.Params.WrapMode}\tBorder color: [{string.Join(';', _expandedTexture.Params.BorderColor ?? [])}]");
 
-                    if (_expandedTexture.Params.RenderTargetParams != null)
+                    if (_expandedTexture.RenderTargetParams != null)
                     {
-                        ImGui.Text($"Attachment: {_expandedTexture.Params.RenderTargetParams.Attachment}");
+                        ImGui.Text($"Attachment: {_expandedTexture.RenderTargetParams.Attachment}");
 
                         if (_expandedTexture.Params.Type == TextureTarget.TextureCubeMap)
                         {
@@ -163,7 +163,7 @@ public class TextureListPanel : IUiPanel
                             if (_cubemapAtlases[name] != 0)
                                 GL.DeleteTexture(_cubemapAtlases[name]);
 
-                            _cubemapAtlases[name] = CreateCubemapCross(_expandedTexture.Handle, _expandedTexture.Params.RenderTargetParams.Width);
+                            _cubemapAtlases[name] = CreateCubemapCross(_expandedTexture.Handle, _expandedTexture.RenderTargetParams.Width);
 
                             ImGui.ImageWithBg(new ImTextureRef(texId: _cubemapAtlases[name]),
                                 size, new Vector2(0, 1), new Vector2(1, 0), bgColor); // flip RTs upside down

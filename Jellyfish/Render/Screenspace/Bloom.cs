@@ -15,13 +15,12 @@ public class Upsample4 : ScreenspaceEffect
         WrapMode = TextureWrapMode.ClampToEdge,
         MinFiltering = TextureMinFilter.Linear,
         MagFiltering = TextureMagFilter.Linear,
-        InternalFormat = SizedInternalFormat.Rgb16f,
-        RenderTargetParams = new RenderTargetParams
-        {
-            Width = Engine.MainViewport.Size.X / 4,
-            Heigth = Engine.MainViewport.Size.Y / 4,
-            Attachment = FramebufferAttachment.ColorAttachment0,
-        }
+        InternalFormat = SizedInternalFormat.Rgb16f
+    }, new RenderTargetParams
+    {
+        Width = Engine.MainViewport.Size.X / 4,
+        Heigth = Engine.MainViewport.Size.Y / 4,
+        Attachment = FramebufferAttachment.ColorAttachment0,
     }, new Shaders.Bloom("_rt_Downsample8", 1f))
     {
         Priority = 10;
@@ -41,13 +40,12 @@ public class Upsample2 : ScreenspaceEffect
         WrapMode = TextureWrapMode.ClampToEdge,
         MinFiltering = TextureMinFilter.Linear,
         MagFiltering = TextureMagFilter.Linear,
-        InternalFormat = SizedInternalFormat.Rgb16f,
-        RenderTargetParams = new RenderTargetParams
-        {
-            Width = Engine.MainViewport.Size.X / 2,
-            Heigth = Engine.MainViewport.Size.Y / 2,
-            Attachment = FramebufferAttachment.ColorAttachment0,
-        }
+        InternalFormat = SizedInternalFormat.Rgb16f
+    }, new RenderTargetParams
+    {
+        Width = Engine.MainViewport.Size.X / 2,
+        Heigth = Engine.MainViewport.Size.Y / 2,
+        Attachment = FramebufferAttachment.ColorAttachment0,
     }, new Shaders.Bloom("_rt_Upsample4", 0.1f))
     {
         Priority = 11;
@@ -67,13 +65,12 @@ public class Bloom : ScreenspaceEffect
         WrapMode = TextureWrapMode.ClampToEdge,
         MinFiltering = TextureMinFilter.Linear,
         MagFiltering = TextureMagFilter.Linear,
-        InternalFormat = SizedInternalFormat.Rgb16f,
-        RenderTargetParams = new RenderTargetParams
-        {
-            Width = Engine.MainViewport.Size.X,
-            Heigth = Engine.MainViewport.Size.Y,
-            Attachment = FramebufferAttachment.ColorAttachment0,
-        }
+        InternalFormat = SizedInternalFormat.Rgb16f
+    }, new RenderTargetParams
+    {
+        Width = Engine.MainViewport.Size.X,
+        Heigth = Engine.MainViewport.Size.Y,
+        Attachment = FramebufferAttachment.ColorAttachment0,
     }, new Shaders.Bloom("_rt_Upsample2", 0.01f))
     {
         Priority = 12;
