@@ -93,11 +93,25 @@ public class LightManager
     {
         using var _ = new PerformanceMeasure("LightManager.DrawShadows");
 
-        GL.Disable(EnableCap.CullFace);
-        GL.CullFace(TriangleFace.Front);
+        var cullState = true;
 
         if (Sun != null && Sun.Source.Enabled && Sun.Source.UseShadows)
         {
+            if (Sun.Source.UseBackCulling != cullState)
+            {
+                cullState = Sun.Source.UseBackCulling;
+                if (cullState)
+                {
+                    GL.CullFace(TriangleFace.Back);
+                    GL.Enable(EnableCap.CullFace);
+                }
+                else
+                {
+                    GL.Disable(EnableCap.CullFace);
+                    GL.CullFace(TriangleFace.Front);
+                }
+            }
+
             for (var i = 0; i < Sun.Shadows.Count; i++)
             {
                 var shadow = Sun.Shadows[i];
@@ -113,6 +127,21 @@ public class LightManager
 
         foreach (var light in Lights.Where(x=> x.Source.Enabled))
         {
+            if (light.Source.UseBackCulling != cullState)
+            {
+                cullState = light.Source.UseBackCulling;
+                if (cullState)
+                {
+                    GL.CullFace(TriangleFace.Back);
+                    GL.Enable(EnableCap.CullFace);
+                }
+                else
+                {
+                    GL.Disable(EnableCap.CullFace);
+                    GL.CullFace(TriangleFace.Front);
+                }
+            }
+
             // create shadows lazily
             if (light.Source.UseShadows && light.Shadows.Count == 0)
             {
@@ -162,8 +191,11 @@ public class LightManager
             }
         }
 
-        GL.CullFace(TriangleFace.Back);
-        GL.Enable(EnableCap.CullFace);
+        if (!cullState)
+        {
+            GL.CullFace(TriangleFace.Back);
+            GL.Enable(EnableCap.CullFace);
+        }
     }
 
     public void UpdateShaderBuffer()

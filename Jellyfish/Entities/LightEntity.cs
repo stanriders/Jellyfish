@@ -33,6 +33,7 @@ namespace Jellyfish.Entities
         public bool Enabled => GetPropertyValue<bool>("Enabled");
         public bool UseShadows => GetPropertyValue<bool>("Shadows");
         public bool UsePcss => GetPropertyValue<bool>("PCSS");
+        public bool UseBackCulling => false;
         public abstract float NearPlane { get; }
         public abstract float FarPlane { get; }
         public abstract int ProjectionCount { get; }
