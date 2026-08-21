@@ -1,9 +1,8 @@
-﻿using System;
-using OpenTK.Mathematics;
+﻿using OpenTK.Mathematics;
 
 namespace Jellyfish.Render.Shaders;
 
-public class Skybox() : Shader("shaders/Skybox.vert", null, "shaders/Skybox.frag")
+public class Skybox(HosekWilkieParams skyParams) : Shader("shaders/Skybox.vert", null, "shaders/Skybox.frag")
 {
     public override void Bind()
     {
@@ -13,10 +12,20 @@ public class Skybox() : Shader("shaders/Skybox.vert", null, "shaders/Skybox.frag
         SetVector3("uSunPos", rotationVector);
 
         var view = Engine.MainViewport.GetViewMatrix();
-        SetFloat("uViewHeight", Math.Max(0f, view.Inverted().ExtractTranslation().Y));
         SetFloat("uSunIntensity", Engine.LightManager.Sun.Source.Brightness * 4f);
 
         SetMatrix4("view", view.ClearTranslation());
         SetMatrix4("projection", Engine.MainViewport.GetProjectionMatrix());
+
+        SetVector3("A", skyParams.A);
+        SetVector3("B", skyParams.B);
+        SetVector3("C", skyParams.C);
+        SetVector3("D", skyParams.D);
+        SetVector3("E", skyParams.E);
+        SetVector3("F", skyParams.F);
+        SetVector3("G", skyParams.G);
+        SetVector3("H", skyParams.H);
+        SetVector3("I", skyParams.I);
+        SetVector3("Z", skyParams.Z);
     }
 }

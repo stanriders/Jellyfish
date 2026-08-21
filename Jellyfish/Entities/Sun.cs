@@ -14,6 +14,10 @@ public class Sun : BaseEntity, ILightSource
         AddProperty("Enabled", true);
         AddProperty("Shadows", true);
         AddProperty("PCSS", false);
+        AddProperty("BackCulling", false);
+
+        AddProperty("Albedo", 0.0f);
+        AddProperty("Turbidity", 2.0f);
     }
 
     public override void Load()
@@ -37,7 +41,11 @@ public class Sun : BaseEntity, ILightSource
     public float NearPlane => 0;
     public float FarPlane => 0;
     public bool UsePcss => GetPropertyValue<bool>("PCSS");
+    public bool UseBackCulling => GetPropertyValue<bool>("BackCulling");
     public int ShadowResolution => 2048;
+
+    public float Albedo => GetPropertyValue<float>("Albedo");
+    public float Turbidity => GetPropertyValue<float>("Turbidity");
 
     public const int cascades = 4;
 
