@@ -9,31 +9,54 @@ public class TextureManager
     private readonly List<Texture> _textures = new();
     public IReadOnlyList<Texture> Textures => _textures.AsReadOnly();
 
+    private const string error_texture = "_engine_Error";
+
+    public TextureManager()
+    {
+        CreateTexture(new TextureParams { Name = error_texture, Path = "materials/error.png" });
+    }
+
     public Texture CreateTexture(TextureParams textureParams)
     {
-        var existingTexture = _textures.FirstOrDefault(x => x.Params.Name == (textureParams.Name ?? textureParams.Path));
+        var existingTexture = _textures.FirstOrDefault(x => x.Params.Path == (textureParams.Path ?? textureParams.Name) || 
+                                                            x.Params.Name == (textureParams.Name ?? textureParams.Path));
         if (existingTexture != null)
             throw new Exception($"Texture {textureParams.Name} already exists");
 
-        var texture = new Texture(textureParams);
-        _textures.Add(texture);
+        try
+        {
+            var texture = new Texture(textureParams);
+            _textures.Add(texture);
 
-        return texture;
+            return texture;
+        }
+        catch (InvalidTextureException)
+        {
+            return GetTexture(error_texture)!;
+        }
     }
 
     public (Texture Texture, bool AlreadyExists) GetTexture(TextureParams textureParams)
     {
-        var existingTexture = _textures.FirstOrDefault(x => x.Params.Name == (textureParams.Name ?? textureParams.Path));
+        var existingTexture = _textures.FirstOrDefault(x => x.Params.Path == (textureParams.Path ?? textureParams.Name) ||
+                                                            x.Params.Name == (textureParams.Name ?? textureParams.Path));
         if (existingTexture != null)
         {
             existingTexture.References++;
             return (existingTexture, true);
         }
 
-        var texture = new Texture(textureParams);
-        _textures.Add(texture);
+        try
+        {
+            var texture = new Texture(textureParams);
+            _textures.Add(texture);
 
-        return (texture, false);
+            return (texture, false);
+        }
+        catch (InvalidTextureException)
+        {
+            return (GetTexture(error_texture)!, false);
+        }
     }
 
     public Texture? GetTexture(string name)

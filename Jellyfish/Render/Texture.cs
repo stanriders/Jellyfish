@@ -31,6 +31,8 @@ public class TextureParams
     public PixelFormat? PixelFormat { get; set; }
 }
 
+public class InvalidTextureException(string message) : Exception(message);
+
 public class Texture
 {
     public TextureParams Params { get; }
@@ -41,10 +43,7 @@ public class Texture
     public bool HasAlpha { get; private set; }
     public Vector2 Size { get; private set; }
 
-    private readonly bool _isError;
     private bool _isDeleted;
-
-    public const string error_texture = "materials/error.png";
 
     public Texture(TextureParams textureParams)
     {
@@ -59,7 +58,7 @@ public class Texture
             else
             {
                 Log.Context(this).Warning("Trying to create a texture with null Name and Path");
-                return;
+                throw new InvalidTextureException("Trying to create a texture with null Name and Path");
             }
         }
 
@@ -77,26 +76,58 @@ public class Texture
             GL.TextureParameterf(Handle, TextureParameterName.TextureBorderColor, textureParams.BorderColor);
         }
 
-        // procedural textures create themselves
         if (Params.Name.StartsWith("_rt_"))
         {
-            Params.MaxLevels ??= 1;
             CreateRenderTarget();
+        }
+        else
+        {
+            CreateNormalTexture();
+        }
+    }
+
+    private void CreateRenderTarget()
+    {
+        if (Params.RenderTargetParams == null)
             return;
+
+        Params.MaxLevels ??= 1;
+
+        if (Params.MaxLevels != -1)
+            Levels = Math.Clamp(Math.Min(Params.RenderTargetParams.Width, Params.RenderTargetParams.Heigth) / 64, 1, Params.MaxLevels!.Value);
+        else
+            Levels = MaxLevels(Params.RenderTargetParams.Width, Params.RenderTargetParams.Heigth);
+
+        GL.TextureStorage2D(Handle, Levels, Params.InternalFormat!.Value, Params.RenderTargetParams.Width, Params.RenderTargetParams.Heigth);
+
+        if (Params.RenderTargetParams.EnableCompare)
+        {
+            GL.TextureParameteri(Handle, TextureParameterName.TextureCompareMode, (int)TextureCompareMode.CompareRefToTexture);
+            GL.TextureParameteri(Handle, TextureParameterName.TextureCompareFunc, (int)DepthFunction.Lequal);
         }
 
+        // other types should bind manually
+        if (Params.Type == TextureTarget.Texture2d && Params.RenderTargetParams.Attachment != null)
+        {
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, Params.RenderTargetParams.Attachment.Value, Params.Type, Handle, 0);
+        }
+
+        GL.BindTexture(Params.Type, 0);
+
+        Format = Params.InternalFormat.ToString()!;
+        Size = new Vector2(Params.RenderTargetParams.Width, Params.RenderTargetParams.Heigth);
+    }
+
+    private void CreateNormalTexture()
+    {
         Params.MaxLevels ??= 8;
 
         var path = Params.Path ?? Params.Name;
         if (!File.Exists(path))
         {
             Log.Context(this).Warning("Texture {Path} doesn't exist!", Params.Name);
-            Params.Name = error_texture;
-            path = error_texture;
+            throw new InvalidTextureException($"Texture {Params.Name} doesn't exist!");
         }
-
-        if (Params.Name == error_texture)
-            _isError = true;
 
         using var image = new MagickImage(path);
 
@@ -136,36 +167,6 @@ public class Texture
         Size = new Vector2(image.Width, image.Height);
     }
 
-    private void CreateRenderTarget()
-    {
-        if (Params.RenderTargetParams == null)
-            return;
-
-        if (Params.MaxLevels != -1)
-            Levels = Math.Clamp(Math.Min(Params.RenderTargetParams.Width, Params.RenderTargetParams.Heigth) / 64, 1, Params.MaxLevels!.Value);
-        else
-            Levels = MaxLevels(Params.RenderTargetParams.Width, Params.RenderTargetParams.Heigth);
-
-        GL.TextureStorage2D(Handle, Levels, Params.InternalFormat!.Value, Params.RenderTargetParams.Width, Params.RenderTargetParams.Heigth);
-
-        if (Params.RenderTargetParams.EnableCompare)
-        {
-            GL.TextureParameteri(Handle, TextureParameterName.TextureCompareMode, (int)TextureCompareMode.CompareRefToTexture);
-            GL.TextureParameteri(Handle, TextureParameterName.TextureCompareFunc, (int)DepthFunction.Lequal);
-        }
-
-        // other types should bind manually
-        if (Params.Type == TextureTarget.Texture2d && Params.RenderTargetParams.Attachment != null)
-        {
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, Params.RenderTargetParams.Attachment.Value, Params.Type, Handle, 0);
-        }
-
-        GL.BindTexture(Params.Type, 0);
-
-        Format = Params.InternalFormat.ToString()!;
-        Size = new Vector2(Params.RenderTargetParams.Width, Params.RenderTargetParams.Heigth);
-    }
-
     public void Bind(uint unit)
     {
         if (_isDeleted)
@@ -179,7 +180,7 @@ public class Texture
 
     public void Unload()
     {
-        if (!_isError && Handle != 0)
+        if (Handle != 0)
             Engine.TextureManager.RemoveTexture(this);
     }
 
