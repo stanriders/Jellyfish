@@ -21,6 +21,7 @@ public interface ILightSource
     Matrix4 Projection(int index);
 
     bool UsePcss { get; }
+    bool UseBackCulling { get; }
 
     int ShadowResolution => 2048;
 }
