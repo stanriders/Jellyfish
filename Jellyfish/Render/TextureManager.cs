@@ -78,28 +78,6 @@ public class TextureManager
         }
     }
 
-    public (Texture Texture, bool AlreadyExists) GetTexture(RenderTargetParams rtParams)
-    {
-        var existingTexture = _textures.FirstOrDefault(x => x.Params.Name == rtParams.TextureParams.Name);
-        if (existingTexture != null)
-        {
-            existingTexture.References++;
-            return (existingTexture, true);
-        }
-
-        try
-        {
-            var texture = new Texture(rtParams);
-            _textures.Add(texture);
-
-            return (texture, false);
-        }
-        catch (InvalidTextureException)
-        {
-            return (GetTexture(error_texture)!, false);
-        }
-    }
-
     public Texture? GetTexture(string name)
     {
         var existingTexture = _textures.FirstOrDefault(x => x.Params.Name == name);
