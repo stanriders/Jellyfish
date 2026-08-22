@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.Render;
 
@@ -13,7 +14,13 @@ public class TextureManager
 
     public TextureManager()
     {
-        CreateTexture(new TextureParams { Name = error_texture, Path = "materials/error.png" });
+        CreateTexture(new TextureParams
+        {
+            Name = error_texture, 
+            Path = "materials/error.png", 
+            MagFiltering = TextureMagFilter.Nearest, 
+            MinFiltering = TextureMinFilter.Nearest
+        });
     }
 
     public Texture CreateTexture(TextureParams textureParams)

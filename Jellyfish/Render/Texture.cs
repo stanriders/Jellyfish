@@ -40,7 +40,7 @@ public class Texture
     public int Handle { get; }
     public int References { get; set; } = 1;
     public int Levels { get; private set; }
-    public string Format { get; private set; } = string.Empty;
+    public string Format { get; private set; }
     public bool HasAlpha { get; private set; }
     public Vector2 Size { get; private set; }
 
