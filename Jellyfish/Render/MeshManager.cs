@@ -35,6 +35,9 @@ public class MeshManager
 
         if (singleFrame)
             _singleFrameMeshes.Add(mesh);
+        else
+            UpdateSceneBoundingBox();
+
     }
 
     public void RemoveMesh(Mesh mesh)
@@ -78,7 +81,7 @@ public class MeshManager
 
         _drawing = false;
 
-        PostDraw();
+        PostDraw(drawDev);
 
         frustum?.Dispose();
     }
@@ -154,14 +157,17 @@ public class MeshManager
         _updateQueue.Clear();
     }
 
-    private void PostDraw()
+    private void PostDraw(bool drawDev = true)
     {
-        foreach (var singleFrameMesh in _singleFrameMeshes)
+        if (drawDev) // kinda a hack: we need single frame meshes to actually survive to the end of the frame so we assume they're all dev meshes
         {
-            RemoveMesh(singleFrameMesh);
-        }
+            foreach (var singleFrameMesh in _singleFrameMeshes)
+            {
+                RemoveMesh(singleFrameMesh);
+            }
 
-        _singleFrameMeshes.Clear();
+            _singleFrameMeshes.Clear();
+        }
     }
 
     public void Unload()
