@@ -244,7 +244,7 @@ public class Editor : IUiPanel, IInputHandler
         ImGui.End();
         ImGui.PopStyleColor();
 
-        DrawGizmos();
+        DrawSelectedEntityControls();
     }
 
     public void Unload()
@@ -252,10 +252,22 @@ public class Editor : IUiPanel, IInputHandler
         _selectedEntity = null;
     }
 
-    private unsafe void DrawGizmos()
+    private unsafe void DrawSelectedEntityControls()
     {
         if (_selectedEntity == null) 
             return;
+
+        if (_selectedEntity.BoundingBox != null)
+            DebugRender.DrawBoundingBox(_selectedEntity.GetPropertyValue<Vector3>("Position"),
+                _selectedEntity.BoundingBox.Value);
+
+        if (_selectedEntity is IHaveFrustum frustumEntity)
+        {
+            using var frustum = frustumEntity.GetFrustum();
+            DebugRender.DrawFrustum(frustum);
+        }
+
+        DebugRender.DrawText(_selectedEntity.GetPropertyValue<Vector3>("Position") + new Vector3(0, 3, 0), _selectedEntity.Name ?? "null");
 
         _usingGizmo = false;
 
@@ -381,16 +393,6 @@ public class Editor : IUiPanel, IInputHandler
                     }
                 }
             }
-        }
-
-        if (_selectedEntity.BoundingBox != null)
-            DebugRender.DrawBoundingBox(_selectedEntity.GetPropertyValue<Vector3>("Position"),
-                _selectedEntity.BoundingBox.Value);
-
-        if (_selectedEntity is IHaveFrustum frustumEntity)
-        {
-            using var frustum = frustumEntity.GetFrustum();
-            DebugRender.DrawFrustum(frustum);
         }
     }
 
