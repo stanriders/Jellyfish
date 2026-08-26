@@ -6,6 +6,7 @@ using Jellyfish.Console;
 using Jellyfish.Debug;
 using Jellyfish.Entities;
 using Jellyfish.Render;
+using Jellyfish.Utils;
 using JoltPhysicsSharp;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
@@ -378,10 +379,12 @@ public class PhysicsManager
         
         protected override void DrawTriangle(System.Numerics.Vector3 v1, System.Numerics.Vector3 v2, System.Numerics.Vector3 v3, JoltColor color, CastShadow castShadow = CastShadow.Off)
         {
+            var normal = MathUtils.CalculateNormal((Vector3)v1, (Vector3)v2, (Vector3)v3);
+
             _vertices.AddRange([
-                new Vertex { Coordinates = (Vector3)v1, Normal = new Vector3(1), UV = new Vector2(0,1) },
-                new Vertex { Coordinates = (Vector3)v2, Normal = new Vector3(1), UV = new Vector2(0,1) },
-                new Vertex { Coordinates = (Vector3)v3, Normal = new Vector3(1), UV = new Vector2(0,1) }
+                new Vertex { Coordinates = (Vector3)v1, Normal = normal, UV = new Vector2(1,1) },
+                new Vertex { Coordinates = (Vector3)v2, Normal = normal, UV = new Vector2(0,0) },
+                new Vertex { Coordinates = (Vector3)v3, Normal = normal, UV = new Vector2(1,0) }
             ]);
         }
 

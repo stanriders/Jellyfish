@@ -108,23 +108,28 @@ public static class DebugRender
             }
         });
 
+        var normal1 = MathUtils.CalculateNormal(frustum.NearCorners[0], frustum.NearCorners[1], frustum.NearCorners[3]);
+        var normal2 = MathUtils.CalculateNormal(frustum.NearCorners[2], frustum.NearCorners[0], frustum.NearCorners[3]);
+        var normal3 = MathUtils.CalculateNormal(frustum.FarCorners[0], frustum.FarCorners[1], frustum.FarCorners[3]);
+        var normal4 = MathUtils.CalculateNormal(frustum.FarCorners[2], frustum.FarCorners[0], frustum.FarCorners[3]);
+
         DrawMesh(new Mesh($"frustum_{Random.Shared.Next()}", 
         [
-            new() { Coordinates = frustum.NearCorners[0], Normal = new Vector3(1), UV = new Vector2(0, 1) },
-            new() { Coordinates = frustum.NearCorners[1], Normal = new Vector3(1), UV = new Vector2(0, 1) },
-            new() { Coordinates = frustum.NearCorners[3], Normal = new Vector3(1), UV = new Vector2(0, 1) },
+            new() { Coordinates = frustum.NearCorners[0], Normal = normal1, UV = new Vector2(1, 1) },
+            new() { Coordinates = frustum.NearCorners[1], Normal = normal1, UV = new Vector2(1, 0) },
+            new() { Coordinates = frustum.NearCorners[3], Normal = normal1, UV = new Vector2(0, 1) },
 
-            new() { Coordinates = frustum.NearCorners[2], Normal = new Vector3(1), UV = new Vector2(0, 1) },
-            new() { Coordinates = frustum.NearCorners[0], Normal = new Vector3(1), UV = new Vector2(0, 1) },
-            new() { Coordinates = frustum.NearCorners[3], Normal = new Vector3(1), UV = new Vector2(0, 1) },
+            new() { Coordinates = frustum.NearCorners[2], Normal = normal2, UV = new Vector2(1, 1) },
+            new() { Coordinates = frustum.NearCorners[0], Normal = normal2, UV = new Vector2(1, 0) },
+            new() { Coordinates = frustum.NearCorners[3], Normal = normal2, UV = new Vector2(0, 1) },
 
-            new() { Coordinates = frustum.FarCorners[0], Normal = new Vector3(1), UV = new Vector2(0, 1) },
-            new() { Coordinates = frustum.FarCorners[1], Normal = new Vector3(1), UV = new Vector2(0, 1) },
-            new() { Coordinates = frustum.FarCorners[3], Normal = new Vector3(1), UV = new Vector2(0, 1) },
+            new() { Coordinates = frustum.FarCorners[0], Normal = normal3, UV = new Vector2(1, 1) },
+            new() { Coordinates = frustum.FarCorners[1], Normal = normal3, UV = new Vector2(1, 0) },
+            new() { Coordinates = frustum.FarCorners[3], Normal = normal3, UV = new Vector2(0, 1) },
 
-            new() { Coordinates = frustum.FarCorners[2], Normal = new Vector3(1), UV = new Vector2(0, 1) },
-            new() { Coordinates = frustum.FarCorners[0], Normal = new Vector3(1), UV = new Vector2(0, 1) },
-            new() { Coordinates = frustum.FarCorners[3], Normal = new Vector3(1), UV = new Vector2(0, 1) },
+            new() { Coordinates = frustum.FarCorners[2], Normal = normal4, UV = new Vector2(1, 1) },
+            new() { Coordinates = frustum.FarCorners[0], Normal = normal4, UV = new Vector2(1, 0) },
+            new() { Coordinates = frustum.FarCorners[3], Normal = normal4, UV = new Vector2(0, 1) },
         ], texture: "materials/error.mat") {IsDev = true});
     }
 
