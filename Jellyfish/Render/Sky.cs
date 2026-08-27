@@ -27,7 +27,7 @@ public class Sky
     private readonly Skybox _shader;
     private readonly HosekWilkieParams _params;
 
-    private float _normalizedSunYValue = 0.1f;
+    private float _normalizedSunYValue = 0.2f;
 
     public Sky()
     {
@@ -274,5 +274,26 @@ public class Sky
 
         // Apply RGB radiance coefficients.
         return sky * _params.Z;
+    }
+
+    public static Color3<Rgb> CalculateSunColor(float sunTheta, float turbidity)
+    {
+        float cosTheta = MathF.Max(MathF.Cos(sunTheta), 0.001f);
+        float airMass = 1.0f / cosTheta; // simple air mass approximation
+
+        // Rayleigh extinction coefficients (RGB, ~680/550/440nm), km^-1-ish scale
+        var betaR = new Vector3(5.8e-3f, 1.35e-2f, 3.31e-2f);
+
+        // Mie extinction scales with turbidity, roughly wavelength-neutral (grayish haze)
+        float mieAmount = (turbidity - 1.0f) * 0.008f;
+        var betaM = new Vector3(mieAmount);
+
+        var extinction = new Vector3(
+            MathF.Exp(-(betaR.X + betaM.X) * airMass),
+            MathF.Exp(-(betaR.Y + betaM.Y) * airMass),
+            MathF.Exp(-(betaR.Z + betaM.Z) * airMass)
+        );
+
+        return new Color3<Rgb>(extinction.X, extinction.Y, extinction.Z); // multiply by uSunIntensity for final radiance
     }
 }

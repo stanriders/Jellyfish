@@ -1,6 +1,8 @@
 ﻿using Jellyfish.Render.Lighting;
 using Jellyfish.Utils;
 using OpenTK.Mathematics;
+using System;
+using Jellyfish.Render;
 
 namespace Jellyfish.Entities;
 
@@ -9,7 +11,7 @@ public class Sun : BaseEntity, ILightSource
 {
     public Sun()
     {
-        AddProperty("Color", new Color3<Rgb>(1, 1, 1));
+        //AddProperty("Color", new Color3<Rgb>(1, 1, 1));
         AddProperty("Brightness", 1f);
         AddProperty("Enabled", true);
         AddProperty("Shadows", true);
@@ -34,7 +36,17 @@ public class Sun : BaseEntity, ILightSource
 
     public Vector3 Position => Vector3.Zero;
     public Quaternion Rotation => GetPropertyValue<Quaternion>("Rotation");
-    public Color3<Rgb> Color => GetPropertyValue<Color3<Rgb>>("Color");
+    public Color3<Rgb> Color
+    {
+        get
+        {
+            var sunDirection = Vector3.Transform(Vector3.UnitY, Rotation);
+            var sunTheta = MathF.Acos(Math.Clamp(sunDirection.Y, 0.0f, 1.0f));
+
+            return Sky.CalculateSunColor(sunTheta, Turbidity);
+        }
+    }
+
     public float Brightness => GetPropertyValue<float>("Brightness");
     public bool Enabled => GetPropertyValue<bool>("Enabled");
     public bool UseShadows => GetPropertyValue<bool>("Shadows");
