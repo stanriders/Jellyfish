@@ -115,21 +115,21 @@ public static class DebugRender
 
         DrawMesh(new Mesh($"frustum_{Random.Shared.Next()}", 
         [
-            new() { Coordinates = frustum.NearCorners[0], Normal = normal1, UV = new Vector2(1, 1) },
+            new() { Coordinates = frustum.NearCorners[0], Normal = normal1, UV = new Vector2(0, 0) },
             new() { Coordinates = frustum.NearCorners[1], Normal = normal1, UV = new Vector2(1, 0) },
-            new() { Coordinates = frustum.NearCorners[3], Normal = normal1, UV = new Vector2(0, 1) },
+            new() { Coordinates = frustum.NearCorners[3], Normal = normal1, UV = new Vector2(1, 1) },
 
-            new() { Coordinates = frustum.NearCorners[2], Normal = normal2, UV = new Vector2(1, 1) },
-            new() { Coordinates = frustum.NearCorners[0], Normal = normal2, UV = new Vector2(1, 0) },
-            new() { Coordinates = frustum.NearCorners[3], Normal = normal2, UV = new Vector2(0, 1) },
+            new() { Coordinates = frustum.NearCorners[2], Normal = normal2, UV = new Vector2(0, 1) },
+            new() { Coordinates = frustum.NearCorners[0], Normal = normal2, UV = new Vector2(0, 0) },
+            new() { Coordinates = frustum.NearCorners[3], Normal = normal2, UV = new Vector2(1, 1) },
 
-            new() { Coordinates = frustum.FarCorners[0], Normal = normal3, UV = new Vector2(1, 1) },
+            new() { Coordinates = frustum.FarCorners[0], Normal = normal3, UV = new Vector2(0, 0) },
             new() { Coordinates = frustum.FarCorners[1], Normal = normal3, UV = new Vector2(1, 0) },
-            new() { Coordinates = frustum.FarCorners[3], Normal = normal3, UV = new Vector2(0, 1) },
+            new() { Coordinates = frustum.FarCorners[3], Normal = normal3, UV = new Vector2(1, 1) },
 
-            new() { Coordinates = frustum.FarCorners[2], Normal = normal4, UV = new Vector2(1, 1) },
-            new() { Coordinates = frustum.FarCorners[0], Normal = normal4, UV = new Vector2(1, 0) },
-            new() { Coordinates = frustum.FarCorners[3], Normal = normal4, UV = new Vector2(0, 1) },
+            new() { Coordinates = frustum.FarCorners[2], Normal = normal4, UV = new Vector2(0, 1) },
+            new() { Coordinates = frustum.FarCorners[0], Normal = normal4, UV = new Vector2(0, 0) },
+            new() { Coordinates = frustum.FarCorners[3], Normal = normal4, UV = new Vector2(1, 1) },
         ], texture: "materials/error.mat") {IsDev = true});
     }
 

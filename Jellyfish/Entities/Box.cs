@@ -96,10 +96,7 @@ public class Box : BaseModelEntity, IPhysicsEntity
         for (int i = 0; i < CommonShapes.Cube.Length; i+=6)
         {
             var plane = CommonShapes.Cube.Reverse().Skip(i).Take(6).Select(x=> x * size).ToArray();
-
-            Vector3 u = plane[1] - plane[0];
-            Vector3 v = plane[2] - plane[1];
-            Vector3 normal = Vector3.Cross(u, v).Normalized();
+            var normal = MathUtils.CalculateNormal(plane[0], plane[1], plane[2]);
 
             vertices.AddRange([
                 new Vertex

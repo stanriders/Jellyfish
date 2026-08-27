@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
-using Jellyfish.Render;
+﻿using Jellyfish.Render;
+using Jellyfish.Utils;
 using JoltPhysicsSharp;
 using OpenTK.Mathematics;
+using System.Collections.Generic;
 
 namespace Jellyfish.Entities;
 
@@ -90,9 +91,7 @@ public class Plane : BaseModelEntity, IPhysicsEntity
         var c = new Vector3(size.X / 2.0f, -size.Y / 2.0f, 0);
         var d = new Vector3(-size.X / 2.0f, -size.Y / 2.0f, 0);
 
-        Vector3 u = b - a;
-        Vector3 v = c - b;
-        Vector3 normal = Vector3.Cross(u, v).Normalized();
+        var normal = MathUtils.CalculateNormal(a, b, c);
 
         var textureScale = GetPropertyValue<Vector2>("TextureScale");
 
