@@ -48,6 +48,7 @@ namespace Jellyfish
         public static LightManager LightManager => instance._lightManager;
         public static OpenGLRender Renderer => instance._render;
 
+        public static double ElapsedTime { get; set; }
         public static double Frametime { get; set; }
         public static bool ShouldQuit { get; set; }
         public static string? QueuedMap { private get; set; }
@@ -128,6 +129,7 @@ namespace Jellyfish
             using var _ = new PerformanceMeasure("UpdateTotal");
 
             Frametime = e.Time;
+            ElapsedTime += e.Time;
             _viewport.Think();
 
             if (ShouldQuit)

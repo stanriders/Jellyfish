@@ -1,4 +1,6 @@
-﻿using OpenTK.Mathematics;
+﻿using System;
+using Jellyfish.Entities;
+using OpenTK.Mathematics;
 
 namespace Jellyfish.Render.Shaders;
 
@@ -8,11 +10,14 @@ public class Skybox(HosekWilkieParams skyParams) : Shader("shaders/Skybox.vert",
     {
         base.Bind();
 
-        var rotationVector = Vector3.Transform(Vector3.UnitY, Engine.LightManager.Sun!.Source.Rotation);
+        var sun = (Sun)Engine.LightManager.Sun!.Source;
+
+        var rotationVector = Vector3.Transform(Vector3.UnitY, sun.Rotation);
         SetVector3("uSunPos", rotationVector);
 
         var view = Engine.MainViewport.GetViewMatrix();
-        SetFloat("uSunIntensity", Engine.LightManager.Sun.Source.Brightness * 4f);
+        SetFloat("uSunIntensity", sun.Brightness);
+        SetVector3("uSunColor", new Vector3(sun.Color.X, sun.Color.Y, sun.Color.Z));
 
         SetMatrix4("view", view.ClearTranslation());
         SetMatrix4("projection", Engine.MainViewport.GetProjectionMatrix());
@@ -27,5 +32,8 @@ public class Skybox(HosekWilkieParams skyParams) : Shader("shaders/Skybox.vert",
         SetVector3("H", skyParams.H);
         SetVector3("I", skyParams.I);
         SetVector3("Z", skyParams.Z);
+
+        SetFloat("uTime", (float)Engine.ElapsedTime);
+        SetFloat("uCoverage", sun.Turbidity / 10);
     }
 }
