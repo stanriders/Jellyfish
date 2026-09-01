@@ -1,4 +1,5 @@
 ﻿#version 460
+#include CommonFrag.frag
 
 out vec4 FragColor;
   
@@ -16,6 +17,11 @@ uniform float bloomStrength;
 layout(binding=0) uniform sampler2D screenTexture;
 layout(binding=1) uniform sampler2D aoTexture;
 layout(binding=2) uniform sampler2D bloomTexture;
+layout(binding=3) uniform sampler2D depthTexture;
+
+uniform vec2 uCameraParams;
+#define Near          uCameraParams.x
+#define Far           uCameraParams.y
 
 #define WhitePoint_Hejl 1.0f
 #define WhitePoint_Hable 6.0f
@@ -134,7 +140,18 @@ void main()
     vec3 screen = texture(screenTexture, TexCoords).rgb;
     vec3 ao = vec3(texture(aoTexture, TexCoords).r);
     screen *= ao;
-    
+    /*
+    float depth = GetDepth(depthTexture, TexCoords, Near, Far);
+    if (depth < 1.0) 
+    {
+        float fogDensity = 0.15f;
+        vec3 fogColor = vec3(1.0f);
+
+        float fogFactor = 1.0 - exp(-fogDensity * depth);
+
+        screen = mix(screen, fogColor, fogFactor);
+    }
+    */
     vec3 bloomColor = texture(bloomTexture, TexCoords).rgb;
     screen += bloomColor * bloomStrength;
 

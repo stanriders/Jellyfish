@@ -2,6 +2,7 @@
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
+using OpenTK.Mathematics;
 
 namespace Jellyfish.Render.Shaders;
 
@@ -9,6 +10,7 @@ public class PostprocessingEnabled() : ConVar<bool>("mat_postprocess_enabled", t
 public class PostProcessing : Shader
 {
     private readonly Texture _rtColor;
+    private readonly Texture _rtDepth;
     private readonly Texture _rtAmbientOcclusion;
     private readonly Texture _rtBloom;
 
@@ -21,6 +23,7 @@ public class PostProcessing : Shader
         base("shaders/Screenspace.vert", null, "shaders/PostProcessing.frag")
     {
         _rtColor = Engine.TextureManager.GetTexture("_rt_Color")!;
+        _rtDepth = Engine.TextureManager.GetTexture("_rt_Depth")!;
         _rtAmbientOcclusion = Engine.TextureManager.GetTexture("_rt_GtaoBlurY")!;
         _rtBloom = Engine.TextureManager.GetTexture("_rt_Bloom")!;
     }
@@ -32,11 +35,13 @@ public class PostProcessing : Shader
         BindTexture(0, _rtColor);
         BindTexture(1, _rtAmbientOcclusion);
         BindTexture(2, _rtBloom);
+        //BindTexture(3, _rtDepth);
 
         var isEnabled = ConVarStorage.Get<bool>("mat_postprocess_enabled");
 
         SetInt("isEnabled", isEnabled ? 1 : 0);
         SetFloat("bloomStrength", ConVarStorage.Get<float>("mat_bloom_strength"));
+        //SetVector2("uCameraParams", new Vector2(Engine.MainViewport.NearPlane, Engine.MainViewport.FarPlane));
 
         if (isEnabled)
         {
@@ -84,6 +89,7 @@ public class PostProcessing : Shader
         _rtColor.Unload();
         _rtAmbientOcclusion.Unload();
         _rtBloom.Unload();
+        _rtDepth.Unload();
 
         base.Unload();
     }
