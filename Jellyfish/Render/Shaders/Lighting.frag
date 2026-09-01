@@ -1,6 +1,14 @@
 
 #include LightingDefinitions.shared
 
+int CubeFaceIndex(vec3 d)
+{
+    vec3 a = abs(d);
+    if (a.x >= a.y && a.x >= a.z) return d.x > 0.0 ? 0 : 1;
+    if (a.y >= a.z)               return d.y > 0.0 ? 2 : 3;
+    return d.z > 0.0 ? 4 : 5;
+}
+
 // general PCF
 float InterleavedGradientNoise(vec2 uv)
 {
@@ -130,9 +138,11 @@ float SimpleShadow(sampler2D DepthSampler, vec3 projCoords)
     return step(currentDepth, shadow);
 }  
 
-float ShadowCalculation(int lightIndex, vec3 lightDir, vec3 normal)
+float ShadowCalculation(int lightIndex, int shadowIndex, vec3 lightDir, vec3 normal)
 {
-    vec4 fragPosLightSpace = lightSources[lightIndex].lightSpaceMatrix * vec4(frag_position, 1.0);
+    Light light = lightSources[lightIndex];
+
+    vec4 fragPosLightSpace = light.lightSpaceMatrix[shadowIndex] * vec4(frag_position, 1.0);
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 
     projCoords = projCoords * 0.5 + 0.5;
@@ -144,10 +154,10 @@ float ShadowCalculation(int lightIndex, vec3 lightDir, vec3 normal)
         return 0.0;
     }
 
-    sampler2D shadow = sampler2D(lightSources[lightIndex].shadow);
+    sampler2D shadow = sampler2D(light.shadow[shadowIndex]);
 
-    if (lightSources[lightIndex].usePcss)
-        return PoissonPCSSShadow(shadow, projCoords, lightSources[lightIndex].near, lightSources[lightIndex].far, 0.01f);
+    if (light.usePcss)
+        return PoissonPCSSShadow(shadow, projCoords, light.near, light.far, 0.01f);
 
     return PoissonPCFShadow(shadow, projCoords, 2.0f);
     //return SimplePCFShadow(shadow, projCoords, 4);
@@ -172,7 +182,7 @@ vec3 CalcPointLight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
     float shadow = 1.0f;
     if (light.hasShadows) 
     {
-        shadow = ShadowCalculation(lightIndex, lightDir, normal);
+        shadow = ShadowCalculation(lightIndex, CubeFaceIndex(fragPos - light.position), lightDir, normal);
     }
 
     return outdiffuse * shadow;
@@ -201,7 +211,7 @@ vec3 CalcSpotlight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
     float shadow = 1.0f;
     if (light.hasShadows) 
     {
-        shadow = ShadowCalculation(lightIndex, lightDir, normal);
+        shadow = ShadowCalculation(lightIndex, 0, lightDir, normal);
     }
 
     return outdiffuse * shadow;

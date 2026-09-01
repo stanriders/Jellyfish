@@ -9,7 +9,9 @@ public struct Light : IGpuStruct
 {
     public Vector4 Position;
     public Vector4 Direction;
-    public Matrix4 LightSpaceMatrix;
+
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = LightManager.max_shadows_per_lights)]
+    public Matrix4[] LightSpaceMatrix;
 
     public int Type;
     public float Constant;
@@ -28,7 +30,8 @@ public struct Light : IGpuStruct
     public int UsePcss;
     private float _pad;
 
-    public ulong ShadowTexture; private ulong _pad2;
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = LightManager.max_shadows_per_lights)]
+    public ulong[] ShadowTexture;
 }
 
 [StructLayout(LayoutKind.Sequential)]

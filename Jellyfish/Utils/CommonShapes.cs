@@ -112,6 +112,16 @@ public static class CommonShapes
         new(-1.0f, -1.0f, -1.0f)
     ];
 
+    public static readonly (Vector3 Dir, Vector3 Up)[] CubeFaces =
+    [
+        (new Vector3( 1,  0,  0), new Vector3(0, 0, 1)),
+        (new Vector3(-1,  0,  0), new Vector3(0, 0, 1)),
+        (new Vector3( 0,  1,  0), new Vector3(0, 0, 1)),
+        (new Vector3( 0, -1,  0), new Vector3(0, 0, 1)),
+        (new Vector3( 0,  0,  1), new Vector3(0, 1, 0)),
+        (new Vector3( 0,  0, -1), new Vector3(0, 1, 0))
+    ];
+
     public static VertexArray? QuadVertexArray { get; private set; }
     public static VertexArray? CubeVertexArray { get; private set; }
 

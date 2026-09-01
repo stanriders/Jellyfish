@@ -34,6 +34,7 @@ public class LightManager
     public Light? Sun { get; private set; }
 
     public const int max_lights = 256;
+    public const int max_shadows_per_lights = 8;
 
     public readonly List<Light> Lights = new(max_lights);
 
@@ -210,9 +211,18 @@ public class LightManager
         var lightSourcesStruct = new LightSources
         {
             Lights = lights,
-            Sun = new Shaders.Structs.Sun { ShadowTexture = sunCascadeTextures },
+            Sun = new Shaders.Structs.Sun
+            {
+                ShadowTexture = sunCascadeTextures, 
+                LightSpaceMatrix = sunProjections, 
+                CascadeFar = cascadeRangesFar, 
+                CascadeNear = cascadeRangesNear
+            },
             SunEnabled = Sun != null && Sun.Source.Enabled ? 1 : 0
         };
+
+        var borrowedLightProjectionArrays = ArrayPool<Matrix4[]>.Shared.Rent(max_lights);
+        var borrowedLightShadowTextureArrays = ArrayPool<ulong[]>.Shared.Rent(max_lights);
 
         var currentLight = 0;
         for (var i = 0; i < totalLights; i++)
@@ -222,6 +232,9 @@ public class LightManager
             {
                 continue;
             }
+
+            borrowedLightProjectionArrays[i] = ArrayPool<Matrix4>.Shared.Rent(max_shadows_per_lights);
+            borrowedLightShadowTextureArrays[i] = ArrayPool<ulong>.Shared.Rent(max_shadows_per_lights);
 
             lightSourcesStruct.Lights[currentLight].Position = new Vector4(source.Position);
 
@@ -258,14 +271,19 @@ public class LightManager
             lightSourcesStruct.Lights[currentLight].Near = source.NearPlane;
             lightSourcesStruct.Lights[currentLight].Far = source.FarPlane;
 
-            lightSourcesStruct.Lights[currentLight].LightSpaceMatrix = source.Projection(0);
-
             lightSourcesStruct.Lights[currentLight].HasShadows = source.UseShadows && Lights[i].Shadows.Count > 0 ? 1 : 0;
             lightSourcesStruct.Lights[currentLight].UsePcss = source.UseShadows && source.UsePcss ? 1 : 0;
 
+            lightSourcesStruct.Lights[currentLight].LightSpaceMatrix = borrowedLightProjectionArrays[i];
+            lightSourcesStruct.Lights[currentLight].ShadowTexture = borrowedLightShadowTextureArrays[i];
+
             if (source.UseShadows && Lights[i].Shadows.Count > 0)
             {
-                lightSourcesStruct.Lights[currentLight].ShadowTexture = Lights[i].Shadows[0].BindlessHandle;
+                for (int j = 0; j < Lights[i].Shadows.Count; j++)
+                {
+                    lightSourcesStruct.Lights[currentLight].LightSpaceMatrix[j] = source.Projection(j);
+                    lightSourcesStruct.Lights[currentLight].ShadowTexture[j] = Lights[i].Shadows[j].BindlessHandle;
+                }
             }
 
             currentLight++;
@@ -284,17 +302,6 @@ public class LightManager
 
             lightSourcesStruct.Sun.Brightness = sun.Brightness;
 
-            for (var i = 0; i < Entities.Sun.cascades; i++)
-            {
-                sunProjections[i] = sun.Projection(i);
-                cascadeRangesFar[i] = Entities.Sun.CascadeRanges[i].Far;
-                cascadeRangesNear[i] = Entities.Sun.CascadeRanges[i].Near;
-            }
-
-            lightSourcesStruct.Sun.LightSpaceMatrix = sunProjections;
-            lightSourcesStruct.Sun.CascadeFar = cascadeRangesFar;
-            lightSourcesStruct.Sun.CascadeNear = cascadeRangesNear;
-
             lightSourcesStruct.Sun.HasShadows = sun.UseShadows && Sun.Shadows.Count > 0 ? 1 : 0;
             lightSourcesStruct.Sun.UsePcss = sun.UseShadows && sun.UsePcss ? 1 : 0;
 
@@ -302,12 +309,24 @@ public class LightManager
             {
                 for (var i = 0; i < Entities.Sun.cascades; i++)
                 {
+                    lightSourcesStruct.Sun.CascadeFar[i] = Entities.Sun.CascadeRanges[i].Far;
+                    lightSourcesStruct.Sun.CascadeNear[i] = Entities.Sun.CascadeRanges[i].Near;
+                    lightSourcesStruct.Sun.LightSpaceMatrix[i] = sun.Projection(i);
                     lightSourcesStruct.Sun.ShadowTexture[i] = Sun.Shadows[i].BindlessHandle;
                 }
             }
         }
 
         LightSourcesSsbo.UpdateData(lightSourcesStruct);
+
+        for (var i = 0; i < totalLights; i++)
+        {
+            ArrayPool<Matrix4>.Shared.Return(borrowedLightProjectionArrays[i]);
+            ArrayPool<ulong>.Shared.Return(borrowedLightShadowTextureArrays[i]);
+        }
+
+        ArrayPool<Matrix4[]>.Shared.Return(borrowedLightProjectionArrays);
+        ArrayPool<ulong[]>.Shared.Return(borrowedLightShadowTextureArrays);
 
         ArrayPool<Shaders.Structs.Light>.Shared.Return(lights, true);
         ArrayPool<ulong>.Shared.Return(sunCascadeTextures);
