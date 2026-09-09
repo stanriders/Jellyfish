@@ -1,5 +1,6 @@
-﻿using System;
+﻿using Jellyfish.Debug;
 using OpenTK.Graphics.OpenGL;
+using System;
 
 namespace Jellyfish.Render.Buffers;
 
@@ -8,6 +9,8 @@ public class VertexBuffer
     public readonly int Handle;
 
     private int _size;
+    private NativeMemoryMeasurement.NativeMemoryTracker? _memoryTracker;
+
     public int Size
     {
         get => _size;
@@ -28,6 +31,8 @@ public class VertexBuffer
         GL.CreateBuffer(out Handle);
         GL.ObjectLabel(ObjectIdentifier.Buffer, (uint)Handle, name.Length, name);
         GL.NamedBufferData(Handle, _size, IntPtr.Zero, _usage);
+
+        _memoryTracker = NativeMemoryMeasurement.AddMemory(this, _size);
     }
 
     public VertexBuffer(string name, float[] data, BufferUsage usage = BufferUsage.StaticDraw)
@@ -38,6 +43,8 @@ public class VertexBuffer
         GL.CreateBuffer(out Handle);
         GL.ObjectLabel(ObjectIdentifier.Buffer, (uint)Handle, name.Length, name);
         GL.NamedBufferData(Handle, _size, data, _usage);
+
+        _memoryTracker = NativeMemoryMeasurement.AddMemory(this, _size);
     }
 
     public void UpdateData(float[] data, BufferUsage? usage = null)
@@ -49,10 +56,14 @@ public class VertexBuffer
 
         _size = data.Length * sizeof(float);
         GL.NamedBufferData(Handle, _size, data, _usage);
+
+        _memoryTracker?.Dispose();
+        _memoryTracker = NativeMemoryMeasurement.AddMemory(this, _size);
     }
 
     public void Unload()
     {
         GL.DeleteBuffer(Handle);
+        _memoryTracker?.Dispose();
     }
 }

@@ -1,7 +1,8 @@
-﻿using OpenTK.Graphics.OpenGL;
+﻿using Jellyfish.Debug;
+using Jellyfish.Render.Shaders.Structs;
+using OpenTK.Graphics.OpenGL;
 using System;
 using System.Runtime.InteropServices;
-using Jellyfish.Render.Shaders.Structs;
 
 namespace Jellyfish.Render.Buffers;
 
@@ -41,6 +42,8 @@ public class ShaderStorageBuffer<T> where T: struct, IGpuStruct
 {
     public readonly int Handle;
 
+    private NativeMemoryMeasurement.NativeMemoryTracker? _memoryTracker;
+
     public ShaderStorageBuffer(string name, T data)
     {
         GL.CreateBuffer(out Handle);
@@ -59,6 +62,8 @@ public class ShaderStorageBuffer<T> where T: struct, IGpuStruct
         {
             Marshal.FreeHGlobal(ptr);
         }
+
+        _memoryTracker = NativeMemoryMeasurement.AddMemory(this, bufferSize);
     }
 
     public void Bind(uint binding)
@@ -79,9 +84,14 @@ public class ShaderStorageBuffer<T> where T: struct, IGpuStruct
         {
             Marshal.FreeHGlobal(ptr);
         }
+
+        _memoryTracker?.Dispose();
+        _memoryTracker = NativeMemoryMeasurement.AddMemory(this, bufferSize);
     }
+
     public void Unload()
     {
         GL.DeleteBuffer(Handle);
+        _memoryTracker?.Dispose();
     }
 }

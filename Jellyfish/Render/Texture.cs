@@ -1,9 +1,10 @@
 ﻿using ImageMagick;
 using Jellyfish.Console;
+using Jellyfish.Debug;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
 using System;
 using System.IO;
-using OpenTK.Mathematics;
 
 namespace Jellyfish.Render;
 
@@ -45,6 +46,7 @@ public class Texture
     public Vector2 Size { get; private set; }
 
     private bool _isDeleted;
+    private readonly NativeMemoryMeasurement.NativeMemoryTracker? _memoryTracker;
 
     public Texture(TextureParams textureParams)
     {
@@ -115,6 +117,8 @@ public class Texture
         GL.TextureSubImage2D(Handle, 0, 0, 0, (int)image.Width, (int)image.Height, pixelFormat, PixelType.UnsignedByte,
             data.GetAreaPointer(0, 0, image.Width, image.Height));
 
+        _memoryTracker = NativeMemoryMeasurement.AddMemory(this, image.Width * image.Height * image.ChannelCount);
+
         if (Levels > 1)
             GL.GenerateTextureMipmap(Handle);
 
@@ -162,6 +166,8 @@ public class Texture
 
         GL.TextureStorage2D(Handle, Levels, Params.InternalFormat!.Value, RenderTargetParams.Width, RenderTargetParams.Heigth);
 
+        _memoryTracker = NativeMemoryMeasurement.AddMemory(this, RenderTargetParams.Width * RenderTargetParams.Heigth * 4);
+
         // other types should bind manually
         if (Params.Type == TextureTarget.Texture2d && RenderTargetParams.Attachment != null)
         {
@@ -203,6 +209,7 @@ public class Texture
             Log.Context(this).Warning("Trying to delete a texture with >0 references!");
 
         GL.DeleteTexture(Handle);
+        _memoryTracker?.Dispose();
         _isDeleted = true;
     }
 }

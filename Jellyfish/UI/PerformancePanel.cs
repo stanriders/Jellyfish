@@ -2,7 +2,6 @@
 using Hexa.NET.ImPlot;
 using Jellyfish.Console;
 using Jellyfish.Debug;
-using Jellyfish.Input;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 using System.Collections.Generic;
@@ -95,6 +94,16 @@ public class PerformancePanel : IUiPanel
                     ImGui.Text(measurement.Key);
                     ImGui.TableNextColumn();
                     ImGui.Text(measurement.Value.ToString());
+                }
+
+                ImGui.Separator();
+                foreach (var measurement in NativeMemoryMeasurement.Measurements)
+                {
+                    ImGui.TableNextRow();
+                    ImGui.TableNextColumn();
+                    ImGui.Text(measurement.Key);
+                    ImGui.TableNextColumn();
+                    ImGui.Text($"{measurement.Value / 1024.0 / 1024.0:N2} MB");
                 }
                 ImGui.EndTable();
             }
