@@ -47,7 +47,7 @@ public class PerformancePanel : IUiPanel
                 }
             }
 
-            _timedMeasurements = PerformanceMeasurment.TimedMeasurements.ToImmutableSortedDictionary();
+            _timedMeasurements = PerformanceMeasurement.TimedMeasurements.ToImmutableSortedDictionary();
 
             if (_incrementalMeasurements != null)
             {
@@ -65,7 +65,7 @@ public class PerformancePanel : IUiPanel
                 }
             }
 
-            _incrementalMeasurements = PerformanceMeasurment.IncrementalMeasurements.ToImmutableSortedDictionary();
+            _incrementalMeasurements = PerformanceMeasurement.IncrementalMeasurements.ToImmutableSortedDictionary();
             _elapsedSinceLastUpdate = 0;
         }
 

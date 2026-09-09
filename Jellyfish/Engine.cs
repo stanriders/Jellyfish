@@ -173,7 +173,7 @@ namespace Jellyfish
 
         public void RenderFrame(FrameEventArgs e)
         {
-            PerformanceMeasurment.Reset("DrawCalls");
+            PerformanceMeasurement.Reset("DrawCalls");
             using var _ = new PerformanceMeasure("RenderTotal");
 
             RenderScheduler.Run();

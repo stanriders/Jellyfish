@@ -64,7 +64,7 @@ public class Sky
 
         GL.DepthFunc(DepthFunction.Lequal);
         GL.DrawArrays(PrimitiveType.Triangles, 0, CommonShapes.Cube.Length);
-        PerformanceMeasurment.Increment("DrawCalls");
+        PerformanceMeasurement.Increment("DrawCalls");
         GL.DepthFunc(DepthFunction.Less);
 
         _shader.Unbind();

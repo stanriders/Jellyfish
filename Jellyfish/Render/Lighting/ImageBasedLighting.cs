@@ -209,7 +209,7 @@ public class LightProbe
             Engine.MainViewport.ViewMatrixOverride = Matrix4.LookAt(Vector3.Zero, _cubemapUsageViews[i].target, _cubemapUsageViews[i].up);
 
             GL.DrawArrays(PrimitiveType.Triangles, 0, CommonShapes.Cube.Length);
-            PerformanceMeasurment.Increment("DrawCalls");
+            PerformanceMeasurement.Increment("DrawCalls");
 
             irradianceShader.Unbind();
         }
@@ -276,7 +276,7 @@ public class LightProbe
                 Engine.MainViewport.ViewMatrixOverride = Matrix4.LookAt(Vector3.Zero, _cubemapUsageViews[face].target, _cubemapUsageViews[face].up);
 
                 GL.DrawArrays(PrimitiveType.Triangles, 0, CommonShapes.Cube.Length);
-                PerformanceMeasurment.Increment("DrawCalls");
+                PerformanceMeasurement.Increment("DrawCalls");
 
                 prefilterShader.Unbind();
             }

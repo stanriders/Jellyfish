@@ -182,7 +182,7 @@ public class Mesh
         else
             GL.DrawArrays(PrimitiveType, 0, Vertices.Count);
 
-        PerformanceMeasurment.Increment("DrawCalls");
+        PerformanceMeasurement.Increment("DrawCalls");
 
         drawShader.Unbind();
         _vao.Unbind();

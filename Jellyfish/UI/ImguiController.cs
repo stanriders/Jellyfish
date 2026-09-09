@@ -364,7 +364,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
                         (int)pcmd.IdxOffset * sizeof(ushort));
                 }
 
-                PerformanceMeasurment.Increment("DrawCalls");
+                PerformanceMeasurement.Increment("DrawCalls");
 
                 CheckGlError("Draw");
             }

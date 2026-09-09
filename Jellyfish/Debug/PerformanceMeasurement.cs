@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace Jellyfish.Debug;
 
-public static class PerformanceMeasurment
+public static class PerformanceMeasurement
 {
     private static readonly ConcurrentDictionary<string, double> timedMeasurements = new();
     private static readonly ConcurrentDictionary<string, double> incrementalMeasurements = new();
@@ -43,6 +43,6 @@ public class PerformanceMeasure : IDisposable
 
     public void Dispose()
     {
-        PerformanceMeasurment.Add(_key, _stopwatch.Elapsed.TotalMilliseconds);
+        PerformanceMeasurement.Add(_key, _stopwatch.Elapsed.TotalMilliseconds);
     }
 }

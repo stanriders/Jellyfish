@@ -149,7 +149,7 @@ public static class CommonShapes
         QuadVertexArray?.Bind();
 
         GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
-        PerformanceMeasurment.Increment("DrawCalls");
+        PerformanceMeasurement.Increment("DrawCalls");
 
         QuadVertexArray?.Unbind();
     }
