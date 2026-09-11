@@ -104,7 +104,7 @@ public class Sun : BaseEntity, ILightSource
         const float casterPadding = 2500f; // how far behind the slice casters can live
         var backOff = radius + casterPadding;
 
-        var lightView = Matrix4.LookAt(center + direction * backOff, center, up);
+        var lightView = Matrix4.LookAt(direction * backOff, Vector3.Zero, up);
 
         var texel = radius * 2f / ShadowResolution;
         var centerLs = Vector3.TransformPosition(center, lightView);
@@ -115,6 +115,7 @@ public class Sun : BaseEntity, ILightSource
         return lightView * Matrix4.CreateOrthographicOffCenter(
             x - radius, x + radius,
             y - radius, y + radius,
-            0f, backOff + radius);
+            -centerLs.Z - radius - casterPadding,   // near
+            -centerLs.Z + radius);                  // far
     }
 }
