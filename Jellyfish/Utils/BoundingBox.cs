@@ -1,6 +1,6 @@
-﻿using Jellyfish.Render;
+﻿using System;
+using Jellyfish.Render;
 using OpenTK.Mathematics;
-using System.Buffers;
 using System.Collections.Generic;
 
 namespace Jellyfish.Utils;
@@ -11,7 +11,8 @@ public readonly struct BoundingBox
     public Vector3 Size { get; }
     public Vector3 Max { get; }
     public Vector3 Min { get; }
-    public float Length { get; }
+    public float DiagonalLength  { get; }
+    public float Radius => DiagonalLength * 0.5f;
 
     public BoundingBox(Vertex[] vertices)
     {
@@ -52,7 +53,7 @@ public readonly struct BoundingBox
         Size = new Vector3(maxX - minX, maxY - minY, maxZ - minZ);
         Max = new Vector3(maxX, maxY, maxZ);
         Min = new Vector3(minX, minY, minZ);
-        Length = (Max - Min).Length;
+        DiagonalLength = (Max - Min).Length;
     }
 
     public BoundingBox(List<Bone> bones, Matrix4[] boneTransforms)
@@ -106,7 +107,7 @@ public readonly struct BoundingBox
         Size = new Vector3(maxX - minX, maxY - minY, maxZ - minZ);
         Max = new Vector3(maxX, maxY, maxZ);
         Min = new Vector3(minX, minY, minZ);
-        Length = (Max - Min).Length;
+        DiagonalLength = (Max - Min).Length;
     }
 
     public BoundingBox(BoundingBox[] boxes)
@@ -149,53 +150,44 @@ public readonly struct BoundingBox
         Size = new Vector3(maxX - minX, maxY - minY, maxZ - minZ);
         Max = new Vector3(maxX, maxY, maxZ);
         Min = new Vector3(minX, minY, minZ);
-        Length = (Max - Min).Length;
+        DiagonalLength = (Max - Min).Length;
     }
 
     public BoundingBox(Vector3 max, Vector3 min)
     {
-        var midX = (max.X + min.X) / 2f;
-        var midY = (max.Y + min.Y) / 2f;
-        var midZ = (max.Z + min.Z) / 2f;
-
-        Center = new Vector3(midX, midY, midZ);
-        Size = new Vector3(max.X - min.X, max.Y - min.Y, max.Z - min.Z);
+        Center = (max + min) * 0.5f;
+        Size = max - min;
         Min = min;
         Max = max;
-        Length = (Max - Min).Length;
+        DiagonalLength = (max - min).Length;
     }
 
     public BoundingBox Translate(Matrix4 transform)
     {
-        var corners = ArrayPool<Vector3>.Shared.Rent(8);
-        corners[0] = new Vector3(Min.X, Min.Y, Min.Z);
-        corners[1] = new Vector3(Max.X, Min.Y, Min.Z);
-        corners[2] = new Vector3(Min.X, Max.Y, Min.Z);
-        corners[3] = new Vector3(Max.X, Max.Y, Min.Z);
-        corners[4] = new Vector3(Min.X, Min.Y, Max.Z);
-        corners[5] = new Vector3(Max.X, Min.Y, Max.Z);
-        corners[6] = new Vector3(Min.X, Max.Y, Max.Z);
-        corners[7] = new Vector3(Max.X, Max.Y, Max.Z);
-
-        for (var i = 0; i < corners.Length; i++)
-            corners[i] = Vector3.TransformPosition(corners[i], transform);
+        Span<Vector3> corners =
+        [
+            new(Min.X, Min.Y, Min.Z), new(Max.X, Min.Y, Min.Z),
+            new(Min.X, Max.Y, Min.Z), new(Max.X, Max.Y, Min.Z),
+            new(Min.X, Min.Y, Max.Z), new(Max.X, Min.Y, Max.Z),
+            new(Min.X, Max.Y, Max.Z), new(Max.X, Max.Y, Max.Z),
+        ];
 
         var newMin = new Vector3(float.MaxValue);
         var newMax = new Vector3(float.MinValue);
-
+        
         foreach (var corner in corners)
         {
-            newMin = Vector3.ComponentMin(newMin, corner);
-            newMax = Vector3.ComponentMax(newMax, corner);
+            var c = Vector3.TransformPosition(corner, transform);
+            newMin = Vector3.ComponentMin(newMin, c);
+            newMax = Vector3.ComponentMax(newMax, c);
         }
-        ArrayPool<Vector3>.Shared.Return(corners);
 
         return new BoundingBox(newMax, newMin);
     }
 
     public bool IsPointInside(Vector3 point)
     {
-        return point.X < Max.X && point.Y < Max.Y && point.Z < Max.Z &&
-               point.X > Min.X && point.Y > Min.Y && point.Z > Min.Z;
+        return point.X <= Max.X && point.Y <= Max.Y && point.Z <= Max.Z &&
+               point.X >= Min.X && point.Y >= Min.Y && point.Z >= Min.Z;
     }
 }

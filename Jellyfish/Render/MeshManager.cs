@@ -134,7 +134,7 @@ public class MeshManager
 
         if (mesh.ShouldDraw)
         {
-            if (frustum != null && !frustum.Value.IsInside(mesh.Position + mesh.BoundingBox.Center, mesh.BoundingBox.Length))
+            if (frustum != null && !frustum.Value.IsInside(mesh.Position + mesh.BoundingBox.Center, mesh.BoundingBox.Radius))
                 return;
 
             // todo: this is UGLY and needs to be completely remade
