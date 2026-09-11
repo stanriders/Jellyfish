@@ -36,6 +36,7 @@ public class Sun : BaseEntity, ILightSource
 
     public Vector3 Position => Vector3.Zero;
     public Quaternion Rotation => GetPropertyValue<Quaternion>("Rotation");
+
     public Color3<Rgb> Color
     {
         get
@@ -63,45 +64,57 @@ public class Sun : BaseEntity, ILightSource
 
     public static (int Near, int Far)[] CascadeRanges =
     [
-        ((int)Engine.MainViewport.NearPlane, 200),
+        (0, 200),
         (200, 1000),
         (1000, 3000),
-        (3000, (int)Engine.MainViewport.FarPlane)
+        (3000, int.MaxValue)
     ];
 
     public int ProjectionCount => cascades;
 
     public Matrix4 Projection(int index)
     {
+        var near = MathF.Max(CascadeRanges[index].Near, Engine.MainViewport.NearPlane);
+        var far = MathF.Min(CascadeRanges[index].Far, Engine.MainViewport.FarPlane);
+
+        // Extend the slice past its switch point so the shader has room to blend across the seam
+        //far = MathF.Min(far * 1.05f, Engine.MainViewport.FarPlane);
+
         var projection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(Engine.MainViewport.Fov),
             Engine.MainViewport.AspectRatio,
-            CascadeRanges[index].Near,
-            CascadeRanges[index].Far);
+            near, far);
 
         var frustum = new Frustum(Engine.MainViewport.GetViewMatrix() * projection);
 
-        var direction = Vector3.Transform(Vector3.UnitY, Rotation).Normalized();
+        var center = frustum.Center;
 
-        var lightView = Matrix4.LookAt(frustum.Center + direction, frustum.Center, Vector3.UnitY);
+        var radius = 0f;
 
-        var min = new Vector3(float.MaxValue);
-        var max = new Vector3(float.MinValue);
-
-        foreach (var v in frustum.Corners)
+        foreach (var c in frustum.Corners)
         {
-            var trf = Vector3.TransformPosition(v, lightView);
-            min = Vector3.ComponentMin(min, trf);
-            max = Vector3.ComponentMax(max, trf);
+            radius = MathF.Max(radius, (c - center).Length);
         }
 
-        var size = Vector3.ComponentMax(max, Vector3.Abs(min)); 
+        radius = MathF.Ceiling(radius * 16f) / 16f; // quantize away float jitter
 
-        // pullback factor
-        const float zMult = 10.0f;
-        min.Z = min.Z < 0 ? min.Z * zMult : min.Z / zMult;
-        max.Z = max.Z < 0 ? max.Z / zMult : max.Z * zMult;
+        var direction = Vector3.Transform(Vector3.UnitY, Rotation).Normalized();
 
-        var lightProjection = Matrix4.CreateOrthographicOffCenter(-size.X, size.X, -size.Y, size.Y, min.Z, max.Z);
-        return lightView * lightProjection;
+        var up = MathF.Abs(Vector3.Dot(direction, Vector3.UnitY)) > 0.99f ? Vector3.UnitZ : Vector3.UnitY;
+
+        const float casterPadding = 2500f; // how far behind the slice casters can live
+        var backOff = radius + casterPadding;
+
+        var lightView = Matrix4.LookAt(center + direction * backOff, center, up);
+
+        var texel = radius * 2f / ShadowResolution;
+        var centerLs = Vector3.TransformPosition(center, lightView);
+
+        var x = MathF.Floor(centerLs.X / texel) * texel;
+        var y = MathF.Floor(centerLs.Y / texel) * texel;
+
+        return lightView * Matrix4.CreateOrthographicOffCenter(
+            x - radius, x + radius,
+            y - radius, y + radius,
+            0f, backOff + radius);
     }
 }
