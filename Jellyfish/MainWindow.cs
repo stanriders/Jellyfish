@@ -69,8 +69,14 @@ public class MainWindow : GameWindow
     protected override void OnTextInput(TextInputEventArgs e)
     {
         base.OnTextInput(e);
+        
+        Engine.InputManager.HandleTextInput((char)e.Unicode);
+    }
 
-        // todo: refactor through inputmanager
-        Engine.ImguiController?.PressChar((char)e.Unicode);
+    protected override void OnFileDrop(FileDropEventArgs e)
+    {
+        base.OnFileDrop(e);
+        
+        // TODO: handle in UI
     }
 }

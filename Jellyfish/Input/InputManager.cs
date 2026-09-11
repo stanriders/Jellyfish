@@ -60,4 +60,10 @@ public class InputManager
             }
         }
     }
+
+    public void HandleTextInput(char input)
+    {
+        // TODO?: maybe refactor this to work through the main loop?
+        Engine.ImguiController?.PressChar(input);
+    }
 }
