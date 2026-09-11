@@ -256,11 +256,11 @@ vec3 CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
             sampler2D shadowSampler = sampler2D(sun.shadow[layer]);
             if (sun.usePcss)
             {
-                shadow = PoissonPCSSShadow(shadowSampler, projCoords, sun.cascadeNear[layer], sun.cascadeFar[layer], 0.1f);
+                shadow = PoissonPCSSShadow(shadowSampler, projCoords, sun.cascadeNear[layer], sun.cascadeFar[layer], 20f);
             }
             else
             {
-                shadow = PoissonPCFShadow(shadowSampler, projCoords, layer == 0 ? 4.0f : 1.0f);
+                shadow = PoissonPCFShadow(shadowSampler, projCoords, layer == 0 ? 2.0f : 1.0f);
                 //shadow = SimplePCFShadow(shadowSampler, projCoords, layer == 0 ? 4.0f : 1.0f);
                 //shadow = SimpleShadow(shadowSampler, projCoords);
             }

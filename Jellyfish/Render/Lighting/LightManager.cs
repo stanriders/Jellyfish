@@ -94,6 +94,9 @@ public class LightManager
     {
         using var _ = new PerformanceMeasure("LightManager.DrawShadows");
 
+        GL.Enable(EnableCap.PolygonOffsetFill);
+        GL.PolygonOffset(2.0f, 4.0f);
+
         var cullState = true;
 
         if (Sun != null && Sun.Source.Enabled && Sun.Source.UseShadows)
@@ -194,6 +197,8 @@ public class LightManager
             GL.CullFace(TriangleFace.Back);
             GL.Enable(EnableCap.CullFace);
         }
+
+        GL.Disable(EnableCap.PolygonOffsetFill);
     }
 
     public void UpdateShaderBuffer()
