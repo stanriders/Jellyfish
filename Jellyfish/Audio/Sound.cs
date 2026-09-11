@@ -1,17 +1,19 @@
-﻿using System;
+﻿using Jellyfish.Console;
+using Jellyfish.Render;
+using ManagedBass;
+using OpenTK.Graphics.Vulkan;
+using OpenTK.Mathematics;
+using SteamAudio;
+using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Jellyfish.Console;
-using Jellyfish.Render;
-using ManagedBass;
-using OpenTK.Mathematics;
-using SteamAudio;
 
 namespace Jellyfish.Audio
 {
     public sealed class Sound : IDisposable
     {
+        private readonly IPL.Context _iplContext;
         public bool Playing { get; private set; }
         public bool Persistent { get; set; }
         public IPL.Source Source { get; }
@@ -71,6 +73,8 @@ namespace Jellyfish.Audio
 
         public Sound(string path, IPL.Source iplSource, IPL.Context iplContext, IPL.Hrtf iplHrtf)
         {
+            _iplContext = iplContext;
+
             if (!File.Exists(path))
             {
                 return;
@@ -95,17 +99,17 @@ namespace Jellyfish.Audio
                 FrameSize = AudioManager.ipl_frame_size
             };
 
-            IplRun(() => IPL.BinauralEffectCreate(iplContext, iplAudioSettings, new IPL.BinauralEffectSettings { Hrtf = iplHrtf }, out _iplBinauralEffect));
-            IplRun(() => IPL.DirectEffectCreate(iplContext, iplAudioSettings, new IPL.DirectEffectSettings { NumChannels = 1 }, out _iplDirectEffect));
+            IplRun(() => IPL.BinauralEffectCreate(_iplContext, iplAudioSettings, new IPL.BinauralEffectSettings { Hrtf = iplHrtf }, out _iplBinauralEffect));
+            IplRun(() => IPL.DirectEffectCreate(_iplContext, iplAudioSettings, new IPL.DirectEffectSettings { NumChannels = 1 }, out _iplDirectEffect));
 
-            IplRun(() => IPL.AudioBufferAllocate(iplContext, 1, iplAudioSettings.FrameSize, ref _iplInputBuffer));
-            IplRun(() => IPL.AudioBufferAllocate(iplContext, 1, iplAudioSettings.FrameSize, ref _iplSimulationBuffer));
-            IplRun(() => IPL.AudioBufferAllocate(iplContext, AudioManager.output_channels, iplAudioSettings.FrameSize, ref _iplOutputBuffer));
+            IplRun(() => IPL.AudioBufferAllocate(_iplContext, 1, iplAudioSettings.FrameSize, ref _iplInputBuffer));
+            IplRun(() => IPL.AudioBufferAllocate(_iplContext, 1, iplAudioSettings.FrameSize, ref _iplSimulationBuffer));
+            IplRun(() => IPL.AudioBufferAllocate(_iplContext, AudioManager.output_channels, iplAudioSettings.FrameSize, ref _iplOutputBuffer));
 
             _iplSimulationInputs = new IPL.SimulationInputs
             {
                 Flags = IPL.SimulationFlags.Direct,
-                DirectFlags = IPL.DirectSimulationFlags.Directivity,
+                DirectFlags = IPL.DirectSimulationFlags.Directivity | IPL.DirectSimulationFlags.Occlusion | IPL.DirectSimulationFlags.Transmission,
                 DistanceAttenuationModel = new IPL.DistanceAttenuationModel { Type = IPL.DistanceAttenuationModelType.Default, MinDistance = 100 },
                 AirAbsorptionModel = new IPL.AirAbsorptionModel { Type = IPL.AirAbsorptionModelType.Default },
                 Directivity = new IPL.Directivity { DipoleWeight = 0.1f, DipolePower = 1.0f },
@@ -130,6 +134,7 @@ namespace Jellyfish.Audio
             if (_stream != null && !Playing)
             {
                 _audioStream!.Position = 0;
+                Bass.ChannelSetPosition(_stream.Value, 0);
                 Playing = true;
                 Bass.ChannelPlay(_stream.Value, true);
             }
@@ -144,6 +149,12 @@ namespace Jellyfish.Audio
             }
         }
 
+        private int QueuedBytes()
+        {
+            var n = Bass.ChannelGetData(_stream!.Value, IntPtr.Zero, (int)DataFlags.Available);
+            return n < 0 ? 0 : n;
+        }
+
         public unsafe void Update(IPL.Context iplContext, IPL.Hrtf iplHrtf)
         {
             if (_stream == null || !Playing)
@@ -151,53 +162,78 @@ namespace Jellyfish.Audio
 
             Bass.ChannelSetAttribute(_stream.Value, ChannelAttribute.Volume, Volume);
 
-            var inputBufferByteSpan = new Span<byte>((void*)_inBuffer, AudioManager.ipl_buffer_size_bytes);
-            int bytesRead = _audioStream!.Read(inputBufferByteSpan);
-            if (bytesRead == 0)
+            const int outFrameBytes = AudioManager.ipl_buffer_size_bytes * AudioManager.output_channels;
+            const int bufferFrames = 8;
+            
+            for (var i = 0; i < 4 && QueuedBytes() < outFrameBytes * bufferFrames; i++)
             {
-                Bass.StreamPutData(_stream.Value, nint.Zero, (int)StreamProcedureType.End);
-                Playing = false;
-            }
+                var inputSpan = new Span<byte>((void*)_inBuffer, AudioManager.ipl_buffer_size_bytes);
+                var bytesRead = _audioStream!.Read(inputSpan);
+                if (bytesRead == 0)
+                {
+                    Bass.StreamPutData(_stream.Value, nint.Zero, (int)StreamProcedureType.End);
+                    Playing = false;
+                    return;
+                }
 
-            var camera = Engine.MainViewport;
+                // IPL needs a full frame — pad the tail with silence
+                if (bytesRead < inputSpan.Length)
+                    inputSpan[bytesRead..].Clear();
 
-            var direction = IPL.CalculateRelativeDirection(iplContext,
-                Position.ToIplVector(),
-                camera.Position.ToIplVector(),
-                camera.Front.ToIplVector(),
-                camera.Up.ToIplVector());
+                var camera = Engine.MainViewport;
 
-            var binauralEffectParams = new IPL.BinauralEffectParams
-            {
-                Hrtf = iplHrtf,
-                Direction = direction,
-                Interpolation = IPL.HrtfInterpolation.Nearest,
-                SpatialBlend = 1.0f,
-            };
+                var direction = IPL.CalculateRelativeDirection(iplContext,
+                    Position.ToIplVector(),
+                    camera.Position.ToIplVector(),
+                    camera.Front.ToIplVector(),
+                    camera.Up.ToIplVector());
 
-            IPL.AudioBufferDeinterleave(iplContext, Unsafe.AsRef<float>((float*)_inBuffer), _iplInputBuffer);
+                var binauralEffectParams = new IPL.BinauralEffectParams
+                {
+                    Hrtf = iplHrtf,
+                    Direction = direction,
+                    Interpolation = IPL.HrtfInterpolation.Nearest,
+                    SpatialBlend = 1.0f,
+                };
 
-            IPL.SourceGetOutputs(Source, IPL.SimulationFlags.Direct, out var iplSourceOutput);
+                IPL.AudioBufferDeinterleave(iplContext, Unsafe.AsRef<float>((float*)_inBuffer), _iplInputBuffer);
 
-            // todo: can't do occlusion for now because we translate meshes in shaders
-            // todo: figure out why distance attenuation makes all sounds very quiet
-            if (_useAirAbsorption)
-                iplSourceOutput.Direct.Flags |= IPL.DirectEffectFlags.ApplyAirAbsorption;
+                IPL.SourceGetOutputs(Source, IPL.SimulationFlags.Direct, out var iplSourceOutput);
 
-            iplSourceOutput.Direct.Flags |= IPL.DirectEffectFlags.ApplyDirectivity;
+                // todo: can't do occlusion for now because we translate meshes in shaders
+                // todo: figure out why distance attenuation makes all sounds very quiet
+                if (_useAirAbsorption)
+                    iplSourceOutput.Direct.Flags |= IPL.DirectEffectFlags.ApplyAirAbsorption;
 
-            IPL.DirectEffectApply(_iplDirectEffect, ref iplSourceOutput.Direct, ref _iplInputBuffer,
-                ref _iplSimulationBuffer);
+                iplSourceOutput.Direct.Flags |= IPL.DirectEffectFlags.ApplyDirectivity |
+                                                IPL.DirectEffectFlags.ApplyOcclusion |
+                                                IPL.DirectEffectFlags.ApplyTransmission;
 
-            IPL.BinauralEffectApply(_iplBinauralEffect, ref binauralEffectParams, ref _iplSimulationBuffer,
-                ref _iplOutputBuffer);
+                IPL.DirectEffectApply(_iplDirectEffect, ref iplSourceOutput.Direct, ref _iplInputBuffer,
+                    ref _iplSimulationBuffer);
+                IPL.BinauralEffectApply(_iplBinauralEffect, ref binauralEffectParams, ref _iplSimulationBuffer,
+                    ref _iplOutputBuffer);
+                IPL.AudioBufferInterleave(iplContext, _iplOutputBuffer, Unsafe.AsRef<float>((float*)_outBuffer));
 
-            IPL.AudioBufferInterleave(iplContext, _iplOutputBuffer, Unsafe.AsRef<float>((float*)_outBuffer));
+                var result = Bass.StreamPutData(_stream.Value, _outBuffer, outFrameBytes);
+                if (result == -1)
+                {
+                    if (Bass.LastError == Errors.Ended)
+                    {
+                        Playing = false;
+                        return;
+                    }
 
-            var result = Bass.StreamPutData(_stream.Value, _outBuffer, AudioManager.ipl_buffer_size_bytes * AudioManager.output_channels);
-            if (result == -1)
-            {
-                Log.Context(this).Warning("BASS StreamPutData error {Error}", Bass.LastError);
+                    Log.Context(this).Warning("BASS StreamPutData error {Error}", Bass.LastError);
+                    return;
+                }
+
+                if (ConVarStorage.Get<bool>("audio_debug"))
+                {
+                    DebugRender.DrawText(_position, $"Input stream position:\t{_audioStream.Position}\n" +
+                                                    $"Queued data: {result}\n" +
+                                                    $"Output stream position: {Bass.ChannelGetPosition(_stream.Value) / AudioManager.output_channels}");
+                }
             }
         }
 
@@ -209,17 +245,19 @@ namespace Jellyfish.Audio
                 Log.Context("IPL").Warning("IPL error {Error}", result);
             }
         }
-        
+
         public void Dispose()
         {
             if (Playing)
                 Stop();
 
+            IPL.AudioBufferFree(_iplContext, ref _iplInputBuffer);
+            IPL.AudioBufferFree(_iplContext, ref _iplSimulationBuffer);
+            IPL.AudioBufferFree(_iplContext, ref _iplOutputBuffer);
+
             Marshal.FreeHGlobal(_inBuffer);
             Marshal.FreeHGlobal(_outBuffer);
             _audioStream?.Dispose();
-
-            // todo: IPL free
         }
     }
 }
