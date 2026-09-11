@@ -82,8 +82,6 @@ public class MeshManager
         _drawing = false;
 
         PostDraw(drawDev);
-
-        frustum?.Dispose();
     }
 
     public void DrawGBuffer(bool drawDev = true)
@@ -92,7 +90,7 @@ public class MeshManager
 
         _drawing = true;
 
-        using var playerFrustum = Engine.MainViewport.GetFrustum();
+        var playerFrustum = Engine.MainViewport.GetFrustum();
 
         DrawOpaque(drawDev, null, playerFrustum, true);
         DrawTranslucent(drawDev, null, playerFrustum, true);

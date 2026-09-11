@@ -263,8 +263,7 @@ public class Editor : IUiPanel, IInputHandler
 
         if (_selectedEntity is IHaveFrustum frustumEntity)
         {
-            using var frustum = frustumEntity.GetFrustum();
-            DebugRender.DrawFrustum(frustum);
+            DebugRender.DrawFrustum(frustumEntity.GetFrustum());
         }
 
         DebugRender.DrawText(_selectedEntity.GetPropertyValue<Vector3>("Position") + new Vector3(0, 3, 0), _selectedEntity.Name ?? "null");

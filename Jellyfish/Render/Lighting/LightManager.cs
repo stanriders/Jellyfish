@@ -166,7 +166,6 @@ public class LightManager
                     frustum = frustumEntity.GetFrustum();
                     if (!Engine.MainViewport.GetFrustum().IsInside(frustum.Value))
                     {
-                        frustum?.Dispose();
                         continue;
                     }
                 }
@@ -174,7 +173,6 @@ public class LightManager
                 {
                     if (!Engine.MainViewport.GetFrustum().IsInside(light.Source.Position, light.Source.FarPlane))
                     {
-                        frustum?.Dispose();
                         continue;
                     }
                 }
@@ -188,7 +186,6 @@ public class LightManager
                 Engine.MeshManager.Draw(false, shadow.Shader, frustum);
 
                 shadow.FrameBuffer.Unbind();
-                frustum?.Dispose();
             }
         }
 

@@ -275,13 +275,14 @@ public abstract class Shader
             return null;
         }
 
+        var dataHash = data?.GetHashCode();
         if (uniform.ValueHash != null)
         {
-            if (uniform.ValueHash == data?.GetHashCode())
+            if (uniform.ValueHash == dataHash)
                 return null;
         }
 
-        uniform.ValueHash = data?.GetHashCode();
+        uniform.ValueHash = dataHash;
 
         if (bind)
             Bind();

@@ -78,7 +78,7 @@ public class Sun : BaseEntity, ILightSource
             CascadeRanges[index].Near,
             CascadeRanges[index].Far);
 
-        using var frustum = new Frustum(Engine.MainViewport.GetViewMatrix() * projection);
+        var frustum = new Frustum(Engine.MainViewport.GetViewMatrix() * projection);
 
         var direction = Vector3.Transform(Vector3.UnitY, Rotation).Normalized();
 

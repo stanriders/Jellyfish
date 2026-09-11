@@ -15,7 +15,7 @@ using Jellyfish.Render.Lighting;
 
 namespace Jellyfish
 {
-    public class Engine : IInputHandler, IDisposable
+    public sealed class Engine : IInputHandler, IDisposable
     {
         private readonly MainWindow _mainWindow;
         private readonly OpenGLRender _render;

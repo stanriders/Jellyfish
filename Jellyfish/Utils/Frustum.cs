@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Jellyfish.Utils;
 
-public readonly struct Frustum : IDisposable
+public readonly struct Frustum
 {
     public Vector4[] Planes { get; }
     public Vector3[] Corners { get; }
@@ -37,58 +37,35 @@ public readonly struct Frustum : IDisposable
     // axis similarity threshold: if normalized axes have dot > this, they are considered same direction
     private const float axis_dot_thresh = 0.9995f;
     private const float eps = 1e-6f;
-
+    
     public Frustum(Matrix4 viewProjectionMatrix)
     {
-        Planes = ArrayPool<Vector4>.Shared.Rent(6);
-        Corners = ArrayPool<Vector3>.Shared.Rent(8);
+        Planes = new Vector4[6];
+        Corners = new Vector3[8];
 
-        float m00 = viewProjectionMatrix.M11, m01 = viewProjectionMatrix.M12, m02 = viewProjectionMatrix.M13, m03 = viewProjectionMatrix.M14;
-        float m10 = viewProjectionMatrix.M21, m11 = viewProjectionMatrix.M22,  m12 = viewProjectionMatrix.M23, m13 = viewProjectionMatrix.M24;
-        float m20 = viewProjectionMatrix.M31, m21 = viewProjectionMatrix.M32, m22 = viewProjectionMatrix.M33, m23 = viewProjectionMatrix.M34;
-        float m30 = viewProjectionMatrix.M41, m31 = viewProjectionMatrix.M42, m32 = viewProjectionMatrix.M43, m33 = viewProjectionMatrix.M44;
+        var m = viewProjectionMatrix;
+        
+        // Gribb-Hartmann, row-vector convention (v * M), GL depth range -1..1
+        Planes[0] = new Vector4(m.M14 + m.M11, m.M24 + m.M21, m.M34 + m.M31, m.M44 + m.M41); // left
+        Planes[1] = new Vector4(m.M14 - m.M11, m.M24 - m.M21, m.M34 - m.M31, m.M44 - m.M41); // right
+        Planes[2] = new Vector4(m.M14 + m.M12, m.M24 + m.M22, m.M34 + m.M32, m.M44 + m.M42); // bottom
+        Planes[3] = new Vector4(m.M14 - m.M12, m.M24 - m.M22, m.M34 - m.M32, m.M44 - m.M42); // top
+        Planes[4] = new Vector4(m.M14 + m.M13, m.M24 + m.M23, m.M34 + m.M33, m.M44 + m.M43); // near
+        Planes[5] = new Vector4(m.M14 - m.M13, m.M24 - m.M23, m.M34 - m.M33, m.M44 - m.M43); // far
 
-        // LEFT   plane
-        Planes[0] = new Vector4(m03 + m00, m13 + m10, m23 + m20, m33 + m30);
-        // RIGHT  plane
-        Planes[1] = new Vector4(m03 - m00, m13 - m10, m23 - m20, m33 - m30);
-        // BOTTOM plane
-        Planes[2] = new Vector4(m03 + m01, m13 + m11, m23 + m21, m33 + m31);
-        // TOP    plane
-        Planes[3] = new Vector4(m03 - m01, m13 - m11, m23 - m21, m33 - m31);
-        // NEAR   plane
-        Planes[4] = new Vector4(m03 + m02, m13 + m12, m23 + m22, m33 + m32);
-        // FAR    plane
-        Planes[5] = new Vector4(m03 - m02, m13 - m12, m23 - m22, m33 - m32);
-
-        for (var i = 0; i < 6; i++)
+        for (var i = 0; i < Planes.Length; i++)
         {
-            var length = (float)Math.Sqrt(
-                Planes[i].X * Planes[i].X +
-                Planes[i].Y * Planes[i].Y +
-                Planes[i].Z * Planes[i].Z
-            );
-            Planes[i].X /= length;
-            Planes[i].Y /= length;
-            Planes[i].Z /= length;
-            Planes[i].W /= length;
+            var length = Planes[i].Xyz.Length;
+            if (length > eps)
+                Planes[i] /= length;
         }
 
         Matrix4.Invert(viewProjectionMatrix, out var invViewProj);
 
-        for (var i = 0; i < 8; i++)
+        for (var i = 0; i < Corners.Length; i++)
         {
-            // Make it a 4D vector with w = 1
-            var corner4 = new Vector4(ClipCorners[i].X, ClipCorners[i].Y, ClipCorners[i].Z, 1.0f);
-
-            // Transform by inverse view-projection
-            var transformed = corner4 * invViewProj;
-
-            // Perspective divide
-            var invW = 1f / transformed.W;
-            Corners[i] = new Vector3(transformed.X * invW,
-                transformed.Y * invW,
-                transformed.Z * invW);
+            var corner = new Vector4(ClipCorners[i], 1.0f) * invViewProj;
+            Corners[i] = corner.Xyz / corner.W;
         }
 
         Center = SpanAverage(Corners);
@@ -98,17 +75,19 @@ public readonly struct Frustum : IDisposable
 
     public bool IsInside(Vector3 center, float radius)
     {
-        foreach (var plane in Planes)
+        for (var i = 0; i < Planes.Length; i++)
         {
+            var plane = Planes[i];
+            
             // Distance from plane to sphere center:
             var distance = plane.X * center.X + plane.Y * center.Y + plane.Z * center.Z + plane.W;
 
             // If the center is more negative than -radius => completely outside
-            if (distance > -radius)
-                return true;
+            if (distance < -radius)
+                return false;
         }
 
-        return false;
+        return true;
     }
 
     public bool IsInside(BoundingBox box)
@@ -136,11 +115,15 @@ public readonly struct Frustum : IDisposable
         // gather candidate axes: plane normals first
         var axes = new List<Vector3>(12);
 
-        foreach (var p in Planes) 
+        foreach (var p in Planes)
+        {
             axes.Add(new Vector3(p.X, p.Y, p.Z));
+        }
 
-        foreach (var p in b.Planes) 
+        foreach (var p in b.Planes)
+        {
             axes.Add(new Vector3(p.X, p.Y, p.Z));
+        }
 
         // add cross-products of edges
         var edgesA = GetEdgeDirections(Corners);
@@ -222,12 +205,6 @@ public readonly struct Frustum : IDisposable
         }
 
         return (min, max);
-    }
-
-    public void Dispose()
-    {
-        ArrayPool<Vector4>.Shared.Return(Planes);
-        ArrayPool<Vector3>.Shared.Return(Corners);
     }
 
     private static Vector3 SpanAverage(ReadOnlySpan<Vector3> v)

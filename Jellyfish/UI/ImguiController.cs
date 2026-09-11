@@ -250,23 +250,12 @@ public sealed class ImguiController : IDisposable, IInputHandler
         var prevCullFaceEnabled = GL.GetBoolean(GetPName.CullFace);
         var prevDepthTestEnabled = GL.GetBoolean(GetPName.DepthTest);
         GL.ActiveTexture(TextureUnit.Texture0);
+
         Span<int> prevScissorBox = stackalloc int[4];
-        unsafe
-        {
-            fixed (int* iptr = &prevScissorBox[0])
-            {
-                GL.GetInteger(GetPName.ScissorBox, prevScissorBox);
-            }
-        }
+        GL.GetInteger(GetPName.ScissorBox, prevScissorBox);
 
         Span<int> prevPolygonMode = stackalloc int[2];
-        unsafe
-        {
-            fixed (int* iptr = &prevPolygonMode[0])
-            {
-                GL.GetInteger(GetPName.PolygonMode, prevPolygonMode);
-            }
-        }
+        GL.GetInteger(GetPName.PolygonMode, prevPolygonMode);
 
         GL.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
 
