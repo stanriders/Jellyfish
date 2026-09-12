@@ -11,6 +11,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Jellyfish.UI.Components;
 using Quaternion = OpenTK.Mathematics.Quaternion;
 using Vector2 = System.Numerics.Vector2;
 using Vector3 = OpenTK.Mathematics.Vector3;
@@ -93,16 +94,8 @@ public class Editor : IUiPanel, IInputHandler
 
                 if (ImGui.BeginMenu("Windows"))
                 {
-                    var textureBrowser = ConVarStorage.Get<bool>("edt_texturelist");
-                    if (ImGui.MenuItem("Texture browser", "", ref textureBrowser))
-                    {
-                        ConVarStorage.Set("edt_texturelist", textureBrowser);
-                    }
-                    var meshBrowser = ConVarStorage.Get<bool>("edt_meshbrowser");
-                    if (ImGui.MenuItem("Mesh browser", "", ref meshBrowser))
-                    {
-                        ConVarStorage.Set("edt_meshbrowser", meshBrowser);
-                    }
+                    ConVarComponents.MenuItem("edt_texturelist", "Texture browser");
+                    ConVarComponents.MenuItem("edt_meshbrowser", "Mesh browser");
                     ImGui.EndMenu();
                 }
 
@@ -135,21 +128,10 @@ public class Editor : IUiPanel, IInputHandler
             ImGui.SetNextWindowBgAlpha(0.5f);
             if (ImGui.Begin("Editor params"))
             {
-                var cones = ConVarStorage.Get<bool>("edt_drawcones");
-                ImGui.Checkbox("Enable debug cones", ref cones);
-                ConVarStorage.Set("edt_drawcones", cones);
-
-                var drawnames = ConVarStorage.Get<bool>("edt_drawnames");
-                ImGui.Checkbox("Show entity names", ref drawnames);
-                ConVarStorage.Set("edt_drawnames", drawnames);
-
-                var physdebug = ConVarStorage.Get<bool>("phys_debug");
-                ImGui.Checkbox("Enable physics debug overlay", ref physdebug);
-                ConVarStorage.Set("phys_debug", physdebug);
-                
-                var audiodebug = ConVarStorage.Get<bool>("audio_debug");
-                ImGui.Checkbox("Enable audio debug overlay", ref audiodebug);
-                ConVarStorage.Set("audio_debug", audiodebug);
+                ConVarComponents.Checkbox("edt_drawcones", "Enable debug cones");
+                ConVarComponents.Checkbox("edt_drawnames", "Show entity names");
+                ConVarComponents.Checkbox("phys_debug", "Enable physics debug overlay");
+                ConVarComponents.Checkbox("audio_debug", "Enable audio debug overlay");
             }
 
             ImGui.End();

@@ -2,6 +2,7 @@
 using System.Linq;
 using Hexa.NET.ImGui;
 using Jellyfish.Console;
+using Jellyfish.UI.Components;
 
 namespace Jellyfish.UI
 {
@@ -55,10 +56,8 @@ namespace Jellyfish.UI
                         config.Video.WindowSize = _resolutions[currentResolution];
 
                         ImGui.Separator();
-
-                        var gtaoEnabled = ConVarStorage.Get<bool>("mat_gtao_enabled");
-                        if (ImGui.Checkbox("GTAO", ref gtaoEnabled))
-                            ConVarStorage.Set("mat_gtao_enabled", gtaoEnabled);
+                        
+                        ConVarComponents.Checkbox("mat_gtao_enabled", "GTAO");
 
                         var gtaoQuality = ConVarStorage.Get<int>("mat_gtao_quality");
                         if (ImGui.DragInt("GTAO Quality", ref gtaoQuality, 1, 0, 3))
@@ -70,34 +69,25 @@ namespace Jellyfish.UI
 
                         var gtaoIntensity = ConVarStorage.Get<float>("mat_gtao_intensity");
                         if (ImGui.DragFloat("GTAO Intensity", ref gtaoIntensity))
-                            ConVarStorage.Set("mat_gtao_radius", gtaoIntensity);
+                            ConVarStorage.Set("mat_gtao_intensity", gtaoIntensity);
 
                         var gtaoThickness = ConVarStorage.Get<float>("mat_gtao_thickness");
                         if (ImGui.DragFloat("GTAO Thickness", ref gtaoThickness))
-                            ConVarStorage.Set("mat_gtao_radius", gtaoThickness);
+                            ConVarStorage.Set("mat_gtao_thickness", gtaoThickness);
 
                         ImGui.Separator();
 
-                        var sslrEnabled = ConVarStorage.Get<bool>("mat_sslr_enabled");
-                        if (ImGui.Checkbox("SSLR", ref sslrEnabled))
-                            ConVarStorage.Set("mat_sslr_enabled", sslrEnabled);
+                        ConVarComponents.Checkbox("mat_sslr_enabled", "SSLR");
 
                         ImGui.Separator();
 
-                        var iblEnabled = ConVarStorage.Get<bool>("mat_ibl_enabled");
-                        if (ImGui.Checkbox("IBL", ref iblEnabled))
-                            ConVarStorage.Set("mat_ibl_enabled", iblEnabled);
-
-                        var iblPrefilter = ConVarStorage.Get<bool>("mat_ibl_prefilter");
-                        if (ImGui.Checkbox("IBL Prefilter", ref iblPrefilter))
-                            ConVarStorage.Set("mat_ibl_prefilter", iblPrefilter);
-
+                        ConVarComponents.Checkbox("mat_ibl_enabled", "IBL");
+                        ConVarComponents.Checkbox("mat_ibl_prefilter", "IBL Prefilter");
+                        
                         ImGui.Separator();
 
-                        var bloomEnabled = ConVarStorage.Get<bool>("mat_bloom_enabled");
-                        if (ImGui.Checkbox("Bloom", ref bloomEnabled))
-                            ConVarStorage.Set("mat_bloom_enabled", bloomEnabled);
-
+                        ConVarComponents.Checkbox("mat_bloom_enabled", "Bloom");
+                        
                         ImGui.EndTabItem();
                     }
 
