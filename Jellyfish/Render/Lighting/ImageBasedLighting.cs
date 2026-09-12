@@ -360,7 +360,7 @@ public class ImageBasedLighting
 
         ConVarStorage.Set("mat_ibl_enabled", iblState);
         ConVarStorage.Set("mat_sslr_enabled", sslrState);
-
+        
         Engine.MainViewport.ViewMatrixOverride = null;
         Engine.MainViewport.ProjectionMatrixOverride = null;
 
@@ -378,6 +378,15 @@ public class ImageBasedLighting
         });
 
         ArrayPool<Jellyfish.Render.Shaders.Structs.LightProbe>.Shared.Return(gpuProbes);
+        
+        // second pass to simulate one bounce of lighting
+        foreach (var lightProbe in Probes)
+        {
+            lightProbe.Render(sky);
+        }
+
+        Engine.MainViewport.ViewMatrixOverride = null;
+        Engine.MainViewport.ProjectionMatrixOverride = null;
     }
 
     public void Reset()
