@@ -43,23 +43,24 @@ public unsafe class AudioManager
         audioThread.Start();
     }
 
-    public Sound? AddSound(string path)
+    public Sound? AddSound(string path, bool useIpl)
     {
         IPL.Source source = default;
 
-        IplRun(() => IPL.SourceCreate(_iplSimulator, new IPL.SourceSettings { Flags = IPL.SimulationFlags.Direct }, out source));
-        if (source != default)
+        var sound = new Sound(path);
+        if (useIpl)
         {
-            var sound = new Sound(path, source, _iplContext, _iplHrtf);
-            IPL.SourceAdd(source, _iplSimulator);
-            IPL.SimulatorCommit(_iplSimulator);
-
-            _sounds.Add(sound);
-
-            return sound;
+            IplRun(() => IPL.SourceCreate(_iplSimulator, new IPL.SourceSettings { Flags = IPL.SimulationFlags.Direct }, out source));
+            if (source != default)
+            {
+                sound.InitIpl(source, _iplContext, _iplHrtf);
+                IPL.SourceAdd(source, _iplSimulator);
+                IPL.SimulatorCommit(_iplSimulator);
+            }
         }
 
-        return null;
+        _sounds.Add(sound);
+        return sound;
     }
         
     public void AddMesh(Mesh mesh)

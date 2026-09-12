@@ -14,6 +14,7 @@ public class Audio : BaseEntity
     {
         AddProperty<string>("Path", editable: false, flags: EntityPropertyFlags.FilePath);
         AddProperty("Autoplay", false, editable: false);
+        AddProperty("UseSteamAudio", true, editable: false);
 
         AddProperty("UseAirAbsorption", true, changeCallback: useAirAbsorption =>
         {
@@ -51,7 +52,7 @@ public class Audio : BaseEntity
             return;
         }
 
-        _handle = Engine.AudioManager.AddSound(path);
+        _handle = Engine.AudioManager.AddSound(path, GetPropertyValue<bool>("UseSteamAudio"));
 
         if (_handle != null)
         {
