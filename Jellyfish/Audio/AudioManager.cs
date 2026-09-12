@@ -6,12 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
 namespace Jellyfish.Audio;
 
-public class AudioDebug() : ConVar<bool>("audio_debug", true);
+public class AudioDebug() : ConVar<bool>("audio_debug", false);
 
 public unsafe class AudioManager
 {

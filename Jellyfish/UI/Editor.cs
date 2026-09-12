@@ -146,6 +146,10 @@ public class Editor : IUiPanel, IInputHandler
                 var physdebug = ConVarStorage.Get<bool>("phys_debug");
                 ImGui.Checkbox("Enable physics debug overlay", ref physdebug);
                 ConVarStorage.Set("phys_debug", physdebug);
+                
+                var audiodebug = ConVarStorage.Get<bool>("audio_debug");
+                ImGui.Checkbox("Enable audio debug overlay", ref audiodebug);
+                ConVarStorage.Set("audio_debug", audiodebug);
             }
 
             ImGui.End();
