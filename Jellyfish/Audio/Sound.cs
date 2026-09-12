@@ -53,6 +53,7 @@ namespace Jellyfish.Audio
         }
 
         public float Volume { get; set; } = 1.0f;
+        public bool Loop { get; set; }
 
         private readonly MemoryStream? _audioStream;
         private readonly int? _stream;
@@ -171,6 +172,15 @@ namespace Jellyfish.Audio
                 var bytesRead = _audioStream!.Read(inputSpan);
                 if (bytesRead == 0)
                 {
+                    if (Loop)
+                    {
+                        _audioStream!.Position = 0;
+                        Bass.ChannelSetPosition(_stream.Value, 0);
+                        Playing = true;
+                        Bass.ChannelPlay(_stream.Value, true);
+                        continue;
+                    }
+                    
                     Bass.StreamPutData(_stream.Value, nint.Zero, (int)StreamProcedureType.End);
                     Playing = false;
                     return;
@@ -220,6 +230,15 @@ namespace Jellyfish.Audio
                 {
                     if (Bass.LastError == Errors.Ended)
                     {
+                        if (Loop)
+                        {
+                            _audioStream!.Position = 0;
+                            Bass.ChannelSetPosition(_stream.Value, 0);
+                            Playing = true;
+                            Bass.ChannelPlay(_stream.Value, true);
+                            continue;
+                        }
+                        
                         Playing = false;
                         return;
                     }

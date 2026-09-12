@@ -12,7 +12,7 @@ public class Audio : BaseEntity
 
     public Audio()
     {
-        AddProperty<string>("Path", editable: false);
+        AddProperty<string>("Path", editable: false, flags: EntityPropertyFlags.FilePath);
         AddProperty("Autoplay", false, editable: false);
 
         AddProperty("UseAirAbsorption", true, changeCallback: useAirAbsorption =>
@@ -27,6 +27,12 @@ public class Audio : BaseEntity
                 _handle.Volume = volume;
         });
 
+        AddProperty("Loop", false, changeCallback: loop =>
+        {
+            if (_handle != null) 
+                _handle.Loop = loop;
+        });
+        
         AddAction("Play", Play);
     }
 
@@ -52,6 +58,7 @@ public class Audio : BaseEntity
             _handle.Position = GetPropertyValue<Vector3>("Position");
             _handle.UseAirAbsorption = GetPropertyValue<bool>("UseAirAbsorption");
             _handle.Volume = GetPropertyValue<float>("Volume");
+            _handle.Loop = GetPropertyValue<bool>("Loop");
 
             var autoplay = GetPropertyValue<bool>("Autoplay");
             if (autoplay)
