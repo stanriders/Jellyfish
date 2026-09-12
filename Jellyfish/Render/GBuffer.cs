@@ -37,7 +37,7 @@ public class GBuffer
             }));
         }
 
-        GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2d, depthRenderTarget.Handle, 0);
+        GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, depthRenderTarget.Handle, 0);
 
         GL.DrawBuffers((int)GBufferType.Count, new[] { DrawBufferMode.ColorAttachment0/*, DrawBufferMode.ColorAttachment1, DrawBufferMode.ColorAttachment2, DrawBufferMode.ColorAttachment3*/ });
 

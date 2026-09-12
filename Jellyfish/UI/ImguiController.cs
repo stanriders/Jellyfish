@@ -178,7 +178,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
                         TextureParams = new TextureParams
                         {
                             Name = id,
-                            Type = TextureTarget.Texture2d,
+                            Type = TextureTarget.Texture2D,
                             Srgb = false,
                             MinFiltering = TextureMinFilter.Linear,
                             MaxLevels = mips,
@@ -332,7 +332,7 @@ public sealed class ImguiController : IDisposable, IInputHandler
                 }
 
                 GL.ActiveTexture(TextureUnit.Texture0);
-                GL.BindTexture(TextureTarget.Texture2d, (int)pcmd.GetTexID());
+                GL.BindTexture(TextureTarget.Texture2D, (int)pcmd.GetTexID());
                 CheckGlError("Texture");
 
                 // We do _windowHeight - (int)clip.W instead of (int)clip.Y because gl has flipped Y when it comes to these coordinates

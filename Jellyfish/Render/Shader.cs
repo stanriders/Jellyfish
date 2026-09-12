@@ -119,7 +119,7 @@ public abstract class Shader
         if (handle == 0)
             return 0;
 
-        GL.ObjectLabel(ObjectIdentifier.Program, (uint)handle, GetType().Name.Length, GetType().Name);
+        GL.ObjectLabel(ObjectIdentifier.Program, handle, GetType().Name.Length, GetType().Name);
 
         // compile shaders
         var vertexShader = Engine.ShaderManager.GetShader(_vertPath, ShaderType.VertexShader);

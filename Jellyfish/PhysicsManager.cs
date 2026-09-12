@@ -279,7 +279,7 @@ public class PhysicsManager
         _physicsSystem.Gravity *= 80f;
         _physicsSystem.OptimizeBroadPhase();
 
-        _impactSound = Engine.AudioManager.AddSound("sounds/impact.wav");
+        _impactSound = Engine.AudioManager.AddSound("sounds/impact.wav", true);
         _impactSound!.Persistent = true;
         _impactSound!.Volume = 0.5f;
 

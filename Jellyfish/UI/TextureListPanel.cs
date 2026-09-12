@@ -202,8 +202,8 @@ public class TextureListPanel : IUiPanel
         int height = faceSize * 3;
 
         int atlasTex = GL.GenTexture();
-        GL.BindTexture(TextureTarget.Texture2d, atlasTex);
-        GL.TexImage2D(TextureTarget.Texture2d, 0, InternalFormat.Rgba8, width, height, 0,
+        GL.BindTexture(TextureTarget.Texture2D, atlasTex);
+        GL.TexImage2D(TextureTarget.Texture2D, 0, InternalFormat.Rgba8, width, height, 0,
             PixelFormat.Rgba, PixelType.UnsignedByte, IntPtr.Zero);
         GL.TextureParameteri(atlasTex, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         GL.TextureParameteri(atlasTex, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
@@ -232,7 +232,7 @@ public class TextureListPanel : IUiPanel
             int xOffset = gridX * faceSize;
             int yOffset = gridY * faceSize;
 
-            GL.CopyTexSubImage2D(TextureTarget.Texture2d, 0,
+            GL.CopyTexSubImage2D(TextureTarget.Texture2D, 0,
                 xOffset, yOffset,  // destination offset in atlas
                 0, 0,              // source from cubemap face
                 faceSize, faceSize);

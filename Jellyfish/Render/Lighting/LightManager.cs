@@ -360,7 +360,7 @@ public class LightManager
             }
         });
 
-        GL.BindTexture(TextureTarget.Texture2d, rt.Handle);
+        GL.BindTexture(TextureTarget.Texture2D, rt.Handle);
 
         GL.DrawBuffer(DrawBufferMode.None);
         GL.ReadBuffer(ReadBufferMode.None);

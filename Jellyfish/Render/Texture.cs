@@ -21,7 +21,7 @@ public class TextureParams
 {
     public string? Path { get; set; }
     public string? Name { get; set; }
-    public TextureTarget Type { get; set; } = TextureTarget.Texture2d;
+    public TextureTarget Type { get; set; } = TextureTarget.Texture2D;
     public bool Srgb { get; set; } = false;
     public float[]? BorderColor { get; set; } = null;
     public int? MaxLevels { get; set; }
@@ -67,7 +67,7 @@ public class Texture
 
         Handle = GL.CreateTexture(Params.Type);
 
-        GL.ObjectLabel(ObjectIdentifier.Texture, (uint)Handle, Params.Name.Length, Params.Name);
+        GL.ObjectLabel(ObjectIdentifier.Texture, Handle, Params.Name.Length, Params.Name);
 
         GL.TextureParameteri(Handle, TextureParameterName.TextureMinFilter, (int)textureParams.MinFiltering);
         GL.TextureParameteri(Handle, TextureParameterName.TextureMagFilter, (int)textureParams.MagFiltering);
@@ -139,7 +139,7 @@ public class Texture
 
         Handle = GL.CreateTexture(Params.Type);
 
-        GL.ObjectLabel(ObjectIdentifier.Texture, (uint)Handle, Params.Name.Length, Params.Name);
+        GL.ObjectLabel(ObjectIdentifier.Texture, Handle, Params.Name.Length, Params.Name);
 
         GL.TextureParameteri(Handle, TextureParameterName.TextureMinFilter, (int)Params.MinFiltering);
         GL.TextureParameteri(Handle, TextureParameterName.TextureMagFilter, (int)Params.MagFiltering);
@@ -169,7 +169,7 @@ public class Texture
         _memoryTracker = NativeMemoryMeasurement.AddMemory(this, RenderTargetParams.Width * RenderTargetParams.Heigth * 4);
 
         // other types should bind manually
-        if (Params.Type == TextureTarget.Texture2d && RenderTargetParams.Attachment != null)
+        if (Params.Type == TextureTarget.Texture2D && RenderTargetParams.Attachment != null)
         {
             GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, RenderTargetParams.Attachment.Value, Params.Type, Handle, 0);
         }

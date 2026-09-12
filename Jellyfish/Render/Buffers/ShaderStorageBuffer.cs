@@ -13,7 +13,7 @@ public class ShaderStorageBuffer
     public ShaderStorageBuffer(string name, int size)
     {
         GL.CreateBuffer(out Handle);
-        GL.ObjectLabel(ObjectIdentifier.Buffer, (uint)Handle, name.Length, name);
+        GL.ObjectLabel(ObjectIdentifier.Buffer, Handle, name.Length, name);
 
         GL.NamedBufferStorage(Handle, size, IntPtr.Zero, BufferStorageMask.DynamicStorageBit);
         GL.NamedBufferSubData(Handle, IntPtr.Zero, size, IntPtr.Zero);
@@ -47,7 +47,7 @@ public class ShaderStorageBuffer<T> where T: struct, IGpuStruct
     public ShaderStorageBuffer(string name, T data)
     {
         GL.CreateBuffer(out Handle);
-        GL.ObjectLabel(ObjectIdentifier.Buffer, (uint)Handle, name.Length, name);
+        GL.ObjectLabel(ObjectIdentifier.Buffer, Handle, name.Length, name);
 
         var bufferSize = Marshal.SizeOf<T>();
         GL.NamedBufferStorage(Handle, bufferSize, IntPtr.Zero, BufferStorageMask.DynamicStorageBit);

@@ -29,7 +29,7 @@ public class VertexBuffer
         _usage = usage;
 
         GL.CreateBuffer(out Handle);
-        GL.ObjectLabel(ObjectIdentifier.Buffer, (uint)Handle, name.Length, name);
+        GL.ObjectLabel(ObjectIdentifier.Buffer, Handle, name.Length, name);
         GL.NamedBufferData(Handle, _size, IntPtr.Zero, _usage);
 
         _memoryTracker = NativeMemoryMeasurement.AddMemory(this, _size);
@@ -41,7 +41,7 @@ public class VertexBuffer
         _usage = usage;
 
         GL.CreateBuffer(out Handle);
-        GL.ObjectLabel(ObjectIdentifier.Buffer, (uint)Handle, name.Length, name);
+        GL.ObjectLabel(ObjectIdentifier.Buffer, Handle, name.Length, name);
         GL.NamedBufferData(Handle, _size, data, _usage);
 
         _memoryTracker = NativeMemoryMeasurement.AddMemory(this, _size);

@@ -178,7 +178,7 @@ public class LightProbe
         irradianceBuffer.Bind();
 
         var name = $"ibl_{_index}_irradiance_framebuffer";
-        GL.ObjectLabel(ObjectIdentifier.Framebuffer, (uint)irradianceBuffer.Handle, name.Length, name);
+        GL.ObjectLabel(ObjectIdentifier.Framebuffer, irradianceBuffer.Handle, name.Length, name);
 
         RenderBuffer.Create(InternalFormat.DepthComponent, FramebufferAttachment.DepthAttachment, irradiance_size, irradiance_size);
 
@@ -230,7 +230,7 @@ public class LightProbe
         prefilterBuffer.Bind();
 
         var name = $"ibl_{_index}_prefilter_framebuffer";
-        GL.ObjectLabel(ObjectIdentifier.Framebuffer, (uint)prefilterBuffer.Handle, name.Length, name);
+        GL.ObjectLabel(ObjectIdentifier.Framebuffer, prefilterBuffer.Handle, name.Length, name);
 
         var prefilterRenderbuffer = new RenderBuffer(InternalFormat.DepthComponent, FramebufferAttachment.DepthAttachment, size, size);
 
