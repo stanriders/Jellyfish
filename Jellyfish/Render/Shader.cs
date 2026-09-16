@@ -31,6 +31,7 @@ public abstract class Shader
     private readonly List<FileSystemWatcher> _watchers = new();
     private readonly List<uint> _boundTextures = new();
     private bool _reloading;
+    private readonly bool _initialized;
 
     private bool _complainedAboutMissingUniforms;
 
@@ -43,10 +44,16 @@ public abstract class Shader
         _tessEvalPath = tessEvalPath;
 
         _shaderHandle = LoadShader();
+
+        _initialized = true;
     }
 
     private void AddWatcher(string? path)
     {
+        // only create watchers on init
+        if (_initialized)
+            return;
+        
         if (string.IsNullOrEmpty(path)) 
             return;
 
