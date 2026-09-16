@@ -1,5 +1,4 @@
 ﻿using Jellyfish.Console;
-using Jellyfish.Input;
 using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Lighting;
 using Jellyfish.Render.Screenspace;
@@ -14,7 +13,8 @@ using Jellyfish.Utils;
 
 namespace Jellyfish.Render;
 
-public class OpenGLRender : IRender, IInputHandler
+public class WireframeEnabled() : ConVar<bool>("mat_wireframe", false, Keys.Q);
+public class OpenGLRender : IRender
 {
     private FinalOut? _outRender;
     private FrameBuffer? _mainFramebuffer;
@@ -25,8 +25,6 @@ public class OpenGLRender : IRender, IInputHandler
     public ImageBasedLighting? ImageBasedLighting { get; private set; }
 
     private List<ScreenspaceEffect> _screenspaceEffects = new();
-
-    private bool _wireframe;
 
     // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
     private readonly GLDebugProc _debugProc; // if this delegate doesn't have a reference it gets GC'd after the first call
@@ -46,7 +44,6 @@ public class OpenGLRender : IRender, IInputHandler
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
         CommonShapes.Initialize();
-        Engine.InputManager.RegisterInputHandler(this);
     }
 
     public void LoadScreenspaceEffects()
@@ -163,7 +160,7 @@ public class OpenGLRender : IRender, IInputHandler
         GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-        GL.PolygonMode(TriangleFace.FrontAndBack, _wireframe ? PolygonMode.Line : PolygonMode.Fill);
+        GL.PolygonMode(TriangleFace.FrontAndBack, ConVarStorage.Get<bool>("mat_wireframe") ? PolygonMode.Line : PolygonMode.Fill);
 
         _sky?.Draw();
         Engine.MeshManager.Draw(frustum: Engine.MainViewport.GetFrustum());
@@ -181,8 +178,6 @@ public class OpenGLRender : IRender, IInputHandler
 
     public void Unload()
     {
-        Engine.InputManager.UnregisterInputHandler(this);
-
         _sky?.Unload();
         foreach (var effect in _screenspaceEffects)
         {
@@ -195,20 +190,6 @@ public class OpenGLRender : IRender, IInputHandler
         _colorRenderTarget?.Unload();
         _depthRenderTarget?.Unload();
         _mainFramebuffer?.Dispose();
-    }
-
-    public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
-    {
-        if (!IsReady)
-            return false;
-
-        if (keyboardState.IsKeyPressed(Keys.Q))
-        {
-            _wireframe = !_wireframe;
-            return true;
-        }
-
-        return false;
     }
 
     private unsafe void DebugMessage(DebugSource source, DebugType type, uint id, DebugSeverity severity, int length, nint message, nint userParam)
