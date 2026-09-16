@@ -192,7 +192,7 @@ public class EntityManager
             return;
         }
         
-        if (!instance._entityList.Any(x => x == entity))
+        if (!instance._entityList.Contains(entity))
         {
             Log.Context("EntityManager").Error("Trying to kill entity {Name} that doesn't exist already???", entity.GetPropertyValue<string>("Name"));
             return;

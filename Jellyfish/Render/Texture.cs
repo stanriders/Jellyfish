@@ -64,7 +64,7 @@ public class Texture
                 throw new InvalidTextureException("Trying to create a texture with null Name and Path");
             }
         }
-        
+
         var path = Params.Path ?? Params.Name;
         if (!File.Exists(path))
         {
