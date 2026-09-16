@@ -64,6 +64,13 @@ public class Texture
                 throw new InvalidTextureException("Trying to create a texture with null Name and Path");
             }
         }
+        
+        var path = Params.Path ?? Params.Name;
+        if (!File.Exists(path))
+        {
+            Log.Context(this).Warning("Texture {Path} doesn't exist!", Params.Name);
+            throw new InvalidTextureException($"Texture {Params.Name} doesn't exist!");
+        }
 
         Handle = GL.CreateTexture(Params.Type);
 
@@ -77,13 +84,6 @@ public class Texture
         if (textureParams.BorderColor != null)
         {
             GL.TextureParameterf(Handle, TextureParameterName.TextureBorderColor, textureParams.BorderColor);
-        }
-
-        var path = Params.Path ?? Params.Name;
-        if (!File.Exists(path))
-        {
-            Log.Context(this).Warning("Texture {Path} doesn't exist!", Params.Name);
-            throw new InvalidTextureException($"Texture {Params.Name} doesn't exist!");
         }
 
         using var image = new MagickImage(path);
