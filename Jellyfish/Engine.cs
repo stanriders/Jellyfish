@@ -161,6 +161,7 @@ namespace Jellyfish
             if (Math.Abs(config.WindowSize.X - _viewport.Size.X) > 20 ||
                 Math.Abs(config.WindowSize.Y - _viewport.Size.Y) > 20)
             {
+                _viewport.Size = config.WindowSize;
                 _render.NeedToRecreateBuffers = true;
             }
 
