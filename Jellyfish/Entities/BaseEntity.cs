@@ -16,10 +16,10 @@ public class EnableEntityNames() : ConVar<bool>("edt_drawnames", false);
 public abstract class BaseEntity
 {
     private readonly Dictionary<string, EntityProperty> _entityProperties = new();
-    public IReadOnlyList<EntityProperty> EntityProperties => _entityProperties.Values.ToList().AsReadOnly();
+    public ICollection<EntityProperty> EntityProperties => _entityProperties.Values;
 
     private readonly Dictionary<string, EntityAction> _entityActions = new();
-    public IReadOnlyList<EntityAction> EntityActions => _entityActions.Values.ToList().AsReadOnly();
+    public ICollection<EntityAction> EntityActions => _entityActions.Values;
 
     public string? Name => _entityProperties["Name"].Value as string;
     
