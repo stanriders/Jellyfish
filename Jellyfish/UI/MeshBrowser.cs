@@ -26,9 +26,11 @@ public class MeshBrowser : IUiPanel
                     _selectedMesh = null;
                 }
 
-                foreach (var mesh in Engine.MeshManager.Meshes)
+                for (var i = 0; i < Engine.MeshManager.Meshes.Count; i++)
                 {
-                    ImGui.PushID(mesh.Name+Random.Shared.Next());
+                    ImGui.PushID(i);
+
+                    var mesh = Engine.MeshManager.Meshes[i];
                     if (ImGui.MenuItem(mesh.Name, "", _selectedMesh?.Name == mesh.Name))
                     {
                         _selectedMesh = mesh;
