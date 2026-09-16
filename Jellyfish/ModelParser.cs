@@ -37,7 +37,7 @@ public static class ModelParser
         if (Path.GetExtension(path) == ".mdl")
             return new Model(modelName, MDL.Load(path[..^4]).Vtx.Meshes, [], [], isDev);
 
-        var importer = new AssimpContext();
+        using var importer = new AssimpContext();
 
         if (!_meshesCache.TryGetValue(path, out var scene))
         {
