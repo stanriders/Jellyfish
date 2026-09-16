@@ -70,6 +70,7 @@ public class LightManager
                 shadow.FrameBuffer.Dispose();
                 shadow.RenderTarget.Unload();
                 shadow.Shader.Unload();
+                GL.ARB.MakeTextureHandleNonResidentARB(shadow.BindlessHandle);
             }
 
             Sun = null;
@@ -79,13 +80,7 @@ public class LightManager
         var light = Lights.Find(x => x.Source == source);
         if (light != null)
         {
-            foreach (var shadow in light.Shadows)
-            {
-                shadow.FrameBuffer.Dispose();
-                shadow.RenderTarget.Unload();
-                shadow.Shader.Unload();
-            }
-
+            DestroyShadows(light);
             Lights.Remove(light);
         }
     }
