@@ -302,6 +302,7 @@ public class LightProbe
 public class ImageBasedLighting
 {
     public List<LightProbe> Probes { get; } = new();
+    private int _probesCount;
 
     public readonly ShaderStorageBuffer<LightProbes> LightProbesSsbo = new("lightProbesSSBO", new LightProbes());
     public const int max_probes = 512;
@@ -311,11 +312,12 @@ public class ImageBasedLighting
         if (Probes.Count >= max_probes)
             return null;
 
-        var probe = new LightProbe(Probes.Count)
+        var probe = new LightProbe(_probesCount)
         {
             Position = position
         };
         Probes.Add(probe);
+        _probesCount++;
 
         return probe;
     }
@@ -323,6 +325,7 @@ public class ImageBasedLighting
     public void RemoveProbe(LightProbe probe)
     {
         probe.Unload();
+        _probesCount--;
         Probes.Remove(probe);
     }
 
