@@ -4,7 +4,7 @@ using System;
 
 namespace Jellyfish.Render.Buffers;
 
-public class VertexBuffer
+public class VertexBuffer : IDisposable
 {
     public readonly int Handle;
 
@@ -61,7 +61,7 @@ public class VertexBuffer
         _memoryTracker = NativeMemoryMeasurement.AddMemory(this, _size);
     }
 
-    public void Unload()
+    public void Dispose()
     {
         GL.DeleteBuffer(Handle);
         _memoryTracker?.Dispose();

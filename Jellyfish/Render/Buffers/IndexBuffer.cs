@@ -3,7 +3,7 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.Render.Buffers;
 
-public class IndexBuffer
+public class IndexBuffer : IDisposable
 {
     public readonly int Handle;
     
@@ -46,7 +46,7 @@ public class IndexBuffer
         GL.NamedBufferData(Handle, _size, indices, _usage);
     }
 
-    public void Unload()
+    public void Dispose()
     {
         GL.DeleteBuffer(Handle);
     }

@@ -1,9 +1,10 @@
-﻿using Jellyfish.Console;
+﻿using System;
+using Jellyfish.Console;
 using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.Render.Buffers;
 
-public class FrameBuffer
+public class FrameBuffer : IDisposable
 {
     public readonly int Handle;
 
@@ -25,11 +26,6 @@ public class FrameBuffer
         GL.BindFramebuffer(target, 0);
     }
 
-    public void Unload()
-    {
-        GL.DeleteFramebuffer(Handle);
-    }
-
     public bool Check()
     {
         var code = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
@@ -40,5 +36,10 @@ public class FrameBuffer
         }
 
         return true;
+    }
+
+    public void Dispose()
+    {
+        GL.DeleteFramebuffer(Handle);
     }
 }

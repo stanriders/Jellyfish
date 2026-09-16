@@ -77,7 +77,7 @@ public class GBuffer
             renderTarget.Unload();
         }
 
-        _buffer.Unload();
+        _buffer.Dispose();
     }
 }
 

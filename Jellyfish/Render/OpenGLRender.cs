@@ -195,7 +195,7 @@ public class OpenGLRender : IRender, IInputHandler
         _gBuffer?.Unload();
         _colorRenderTarget?.Unload();
         _depthRenderTarget?.Unload();
-        _mainFramebuffer?.Unload();
+        _mainFramebuffer?.Dispose();
     }
 
     public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
@@ -251,7 +251,7 @@ public class OpenGLRender : IRender, IInputHandler
         _gBuffer?.Unload();
         _colorRenderTarget?.Unload();
         _depthRenderTarget?.Unload();
-        _mainFramebuffer?.Unload();
+        _mainFramebuffer?.Dispose();
 
         CreateBuffers();
 

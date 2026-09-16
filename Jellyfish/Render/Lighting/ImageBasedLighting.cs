@@ -109,7 +109,7 @@ public class LightProbe
 
     private Texture RenderCubemap(Sky? sky)
     {
-        var cubemapBuffer = new FrameBuffer();
+        using var cubemapBuffer = new FrameBuffer();
         cubemapBuffer.Bind();
 
         RenderBuffer.Create(InternalFormat.DepthComponent, FramebufferAttachment.DepthAttachment, size, size);
@@ -164,8 +164,6 @@ public class LightProbe
 
         GL.GenerateTextureMipmap(cubemapRenderTarget.Handle);
 
-        cubemapBuffer.Unload();
-
         return cubemapRenderTarget;
     }
 
@@ -174,7 +172,7 @@ public class LightProbe
         var irradianceShader = new Irradiance(envMap);
         envMap.References++; // todo: this should be done automatically
 
-        var irradianceBuffer = new FrameBuffer();
+        using var irradianceBuffer = new FrameBuffer();
         irradianceBuffer.Bind();
 
         var name = $"ibl_{_index}_irradiance_framebuffer";
@@ -217,7 +215,6 @@ public class LightProbe
         CommonShapes.CubeVertexArray?.Unbind();
         irradianceBuffer.Unbind();
 
-        irradianceBuffer.Unload();
         irradianceShader.Unload();
     }
 
@@ -226,7 +223,7 @@ public class LightProbe
         var prefilterShader = new Prefiltering(envMap);
         envMap.References++; // todo: this should be done automatically
 
-        var prefilterBuffer = new FrameBuffer();
+        using var prefilterBuffer = new FrameBuffer();
         prefilterBuffer.Bind();
 
         var name = $"ibl_{_index}_prefilter_framebuffer";
@@ -285,7 +282,6 @@ public class LightProbe
         CommonShapes.CubeVertexArray?.Unbind();
         prefilterBuffer.Unbind();
 
-        prefilterBuffer.Unload();
         prefilterShader.Unload();
     }
 

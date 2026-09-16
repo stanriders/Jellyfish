@@ -216,9 +216,9 @@ public class Mesh
 
     public void Unload()
     {
-        _vbo.Unload();
-        _ibo?.Unload();
-        _vao.Unload();
+        _vbo.Dispose();
+        _ibo?.Dispose();
+        _vao.Dispose();
         _gBufferShader.Unload();
 
         Material?.Unload();

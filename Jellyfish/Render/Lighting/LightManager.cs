@@ -67,7 +67,7 @@ public class LightManager
         {
             foreach (var shadow in Sun.Shadows)
             {
-                shadow.FrameBuffer.Unload();
+                shadow.FrameBuffer.Dispose();
                 shadow.RenderTarget.Unload();
                 shadow.Shader.Unload();
             }
@@ -81,7 +81,7 @@ public class LightManager
         {
             foreach (var shadow in light.Shadows)
             {
-                shadow.FrameBuffer.Unload();
+                shadow.FrameBuffer.Dispose();
                 shadow.RenderTarget.Unload();
                 shadow.Shader.Unload();
             }
@@ -387,7 +387,7 @@ public class LightManager
         foreach (var shadow in light.Shadows)
         {
             shadow.RenderTarget.Unload();
-            shadow.FrameBuffer.Unload();
+            shadow.FrameBuffer.Dispose();
             shadow.Shader.Unload();
             GL.ARB.MakeTextureHandleNonResidentARB(shadow.BindlessHandle);
         }

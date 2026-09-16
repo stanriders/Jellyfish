@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace Jellyfish.Render.Buffers;
 
-public class ShaderStorageBuffer
+public class ShaderStorageBuffer : IDisposable
 {
     public readonly int Handle;
 
@@ -32,13 +32,14 @@ public class ShaderStorageBuffer
             PixelType.UnsignedInt,
             IntPtr.Zero);
     }
-    public void Unload()
+
+    public void Dispose()
     {
         GL.DeleteBuffer(Handle);
     }
 }
 
-public class ShaderStorageBuffer<T> where T: struct, IGpuStruct
+public class ShaderStorageBuffer<T> : IDisposable where T: struct, IGpuStruct
 {
     public readonly int Handle;
 
@@ -89,7 +90,7 @@ public class ShaderStorageBuffer<T> where T: struct, IGpuStruct
         _memoryTracker = NativeMemoryMeasurement.AddMemory(this, bufferSize);
     }
 
-    public void Unload()
+    public void Dispose()
     {
         GL.DeleteBuffer(Handle);
         _memoryTracker?.Dispose();

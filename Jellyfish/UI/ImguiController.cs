@@ -414,9 +414,9 @@ public sealed class ImguiController : IDisposable, IInputHandler
     public void Dispose()
     {
         WidgetManager.Dispose();
-        _vao.Unload();
-        _vbo.Unload();
-        _ibo.Unload();
+        _vao.Dispose();
+        _vbo.Dispose();
+        _ibo.Dispose();
         _shader.Unload();
     }
 

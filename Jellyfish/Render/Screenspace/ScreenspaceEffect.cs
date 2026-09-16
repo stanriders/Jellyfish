@@ -75,7 +75,7 @@ public abstract class ScreenspaceEffect
 
     public virtual void Unload()
     {
-        Buffer.Unload();
+        Buffer.Dispose();
         RenderTarget.Unload();
         Shader.Unload();
     }

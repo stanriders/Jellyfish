@@ -1,8 +1,9 @@
-﻿using OpenTK.Graphics.OpenGL;
+﻿using System;
+using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.Render.Buffers;
 
-public class VertexArray
+public class VertexArray : IDisposable
 {
     public readonly int Handle;
     public readonly int Stride;
@@ -27,7 +28,7 @@ public class VertexArray
         GL.BindVertexArray(0);
     }
 
-    public void Unload()
+    public void Dispose()
     {
         Unbind();
         GL.DeleteVertexArray(Handle);

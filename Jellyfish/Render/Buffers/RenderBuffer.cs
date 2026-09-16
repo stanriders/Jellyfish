@@ -1,8 +1,9 @@
-﻿using OpenTK.Graphics.OpenGL;
+﻿using System;
+using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.Render.Buffers;
 
-public class RenderBuffer
+public class RenderBuffer : IDisposable
 {
     public readonly InternalFormat Type;
     public readonly int Handle;
@@ -33,5 +34,10 @@ public class RenderBuffer
     public void UpdateSize(int width, int heigth)
     {
         GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, Type, width, heigth);
+    }
+
+    public void Dispose()
+    {
+        GL.DeleteRenderbuffer(Handle);
     }
 }
