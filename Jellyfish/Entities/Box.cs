@@ -35,7 +35,7 @@ public class Box : BaseModelEntity, IPhysicsEntity
         if (_physicsBodyId != null)
         {
             Engine.PhysicsManager.RemoveObject(_physicsBodyId.Value);
-            _physicsBodyId = Engine.PhysicsManager.AddStaticObject([Model!.Meshes[0]], this) ?? 0;
+            _physicsBodyId = Engine.PhysicsManager.AddStaticBox(GetPropertyValue<Vector3>("Size"), this) ?? 0;
         }
     }
 
@@ -51,7 +51,7 @@ public class Box : BaseModelEntity, IPhysicsEntity
             Rotation = GetPropertyValue<Quaternion>("Rotation")
         };
 
-        _physicsBodyId = Engine.PhysicsManager.AddStaticObject([mesh], this) ?? 0;
+        _physicsBodyId = Engine.PhysicsManager.AddStaticBox(GetPropertyValue<Vector3>("Size"), this) ?? 0;
         base.Load();
     }
 

@@ -97,6 +97,32 @@ public class PhysicsManager
         physicsThread.Start();
     }
 
+    public virtual BodyID? AddStaticBox(Vector3 halfExent, IPhysicsEntity entity)
+    {
+        if (entity is not BaseEntity baseEntity)
+        {
+            Log.Context(nameof(PhysicsManager)).Error("Physics entity {entity} isn't inheriting BaseEntity!", entity);
+            return null;
+        }
+
+        var initialPosition = baseEntity.GetPropertyValue<Vector3>("Position");
+        var initialRotation = baseEntity.GetPropertyValue<Quaternion>("Rotation");
+        var initialScale = baseEntity is BaseModelEntity ? baseEntity.GetPropertyValue<Vector3>("Scale") : Vector3.One;
+
+        using var shapeSettings = new ScaledShape(new BoxShape((System.Numerics.Vector3)halfExent), (System.Numerics.Vector3)initialScale);
+
+        using var bodySettings = new BodyCreationSettings(shapeSettings,
+            (System.Numerics.Vector3)initialPosition,
+            (System.Numerics.Quaternion)initialRotation,
+            MotionType.Static,
+            Layers.NonMoving);
+
+        var bodyId = _bodyInterface.CreateAndAddBody(bodySettings, Activation.DontActivate);
+        _bodies.Add(bodyId, entity);
+
+        return bodyId;
+    }
+
     public virtual BodyID? AddStaticObject(Mesh[] meshes, IPhysicsEntity entity)
     {
         if (entity is not BaseEntity baseEntity)

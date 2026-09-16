@@ -30,7 +30,7 @@ public class Plane : BaseModelEntity, IPhysicsEntity
         if (_physicsBodyId != null)
         {
             Engine.PhysicsManager.RemoveObject(_physicsBodyId.Value);
-            _physicsBodyId = Engine.PhysicsManager.AddStaticObject([Model!.Meshes[0]], this) ?? 0;
+            _physicsBodyId = Engine.PhysicsManager.AddStaticBox(new Vector3(GetPropertyValue<Vector2>("Size") / 2), this) ?? 0;
         }
     }
 
@@ -46,7 +46,7 @@ public class Plane : BaseModelEntity, IPhysicsEntity
             Rotation = GetPropertyValue<Quaternion>("Rotation")
         };
 
-        _physicsBodyId = Engine.PhysicsManager.AddStaticObject([mesh], this) ?? 0;
+        _physicsBodyId = Engine.PhysicsManager.AddStaticBox(new Vector3(GetPropertyValue<Vector2>("Size") / 2), this) ?? 0;
         base.Load();
     }
 
