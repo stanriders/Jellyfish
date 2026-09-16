@@ -125,6 +125,9 @@ public class ConsolePanel : IUiPanel, IInputHandler
             return true;
         }
 
+        if (!_isEnabled)
+            return false;
+        
         if (_history.Count <= 0) 
             return false;
 
