@@ -112,7 +112,7 @@ public class LightProbe
         using var cubemapBuffer = new FrameBuffer();
         cubemapBuffer.Bind();
 
-        RenderBuffer.Create(InternalFormat.DepthComponent, FramebufferAttachment.DepthAttachment, size, size);
+        using var _ = new RenderBuffer(InternalFormat.DepthComponent, FramebufferAttachment.DepthAttachment, size, size);
 
         var cubemapRenderTarget = Engine.TextureManager.CreateTexture(new RenderTargetParams
         {
@@ -178,7 +178,7 @@ public class LightProbe
         var name = $"ibl_{_index}_irradiance_framebuffer";
         GL.ObjectLabel(ObjectIdentifier.Framebuffer, irradianceBuffer.Handle, name.Length, name);
 
-        RenderBuffer.Create(InternalFormat.DepthComponent, FramebufferAttachment.DepthAttachment, irradiance_size, irradiance_size);
+        using var _ = new RenderBuffer(InternalFormat.DepthComponent, FramebufferAttachment.DepthAttachment, irradiance_size, irradiance_size);
 
         GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
 
