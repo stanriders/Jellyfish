@@ -44,7 +44,7 @@ public class EntityManager
                 continue;
             }
 
-            if (_entityClassDictionary.ContainsKey(entityType.Name))
+            if (_entityClassDictionary.ContainsKey(entityAttribute.ClassName))
             {
                 Log.Context(this).Error("Duplicate class name {Name} for type {Type}", entityAttribute.ClassName, entityType.FullName);
                 continue;
