@@ -5,6 +5,7 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using System;
 using Jellyfish.Entities;
+// ReSharper disable CompareOfFloatsByEqualityOperator
 
 namespace Jellyfish.Render;
 
@@ -29,6 +30,10 @@ public class Sky
 
     private float _normalizedSunYValue = 0.2f;
 
+    private float _currentTurbidity;
+    private float _currentAlbedo;
+    private float _currentSunTheta;
+
     public Sky()
     {
         _params = new HosekWilkieParams();
@@ -40,23 +45,17 @@ public class Sky
         if (Engine.LightManager.Sun == null)
             return;
 
-        bool normalizedSunY = true;
-
         var sun = (Sun)Engine.LightManager.Sun!.Source;
         var sunDirection = Vector3.Transform(Vector3.UnitY, sun.Rotation);
         var sunTheta = MathF.Acos(Math.Clamp(sunDirection.Y, 0.0f, 1.0f));
 
-        CalculateSkyParams(sun.Turbidity, sun.Albedo, sunTheta);
-
-        if (normalizedSunY)
+        if (_currentTurbidity != sun.Turbidity || _currentAlbedo != sun.Albedo || _currentSunTheta != sunTheta)
         {
-            var s = HosekWilkie(MathF.Cos(sunTheta), 0.0f, 1.0f, _params) * _params.Z;
+            CalculateSkyParams(sun.Turbidity, sun.Albedo, sunTheta);
 
-            var luminance = Vector3.Dot(s, new Vector3(0.2126f, 0.7152f, 0.0722f));
-            if (luminance > 0.0f)
-            {
-                _params.Z = _params.Z / luminance * _normalizedSunYValue;
-            }
+            _currentTurbidity = sun.Turbidity;
+            _currentAlbedo = sun.Albedo;
+            _currentSunTheta = sunTheta;
         }
 
         _shader.Bind();
@@ -138,6 +137,19 @@ public class Sky
             (float)Evaluate(HosekWilkieDataset.DatasetRgbRad2, 0, 1, turbidity, albedo, sunTheta),
             (float)Evaluate(HosekWilkieDataset.DatasetRgbRad3, 0, 1, turbidity, albedo, sunTheta)
         );
+
+        bool normalizedSunY = true;
+
+        if (normalizedSunY)
+        {
+            var s = HosekWilkie(MathF.Cos(sunTheta), 0.0f, 1.0f, _params) * _params.Z;
+
+            var luminance = Vector3.Dot(s, new Vector3(0.2126f, 0.7152f, 0.0722f));
+            if (luminance > 0.0f)
+            {
+                _params.Z = _params.Z / luminance * _normalizedSunYValue;
+            }
+        }
     }
 
 
