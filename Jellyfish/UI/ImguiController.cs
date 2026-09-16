@@ -61,7 +61,12 @@ public sealed class ImguiController : IDisposable, IInputHandler
         WidgetManager.Init();
 
         var io = ImGui.GetIO();
-        io.Fonts.AddFontFromFileTTF("fonts/Roboto-Regular.ttf", 15f);
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            // todo: figure out why linux hates fonts
+            io.Fonts.AddFontFromFileTTF("fonts/Roboto-Regular.ttf", 15f);
+        }
+
         io.Fonts.AddFontDefault();
         io.DisplaySize = new Vector2(800, 600);
         io.DisplayFramebufferScale = new Vector2(1);

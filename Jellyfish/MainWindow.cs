@@ -1,6 +1,9 @@
 ﻿using System;
+using Jellyfish.Console;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
+using OpenTK.Windowing.GraphicsLibraryFramework;
+using Serilog.Core;
 
 namespace Jellyfish;
 
@@ -14,7 +17,11 @@ public class MainWindow : GameWindow
 
         ClientSize = config.Video.WindowSize;
         WindowState = config.Video.Fullscreen ? WindowState.Fullscreen : WindowState.Normal;
-        CenterWindow();
+        if (GLFW.GetPlatform() != Platform.Wayland)
+        {
+            // wayland doesn't allow window moving
+            CenterWindow();
+        }
 
         Load += OnFinishedLoading;
     }
@@ -79,4 +86,6 @@ public class MainWindow : GameWindow
         
         // TODO: handle in UI
     }
+    
+    
 }

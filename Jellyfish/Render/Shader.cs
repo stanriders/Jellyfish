@@ -4,6 +4,7 @@ using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Jellyfish.Render;
@@ -47,6 +48,9 @@ public abstract class Shader
     private void AddWatcher(string? path)
     {
         if (string.IsNullOrEmpty(path)) 
+            return;
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             return;
 
         var watcher = new FileSystemWatcher(Path.GetDirectoryName(path)!, Path.GetFileName(path))
