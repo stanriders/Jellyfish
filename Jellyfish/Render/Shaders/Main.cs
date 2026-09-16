@@ -63,6 +63,7 @@ public class Main : Shader
         _diffuse?.Unload();
         _normal?.Unload();
         _metRought?.Unload();
+        _reflectionMap?.Unload();
 
         base.Unload();
     }
