@@ -46,6 +46,7 @@ public class OpenGLRender : IRender, IInputHandler
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
         CommonShapes.Initialize();
+        Engine.InputManager.RegisterInputHandler(this);
     }
 
     public void LoadScreenspaceEffects()
@@ -124,8 +125,6 @@ public class OpenGLRender : IRender, IInputHandler
 
         LoadScreenspaceEffects();
         _outRender = new FinalOut();
-
-        Engine.InputManager.RegisterInputHandler(this);
     }
 
     public void PreFrame()
@@ -200,6 +199,9 @@ public class OpenGLRender : IRender, IInputHandler
 
     public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
     {
+        if (!IsReady)
+            return false;
+
         if (keyboardState.IsKeyPressed(Keys.Q))
         {
             _wireframe = !_wireframe;
