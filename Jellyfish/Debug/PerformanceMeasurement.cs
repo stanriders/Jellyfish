@@ -30,19 +30,19 @@ public static class PerformanceMeasurement
     }
 }
 
-public class PerformanceMeasure : IDisposable
+public sealed class PerformanceMeasure : IDisposable
 {
     private readonly string _key;
-    private readonly Stopwatch _stopwatch;
+    private readonly long _startTick;
 
     public PerformanceMeasure(string key)
     {
         _key = key;
-        _stopwatch = Stopwatch.StartNew();
+        _startTick = Stopwatch.GetTimestamp();
     }
 
     public void Dispose()
     {
-        PerformanceMeasurement.Add(_key, _stopwatch.Elapsed.TotalMilliseconds);
+        PerformanceMeasurement.Add(_key, (Stopwatch.GetTimestamp() - _startTick ) / (double)Stopwatch.Frequency * 1000);
     }
 }
