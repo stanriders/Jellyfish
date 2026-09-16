@@ -13,16 +13,14 @@ public static class NativeMemoryMeasurement
     {
         var key = source.GetType().Name;
 
-        if (!measurements.TryAdd(key, 1))
-            measurements[key] += amount;
+        measurements.AddOrUpdate(key, amount, (k, v) => v + amount);
 
         return new NativeMemoryTracker((key, amount), static sender => RemoveMemory(sender.key, sender.amount));
     }
 
     private static void RemoveMemory(string key, long amount)
     {
-        if (measurements.ContainsKey(key))
-            measurements[key] -= amount;
+        measurements.AddOrUpdate(key, 0, (k, v) => v - amount);
     }
 
     public class NativeMemoryTracker : IDisposable
