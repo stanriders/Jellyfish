@@ -92,10 +92,11 @@ public class Box : BaseModelEntity, IPhysicsEntity
         var size = GetPropertyValue<Vector3>("Size");
         var textureScale = GetPropertyValue<Vector2>("TextureScale");
 
+        var reversedCube = CommonShapes.Cube.Reverse().ToArray();
         var vertices = new List<Vertex>();
         for (int i = 0; i < CommonShapes.Cube.Length; i+=6)
         {
-            var plane = CommonShapes.Cube.Reverse().Skip(i).Take(6).Select(x=> x * size).ToArray();
+            var plane = reversedCube.Skip(i).Take(6).Select(x => x * size).ToArray();
             var normal = MathUtils.CalculateNormal(plane[0], plane[1], plane[2]);
 
             vertices.AddRange([
