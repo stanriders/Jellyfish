@@ -171,10 +171,7 @@ public class Mesh
             var boneMatrices = Model.BoneMatrices;
 
             drawShader.SetInt("boneCount", boneMatrices.Length);
-            for (var i = 0; i < boneMatrices.Length; i++)
-            {
-                drawShader.SetMatrix4(BoneUniformNames[i], boneMatrices[i]);
-            }
+            drawShader.SetMatrix4("bones", boneMatrices);
         }
 
         if (_ibo != null)

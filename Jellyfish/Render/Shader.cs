@@ -356,6 +356,14 @@ public abstract class Shader
             GL.UniformMatrix4f(uniform.Value.Location, 1, transpose, ref data);
     }
 
+    public void SetMatrix4(string name, Matrix4[] data, bool transpose = false)
+    {
+        if (_uniforms.TryGetValue($"{name}[0]", out var uniform))
+        {
+            GL.UniformMatrix4f(uniform.Location, data.Length, transpose, data);
+        }
+    }
+
     /// <summary>
     ///     Set a uniform Vector3 on this shader.
     /// </summary>
