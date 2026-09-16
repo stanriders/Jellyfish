@@ -141,25 +141,26 @@ vec3 ComputeIBL(vec3 N, vec3 V, vec3 diffuseColor, float roughness, float metaln
 
         if (iblPrefilterEnabled)
         {
+            if (sslrEnabled && roughness < 0.99)
+            {
+                vec4 ssrSample = texture(reflectionMap, uv);
+                vec3 ssrColor = ssrSample.rgb;
+                float ssrConfidence = ssrSample.a;
+
+                float reflectionWeight = (1.0 - roughness);
+                reflectionWeight = clamp(reflectionWeight, 0.0, 1.0);
+
+                float roughFade = 1.0 - smoothstep(0.4, 1.0, roughness);
+                reflectionWeight *= roughFade;
+
+                blendedSpecular = mix(blendedSpecular, ssrColor, ssrConfidence * reflectionWeight);
+            }
+            
             vec2 brdf = integrateBRDFApprox(NdotV, roughness);
-            specularIBL = blendedSpecular * (F_env * brdf.x + brdf.y);
+            specularIBL = blendedSpecular * (F0 * brdf.x + brdf.y);
         }
     }
 
-    if (sslrEnabled && roughness < 0.99)
-    {
-        vec4 ssrSample = texture(reflectionMap, uv);
-        vec3 ssrColor = ssrSample.rgb;
-        float ssrConfidence = ssrSample.a;
-
-        float reflectionWeight = (1.0 - roughness) * F_env.r;
-        reflectionWeight = clamp(reflectionWeight, 0.0, 1.0);
-
-        float roughFade = 1.0 - smoothstep(0.4, 1.0, roughness);
-        reflectionWeight *= roughFade;
-
-        specularIBL = mix(specularIBL, ssrColor, ssrConfidence * reflectionWeight);
-    }
 
     return kD * diffuseIBL + specularIBL;
 }
