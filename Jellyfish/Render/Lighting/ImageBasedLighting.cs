@@ -405,6 +405,10 @@ public class ImageBasedLighting
 
     public void GenerateProbeGrid()
     {
+        // don't inf loop on empty maps
+        if (Engine.MeshManager.SceneBoundingBox.Radius < 6)
+            return;
+
         var xStep = (int)(Engine.MeshManager.SceneBoundingBox.Size.X / 6);
         var yStep = (int)(Engine.MeshManager.SceneBoundingBox.Size.Y / 4);
         var zStep = (int)(Engine.MeshManager.SceneBoundingBox.Size.Z / 6);

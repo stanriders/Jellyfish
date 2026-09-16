@@ -12,10 +12,12 @@ void main(void)
 
     vec4 localNormal = vec4(aNormal, 0.0);
     vec4 localPosition = vec4(aPosition, 1.0);
+
     if (boneCount > 0)
     {
-        localPosition = boneTransform() * localPosition;
-        localNormal = boneTransform() * localNormal;
+        mat4 boneTransforms = boneTransform();
+        localPosition = boneTransforms * localPosition;
+        localNormal = boneTransforms * localNormal;
     }
     
     vec4 transformedNormal = rotation * localNormal;

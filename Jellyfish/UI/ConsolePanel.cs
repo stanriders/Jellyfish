@@ -86,22 +86,28 @@ public class ConsolePanel : IUiPanel, IInputHandler
                 _history.Add(_currentCommandInput);
 
                 var commandSplit = _currentCommandInput.Split(' ');
-                var commandConvar = commandSplit[0];
-
-                var convar = ConVarStorage.GetConVar(commandConvar);
-                if (convar == null)
+                if (commandSplit.Length < 2)
                 {
-                    Log.Context(this).Error("ConVar {S} is not found!", commandConvar);
+                    Log.Context(this).Error("Invalid command");
                 }
                 else
                 {
-                    var commandValue = JsonConvert.DeserializeObject(commandSplit[1], convar.Type);
-                    if (commandValue != null)
+                    var commandConvar = commandSplit[0];
+
+                    var convar = ConVarStorage.GetConVar(commandConvar);
+                    if (convar == null)
                     {
-                        ConVarStorage.Set(commandConvar, commandValue);
+                        Log.Context(this).Error("ConVar {S} is not found!", commandConvar);
+                    }
+                    else
+                    {
+                        var commandValue = JsonConvert.DeserializeObject(commandSplit[1], convar.Type);
+                        if (commandValue != null)
+                        {
+                            ConVarStorage.Set(commandConvar, commandValue);
+                        }
                     }
                 }
-
                 _currentCommandInput = string.Empty;
             }
             ImGui.PopItemWidth();
