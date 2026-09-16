@@ -109,6 +109,9 @@ public class MeshManager
     private void DrawTranslucent(bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null, bool gBuffer = false)
     {
         using var _ = new PerformanceMeasure("MeshManager.Draw.Translucent");
+        if (_translucentMeshes.Count == 0)
+            return;
+
         var sortingPosition = frustum?.NearPlaneCenter ?? Engine.MainViewport.Position;
 
         var transluscentObjects = _translucentMeshes
