@@ -116,7 +116,7 @@ namespace Jellyfish.Render
             return new Ray(rayOrigin, rayDirection);
         }
 
-        public void Think()
+        public void PreFrame()
         {
             // new frame - reset matrices 
             _frameProjectionMatrix = null;

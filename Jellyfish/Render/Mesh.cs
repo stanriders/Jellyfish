@@ -65,10 +65,6 @@ public class Mesh
         }
     }
 
-    private static readonly string[] BoneUniformNames = Enumerable.Range(0, 250)
-        .Select(i => $"bones[{i}]")
-        .ToArray();
-
     public Mesh(string name, List<Vertex>? vertices = null, List<uint>? indices = null, string? texture = null, Model? model = null)
     {
         _texture = texture;

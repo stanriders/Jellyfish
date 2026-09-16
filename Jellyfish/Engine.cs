@@ -130,7 +130,7 @@ namespace Jellyfish
 
             Frametime = e.Time;
             ElapsedTime += e.Time;
-            _viewport.Think();
+            _viewport.PreFrame();
 
             if (ShouldQuit)
             {

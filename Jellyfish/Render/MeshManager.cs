@@ -4,6 +4,7 @@ using System.Linq;
 using Jellyfish.Debug;
 using Jellyfish.Utils;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Mathematics;
 
 namespace Jellyfish.Render;
 
@@ -137,7 +138,8 @@ public class MeshManager
 
         if (mesh.ShouldDraw)
         {
-            if (frustum != null && !frustum.Value.IsInside(mesh.Position + mesh.BoundingBox.Center, mesh.BoundingBox.Radius))
+            var boundingBox = (mesh.Model?.BoundingBox ?? mesh.BoundingBox).Translate(Matrix4.CreateTranslation(mesh.Position));
+            if (frustum != null && !frustum.Value.IsInside(boundingBox))
                 return;
 
             // todo: this is UGLY and needs to be completely remade

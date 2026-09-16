@@ -16,12 +16,18 @@ public readonly struct BoundingBox
 
     public BoundingBox(Vertex[] vertices)
     {
-        var maxY = 0f;
-        var minY = 0f;
-        var maxX = 0f;
-        var minX = 0f;
-        var maxZ = 0f;
-        var minZ = 0f;
+        if (vertices.Length == 0)
+        {
+            this = new BoundingBox(Vector3.Zero, Vector3.Zero);
+            return;
+        }
+
+        var maxY = float.MinValue;
+        var minY = float.MaxValue;
+        var maxX = float.MinValue;
+        var minX = float.MaxValue;
+        var maxZ = float.MinValue;
+        var minZ = float.MaxValue;
 
         foreach (var vertex in vertices)
         {
@@ -58,12 +64,18 @@ public readonly struct BoundingBox
 
     public BoundingBox(List<Bone> bones, Matrix4[] boneTransforms)
     {
-        var maxY = 0f;
-        var minY = 0f;
-        var maxX = 0f;
-        var minX = 0f;
-        var maxZ = 0f;
-        var minZ = 0f;
+        if (bones.Count == 0)
+        {
+            this = new BoundingBox(new Vector3(5), new Vector3(-5));
+            return;
+        }
+
+        var maxY = float.MinValue;
+        var minY = float.MaxValue;
+        var maxX = float.MinValue;
+        var minX = float.MaxValue;
+        var maxZ = float.MinValue;
+        var minZ = float.MaxValue;
 
         for (var i = 0; i < bones.Count; i++)
         {
@@ -112,12 +124,18 @@ public readonly struct BoundingBox
 
     public BoundingBox(BoundingBox[] boxes)
     {
-        var maxY = 0f;
-        var minY = 0f;
-        var maxX = 0f;
-        var minX = 0f;
-        var maxZ = 0f;
-        var minZ = 0f;
+        if (boxes.Length == 0)
+        {
+            this = new BoundingBox(Vector3.Zero, Vector3.Zero);
+            return;
+        }
+
+        var maxY = float.MinValue;
+        var minY = float.MaxValue;
+        var maxX = float.MinValue;
+        var minX = float.MaxValue;
+        var maxZ = float.MinValue;
+        var minZ = float.MaxValue;
 
         foreach (var box in boxes)
         {
