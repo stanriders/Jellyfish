@@ -302,7 +302,9 @@ public class PhysicsManager
                 DrawShapeColor = ShapeColor.MotionTypeColor
             };
             _physicsSystem.DrawBodies(drawSettings, _debugRenderer, _debugDrawFilter);
-            _debugRenderer.Render();
+
+            if (ConVarStorage.Get<bool>("edt_enable") && ConVarStorage.Get<bool>("phys_debug"))
+                _debugRenderer.Render();
 
             if (!ShouldSimulate)
             {
