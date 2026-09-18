@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Jellyfish.Audio;
@@ -67,7 +68,7 @@ public class PhysicsManager
     private BodyInterface _bodyInterface;
     private JobSystem _jobSystem = null!;
     private bool _shouldStop;
-    private const int update_rate = (int)(1.0 / 240.0 * 1000);
+    private const int update_rate = (int)(1.0 / 60.0 * 1000);
 
     private readonly Dictionary<BodyID, IPhysicsEntity> _bodies = new();
     private CharacterVirtual? _character;
@@ -323,11 +324,14 @@ public class PhysicsManager
         Log.Context(this).Information("Jolt ready!");
         IsReady = true;
 
+        var lastUpdate = 0l;
         while (!_shouldStop)
         {
             Thread.Sleep(update_rate);
 
             using var _ = new PerformanceMeasure("PhysicsManager.Run");
+
+            var delta = ((Stopwatch.GetTimestamp() - lastUpdate) / (float)Stopwatch.Frequency) * 1000;
 
             var drawSettings = new DrawSettings
             {
@@ -343,6 +347,7 @@ public class PhysicsManager
 
             if (!ShouldSimulate)
             {
+                lastUpdate = Stopwatch.GetTimestamp();
                 continue;
             }
 
@@ -367,12 +372,14 @@ public class PhysicsManager
                 }
             }
 
-            _character?.ExtendedUpdate(update_rate / 1000f, new ExtendedUpdateSettings(), Layers.Moving, _physicsSystem);
-            var error = _physicsSystem.Update(update_rate / 1000f, 1, _jobSystem);
+            _character?.ExtendedUpdate(delta / 1000f, new ExtendedUpdateSettings(), Layers.Moving, _physicsSystem);
+            var error = _physicsSystem.Update(delta / 1000f, 1, _jobSystem);
             if (error != PhysicsUpdateError.None)
             {
                 Log.Context(this).Warning("Physics simulation reported error {Error}!", error);
             }
+
+            lastUpdate = Stopwatch.GetTimestamp();
         }
 
         _jobSystem.Dispose();
