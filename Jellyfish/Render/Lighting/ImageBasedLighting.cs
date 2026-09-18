@@ -1,4 +1,5 @@
-﻿using Jellyfish.Console;
+﻿using System;
+using Jellyfish.Console;
 using Jellyfish.Debug;
 using Jellyfish.Render.Buffers;
 using Jellyfish.Render.Shaders.IBL;
@@ -409,9 +410,9 @@ public class ImageBasedLighting
         if (Engine.MeshManager.SceneBoundingBox.Radius < 6)
             return;
 
-        var xStep = (int)(Engine.MeshManager.SceneBoundingBox.Size.X / 6);
-        var yStep = (int)(Engine.MeshManager.SceneBoundingBox.Size.Y / 4);
-        var zStep = (int)(Engine.MeshManager.SceneBoundingBox.Size.Z / 6);
+        var xStep = (int)Math.Max(1, Engine.MeshManager.SceneBoundingBox.Size.X / 6);
+        var yStep = (int)Math.Max(1, Engine.MeshManager.SceneBoundingBox.Size.Y / 4);
+        var zStep = (int)Math.Max(1, Engine.MeshManager.SceneBoundingBox.Size.Z / 6);
 
         for (var xOffset = (int)Engine.MeshManager.SceneBoundingBox.Min.X + xStep;
              xOffset < (int)Engine.MeshManager.SceneBoundingBox.Max.X;
