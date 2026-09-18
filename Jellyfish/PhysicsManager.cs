@@ -118,7 +118,10 @@ public class PhysicsManager
             Layers.NonMoving);
 
         var bodyId = _bodyInterface.CreateAndAddBody(bodySettings, Activation.DontActivate);
-        _bodies.Add(bodyId, entity);
+        Scheduler.PhysicsSchedule(() =>
+        {
+            _bodies.Add(bodyId, entity);
+        });
 
         return bodyId;
     }
@@ -172,7 +175,10 @@ public class PhysicsManager
             Layers.NonMoving);
 
         var bodyId = _bodyInterface.CreateAndAddBody(bodySettings, Activation.DontActivate);
-        _bodies.Add(bodyId, entity);
+        Scheduler.PhysicsSchedule(() =>
+        {
+            _bodies.Add(bodyId, entity);
+        });
 
         return bodyId;
     }
@@ -199,7 +205,10 @@ public class PhysicsManager
 
         var bodyId = _bodyInterface.CreateAndAddBody(bodySettings, Activation.Activate);
 
-        _bodies.Add(bodyId, entity);
+        Scheduler.PhysicsSchedule(() =>
+        {
+            _bodies.Add(bodyId, entity);
+        });
 
         shape.Dispose();
 
@@ -336,6 +345,8 @@ public class PhysicsManager
             {
                 continue;
             }
+
+            Scheduler.PhysicsRun();
 
             while (_deletionQueue.TryDequeue(out var bodyId))
             {

@@ -77,7 +77,7 @@ public abstract class Shader
         _reloading = true;
 
         Log.Context(this).Information("Reloading shader {File}...", e.Name);
-        RenderScheduler.Schedule(() =>
+        Scheduler.RenderSchedule(() =>
         {
             try
             {

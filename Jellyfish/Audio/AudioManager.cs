@@ -44,21 +44,27 @@ public unsafe class AudioManager
 
     public Sound? AddSound(string path, bool useIpl)
     {
-        IPL.Source source = default;
-
         var sound = new Sound(path);
-        if (useIpl)
-        {
-            IplRun(() => IPL.SourceCreate(_iplSimulator, new IPL.SourceSettings { Flags = IPL.SimulationFlags.Direct }, out source));
-            if (source != default)
-            {
-                sound.InitIpl(source, _iplContext, _iplHrtf);
-                IPL.SourceAdd(source, _iplSimulator);
-                IPL.SimulatorCommit(_iplSimulator);
-            }
-        }
 
-        _sounds.Add(sound);
+        Scheduler.AudioSchedule(() =>
+        {
+            if (useIpl)
+            {
+                IPL.Source source = default;
+
+                IplRun(() => IPL.SourceCreate(_iplSimulator,
+                    new IPL.SourceSettings { Flags = IPL.SimulationFlags.Direct }, out source));
+                if (source != default)
+                {
+                    sound.InitIpl(source, _iplContext, _iplHrtf);
+                    IPL.SourceAdd(source, _iplSimulator);
+                    IPL.SimulatorCommit(_iplSimulator);
+                }
+            }
+
+            _sounds.Add(sound);
+        });
+
         return sound;
     }
         
@@ -119,24 +125,28 @@ public unsafe class AudioManager
 
     public void ClearScene()
     {
-        foreach (var mesh in _meshes)
+        Scheduler.AudioSchedule(() =>
         {
-            IPL.StaticMeshRemove(mesh, _iplScene);
-        }
-        IPL.SceneCommit(_iplScene);
-        _meshes.Clear();
+            foreach (var mesh in _meshes)
+            {
+                IPL.StaticMeshRemove(mesh, _iplScene);
+            }
+            IPL.SceneCommit(_iplScene);
+            _meshes.Clear();
 
-        var removedSounds = new List<Sound>();
-        foreach (var sound in _sounds.Where(x => !x.Persistent))
-        {
-            // TODO: this just crashes
-            //IPL.SourceRemove(sound.Source, _iplSimulator);
-            //sound.Dispose();
-            sound.Stop();
-            removedSounds.Add(sound);
-        }
+            var removedSounds = new List<Sound>();
+            foreach (var sound in _sounds.Where(x => !x.Persistent))
+            {
+                if (sound.Source != null)
+                    IPL.SourceRemove(sound.Source.Value, _iplSimulator);
 
-        _sounds.RemoveAll(removedSounds.Contains);
+                sound.Dispose();
+                sound.Stop();
+                removedSounds.Add(sound);
+            }
+
+            _sounds.RemoveAll(removedSounds.Contains);
+        });
     }
 
     public void Unload()
@@ -204,6 +214,8 @@ public unsafe class AudioManager
             {
                 Log.Context(this).Warning("BASS error {Error}", error);
             }
+
+            Scheduler.AudioRun();
 
             if (_sounds.Count(x=> x.Playing) == 0)
                 continue;

@@ -177,7 +177,7 @@ namespace Jellyfish
             PerformanceMeasurement.Reset("DrawCalls");
             using var _ = new PerformanceMeasure("RenderTotal");
 
-            RenderScheduler.Run();
+            Scheduler.RenderRun();
             Render();
         }
 

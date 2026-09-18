@@ -10,7 +10,7 @@ public static class DebugRender
 {
     public static void DrawBoundingBox(Vector3 position, BoundingBox box)
     {
-        RenderScheduler.Schedule(() =>
+        Scheduler.RenderSchedule(() =>
         {
             var drawList = ImGui.GetBackgroundDrawList();
 
@@ -54,7 +54,7 @@ public static class DebugRender
 
     public static void DrawText(Vector3 position, string text)
     {
-        RenderScheduler.Schedule(() =>
+        Scheduler.RenderSchedule(() =>
         {
             var drawList = ImGui.GetBackgroundDrawList();
             var screenspacePosition = position.ToNumericsVector().ToScreenspace();
@@ -65,7 +65,7 @@ public static class DebugRender
 
     public static void DrawLine(Vector3 start, Vector3 end)
     {
-        RenderScheduler.Schedule(() =>
+        Scheduler.RenderSchedule(() =>
         {
             var drawList = ImGui.GetBackgroundDrawList();
             var startScreenspace = start.ToNumericsVector().ToScreenspace();
@@ -77,7 +77,7 @@ public static class DebugRender
 
     public static void DrawFrustum(Frustum frustum)
     {
-        RenderScheduler.Schedule(() =>
+        Scheduler.RenderSchedule(() =>
         {
             var drawList = ImGui.GetBackgroundDrawList();
 
@@ -135,7 +135,7 @@ public static class DebugRender
 
     public static void DrawMesh(Mesh mesh)
     {
-        RenderScheduler.Schedule(() =>
+        Scheduler.RenderSchedule(() =>
         {
             Engine.MeshManager.AddMesh(mesh, true);
         });

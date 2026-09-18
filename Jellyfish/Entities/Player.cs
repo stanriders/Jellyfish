@@ -119,61 +119,64 @@ public class Player : BaseEntity, IInputHandler, IHaveFrustum
 
         SetPropertyValue("Position", (Vector3)_physCharacter.Position);
 
-        // apply gravity
-        _physCharacter.LinearVelocity += System.Numerics.Vector3.UnitY * Engine.PhysicsManager.Gravity * frameTime;
-
-        var groundVelocity = _physCharacter.LinearVelocity with { Y = 0 };
-
-        // positive velocity mean we probably want to leave the ground but the physics engine didn't catch that yet
-        var tryingToLiftOff = _physCharacter.LinearVelocity.Y > 0;
-        if (_physCharacter.GroundState == GroundState.OnGround && !tryingToLiftOff)
-            _physCharacter.LinearVelocity = groundVelocity;
-
-        if (groundVelocity.Length() != 0)
+        Scheduler.PhysicsSchedule(() =>
         {
-            var groundFriction = 12f;
-            if (_physCharacter.GroundState != GroundState.OnGround)
-                groundFriction = 1f;
+            // apply gravity
+            _physCharacter.LinearVelocity += System.Numerics.Vector3.UnitY * Engine.PhysicsManager.Gravity * frameTime;
 
-            // actively try to stop the ground movement
-            _physCharacter.LinearVelocity -= groundVelocity * groundFriction * frameTime;
+            var groundVelocity = _physCharacter.LinearVelocity with { Y = 0 };
 
-            var groundDirection = System.Numerics.Vector3.Normalize(groundVelocity);
+            // positive velocity mean we probably want to leave the ground but the physics engine didn't catch that yet
+            var tryingToLiftOff = _physCharacter.LinearVelocity.Y > 0;
+            if (_physCharacter.GroundState == GroundState.OnGround && !tryingToLiftOff)
+                _physCharacter.LinearVelocity = groundVelocity;
 
-            var dot = System.Numerics.Vector3.Dot(_physCharacter.LinearVelocity, groundDirection);
-            if (dot <= 0)
-                _physCharacter.LinearVelocity = System.Numerics.Vector3.Zero with { Y = _physCharacter.LinearVelocity.Y };
-        }
+            if (groundVelocity.Length() != 0)
+            {
+                var groundFriction = 12f;
+                if (_physCharacter.GroundState != GroundState.OnGround)
+                    groundFriction = 1f;
 
-        var velocity = walk_velocity;
-        if (_sprinting)
-            velocity *= 2;
-        else if (_crouching)
-            velocity /= 2;
+                // actively try to stop the ground movement
+                _physCharacter.LinearVelocity -= groundVelocity * groundFriction * frameTime;
 
-        var direction = _desiredDirection;
+                var groundDirection = System.Numerics.Vector3.Normalize(groundVelocity);
 
-        var desiredVelocity = Vector3.Zero;
+                var dot = System.Numerics.Vector3.Dot(_physCharacter.LinearVelocity, groundDirection);
+                if (dot <= 0)
+                    _physCharacter.LinearVelocity = System.Numerics.Vector3.Zero with { Y = _physCharacter.LinearVelocity.Y };
+            }
 
-        // clamp desired ground velocity
-        var directionVelocity = Vector3.Dot((Vector3)_physCharacter.LinearVelocity, direction);
-        if (directionVelocity < velocity)
-        {
-            var airStrafeMultiplier = 1f;
-            if (_physCharacter.GroundState == GroundState.InAir)
-                airStrafeMultiplier = 0.05f;
+            var velocity = walk_velocity;
+            if (_sprinting)
+                velocity *= 2;
+            else if (_crouching)
+                velocity /= 2;
 
-            desiredVelocity += direction * velocity * airStrafeMultiplier;
-        }
+            var direction = _desiredDirection;
 
-        if (_jumping && _physCharacter!.IsSupported && _physCharacter!.GroundState == GroundState.OnGround)
-        {
-            var verticalVelocity = Vector3.Dot((Vector3)_physCharacter.LinearVelocity, Vector3.UnitY);
-            if (verticalVelocity < jump_velocity)
-                desiredVelocity += Vector3.UnitY * jump_velocity;
-        }
+            var desiredVelocity = Vector3.Zero;
 
-        _physCharacter.LinearVelocity += desiredVelocity.ToNumericsVector();
+            // clamp desired ground velocity
+            var directionVelocity = Vector3.Dot((Vector3)_physCharacter.LinearVelocity, direction);
+            if (directionVelocity < velocity)
+            {
+                var airStrafeMultiplier = 1f;
+                if (_physCharacter.GroundState == GroundState.InAir)
+                    airStrafeMultiplier = 0.05f;
+
+                desiredVelocity += direction * velocity * airStrafeMultiplier;
+            }
+
+            if (_jumping && _physCharacter!.IsSupported && _physCharacter!.GroundState == GroundState.OnGround)
+            {
+                var verticalVelocity = Vector3.Dot((Vector3)_physCharacter.LinearVelocity, Vector3.UnitY);
+                if (verticalVelocity < jump_velocity)
+                    desiredVelocity += Vector3.UnitY * jump_velocity;
+            }
+
+            _physCharacter.LinearVelocity += desiredVelocity.ToNumericsVector();
+        });
     }
 
     public Frustum GetFrustum()
