@@ -74,13 +74,27 @@ public unsafe class AudioManager
         var tranformedVertices = mesh.Vertices.Select(meshVertex =>(new Vector4(meshVertex.Coordinates, 1.0f) * transformationMatrix).Xyz.ToIplVector()).ToArray();
 
         var triangles = new List<IPL.Triangle>();
-        for (var i = 0; i < mesh.Vertices.Count; i += 3)
+        if (mesh.Indices is { Count: > 0 })
         {
-            var triangle = new IPL.Triangle();
-            triangle.Indices[0] = i;
-            triangle.Indices[1] = i + 1;
-            triangle.Indices[2] = i + 2;
-            triangles.Add(triangle);
+            for (var i = 0; i + 2 < mesh.Indices.Count; i += 3)
+            {
+                var triangle = new IPL.Triangle();
+                triangle.Indices[0] = (int)mesh.Indices[i];
+                triangle.Indices[1] = (int)mesh.Indices[i + 1];
+                triangle.Indices[2] = (int)mesh.Indices[i + 2];
+                triangles.Add(triangle);
+            }
+        }
+        else
+        {
+            for (var i = 0; i + 2 < tranformedVertices.Length; i += 3)
+            {
+                var triangle = new IPL.Triangle();
+                triangle.Indices[0] = i;
+                triangle.Indices[1] = i + 1;
+                triangle.Indices[2] = i + 2;
+                triangles.Add(triangle);
+            }
         }
 
         // {"ceramic",{0.01f,0.02f,0.02f,0.05f,0.060f,0.044f,0.011f}}
