@@ -321,7 +321,6 @@ public class ImageBasedLighting
     public void RemoveProbe(LightProbe probe)
     {
         probe.Unload();
-        _probesCount--;
         Probes.Remove(probe);
     }
 
@@ -396,6 +395,7 @@ public class ImageBasedLighting
         }
 
         Probes.Clear();
+        _probesCount = 0;
     }
 
     public void Unload()
