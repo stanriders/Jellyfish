@@ -201,8 +201,7 @@ public class PhysicsManager
             MotionType.Dynamic,
             Layers.Moving);
 
-        bodySettings.OverrideMassProperties = OverrideMassProperties.CalculateInertia;
-        bodySettings.MassPropertiesOverride = new MassProperties { Mass = 1f };
+        bodySettings.OverrideMassProperties = OverrideMassProperties.CalculateMassAndInertia;
 
         var bodyId = _bodyInterface.CreateAndAddBody(bodySettings, Activation.Activate);
 
@@ -225,7 +224,10 @@ public class PhysicsManager
         var charSettings = new CharacterVirtualSettings
         {
             Shape = shape,
-            Mass = 100f,
+            Mass = 70f,
+            MaxStrength = 100f * MathUtils.units_per_meter * 20f,
+            CharacterPadding = 0.02f * MathUtils.units_per_meter,
+            PredictiveContactDistance = 0.1f * MathUtils.units_per_meter,
             Up = System.Numerics.Vector3.UnitY,
             MaxSlopeAngle = 60
         };
@@ -312,7 +314,7 @@ public class PhysicsManager
 
         _physicsSystem = new PhysicsSystem(settings);
         _bodyInterface = _physicsSystem.BodyInterface;
-        _physicsSystem.Gravity *= 80f;
+        _physicsSystem.Gravity *= MathUtils.units_per_meter * 1.55f;
         _physicsSystem.OptimizeBroadPhase();
 
         _impactSound = Engine.AudioManager.AddSound("sounds/impact.wav", true);
@@ -371,7 +373,12 @@ public class PhysicsManager
                 }
             }
 
-            _character?.ExtendedUpdate(delta / 1000f, new ExtendedUpdateSettings(), Layers.Moving, _physicsSystem);
+            _character?.ExtendedUpdate(delta / 1000f, new ExtendedUpdateSettings
+            {
+                StickToFloorStepDown = new(0, -0.5f * MathUtils.units_per_meter, 0),
+                WalkStairsStepUp = new(0,  0.4f * MathUtils.units_per_meter, 0),
+            }, Layers.Moving, _physicsSystem);
+
             var error = _physicsSystem.Update(delta / 1000f, 1, _jobSystem);
             if (error != PhysicsUpdateError.None)
             {

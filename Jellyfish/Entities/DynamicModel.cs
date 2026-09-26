@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Jellyfish.Utils;
 using JoltPhysicsSharp;
 using OpenTK.Mathematics;
 using BoundingBox = Jellyfish.Utils.BoundingBox;
@@ -102,7 +103,7 @@ public class DynamicModel : BaseModelEntity, IPhysicsEntity
 
         var type = GetPropertyValue<BoundingBoxType>("BoundingBox");
 
-        ShapeSettings shape = type switch
+        ConvexShapeSettings shape = type switch
         {
             BoundingBoxType.Sphere => new SphereShapeSettings(radius),
             BoundingBoxType.Capsule => new CapsuleShapeSettings(halfHeigth, horizontalRadius),
@@ -110,6 +111,9 @@ public class DynamicModel : BaseModelEntity, IPhysicsEntity
             BoundingBoxType.Cylinder => new CylinderShapeSettings(halfHeigth, horizontalRadius),
             _ => throw new ArgumentException("Unknown bounding box type"),
         };
+
+        const float density = 500f;
+        shape.Density = density / (MathUtils.units_per_meter * MathUtils.units_per_meter * MathUtils.units_per_meter); // kg/m^3
 
         var rotation = GetPropertyValue<Quaternion>("Rotation");
         var scale = GetPropertyValue<Vector3>("Scale");

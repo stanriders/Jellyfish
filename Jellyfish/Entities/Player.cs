@@ -19,7 +19,7 @@ public class Player : BaseEntity, IInputHandler, IHaveFrustum
     private bool _jumping;
 
     private const float walk_velocity = 120.0f;
-    private const float jump_velocity = 170.0f;
+    private const float jump_velocity = 150.0f;
     private const float sensitivity = 0.2f;
 
     private const float height = 65;
