@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using Jellyfish.Utils;
 using OpenTK.Mathematics;
 
 namespace Jellyfish.Audio;
@@ -33,8 +34,6 @@ public unsafe class AudioManager
     public const int ipl_frame_size = 512;
     public const int ipl_buffer_size_bytes = ipl_frame_size * sizeof(float);
     public const int update_rate = (int)(ipl_frame_size / (double)sampling_rate * 1000);
-
-    public const float units_to_meters = 1.0f / 39.37f; // TODO: decide actual unit size
 
     public AudioManager()
     {
@@ -84,7 +83,7 @@ public unsafe class AudioManager
         var tranformedVertices = mesh.Vertices.Select(meshVertex =>
         {
             var transformed = new Vector4(meshVertex.Coordinates, 1.0f) * transformationMatrix;
-            return (transformed * units_to_meters).Xyz.ToIplVector();
+            return (transformed * MathUtils.units_to_meters).Xyz.ToIplVector();
         }).ToArray();
 
         var triangles = new List<IPL.Triangle>();
@@ -259,7 +258,7 @@ public unsafe class AudioManager
                 Ahead = camera.Front.ToIplVector(),
                 Up = camera.Up.ToIplVector(),
                 Right = camera.Right.ToIplVector(),
-                Origin = (camera.Position * units_to_meters).ToIplVector()
+                Origin = (camera.Position * MathUtils.units_to_meters).ToIplVector()
             };
                 
             IPL.SimulatorSetSharedInputs(_iplSimulator, IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections, new IPL.SimulationSharedInputs

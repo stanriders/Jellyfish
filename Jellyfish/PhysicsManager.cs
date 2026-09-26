@@ -324,7 +324,7 @@ public class PhysicsManager
         Log.Context(this).Information("Jolt ready!");
         IsReady = true;
 
-        var lastUpdate = 0L;
+        var lastUpdate = Stopwatch.GetTimestamp();
         while (!_shouldStop)
         {
             Thread.Sleep(update_rate);

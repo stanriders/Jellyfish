@@ -4,6 +4,8 @@ namespace Jellyfish.Utils;
 
 public static class MathUtils
 {
+    public const float units_to_meters = 1.0f / 39.37f; // 1 inch
+    
     public static Vector3 CalculateNormal(Vector3 v1, Vector3 v2, Vector3 v3, bool inverted = false)
     {
         var edge1 = v2 - v1;
