@@ -176,11 +176,7 @@ public class BezierPlane : BaseModelEntity, IPhysicsEntity
     {
     }
 
-    public void OnPhysicsPositionChanged(Vector3 position)
-    {
-    }
-
-    public void OnPhysicsRotationChanged(Quaternion rotation)
+    public void OnPhysicsChanged(Vector3 position, Quaternion rotation)
     {
     }
 }

@@ -324,7 +324,7 @@ public class PhysicsManager
         Log.Context(this).Information("Jolt ready!");
         IsReady = true;
 
-        var lastUpdate = 0l;
+        var lastUpdate = 0L;
         while (!_shouldStop)
         {
             Thread.Sleep(update_rate);
@@ -367,8 +367,7 @@ public class PhysicsManager
                     var position = _bodyInterface.GetPosition(bodyId);
                     var rotation = _bodyInterface.GetRotation(bodyId);
 
-                    entity.OnPhysicsPositionChanged((Vector3)position);
-                    entity.OnPhysicsRotationChanged((Quaternion)rotation);
+                    entity.OnPhysicsChanged((Vector3)position, (Quaternion)rotation);
                 }
             }
 

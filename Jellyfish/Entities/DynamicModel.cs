@@ -21,6 +21,8 @@ public class DynamicModel : BaseModelEntity, IPhysicsEntity
 
     public override bool DrawDevCone => true;
 
+    private bool _updatingFromPhysics;
+
     public DynamicModel()
     {
         AddProperty<string>("Model", editable: false, flags: EntityPropertyFlags.FilePath);
@@ -53,7 +55,7 @@ public class DynamicModel : BaseModelEntity, IPhysicsEntity
 
     protected override void OnPositionChanged(Vector3 position)
     {
-        if (_physicsBodyId != null)
+        if (_physicsBodyId != null && !_updatingFromPhysics)
         {
             Engine.PhysicsManager.SetPosition(_physicsBodyId.Value, position);
         }
@@ -63,7 +65,7 @@ public class DynamicModel : BaseModelEntity, IPhysicsEntity
 
     protected override void OnRotationChanged(Quaternion rotation)
     {
-        if (_physicsBodyId != null)
+        if (_physicsBodyId != null && !_updatingFromPhysics)
         {
             Engine.PhysicsManager.SetRotation(_physicsBodyId.Value, rotation);
         }
@@ -121,13 +123,11 @@ public class DynamicModel : BaseModelEntity, IPhysicsEntity
             Engine.PhysicsManager.SetVelocity(_physicsBodyId.Value, Vector3.Zero);
     }
 
-    public void OnPhysicsPositionChanged(Vector3 position)
+    public void OnPhysicsChanged(Vector3 position, Quaternion rotation)
     {
+        _updatingFromPhysics = true;
         SetPropertyValue("Position", position);
-    }
-
-    public void OnPhysicsRotationChanged(Quaternion rotation)
-    {
         SetPropertyValue("Rotation", rotation);
+        _updatingFromPhysics = false;
     }
 }

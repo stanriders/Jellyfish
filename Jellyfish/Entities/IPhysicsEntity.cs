@@ -5,6 +5,5 @@ namespace Jellyfish.Entities;
 public interface IPhysicsEntity
 {
     void ResetVelocity();
-    void OnPhysicsPositionChanged(Vector3 position);
-    void OnPhysicsRotationChanged(Quaternion rotation);
+    void OnPhysicsChanged(Vector3 position, Quaternion rotation);
 }
