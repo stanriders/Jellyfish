@@ -27,6 +27,7 @@ public abstract class Shader
     private readonly string _fragPath;
     private readonly string? _tessControlPath;
     private readonly string? _tessEvalPath;
+    private readonly string? _compPath;
 
     private readonly List<FileSystemWatcher> _watchers = new();
     private readonly List<uint> _boundTextures = new();
@@ -35,13 +36,14 @@ public abstract class Shader
 
     private bool _complainedAboutMissingUniforms;
 
-    protected Shader(string vertPath, string? geomPath, string fragPath, string? tessControlPath = null, string? tessEvalPath = null)
+    protected Shader(string vertPath, string? geomPath, string fragPath, string? tessControlPath = null, string? tessEvalPath = null, string? compPath = null)
     {
         _vertPath = vertPath;
         _geomPath = geomPath;
         _fragPath = fragPath;
         _tessControlPath = tessControlPath;
         _tessEvalPath = tessEvalPath;
+        _compPath = compPath;
 
         _shaderHandle = LoadShader();
 
@@ -138,6 +140,7 @@ public abstract class Shader
         var fragmentShader = Engine.ShaderManager.GetShader(_fragPath, ShaderType.FragmentShader);
         var tesselationControlShader = Engine.ShaderManager.GetShader(_tessControlPath, ShaderType.TessControlShader);
         var tesselationEvaluationShader = Engine.ShaderManager.GetShader(_tessEvalPath, ShaderType.TessEvaluationShader);
+        var computeShader = Engine.ShaderManager.GetShader(_compPath, ShaderType.ComputeShader);
 
         if (vertexShader != null)
         {
@@ -174,6 +177,13 @@ public abstract class Shader
             AddWatcher(_tessEvalPath);
         }
 
+        if (computeShader != null)
+        {
+            CompileShader(_compPath, computeShader.Value);
+            GL.AttachShader(handle, computeShader.Value);
+            AddWatcher(_compPath);
+        }
+
         LinkProgram(handle);
 
         // remove singular shaders
@@ -200,6 +210,11 @@ public abstract class Shader
         if (tesselationEvaluationShader != null)
         {
             GL.DetachShader(handle, tesselationEvaluationShader.Value);
+        }
+
+        if (computeShader != null)
+        {
+            GL.DetachShader(handle, computeShader.Value);
         }
 
         GL.GetProgrami(handle, ProgramProperty.ActiveUniforms, out var numberOfUniforms);
@@ -262,6 +277,12 @@ public abstract class Shader
         _boundTextures.Clear();
 
         GL.UseProgram(0);
+    }
+
+    public void DispatchCompute(uint groupsX, uint groupsY, uint groupsZ, MemoryBarrierMask barrier = MemoryBarrierMask.AllBarrierBits)
+    {
+        GL.DispatchCompute(groupsX, groupsY, groupsZ);
+        GL.MemoryBarrier(barrier);
     }
 
     public uint? GetAttribLocation(string attribName)
