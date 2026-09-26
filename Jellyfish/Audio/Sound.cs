@@ -7,6 +7,7 @@ using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Jellyfish.Utils;
 
 namespace Jellyfish.Audio
 {
@@ -159,7 +160,7 @@ namespace Jellyfish.Audio
                     Ahead = (-Vector3.UnitZ).ToIplVector(),
                     Right = Vector3.UnitX.ToIplVector(),
                     Up = Vector3.UnitY.ToIplVector(),
-                    Origin = (Position * AudioManager.units_to_meters).ToIplVector()
+                    Origin = (Position * MathUtils.units_to_meters).ToIplVector()
                 }
             };
 
@@ -258,8 +259,8 @@ namespace Jellyfish.Audio
                     var camera = Engine.MainViewport;
 
                     var direction = IPL.CalculateRelativeDirection(iplContext,
-                        (Position * AudioManager.units_to_meters).ToIplVector(),
-                        (camera.Position * AudioManager.units_to_meters).ToIplVector(),
+                        (Position * MathUtils.units_to_meters).ToIplVector(),
+                        (camera.Position * MathUtils.units_to_meters).ToIplVector(),
                         camera.Front.ToIplVector(),
                         camera.Up.ToIplVector());
 
