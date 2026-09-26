@@ -24,7 +24,8 @@ public unsafe class AudioManager
     private readonly List<Sound> _sounds = new();
     private readonly List<IPL.StaticMesh> _meshes = new();
 
-    private bool _shouldStop;
+    private volatile int _activeSourceCount;
+    private volatile bool _shouldStop;
 
     public const int output_channels = 2;
     public const int sampling_rate = 44100;
@@ -33,13 +34,22 @@ public unsafe class AudioManager
     public const int ipl_buffer_size_bytes = ipl_frame_size * sizeof(float);
     public const int update_rate = (int)(ipl_frame_size / (double)sampling_rate * 1000);
 
+    public const float units_to_meters = 1.0f / 39.37f; // TODO: decide actual unit size
+
     public AudioManager()
     {
         Bass.Init();
         Bass.UpdatePeriod = 0;
 
         var audioThread = new Thread(Run) { Name = "Audio thread" };
+        var reflectionsThread = new Thread(RunReflections)
+        {
+            Name = "Audio reflections thread",
+            Priority = ThreadPriority.BelowNormal,
+            IsBackground = true
+        };
         audioThread.Start();
+        reflectionsThread.Start();
     }
 
     public Sound? AddSound(string path, bool useIpl)
@@ -53,7 +63,7 @@ public unsafe class AudioManager
                 IPL.Source source = default;
 
                 IplRun(() => IPL.SourceCreate(_iplSimulator,
-                    new IPL.SourceSettings { Flags = IPL.SimulationFlags.Direct }, out source));
+                    new IPL.SourceSettings { Flags = IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections }, out source));
                 if (source != default)
                 {
                     sound.InitIpl(source, _iplContext, _iplHrtf);
@@ -71,7 +81,11 @@ public unsafe class AudioManager
     public void AddMesh(Mesh mesh)
     {
         var transformationMatrix = mesh.GetTransformationMatrix();
-        var tranformedVertices = mesh.Vertices.Select(meshVertex =>(new Vector4(meshVertex.Coordinates, 1.0f) * transformationMatrix).Xyz.ToIplVector()).ToArray();
+        var tranformedVertices = mesh.Vertices.Select(meshVertex =>
+        {
+            var transformed = new Vector4(meshVertex.Coordinates, 1.0f) * transformationMatrix;
+            return (transformed * units_to_meters).Xyz.ToIplVector();
+        }).ToArray();
 
         var triangles = new List<IPL.Triangle>();
         if (mesh.Indices is { Count: > 0 })
@@ -97,44 +111,47 @@ public unsafe class AudioManager
             }
         }
 
-        // {"ceramic",{0.01f,0.02f,0.02f,0.05f,0.060f,0.044f,0.011f}}
-        var material = new IPL.Material();
-        material.Absorption[0] = 0.01f;
-        material.Absorption[1] = 0.02f;
-        material.Absorption[2] = 0.02f;
-
-        material.Transmission[0] = 0.060f;
-        material.Transmission[1] = 0.044f;
-        material.Transmission[2] = 0.011f;
-
-        material.Scattering = 0.05f;
-
-        var materialsList = new[] { material };
-
-        var triangleArray = triangles.ToArray();
-        var materialIndiciesArray = Enumerable.Repeat(0, triangles.Count).ToArray();
-
-        fixed (IPL.Vector3* verts = tranformedVertices)
-        fixed (IPL.Triangle* indicies = triangleArray)
-        fixed (IPL.Material* materials = materialsList)
-        fixed (int* materialIndicies = materialIndiciesArray)
+        Scheduler.AudioSchedule(() =>
         {
-            IPL.StaticMeshCreate(_iplScene, new IPL.StaticMeshSettings
+            // {"ceramic",{0.01f,0.02f,0.02f,0.05f,0.060f,0.044f,0.011f}}
+            var material = new IPL.Material();
+            material.Absorption[0] = 0.01f;
+            material.Absorption[1] = 0.02f;
+            material.Absorption[2] = 0.02f;
+
+            material.Transmission[0] = 0.060f;
+            material.Transmission[1] = 0.044f;
+            material.Transmission[2] = 0.011f;
+
+            material.Scattering = 0.05f;
+
+            var materialsList = new[] { material };
+
+            var triangleArray = triangles.ToArray();
+            var materialIndiciesArray = Enumerable.Repeat(0, triangles.Count).ToArray();
+
+            fixed (IPL.Vector3* verts = tranformedVertices)
+            fixed (IPL.Triangle* indicies = triangleArray)
+            fixed (IPL.Material* materials = materialsList)
+            fixed (int* materialIndicies = materialIndiciesArray)
             {
-                NumVertices = tranformedVertices.Length,
-                NumTriangles = triangles.Count,
-                NumMaterials = materialsList.Length,
-                Vertices = (nint)verts,
-                Triangles = (nint)indicies,
-                MaterialIndices = (nint)materialIndicies,
-                Materials = (nint)materials
-            }, out var iplMesh);
+                IPL.StaticMeshCreate(_iplScene, new IPL.StaticMeshSettings
+                {
+                    NumVertices = tranformedVertices.Length,
+                    NumTriangles = triangles.Count,
+                    NumMaterials = materialsList.Length,
+                    Vertices = (nint)verts,
+                    Triangles = (nint)indicies,
+                    MaterialIndices = (nint)materialIndicies,
+                    Materials = (nint)materials
+                }, out var iplMesh);
 
-            IPL.StaticMeshAdd(iplMesh, _iplScene);
-            IPL.SceneCommit(_iplScene);
+                IPL.StaticMeshAdd(iplMesh, _iplScene);
+                IPL.SceneCommit(_iplScene);
 
-            _meshes.Add(iplMesh);
-        }
+                _meshes.Add(iplMesh);
+            }
+        });
     }
 
     public void ClearScene()
@@ -197,7 +214,7 @@ public unsafe class AudioManager
 
         IplRun(() => IPL.SimulatorCreate(_iplContext, new IPL.SimulationSettings
         {
-            Flags = IPL.SimulationFlags.Direct,
+            Flags = IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections,
             SceneType = IPL.SceneType.Default,
             ReflectionType = IPL.ReflectionEffectType.Parametric,
             FrameSize = ipl_frame_size,
@@ -229,9 +246,10 @@ public unsafe class AudioManager
                 Log.Context(this).Warning("BASS error {Error}", error);
             }
 
+            _activeSourceCount = _sounds.Count(x => x.Playing);
             Scheduler.AudioRun();
 
-            if (_sounds.Count(x=> x.Playing) == 0)
+            if (_activeSourceCount == 0)
                 continue;
 
             var camera = Engine.MainViewport;
@@ -241,14 +259,14 @@ public unsafe class AudioManager
                 Ahead = camera.Front.ToIplVector(),
                 Up = camera.Up.ToIplVector(),
                 Right = camera.Right.ToIplVector(),
-                Origin = camera.Position.ToIplVector()
+                Origin = (camera.Position * units_to_meters).ToIplVector()
             };
                 
-            IPL.SimulatorSetSharedInputs(_iplSimulator, IPL.SimulationFlags.Direct, new IPL.SimulationSharedInputs
+            IPL.SimulatorSetSharedInputs(_iplSimulator, IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections, new IPL.SimulationSharedInputs
             {
                 Listener = listener,
                 NumRays = 2048,
-                IrradianceMinDistance = 100.0f,
+                IrradianceMinDistance = 1.0f,
                 Duration = 2.0f,
                 Order = 1,
                 NumBounces = 1
@@ -264,6 +282,19 @@ public unsafe class AudioManager
 
         IPL.ContextRelease(ref _iplContext);
         Bass.Free();
+    }
+
+    private void RunReflections()
+    {
+        while (!_shouldStop)
+        {
+            Thread.Sleep(50);
+
+            if (_iplSimulator == default || _activeSourceCount == 0)
+                continue;
+
+            IPL.SimulatorRunReflections(_iplSimulator);
+        }
     }
 
     private static void IplRun(Func<IPL.Error> func)

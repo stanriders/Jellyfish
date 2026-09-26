@@ -33,7 +33,7 @@ namespace Jellyfish.Audio
                 if (!iplPos.Equals(_iplSimulationInputs.Source.Origin))
                 {
                     _iplSimulationInputs.Source.Origin = iplPos;
-                    IPL.SourceSetInputs(Source.Value, IPL.SimulationFlags.Direct, _iplSimulationInputs);
+                    IPL.SourceSetInputs(Source.Value, IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections, _iplSimulationInputs);
                 }
             }
         }
@@ -56,7 +56,7 @@ namespace Jellyfish.Audio
                     else
                         _iplSimulationInputs.DirectFlags &= ~IPL.DirectSimulationFlags.AirAbsorption;
 
-                    IPL.SourceSetInputs(Source.Value, IPL.SimulationFlags.Direct, _iplSimulationInputs);
+                    IPL.SourceSetInputs(Source.Value, IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections, _iplSimulationInputs);
                 }
             }
         }
@@ -72,10 +72,12 @@ namespace Jellyfish.Audio
 
         private IPL.AudioBuffer _iplInputBuffer;
         private IPL.AudioBuffer _iplSimulationBuffer;
+        private IPL.AudioBuffer _iplReflectionBuffer;
         private IPL.AudioBuffer _iplOutputBuffer;
 
         private IPL.BinauralEffect _iplBinauralEffect;
         private IPL.DirectEffect _iplDirectEffect;
+        private IPL.ReflectionEffect _iplReflectionEffect;
         private IPL.SimulationInputs _iplSimulationInputs;
 
         private readonly IntPtr _inBuffer = Marshal.AllocHGlobal(AudioManager.ipl_buffer_size_bytes);
@@ -113,28 +115,41 @@ namespace Jellyfish.Audio
             _stream = Bass.CreateStream(AudioManager.sampling_rate, AudioManager.output_channels, BassFlags.Float, StreamProcedureType.Push);
         }
 
-        public void InitIpl(IPL.Source iplSource, IPL.Context iplContext, IPL.Hrtf iplHrtf)
+        public unsafe void InitIpl(IPL.Source iplSource, IPL.Context iplContext, IPL.Hrtf iplHrtf)
         {
             _iplContext = iplContext;
-            
+
             var iplAudioSettings = new IPL.AudioSettings
             {
                 SamplingRate = AudioManager.sampling_rate,
                 FrameSize = AudioManager.ipl_frame_size
             };
 
-            IplRun(() => IPL.BinauralEffectCreate(iplContext, iplAudioSettings, new IPL.BinauralEffectSettings { Hrtf = iplHrtf }, out _iplBinauralEffect));
-            IplRun(() => IPL.DirectEffectCreate(iplContext, iplAudioSettings, new IPL.DirectEffectSettings { NumChannels = 1 }, out _iplDirectEffect));
+            IplRun(() => IPL.BinauralEffectCreate(iplContext, iplAudioSettings,
+                new IPL.BinauralEffectSettings { Hrtf = iplHrtf }, out _iplBinauralEffect));
+            IplRun(() => IPL.DirectEffectCreate(iplContext, iplAudioSettings,
+                new IPL.DirectEffectSettings { NumChannels = 1 }, out _iplDirectEffect));
+            IplRun(() => IPL.ReflectionEffectCreate(iplContext, iplAudioSettings,
+                new IPL.ReflectionEffectSettings
+                {
+                    Type = IPL.ReflectionEffectType.Parametric, // must match SimulationSettings.ReflectionType
+                    IrSize = (int)(2.0f * AudioManager.sampling_rate), // must match MaxDuration
+                    NumChannels = 1 // parametric is mono; convolution needs (MaxOrder+1)^2
+                }, out _iplReflectionEffect));
 
             IplRun(() => IPL.AudioBufferAllocate(iplContext, 1, iplAudioSettings.FrameSize, ref _iplInputBuffer));
             IplRun(() => IPL.AudioBufferAllocate(iplContext, 1, iplAudioSettings.FrameSize, ref _iplSimulationBuffer));
-            IplRun(() => IPL.AudioBufferAllocate(iplContext, AudioManager.output_channels, iplAudioSettings.FrameSize, ref _iplOutputBuffer));
+            IplRun(() => IPL.AudioBufferAllocate(iplContext, 1, iplAudioSettings.FrameSize, ref _iplReflectionBuffer));
+            IplRun(() => IPL.AudioBufferAllocate(iplContext, AudioManager.output_channels, iplAudioSettings.FrameSize,
+                ref _iplOutputBuffer));
 
-            _iplSimulationInputs = new IPL.SimulationInputs
+            var inputs = new IPL.SimulationInputs
             {
-                Flags = IPL.SimulationFlags.Direct,
-                DirectFlags = IPL.DirectSimulationFlags.Directivity | IPL.DirectSimulationFlags.Occlusion | IPL.DirectSimulationFlags.Transmission,
-                DistanceAttenuationModel = new IPL.DistanceAttenuationModel { Type = IPL.DistanceAttenuationModelType.Default, MinDistance = 100 },
+                Flags = IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections,
+                DirectFlags = IPL.DirectSimulationFlags.Directivity | IPL.DirectSimulationFlags.Occlusion |
+                              IPL.DirectSimulationFlags.Transmission,
+                DistanceAttenuationModel = new IPL.DistanceAttenuationModel
+                    { Type = IPL.DistanceAttenuationModelType.Default, MinDistance = 100 },
                 AirAbsorptionModel = new IPL.AirAbsorptionModel { Type = IPL.AirAbsorptionModelType.Default },
                 Directivity = new IPL.Directivity { DipoleWeight = 0.1f, DipolePower = 1.0f },
                 OcclusionType = IPL.OcclusionType.Raycast,
@@ -144,15 +159,21 @@ namespace Jellyfish.Audio
                     Ahead = (-Vector3.UnitZ).ToIplVector(),
                     Right = Vector3.UnitX.ToIplVector(),
                     Up = Vector3.UnitY.ToIplVector(),
-                    Origin = Position.ToIplVector()
+                    Origin = (Position * AudioManager.units_to_meters).ToIplVector()
                 }
             };
 
-            IPL.SourceSetInputs(iplSource, IPL.SimulationFlags.Direct, _iplSimulationInputs);
+            inputs.ReverbScale[0] = 1.0f;
+            inputs.ReverbScale[1] = 1.0f;
+            inputs.ReverbScale[2] = 1.0f;
+
+            _iplSimulationInputs = inputs;
+
+            IPL.SourceSetInputs(iplSource, IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections, _iplSimulationInputs);
 
             Source = iplSource;
         }
-        
+
         private static float[] Resample(float[] input, int fromRate, int toRate)
         {
             var ratio = (double)fromRate / toRate;
@@ -237,8 +258,8 @@ namespace Jellyfish.Audio
                     var camera = Engine.MainViewport;
 
                     var direction = IPL.CalculateRelativeDirection(iplContext,
-                        Position.ToIplVector(),
-                        camera.Position.ToIplVector(),
+                        (Position * AudioManager.units_to_meters).ToIplVector(),
+                        (camera.Position * AudioManager.units_to_meters).ToIplVector(),
                         camera.Front.ToIplVector(),
                         camera.Up.ToIplVector());
 
@@ -252,9 +273,12 @@ namespace Jellyfish.Audio
 
                     IPL.AudioBufferDeinterleave(iplContext, Unsafe.AsRef<float>((float*)_inBuffer), _iplInputBuffer);
 
-                    IPL.SourceGetOutputs(Source!.Value, IPL.SimulationFlags.Direct, out var iplSourceOutput);
+                    IPL.SourceGetOutputs(Source!.Value, IPL.SimulationFlags.Direct | IPL.SimulationFlags.Reflections, out var iplSourceOutput);
 
-                    // todo: can't do occlusion for now because we translate meshes in shaders
+                    iplSourceOutput.Reflections.Type = IPL.ReflectionEffectType.Parametric;
+                    iplSourceOutput.Reflections.NumChannels = 1;
+                    iplSourceOutput.Reflections.IrSize = (int)(2.0f * AudioManager.sampling_rate);
+
                     // todo: figure out why distance attenuation makes all sounds very quiet
                     if (_useAirAbsorption)
                         iplSourceOutput.Direct.Flags |= IPL.DirectEffectFlags.ApplyAirAbsorption;
@@ -265,6 +289,12 @@ namespace Jellyfish.Audio
 
                     IPL.DirectEffectApply(_iplDirectEffect, ref iplSourceOutput.Direct, ref _iplInputBuffer,
                         ref _iplSimulationBuffer);
+
+                    IPL.ReflectionEffectApply(_iplReflectionEffect, ref iplSourceOutput.Reflections,
+                        ref _iplInputBuffer, ref _iplReflectionBuffer, default);
+
+                    IPL.AudioBufferMix(iplContext, ref _iplReflectionBuffer, _iplSimulationBuffer);
+
                     IPL.BinauralEffectApply(_iplBinauralEffect, ref binauralEffectParams, ref _iplSimulationBuffer,
                         ref _iplOutputBuffer);
                     IPL.AudioBufferInterleave(iplContext, _iplOutputBuffer, Unsafe.AsRef<float>((float*)_outBuffer));
@@ -332,6 +362,7 @@ namespace Jellyfish.Audio
             {
                 IPL.AudioBufferFree(_iplContext.Value, ref _iplInputBuffer);
                 IPL.AudioBufferFree(_iplContext.Value, ref _iplSimulationBuffer);
+                IPL.AudioBufferFree(_iplContext.Value, ref _iplReflectionBuffer);
                 IPL.AudioBufferFree(_iplContext.Value, ref _iplOutputBuffer);
             }
 
