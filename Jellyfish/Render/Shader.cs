@@ -22,9 +22,9 @@ public abstract class Shader
 
     private readonly Dictionary<string, Uniform> _uniforms = new();
 
-    private readonly string _vertPath;
+    private readonly string? _vertPath;
     private readonly string? _geomPath;
-    private readonly string _fragPath;
+    private readonly string? _fragPath;
     private readonly string? _tessControlPath;
     private readonly string? _tessEvalPath;
     private readonly string? _compPath;
@@ -36,13 +36,21 @@ public abstract class Shader
 
     private bool _complainedAboutMissingUniforms;
 
-    protected Shader(string vertPath, string? geomPath, string fragPath, string? tessControlPath = null, string? tessEvalPath = null, string? compPath = null)
+    protected Shader(string vertPath, string? geomPath, string fragPath, string? tessControlPath = null, string? tessEvalPath = null)
     {
         _vertPath = vertPath;
         _geomPath = geomPath;
         _fragPath = fragPath;
         _tessControlPath = tessControlPath;
         _tessEvalPath = tessEvalPath;
+
+        _shaderHandle = LoadShader();
+
+        _initialized = true;
+    }
+
+    protected Shader(string compPath)
+    {
         _compPath = compPath;
 
         _shaderHandle = LoadShader();
