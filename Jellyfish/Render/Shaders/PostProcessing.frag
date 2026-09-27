@@ -5,7 +5,6 @@ out vec4 FragColor;
   
 in vec2 TexCoords;
 
-uniform float exposure;
 uniform bool isEnabled;
 
 uniform vec2 screenSize;
@@ -18,6 +17,7 @@ layout(binding=0) uniform sampler2D screenTexture;
 layout(binding=1) uniform sampler2D aoTexture;
 layout(binding=2) uniform sampler2D bloomTexture;
 layout(binding=3) uniform sampler2D depthTexture;
+layout(binding=4) uniform sampler2D exposureTexture;
 
 uniform vec2 uCameraParams;
 #define Near          uCameraParams.x
@@ -155,6 +155,7 @@ void main()
     vec3 bloomColor = texture(bloomTexture, TexCoords).rgb;
     screen += bloomColor * bloomStrength;
 
+    float exposure = texelFetch(exposureTexture, ivec2(0), 0).r;
     vec3 exposedColor = screen * exposure;
     vec3 mapped = ToneMap(exposedColor);
     FragColor = vec4(mapped, 1.0);

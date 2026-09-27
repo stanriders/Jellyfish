@@ -1,87 +1,111 @@
 ﻿using Jellyfish.Console;
+using Jellyfish.Render.Buffers;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Windowing.GraphicsLibraryFramework;
-using System;
-using OpenTK.Mathematics;
 
 namespace Jellyfish.Render.Shaders;
 
 public class PostprocessingEnabled() : ConVar<bool>("mat_postprocess_enabled", true, Keys.P);
+public class PostprocessingExposureKey() : ConVar<float>("mat_postprocess_exposure_key", 0.2f);
 public class PostProcessing : Shader
 {
+    private class Compute() : Shader("shaders/PostProcessing.comp")
+    {
+        private const int histogram_bins = 128;
+
+        private readonly ShaderStorageBuffer _histogram = new("histogramSSBO", (histogram_bins + 1) * sizeof(uint));
+        private readonly Texture _rtColor = Engine.TextureManager.GetTexture("_rt_Color")!;
+        private readonly Texture _rtExposure = Engine.TextureManager.GetTexture("_rt_Exposure")!;
+
+        public override void Bind()
+        {
+            base.Bind();
+
+            BindTexture(0, _rtColor);
+            GL.BindImageTexture(2, _rtExposure.Handle, 0, false, 0, BufferAccess.ReadWrite, InternalFormat.R32f);
+
+            _histogram.Clear();
+            _histogram.Bind(0);
+
+            SetVector2("screenSize", _rtColor.Size);
+            SetFloat("minLogLum", -8.0f);
+            SetFloat("maxLogLum", 8.0f);
+            SetFloat("key", ConVarStorage.Get<float>("mat_postprocess_exposure_key"));
+            SetFloat("adaptRate", 0.025f);
+            SetFloat("percentile", 0.8f);
+        }
+
+        public void Dispatch()
+        {
+            DispatchCompute(((uint)_rtColor.Size.X + 15) / 16, ((uint)_rtColor.Size.Y + 15) / 16, 1,
+                MemoryBarrierMask.TextureFetchBarrierBit | MemoryBarrierMask.ShaderImageAccessBarrierBit);
+        }
+
+        public override void Unload()
+        {
+            _rtColor.Unload();
+            _rtExposure.Unload();
+            _histogram.Dispose();
+
+            base.Unload();
+        }
+    }
+
     private readonly Texture _rtColor;
     private readonly Texture _rtDepth;
     private readonly Texture _rtAmbientOcclusion;
     private readonly Texture _rtBloom;
+    private readonly Texture _rtExposure;
 
-    private static float sceneExposure = 1.0f;
-    private const float adj_speed = 0.035f;
+    private readonly Compute _computeShader;
 
-    private bool _ranPreviousFrame;
-
-    public PostProcessing() : 
+    public PostProcessing() :
         base("shaders/Screenspace.vert", null, "shaders/PostProcessing.frag")
     {
         _rtColor = Engine.TextureManager.GetTexture("_rt_Color")!;
         _rtDepth = Engine.TextureManager.GetTexture("_rt_Depth")!;
         _rtAmbientOcclusion = Engine.TextureManager.GetTexture("_rt_GtaoBlurY")!;
         _rtBloom = Engine.TextureManager.GetTexture("_rt_Bloom")!;
+
+        _rtExposure = Engine.TextureManager.CreateTexture(new RenderTargetParams
+        {
+            Width = 1,
+            Heigth = 1,
+            Attachment = null,
+            TextureParams = new TextureParams
+            {
+                Name = "_rt_Exposure",
+                WrapMode = TextureWrapMode.ClampToEdge,
+                MinFiltering = TextureMinFilter.Nearest,
+                MagFiltering = TextureMagFilter.Nearest,
+                InternalFormat = SizedInternalFormat.R32f
+            }
+        });
+        GL.ClearTexImage(_rtExposure.Handle, 0, PixelFormat.Red, PixelType.Float, 1f);
+
+        _computeShader = new Compute();
     }
 
     public override void Bind()
     {
+        var isEnabled = ConVarStorage.Get<bool>("mat_postprocess_enabled");
+
+        _computeShader.Bind();
+        _computeShader.Dispatch();
+        _computeShader.Unbind();
+
         base.Bind();
 
         BindTexture(0, _rtColor);
         BindTexture(1, _rtAmbientOcclusion);
         BindTexture(2, _rtBloom);
         //BindTexture(3, _rtDepth);
-
-        var isEnabled = ConVarStorage.Get<bool>("mat_postprocess_enabled");
+        BindTexture(4, _rtExposure);
 
         SetInt("isEnabled", isEnabled ? 1 : 0);
         SetFloat("bloomStrength", ConVarStorage.Get<float>("mat_bloom_strength"));
+        SetInt("toneMappingMode", 2);
         //SetVector2("uCameraParams", new Vector2(Engine.MainViewport.NearPlane, Engine.MainViewport.FarPlane));
-
-        if (isEnabled)
-        {
-            if (!_ranPreviousFrame)
-            {
-                GL.GenerateTextureMipmap(_rtColor
-                    .Handle); // TODO: This generates mipmaps every frame, replace with a histogram calculation
-
-                var pixel = new float[3];
-                GL.GetTextureSubImage(_rtColor.Handle,
-                    _rtColor.Levels - 1,
-                    0, 0, 0,
-                    1, 1, 1,
-                    PixelFormat.Rgb, PixelType.Float,
-                    pixel.Length * sizeof(float), pixel);
-
-                var luminance = 0.2126f * pixel[0] + 
-                                0.7152f * pixel[1] + 
-                                0.0722f * pixel[2]; // Calculate a weighted average
-
-                luminance = Math.Max(luminance, 0.00001f);
-
-                if (!double.IsNaN(luminance))
-                {
-                    const float key = 0.14f;
-                    var targetExposure = key / luminance;
-
-                    sceneExposure = float.Lerp(sceneExposure, targetExposure, adj_speed);
-                    sceneExposure = Math.Clamp(sceneExposure, 0.01f, 8.0f);
-                }
-
-                SetFloat("exposure", sceneExposure);
-                SetInt("toneMappingMode", 2);
-                _ranPreviousFrame = true;
-            }
-            else
-            {
-                _ranPreviousFrame = false;
-            }
-        }
     }
 
     public override void Unload()
@@ -90,6 +114,8 @@ public class PostProcessing : Shader
         _rtAmbientOcclusion.Unload();
         _rtBloom.Unload();
         _rtDepth.Unload();
+        _rtExposure.Unload();
+        _computeShader.Unload();
 
         base.Unload();
     }

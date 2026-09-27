@@ -1,0 +1,82 @@
+﻿#version 460
+layout (local_size_x = 16, local_size_y = 16) in;
+
+layout(binding = 0) uniform sampler2D screenTexture;
+
+// output exposure value (1x1 image)
+layout(binding = 2, r32f) uniform image2D exposureImage;
+
+// histogram buffer (global SSBO: bins + counters)
+layout(std430, binding = 0) coherent buffer HistogramSSBO {
+    uint bins[];
+};
+
+uniform vec2 screenSize;
+
+#define NUM_BINS 128u
+
+// uniforms controlling adaptation
+uniform float minLogLum;   // e.g. -8.0
+uniform float maxLogLum;   // e.g. +8.0
+uniform float key;         // 0.12 typical
+uniform float adaptRate;   // 0.05 typical
+uniform float percentile;  // 0.8 (80% percentile)
+
+shared bool isLastGroup;
+
+void main() {
+    ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = ivec2(screenSize);
+
+    uint idxGroupsDone = NUM_BINS;
+
+    // --- histogram accumulation ---
+    if (gid.x < size.x && gid.y < size.y) {
+        vec3 rgb = texelFetch(screenTexture, gid, 0).rgb;
+        float lum = dot(rgb, vec3(0.2126, 0.7152, 0.0722));
+
+        float logLum = log(max(lum, 1e-6));
+        float norm = clamp((logLum - minLogLum) / (maxLogLum - minLogLum), 0.0, 1.0);
+        uint bin = uint(floor(norm * float(NUM_BINS - 1u) + 0.5));
+
+        atomicAdd(bins[bin], 1u);
+    }
+
+    // --- last finished workgroup becomes the reducer ---
+    memoryBarrierBuffer();
+    barrier();
+
+    if (gl_LocalInvocationIndex == 0u) {
+        uint totalGroups = gl_NumWorkGroups.x * gl_NumWorkGroups.y;
+        isLastGroup = atomicAdd(bins[idxGroupsDone], 1u) == totalGroups - 1u;
+    }
+
+    barrier();
+
+    if (isLastGroup && gl_LocalInvocationIndex == 0u) {
+        uint totalPixels = uint(size.x) * uint(size.y);
+
+        // find percentile bin
+        uint cum = 0u;
+        uint threshold = uint(float(totalPixels) * percentile);
+        uint chosenBin = NUM_BINS - 1u;
+
+        for (uint i = 0; i < NUM_BINS; i++) {
+            cum += bins[i];
+            if (cum >= threshold) {
+                chosenBin = i;
+                break;
+            }
+        }
+
+        float binNorm = float(chosenBin) / float(NUM_BINS - 1u);
+        float chosenLogLum = mix(minLogLum, maxLogLum, binNorm);
+        float chosenLum = exp(chosenLogLum);
+
+        float targetExposure = key / max(chosenLum, 1e-6);
+        float oldExposure = imageLoad(exposureImage, ivec2(0,0)).r;
+        float newExposure = clamp(mix(oldExposure, targetExposure, adaptRate), 0.01, 8.0);
+
+        imageStore(exposureImage, ivec2(0,0), vec4(newExposure,0,0,0));
+    }
+}
