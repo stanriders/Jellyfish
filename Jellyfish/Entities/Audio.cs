@@ -83,7 +83,11 @@ public class Audio : BaseEntity
 
     public override void Unload()
     {
-        _handle?.Dispose();
+        if (_handle != null)
+        {
+            Engine.AudioManager.RemoveSound(_handle);
+            _handle = null;
+        }
 
         base.Unload();
     }

@@ -76,6 +76,18 @@ public unsafe class AudioManager
 
         return sound;
     }
+
+    public void RemoveSound(Sound sound)
+    {
+        Scheduler.AudioSchedule(() =>
+        {
+            if (sound.Source != null)
+                IPL.SourceRemove(sound.Source.Value, _iplSimulator);
+
+            sound.Dispose();
+            _sounds.Remove(sound);
+        });
+    }
         
     public void AddMesh(Mesh mesh)
     {
@@ -163,19 +175,6 @@ public unsafe class AudioManager
             }
             IPL.SceneCommit(_iplScene);
             _meshes.Clear();
-
-            var removedSounds = new List<Sound>();
-            foreach (var sound in _sounds.Where(x => !x.Persistent))
-            {
-                if (sound.Source != null)
-                    IPL.SourceRemove(sound.Source.Value, _iplSimulator);
-
-                sound.Dispose();
-                sound.Stop();
-                removedSounds.Add(sound);
-            }
-
-            _sounds.RemoveAll(removedSounds.Contains);
         });
     }
 
