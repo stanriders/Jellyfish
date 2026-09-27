@@ -10,6 +10,8 @@ public class ShaderStorageBuffer : IDisposable
 {
     public readonly int Handle;
 
+    private readonly NativeMemoryMeasurement.NativeMemoryTracker _memoryTracker;
+
     public ShaderStorageBuffer(string name, int size)
     {
         GL.CreateBuffer(out Handle);
@@ -17,6 +19,8 @@ public class ShaderStorageBuffer : IDisposable
 
         GL.NamedBufferStorage(Handle, size, IntPtr.Zero, BufferStorageMask.DynamicStorageBit);
         GL.NamedBufferSubData(Handle, IntPtr.Zero, size, IntPtr.Zero);
+
+        _memoryTracker = NativeMemoryMeasurement.AddMemory(this, size);
     }
 
     public void Bind(uint binding)
@@ -36,6 +40,7 @@ public class ShaderStorageBuffer : IDisposable
     public void Dispose()
     {
         GL.DeleteBuffer(Handle);
+        _memoryTracker.Dispose();
     }
 }
 
