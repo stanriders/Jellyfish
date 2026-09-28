@@ -96,6 +96,7 @@ public class Editor : IUiPanel, IInputHandler
                 {
                     ConVarComponents.MenuItem("edt_texturelist", "Texture browser");
                     ConVarComponents.MenuItem("edt_meshbrowser", "Mesh browser");
+                    ConVarComponents.MenuItem("edt_perfpanel", "Performance stats");
                     ImGui.EndMenu();
                 }
 
@@ -143,7 +144,7 @@ public class Editor : IUiPanel, IInputHandler
                 {
                     foreach (var entity in EntityManager.Entities.OrderBy(x => x.Name))
                     {
-                        if (ImGui.MenuItem(entity.Name, "", _selectedEntity?.Name == entity.Name))
+                        if (ImGui.MenuItem($"{entity.Name} ({entity.ClassName})", "", _selectedEntity?.Name == entity.Name))
                         {
                             _selectedEntity = EntityManager.FindEntityByName(entity.Name);
                         }

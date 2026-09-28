@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Jellyfish.Console;
 using Jellyfish.Render;
 using Jellyfish.Utils;
@@ -22,6 +23,7 @@ public abstract class BaseEntity
     public ICollection<EntityAction> EntityActions => _entityActions.Values;
 
     public string? Name => _entityProperties["Name"].Value as string;
+    public string? ClassName => GetType().GetCustomAttribute<EntityAttribute>()?.ClassName;
     
     public virtual bool DrawDevCone { get; set; }
 
