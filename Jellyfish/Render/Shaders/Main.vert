@@ -6,6 +6,9 @@ out vec3 frag_normal;
 out vec3 frag_position;
 out float frag_clipspaceZ;
 
+// depth from the gbuffer pass is reused by the main pass, so it has to match exactly
+invariant gl_Position;
+
 void main(void)
 {
     frag_texCoord = aTexCoord;

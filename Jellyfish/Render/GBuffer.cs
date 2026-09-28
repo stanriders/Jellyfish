@@ -49,6 +49,7 @@ public class GBuffer
     {
         _buffer.Bind(FramebufferTarget.DrawFramebuffer);
 
+        GL.Viewport(0, 0, Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
         Engine.MeshManager.DrawGBuffer();
 

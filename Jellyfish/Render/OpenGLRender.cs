@@ -158,12 +158,19 @@ public class OpenGLRender : IRender
 
         GL.Viewport(0, 0, Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y);
         GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-        GL.PolygonMode(TriangleFace.FrontAndBack, ConVarStorage.Get<bool>("mat_wireframe") ? PolygonMode.Line : PolygonMode.Fill);
+        var wireframe = ConVarStorage.Get<bool>("mat_wireframe");
+
+        // gbuffer pass already filled the depth buffer, reuse it as a depth prepass
+        GL.Clear(wireframe ? ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit : ClearBufferMask.ColorBufferBit);
+
+        GL.PolygonMode(TriangleFace.FrontAndBack, wireframe ? PolygonMode.Line : PolygonMode.Fill);
 
         _sky?.Draw();
+
+        GL.DepthFunc(DepthFunction.Lequal);
         Engine.MeshManager.Draw(frustum: Engine.MainViewport.GetFrustum());
+        GL.DepthFunc(DepthFunction.Less);
 
         _mainFramebuffer?.Unbind();
 
