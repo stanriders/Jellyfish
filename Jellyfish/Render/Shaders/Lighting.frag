@@ -249,9 +249,9 @@ vec3 CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
 
         projCoords = projCoords * 0.5 + 0.5;
 
-        if (projCoords.x >= 0.0 || projCoords.x <= 1.0 ||
-            projCoords.y >= 0.0 || projCoords.y <= 1.0 ||
-            projCoords.z >= 0.0 || projCoords.z < 1.0)
+        if (projCoords.x >= 0.0 && projCoords.x <= 1.0 &&
+            projCoords.y >= 0.0 && projCoords.y <= 1.0 &&
+            projCoords.z >= 0.0 && projCoords.z <= 1.0)
         {
             sampler2D shadowSampler = sun.shadow[layer];
             if (sun.usePcss)
