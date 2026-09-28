@@ -48,9 +48,6 @@ public class Editor : IUiPanel, IInputHandler
         if (!ConVarStorage.Get<bool>("edt_enable"))
             return;
 
-        if (EntityManager.Entities == null || EntityManager.EntityClasses == null)
-            return;
-
         if (!Engine.Loaded)
             return;
 
@@ -143,11 +140,11 @@ public class Editor : IUiPanel, IInputHandler
             {
                 if (ImGui.BeginListBox("##Entity list", new Vector2(-1, 10 * ImGui.GetTextLineHeightWithSpacing())))
                 {
-                    foreach (var entity in EntityManager.Entities.OrderBy(x => x.Name))
+                    foreach (var entity in Engine.EntityManager.Entities.OrderBy(x => x.Name))
                     {
                         if (ImGui.MenuItem($"{entity.Name} ({entity.ClassName})", "", _selectedEntity?.Name == entity.Name))
                         {
-                            _selectedEntity = EntityManager.FindEntityByName(entity.Name);
+                            _selectedEntity = Engine.EntityManager.FindEntityByName(entity.Name);
                         }
                     }
 
@@ -191,7 +188,7 @@ public class Editor : IUiPanel, IInputHandler
             {
                 if (ImGui.BeginListBox("##Entity types", new Vector2(-1, 10 * ImGui.GetTextLineHeightWithSpacing())))
                 {
-                    foreach (var entityClass in EntityManager.EntityClasses.Order())
+                    foreach (var entityClass in Engine.EntityManager.EntityClasses)
                     {
                         if (ImGui.MenuItem(entityClass, "", entityClass == _selectedEntityType))
                         {
@@ -206,7 +203,7 @@ public class Editor : IUiPanel, IInputHandler
                 {
                     if (ImGui.Button("Spawn"))
                     {
-                        _selectedEntity = EntityManager.CreateEntity(_selectedEntityType);
+                        _selectedEntity = Engine.EntityManager.CreateEntity(_selectedEntityType);
                     }
                 }
             }

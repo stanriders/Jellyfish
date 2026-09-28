@@ -36,7 +36,7 @@ public abstract class BaseEntity
         AddProperty("Position", Vector3.Zero, changeCallback: OnPositionChanged);
         AddProperty("Rotation", Quaternion.Identity, changeCallback: OnRotationChanged);
 
-        AddAction("Kill", () => EntityManager.KillEntity(this));
+        AddAction("Kill", () => Engine.EntityManager.KillEntity(this));
     }
 
     public virtual void Load()

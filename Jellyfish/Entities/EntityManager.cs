@@ -16,20 +16,12 @@ public class EntityManager
     private readonly List<BaseEntity> _entityList = new();
     private readonly Queue<BaseEntity> _killQueue = new();
 
-    public static IReadOnlyList<BaseEntity>? Entities => instance?._entityList.AsReadOnly();
-    public static IReadOnlyList<string>? EntityClasses => instance?._entityClassDictionary.Keys.ToList().AsReadOnly();
-
-    private static EntityManager? instance;
+    public IReadOnlyList<BaseEntity> Entities => _entityList;
+    public IReadOnlyList<string> EntityClasses => _entityClassDictionary.Keys.ToList().AsReadOnly();
 
     private readonly List<EntityDevCone> _devCones = new();
 
     public EntityManager()
-    {
-        instance = this;
-        Load();
-    }
-
-    public void Load()
     {
         var entities = Assembly.GetExecutingAssembly()
             .GetTypes()
@@ -53,6 +45,8 @@ public class EntityManager
             Log.Context(this).Information("Registering class name {Name} for type {Type}...", entityAttribute.ClassName, entityType.FullName);
             _entityClassDictionary.Add(entityAttribute.ClassName, entityType);
         }
+
+        _entityClassDictionary = _entityClassDictionary.OrderBy(x=> x.Key).ToDictionary();
     }
 
     public void Unload()
@@ -109,23 +103,17 @@ public class EntityManager
         }
     }
 
-    public static BaseEntity? CreateEntity(string className)
+    public BaseEntity? CreateEntity(string className)
     {
-        if (instance == null)
-        {
-            Log.Context("EntityManager").Information("Entity manager doesn't exist");
-            return null;
-        }
-
-        if (instance._entityClassDictionary.TryGetValue(className, out var type))
+        if (_entityClassDictionary.TryGetValue(className, out var type))
         {
             Log.Context("EntityManager").Information("Creating entity {Name}...", className);
             if (Activator.CreateInstance(type) is BaseEntity entity)
             {
-                instance._entityList.Add(entity);
+                _entityList.Add(entity);
 
                 if (entity.DrawDevCone)
-                    instance._devCones.Add(new EntityDevCone(entity));
+                    _devCones.Add(new EntityDevCone(entity));
 
                 return entity;
             }
@@ -135,21 +123,15 @@ public class EntityManager
         return null;
     }
 
-    public static BaseEntity? FindEntity(string className, bool silent = false)
+    public BaseEntity? FindEntity(string className, bool silent = false)
     {
-        if (instance == null)
-        {
-            Log.Context("EntityManager").Information("Entity manager doesn't exist");
-            return null;
-        }
-
-        if (!instance._entityClassDictionary.TryGetValue(className, out var entityType))
+        if (!_entityClassDictionary.TryGetValue(className, out var entityType))
         {
             Log.Context("EntityManager").Error("Class name {Name} doesn't exist!", className);
             return null;
         }
 
-        var entity = instance._entityList.FirstOrDefault(x => x.GetType() == entityType);
+        var entity = _entityList.FirstOrDefault(x => x.GetType() == entityType);
         if (entity != null)
         {
             return entity;
@@ -161,18 +143,12 @@ public class EntityManager
         return null;
     }
 
-    public static BaseEntity? FindEntityByName(string? name, bool silent = false)
+    public BaseEntity? FindEntityByName(string? name, bool silent = false)
     {
-        if (instance == null)
-        {
-            Log.Context("EntityManager").Information("Entity manager doesn't exist");
-            return null;
-        }
-
         if (name == null)
             return null;
 
-        var entity = instance._entityList.FirstOrDefault(x => x.Name == name);
+        var entity = _entityList.FirstOrDefault(x => x.Name == name);
         if (entity != null)
         {
             return entity;
@@ -184,22 +160,16 @@ public class EntityManager
         return null;
     }
 
-    public static void KillEntity(BaseEntity entity)
+    public void KillEntity(BaseEntity entity)
     {
-        if (instance == null)
-        {
-            Log.Context("EntityManager").Information("Entity manager doesn't exist");
-            return;
-        }
-        
-        if (!instance._entityList.Contains(entity))
+        if (!_entityList.Contains(entity))
         {
             Log.Context("EntityManager").Error("Trying to kill entity {Name} that doesn't exist already???", entity.GetPropertyValue<string>("Name"));
             return;
         }
         
         // there are some entity list enumerations that run every frame so we want to kill entities on the start of the frame instead of the middle of it
-        instance._killQueue.Enqueue(entity);
+        _killQueue.Enqueue(entity);
     }
 
     public class EntityDevCone

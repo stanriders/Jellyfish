@@ -9,11 +9,8 @@ public static class Trace
 {
     public static BaseEntity? IntersectsEntity(Ray ray)
     {
-        if (EntityManager.Entities == null)
-            return null;
-
         // skip entities that we are inside of
-        var eligibleEntities = EntityManager.Entities
+        var eligibleEntities = Engine.EntityManager.Entities
             .Where(x => !x.IsPointWithinBoundingBox(ray.Origin) && x.BoundingBox != null).ToArray();
 
         var minDistance = float.MaxValue;

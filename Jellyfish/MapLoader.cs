@@ -53,7 +53,7 @@ public static class MapLoader
 
         foreach (var ent in map.Entities)
         {
-            var entity = EntityManager.CreateEntity(ent.ClassName);
+            var entity = Engine.EntityManager.CreateEntity(ent.ClassName);
             if (entity == null)
             {
                 Log.Context("MapLoader").Warning("Couldn't create entity {Entity}", ent.ClassName);
@@ -99,7 +99,7 @@ public static class MapLoader
         var serializer = JsonSerializer.CreateDefault(new JsonSerializerSettings { Converters = Converters });
 
         var entities = new List<Map.Entity>();
-        foreach (var entity in EntityManager.Entities!)
+        foreach (var entity in Engine.EntityManager.Entities)
         {
             var entityAttribute = entity.GetType().GetCustomAttribute<EntityAttribute>();
             if (entityAttribute == null)
