@@ -154,7 +154,7 @@ float ShadowCalculation(int lightIndex, int shadowIndex, vec3 lightDir, vec3 nor
         return 0.0;
     }
 
-    sampler2D shadow = sampler2D(light.shadow[shadowIndex]);
+    sampler2D shadow = light.shadow[shadowIndex];
 
     if (light.usePcss)
         return PoissonPCSSShadow(shadow, projCoords, light.near, light.far, 0.01f);
@@ -253,10 +253,10 @@ vec3 CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
             projCoords.y >= 0.0 || projCoords.y <= 1.0 ||
             projCoords.z >= 0.0 || projCoords.z < 1.0)
         {
-            sampler2D shadowSampler = sampler2D(sun.shadow[layer]);
+            sampler2D shadowSampler = sun.shadow[layer];
             if (sun.usePcss)
             {
-                shadow = PoissonPCSSShadow(shadowSampler, projCoords, sun.cascadeNear[layer], sun.cascadeFar[layer], 20f);
+                shadow = PoissonPCSSShadow(shadowSampler, projCoords, sun.cascadeNear[layer], sun.cascadeFar[layer], 20.0f);
             }
             else
             {
