@@ -2,9 +2,8 @@
 using System.Linq;
 using Jellyfish.Entities;
 using OpenTK.Mathematics;
-using Jellyfish.Utils;
 
-namespace Jellyfish;
+namespace Jellyfish.Utils;
 
 public static class Trace
 {

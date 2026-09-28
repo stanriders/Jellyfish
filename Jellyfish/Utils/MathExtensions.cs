@@ -1,9 +1,7 @@
-﻿
-using System.Linq;
-using Jellyfish.Render;
+﻿using System.Linq;
 using OpenTK.Mathematics;
 
-namespace Jellyfish;
+namespace Jellyfish.Utils;
 
 public static class MathExtensions
 {

@@ -2,6 +2,7 @@
 using Hexa.NET.ImGui;
 using Jellyfish.Console;
 using Jellyfish.Input;
+using Jellyfish.Utils;
 using Newtonsoft.Json;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
