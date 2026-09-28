@@ -140,6 +140,12 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
         var io = ImGui.GetIO();
         io.DisplaySize = new Vector2(_windowWidth, _windowHeight);
+
+        var framebufferSize = Engine.MainWindow.FramebufferSize;
+        io.DisplayFramebufferScale = _windowWidth > 0 && _windowHeight > 0
+            ? new Vector2(framebufferSize.X / (float)_windowWidth, framebufferSize.Y / (float)_windowHeight)
+            : new Vector2(1);
+
         io.DeltaTime = Math.Max(0.001f, (float)Engine.Frametime);
 
         if (_frameBegun)
@@ -340,9 +346,10 @@ public sealed class ImguiController : IDisposable, IInputHandler
                 GL.BindTexture(TextureTarget.Texture2D, (int)pcmd.GetTexID());
                 CheckGlError("Texture");
 
-                // We do _windowHeight - (int)clip.W instead of (int)clip.Y because gl has flipped Y when it comes to these coordinates
+                // We do framebufferHeight - (int)clip.W instead of (int)clip.Y because gl has flipped Y when it comes to these coordinates
+                // clip is already in framebuffer pixel space here, since drawData.ScaleClipRects() above converted it from logical DisplaySize units
                 var clip = pcmd.ClipRect;
-                GL.Scissor((int)clip.X, _windowHeight - (int)clip.W, (int)(clip.Z - clip.X),
+                GL.Scissor((int)clip.X, Engine.MainWindow.FramebufferSize.Y - (int)clip.W, (int)(clip.Z - clip.X),
                     (int)(clip.W - clip.Y));
                 CheckGlError("Scissor");
 

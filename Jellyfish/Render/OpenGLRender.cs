@@ -39,7 +39,7 @@ public class OpenGLRender : IRender
         _debugProc = DebugMessage;
         GL.DebugMessageCallback(_debugProc, nint.Zero);
 #endif
-        GL.Viewport(0, 0, Engine.MainWindow.Size.X, Engine.MainWindow.Size.Y);
+        GL.Viewport(0, 0, Engine.MainWindow.FramebufferSize.X, Engine.MainWindow.FramebufferSize.Y);
         GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 

@@ -96,7 +96,7 @@ namespace Jellyfish
             _audioManager = new AudioManager();
 
             UpdateLoadingScreen("Creating rendering buffers...");
-            _viewport = new Viewport { Size = _mainWindow.ClientSize };
+            _viewport = new Viewport { Size = _mainWindow.FramebufferSize };
             _render.CreateBuffers();
 
             UpdateLoadingScreen("Starting physics...");
@@ -155,13 +155,12 @@ namespace Jellyfish
                 return;
             }
 
-            var config = Settings.Instance.Video;
             // allow some tolerance because graphics apis are funny
             // TODO: signal from the config that we need a resolution change instead of testing every frame
-            if (Math.Abs(config.WindowSize.X - _viewport.Size.X) > 20 ||
-                Math.Abs(config.WindowSize.Y - _viewport.Size.Y) > 20)
+            if (Math.Abs(_mainWindow.FramebufferSize.X - _viewport.Size.X) > 20 ||
+                Math.Abs(_mainWindow.FramebufferSize.Y - _viewport.Size.Y) > 20)
             {
-                _viewport.Size = config.WindowSize;
+                _viewport.Size = _mainWindow.FramebufferSize;
                 _render.NeedToRecreateBuffers = true;
             }
 
