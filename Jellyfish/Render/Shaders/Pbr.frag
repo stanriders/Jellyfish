@@ -106,15 +106,20 @@ void GetBlendedLightProbe(vec3 worldPos, vec3 N, vec3 R, float roughness, out ve
 
     for (int i = 0; i < PROBE_BLEND_COUNT; i++) 
     {
-        if (idx[i] < 0) continue;
+        if (idx[i] < 0)
+            continue;
+
         float w = weights[i] / total;
         LightProbe probe = lightProbes[idx[i]];
 
         vec3 irradiance = texture(probe.irradiance, N).rgb;
-        vec3 prefiltered = textureLod(probe.prefilter, R, roughness * (prefilterMips - 1)).rgb;
-
         outDiffuse += irradiance * w;
-        outSpecular += prefiltered * w;
+
+        if (iblPrefilterEnabled)
+        {
+            vec3 prefiltered = textureLod(probe.prefilter, R, roughness * (prefilterMips - 1)).rgb;
+            outSpecular += prefiltered * w;
+        }
     }
 }
 
