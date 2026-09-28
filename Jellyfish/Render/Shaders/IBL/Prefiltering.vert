@@ -8,6 +8,6 @@ uniform mat4 view;
 
 void main()
 {
-    WorldPos = aPos; // cube vertex position → direction
+    WorldPos = aPos; // cube vertex position -> direction
     gl_Position = projection * view * vec4(WorldPos, 1.0);
 }

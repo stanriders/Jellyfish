@@ -71,7 +71,7 @@ vec3 SRGBToLinear(in vec3 color)
     return clr;
 }
 
-// John Hable’s Filmic Curve
+// John Hable's Filmic Curve
 vec3 ToneMapFilmicALU(in vec3 color)
 {
     color = max(vec3(0.0), color - 0.004);

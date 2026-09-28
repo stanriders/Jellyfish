@@ -100,7 +100,7 @@ vec2 BFGTAO_TraceSliceBF(
                 mix(1.0, o, BFGTAO_THIN_AVD) *
                 (1.0 / (BFGTAO_GTAO_ATT * dot(tv, tv) / length(samPos) + 1.0)));
 
-        // angle span → bit coverage
+        // angle span -> bit coverage
         minmax = BFGTAO_SAT((dsign * -minmax - N + 1.5707) / 3.14159);
         if (minmax.x > minmax.y) minmax = minmax.yx;
 
