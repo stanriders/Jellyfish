@@ -170,6 +170,9 @@ vec3 CalcPointLight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
     Light light = lightSources[lightIndex];
     vec3 lightDir = normalize(light.position - fragPos);
 
+    if (dot(normal, lightDir) <= 0.0)
+        return vec3(0.0);
+
     vec3 outdiffuse = light.diffuse * light.brightness;
 
     float distanceToLight = length(light.position - fragPos);
@@ -193,6 +196,9 @@ vec3 CalcSpotlight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
     Light light = lightSources[lightIndex];
     vec3 lightDir = normalize(light.position - fragPos);
 
+    if (dot(normal, lightDir) <= 0.0)
+        return vec3(0.0);
+
     vec3 outdiffuse = light.diffuse * light.brightness;
 
     float distanceToLight = length(light.position - fragPos);
@@ -204,9 +210,12 @@ vec3 CalcSpotlight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
 
     float theta = dot(lightDir, normalize(-light.direction));
     float epsilon   = light.cone - light.outcone;
-    float intensity = clamp((theta - light.outcone) / epsilon, 0.0, 1.0); 
+    float intensity = clamp((theta - light.outcone) / epsilon, 0.0, 1.0);
 
     outdiffuse *= intensity;
+
+    if (intensity <= 0.0)
+        return vec3(0.0);
 
     float shadow = 1.0f;
     if (light.hasShadows) 

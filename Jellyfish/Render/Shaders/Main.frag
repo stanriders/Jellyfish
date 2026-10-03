@@ -90,6 +90,9 @@ void main()
             }
         }
 
+        if (lightContrib == vec3(0.0))
+            continue;
+
         lighting += ApplyLight(lightContrib, diffuseTex.rgb, lightDir, normal, viewDir, dielectricCoefficient, roughness, metalness);
     }
 
