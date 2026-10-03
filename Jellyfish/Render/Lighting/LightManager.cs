@@ -168,23 +168,23 @@ public class LightManager
                 continue;
             }
 
-            foreach (var shadow in light.Shadows)
+            for (var i = 0; i < light.Shadows.Count; i++)
             {
-                Frustum? frustum = null;
+                var shadow = light.Shadows[i];
+
+                Frustum frustum;
                 if (light.Source is IHaveFrustum frustumEntity)
                 {
                     frustum = frustumEntity.GetFrustum();
-                    if (!Engine.MainViewport.GetFrustum().IsInside(frustum.Value))
-                    {
-                        continue;
-                    }
                 }
                 else
                 {
-                    if (!Engine.MainViewport.GetFrustum().IsInside(light.Source.Position, light.Source.FarPlane))
-                    {
-                        continue;
-                    }
+                    frustum = new Frustum(light.Source.Projection(i));
+                }
+
+                if (!Engine.MainViewport.GetFrustum().IsInside(frustum))
+                {
+                    continue;
                 }
 
                 shadow.FrameBuffer.Bind();

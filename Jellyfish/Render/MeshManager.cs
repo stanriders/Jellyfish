@@ -118,7 +118,7 @@ public class MeshManager
         PostDraw(drawDev);
     }
 
-    public void DrawShadows(Frustum? frustum, Shaders.Shadow shader)
+    public void DrawShadows(Frustum frustum, Shaders.Shadow shader)
     {
         using var _ = new PerformanceMeasure("MeshManager.DrawShadows");
 
