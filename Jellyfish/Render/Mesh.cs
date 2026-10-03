@@ -193,7 +193,7 @@ public class Mesh
         PerformanceMeasurement.Increment("DrawCalls");
 
         drawShader.Unbind();
-        _vao.Unbind();
+        //_vao.Unbind();
     }
 
     public void Update(List<Vertex> vertices, List<uint>? indices = null)

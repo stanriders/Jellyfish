@@ -284,7 +284,7 @@ public abstract class Shader
         }
         _boundTextures.Clear();
 
-        GL.UseProgram(0);
+        //GL.UseProgram(0);
     }
 
     public void DispatchCompute(uint groupsX, uint groupsY, uint groupsZ, MemoryBarrierMask barrier = MemoryBarrierMask.AllBarrierBits)
