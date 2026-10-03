@@ -11,7 +11,7 @@ public readonly struct BoundingBox
     public Vector3 Size { get; }
     public Vector3 Max { get; }
     public Vector3 Min { get; }
-    public float DiagonalLength  { get; }
+    public float DiagonalLength => (Max - Min).Length;
     public float Radius => DiagonalLength * 0.5f;
 
     public BoundingBox(Vertex[] vertices)
@@ -59,7 +59,6 @@ public readonly struct BoundingBox
         Size = new Vector3(maxX - minX, maxY - minY, maxZ - minZ);
         Max = new Vector3(maxX, maxY, maxZ);
         Min = new Vector3(minX, minY, minZ);
-        DiagonalLength = (Max - Min).Length;
     }
 
     public BoundingBox(List<Bone> bones, Matrix4[] boneTransforms)
@@ -119,7 +118,6 @@ public readonly struct BoundingBox
         Size = new Vector3(maxX - minX, maxY - minY, maxZ - minZ);
         Max = new Vector3(maxX, maxY, maxZ);
         Min = new Vector3(minX, minY, minZ);
-        DiagonalLength = (Max - Min).Length;
     }
 
     public BoundingBox(BoundingBox[] boxes)
@@ -168,7 +166,6 @@ public readonly struct BoundingBox
         Size = new Vector3(maxX - minX, maxY - minY, maxZ - minZ);
         Max = new Vector3(maxX, maxY, maxZ);
         Min = new Vector3(minX, minY, minZ);
-        DiagonalLength = (Max - Min).Length;
     }
 
     public BoundingBox(Vector3 max, Vector3 min)
@@ -177,30 +174,20 @@ public readonly struct BoundingBox
         Size = max - min;
         Min = min;
         Max = max;
-        DiagonalLength = (max - min).Length;
     }
 
     public BoundingBox Translate(Matrix4 transform)
     {
-        Span<Vector3> corners =
-        [
-            new(Min.X, Min.Y, Min.Z), new(Max.X, Min.Y, Min.Z),
-            new(Min.X, Max.Y, Min.Z), new(Max.X, Max.Y, Min.Z),
-            new(Min.X, Min.Y, Max.Z), new(Max.X, Min.Y, Max.Z),
-            new(Min.X, Max.Y, Max.Z), new(Max.X, Max.Y, Max.Z),
-        ];
+        // transform the center, then project the half extents through the absolute rotation/scale part
+        var center = Vector3.TransformPosition(Center, transform);
+        var extents = Size * 0.5f;
 
-        var newMin = new Vector3(float.MaxValue);
-        var newMax = new Vector3(float.MinValue);
-        
-        foreach (var corner in corners)
-        {
-            var c = Vector3.TransformPosition(corner, transform);
-            newMin = Vector3.ComponentMin(newMin, c);
-            newMax = Vector3.ComponentMax(newMax, c);
-        }
+        var newExtents = new Vector3(
+            MathF.Abs(transform.M11) * extents.X + MathF.Abs(transform.M21) * extents.Y + MathF.Abs(transform.M31) * extents.Z,
+            MathF.Abs(transform.M12) * extents.X + MathF.Abs(transform.M22) * extents.Y + MathF.Abs(transform.M32) * extents.Z,
+            MathF.Abs(transform.M13) * extents.X + MathF.Abs(transform.M23) * extents.Y + MathF.Abs(transform.M33) * extents.Z);
 
-        return new BoundingBox(newMax, newMin);
+        return new BoundingBox(center + newExtents, center - newExtents);
     }
 
     public bool IsPointInside(Vector3 point)

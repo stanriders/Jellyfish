@@ -158,11 +158,13 @@ public class Model
         }
     }
 
+    private BoundingBox? _bindPoseBoundingBox;
+
     public BoundingBox BoundingBox
     {
         get
         {
-            var bindPoseBoundingBox = new BoundingBox(_meshes.Select(x => x.BoundingBox).ToArray());
+            _bindPoseBoundingBox ??= new BoundingBox(_meshes.Select(x => x.BoundingBox).ToArray());
 
             // at least one bone since we can't build a box using one point
             if (Bones.Count > 1)
@@ -175,7 +177,8 @@ public class Model
                                                       Matrix4.CreateFromQuaternion(Rotation));
                 }
             }
-            return bindPoseBoundingBox;
+
+            return _bindPoseBoundingBox.Value;
         }
     }
 }
