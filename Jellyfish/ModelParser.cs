@@ -46,7 +46,6 @@ public static class ModelParser
                                                   PostProcessSteps.JoinIdenticalVertices |
                                                   PostProcessSteps.OptimizeMeshes |
                                                   PostProcessSteps.OptimizeGraph |
-                                                  PostProcessSteps.SplitLargeMeshes |
                                                   PostProcessSteps.SortByPrimitiveType |
                                                   PostProcessSteps.ImproveCacheLocality);
             _meshesCache.TryAdd(path, scene);
@@ -60,16 +59,57 @@ public static class ModelParser
         var bones = new List<Bone>();
         var boneMap = new Dictionary<string, int>();
 
-        foreach (var mesh in scene.Meshes)
+        // collect node transforms of every mesh
+        var meshTransforms = new Dictionary<int, List<Matrix4>>();
+        var nodes = new Stack<(Node Node, Matrix4 ParentTransform)>();
+        nodes.Push((scene.RootNode, Matrix4.Identity));
+        while (nodes.TryPop(out var node))
+        {
+            var nodeTransform = ((Matrix4)node.Node.Transform).Transposed() * node.ParentTransform;
+
+            foreach (var meshIndex in node.Node.MeshIndices)
+            {
+                if (!meshTransforms.TryGetValue(meshIndex, out var transforms))
+                    meshTransforms[meshIndex] = transforms = [];
+
+                transforms.Add(nodeTransform);
+            }
+
+            foreach (var child in node.Node.Children)
+                nodes.Push((child, nodeTransform));
+        }
+
+        // skinned meshes are placed by their bones, everything else gets its node transform baked in.
+        // a mesh can be referenced by several nodes, in which case each reference becomes its own mesh
+        var meshInstances = scene.Meshes.SelectMany((mesh, i) =>
+            !prerotate && !mesh.HasBones && meshTransforms.TryGetValue(i, out var transforms)
+                ? transforms.Select(transform => (mesh, transform))
+                : new[] { (mesh, Matrix4.Identity) });
+
+        foreach (var (mesh, transform) in meshInstances)
         {
             var coords = mesh.Vertices.Select(x => new Vector3(x.X, x.Y, x.Z)).ToArray();
             var uvs = mesh.TextureCoordinateChannels[0].Select(x => new Vector2(x.X, x.Y)).ToArray();
             var normals = mesh.Normals.Select(x=> new Vector3(x.X, x.Y, x.Z)).ToArray();
+            var indices = mesh.GetUnsignedIndices().ToList();
 
             if (prerotate)
             {
                 coords = coords.Select(x => Vector3.Transform(x, new Quaternion(MathHelper.DegreesToRadians(-90), 0, 0))).ToArray();
                 normals = normals.Select(x => Vector3.Transform(x, new Quaternion(MathHelper.DegreesToRadians(-90), 0, 0))).ToArray();
+            }
+
+            if (transform != Matrix4.Identity)
+            {
+                coords = coords.Select(x => Vector3.TransformPosition(x, transform)).ToArray();
+                normals = normals.Select(x => Vector3.TransformNormal(x, transform).Normalized()).ToArray();
+
+                // mirroring transforms flip the winding order
+                if (transform.Determinant < 0)
+                {
+                    for (var i = 0; i + 2 < indices.Count; i += 3)
+                        (indices[i + 1], indices[i + 2]) = (indices[i + 2], indices[i + 1]);
+                }
             }
 
             var verticies = new List<Vertex>();
@@ -121,8 +161,8 @@ public static class ModelParser
             var texturePath = scene.Materials[mesh.MaterialIndex].TextureDiffuse.FilePath ?? scene.Materials[mesh.MaterialIndex].Name;
 
             meshes.Add(new Mesh($"{modelName}_{meshes.Count}", 
-                verticies, 
-                mesh.GetUnsignedIndices().ToList(), 
+                verticies,
+                indices,
                 texturePath));
         }
 
