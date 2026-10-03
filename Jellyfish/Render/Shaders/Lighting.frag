@@ -230,6 +230,9 @@ vec3 CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
 {
     vec3 lightDir = normalize(-sun.direction);
 
+    if (dot(normal, lightDir) <= 0.0)
+        return vec3(0.0);
+
     vec3 outdiffuse = sun.diffuse * sun.brightness;
 
     float shadow = 1.0f;
