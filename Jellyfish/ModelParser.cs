@@ -7,6 +7,7 @@ using OpenTK.Mathematics;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Assimp.Configs;
 using Bone = Jellyfish.Render.Bone;
 using Mesh = Jellyfish.Render.Mesh;
 using Quaternion = OpenTK.Mathematics.Quaternion;
@@ -41,13 +42,15 @@ public static class ModelParser
 
         if (!_meshesCache.TryGetValue(path, out var scene))
         {
+            importer.SetConfig(new SortByPrimitiveTypeConfig(PrimitiveType.Point | PrimitiveType.Line));
             scene = importer.ImportFile(path, PostProcessSteps.Triangulate |
                                                   PostProcessSteps.GenerateUVCoords |
                                                   PostProcessSteps.JoinIdenticalVertices |
                                                   PostProcessSteps.OptimizeMeshes |
                                                   PostProcessSteps.OptimizeGraph |
                                                   PostProcessSteps.SortByPrimitiveType |
-                                                  PostProcessSteps.ImproveCacheLocality);
+                                                  PostProcessSteps.ImproveCacheLocality |
+                                                  PostProcessSteps.LimitBoneWeights);
             _meshesCache.TryAdd(path, scene);
         }
 
@@ -160,7 +163,7 @@ public static class ModelParser
 
             var texturePath = scene.Materials[mesh.MaterialIndex].TextureDiffuse.FilePath ?? scene.Materials[mesh.MaterialIndex].Name;
 
-            meshes.Add(new Mesh($"{modelName}_{meshes.Count}", 
+            meshes.Add(new Mesh($"{modelName}_{meshes.Count}",
                 verticies,
                 indices,
                 texturePath));
@@ -186,7 +189,7 @@ public static class ModelParser
             animations = LoadAnimations(scene.Animations, bones);
         }
 
-        return new Model(modelName, meshes, bones, animations, isDev);
+        return new Model(modelName, meshes, bones, animations, isDev, path);
     }
 
     private static void BuildBoneHierarchy(Node node, int? parentIndex, Dictionary<string, int> boneMap, List<Bone> bones, bool prerotate)

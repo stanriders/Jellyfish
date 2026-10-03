@@ -23,6 +23,8 @@ public struct Bone
 public class Model
 {
     public string Name { get; set; }
+    public string? SourcePath { get; }
+
     public List<AnimationClip> Animations { get; private set; } = new();
     public List<Bone> Bones { get; private set; } = new();
     public Matrix4[] BoneMatrices { get; private set; } = [];
@@ -46,9 +48,10 @@ public class Model
         }
     }
 
-    public Model(string name, List<Mesh> meshes, List<Bone> bones, List<AnimationClip> animations, bool isDev = false)
+    public Model(string name, List<Mesh> meshes, List<Bone> bones, List<AnimationClip> animations, bool isDev = false, string? sourcePath = null)
     {
         Name = name;
+        SourcePath = sourcePath;
 
         if (meshes.Count <= 0)
         {
