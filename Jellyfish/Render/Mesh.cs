@@ -169,6 +169,10 @@ public class Mesh
             drawShader.SetInt("boneCount", boneMatrices.Length);
             drawShader.SetMatrix4("bones", boneMatrices);
         }
+        else
+        {
+            drawShader.SetInt("boneCount", 0);
+        }
 
         if (_ibo != null)
             GL.DrawElements(PrimitiveType, Indices!.Count, DrawElementsType.UnsignedInt, 0);
