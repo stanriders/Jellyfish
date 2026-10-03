@@ -65,6 +65,22 @@ BRDFResult ComputeBRDF(vec3 N, vec3 V, vec3 L, vec3 F0, float roughness, float m
     return BRDFResult(specular, kD);
 }
 
+vec3 EvaluateProbeSH(int probe, vec3 n)
+{
+    vec4 result = lightProbes[probe].sh[0] * 0.282095
+                + lightProbes[probe].sh[1] * 0.488603 * n.y
+                + lightProbes[probe].sh[2] * 0.488603 * n.z
+                + lightProbes[probe].sh[3] * 0.488603 * n.x
+                + lightProbes[probe].sh[4] * 1.092548 * n.x * n.y
+                + lightProbes[probe].sh[5] * 1.092548 * n.y * n.z
+                + lightProbes[probe].sh[6] * 0.315392 * (3.0 * n.z * n.z - 1.0)
+                + lightProbes[probe].sh[7] * 1.092548 * n.x * n.z
+                + lightProbes[probe].sh[8] * 0.546274 * (n.x * n.x - n.y * n.y);
+
+    // L2 SH can ring slightly negative opposite of very bright sources
+    return max(result.rgb, 0.0);
+}
+
 void GetBlendedLightProbe(vec3 worldPos, vec3 N, vec3 R, float roughness, out vec3 outDiffuse, out vec3 outSpecular)
 {
     float distSq[PROBE_BLEND_COUNT];
@@ -75,7 +91,7 @@ void GetBlendedLightProbe(vec3 worldPos, vec3 N, vec3 R, float roughness, out ve
     }
 
     for (int i = 0; i < probeCount; i++) {
-        vec3 probePos = lightProbes[i].position;
+        vec3 probePos = lightProbes[i].position.xyz;
         float d2 = dot(worldPos - probePos, worldPos - probePos);
 
         // Insert sorted (smallest first)
@@ -96,7 +112,16 @@ void GetBlendedLightProbe(vec3 worldPos, vec3 N, vec3 R, float roughness, out ve
     float total = 0.0;
     for (int i = 0; i < PROBE_BLEND_COUNT; i++) {
         if (idx[i] < 0) { weights[i] = 0.0; continue; }
-        float w = 1.0 / (distSq[i] + 1e-4);
+
+        // window smoothly reaches zero at the probe's radius, so probes fade out instead of popping
+        // when they enter or leave the nearest set. inverse distance keeps the nearest probe dominant
+        float radius = lightProbes[idx[i]].position.w;
+        float window = clamp(1.0 - distSq[i] / (radius * radius), 0.0, 1.0);
+        float inverseDist = 1.0 / (distSq[i] + 1e-4);
+
+        // tiny unwindowed term so that points outside of every radius still get the nearest probes
+        // it's negligible inside any radius, so the transition stays smooth
+        float w = inverseDist * (window * window + 1e-6);
         weights[i] = w;
         total += w;
     }
@@ -110,14 +135,12 @@ void GetBlendedLightProbe(vec3 worldPos, vec3 N, vec3 R, float roughness, out ve
             continue;
 
         float w = weights[i] / total;
-        LightProbe probe = lightProbes[idx[i]];
-
-        vec3 irradiance = texture(probe.irradiance, N).rgb;
+        vec3 irradiance = EvaluateProbeSH(idx[i], N);
         outDiffuse += irradiance * w;
 
         if (iblPrefilterEnabled)
         {
-            vec3 prefiltered = textureLod(probe.prefilter, R, roughness * (prefilterMips - 1)).rgb;
+            vec3 prefiltered = textureLod(lightProbes[idx[i]].prefilter, R, roughness * (prefilterMips - 1)).rgb;
             outSpecular += prefiltered * w;
         }
     }

@@ -7,7 +7,16 @@ layout (binding = 0) uniform samplerCube environmentMap;
 
 uniform float roughness;   // current mip roughness
 uniform int mip;
+uniform float envMapResolution; // size of a single environment map face at mip 0
 const float PI = 3.14159265359;
+
+float DistributionGGX(float NdotH, float roughness)
+{
+    float a = roughness * roughness;
+    float a2 = a * a;
+    float denom = NdotH * NdotH * (a2 - 1.0) + 1.0;
+    return a2 / (PI * denom * denom);
+}
 
 float RadicalInverse_VdC(uint bits)
 {
@@ -59,6 +68,9 @@ void main()
     vec3 prefilteredColor = vec3(0.0);
     float totalWeight = 0.0;
 
+    // solid angle of a single environment map texel at mip 0
+    float saTexel = 4.0 * PI / (6.0 * envMapResolution * envMapResolution);
+
     for(uint i = 0u; i < SAMPLE_COUNT; ++i)
     {
         vec2 Xi = Hammersley(i, SAMPLE_COUNT);
@@ -68,7 +80,15 @@ void main()
         float NdotL = max(dot(N, L), 0.0);
         if(NdotL > 0.0)
         {
-            prefilteredColor += textureLod(environmentMap, L, 0.0).rgb * NdotL;
+            // filtered importance sampling: pick the mip whose texel covers the same solid angle as this sample,
+            // otherwise low-probability samples hitting small bright spots turn into speckles
+            // N == V here, so NdotH == HdotV and the pdf simplifies to D / 4
+            float NdotH = max(dot(N, H), 0.0);
+            float pdf = DistributionGGX(NdotH, roughness) / 4.0 + 1e-4;
+            float saSample = 1.0 / (float(SAMPLE_COUNT) * pdf + 1e-4);
+            float mipLevel = roughness == 0.0 ? 0.0 : 0.5 * log2(saSample / saTexel);
+
+            prefilteredColor += textureLod(environmentMap, L, mipLevel).rgb * NdotL;
             totalWeight += NdotL;
         }
     }

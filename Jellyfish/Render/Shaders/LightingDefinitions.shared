@@ -76,9 +76,9 @@ const vec2 poissonDisk[PCSS_FILTER_SIZE] =
 #define MAX_PROBES 512
 #define PROBE_BLEND_COUNT 12
 struct LightProbe {
-    samplerCube irradiance;
     samplerCube prefilter;
-    vec3        position;
+    vec4        position; // xyz = position, w = influence radius
+    vec4        sh[9]; // irradiance spherical harmonics
 };
 
 layout(std430, binding = 1) buffer LightProbes {

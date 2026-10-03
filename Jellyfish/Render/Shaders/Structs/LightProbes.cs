@@ -16,7 +16,8 @@ public struct LightProbes : IGpuStruct
 [StructLayout(LayoutKind.Sequential)]
 public struct LightProbe : IGpuStruct
 {
-    public ulong IrradianceTexture;
     public ulong PrefilterTexture;
-    public Vector4 Position;
+    private ulong _pad;
+    public Vector4 Position; // w = influence radius
+    public Vector4 Sh0, Sh1, Sh2, Sh3, Sh4, Sh5, Sh6, Sh7, Sh8;
 }

@@ -20,16 +20,15 @@ public class LightProbe
 {
     private readonly int _index;
     public Vector3 Position { get; set; }
-    public ulong IrradianceBindlessHandle { get; }
+    public float Radius { get; set; }
     public ulong PrefilterBindlessHandle { get; }
+    public Vector4[] IrradianceHarmonics { get; } = new Vector4[9];
 
-    private readonly Texture _irradianceRenderTarget;
     private readonly Texture _prefilterRenderTarget;
 
     public const int PrefilterMips = 6;
 
     private const int size = 128;
-    private const int irradiance_size = 16;
 
     private readonly (Vector3 target, Vector3 up)[] _cubemapViews =
     [
@@ -56,21 +55,6 @@ public class LightProbe
     {
         _index = index;
 
-        _irradianceRenderTarget = Engine.TextureManager.CreateTexture(new RenderTargetParams
-        {
-            Width = irradiance_size,
-            Heigth = irradiance_size,
-            Attachment = FramebufferAttachment.ColorAttachment0,
-            TextureParams = new TextureParams
-            {
-                Name = $"_rt_Irradiance_{index}",
-                Type = TextureTarget.TextureCubeMap,
-                WrapMode = TextureWrapMode.ClampToEdge,
-                MinFiltering = TextureMinFilter.Linear,
-                InternalFormat = SizedInternalFormat.Rgb16f
-            }
-        });
-
         _prefilterRenderTarget = Engine.TextureManager.CreateTexture(new RenderTargetParams
         {
             Width = size,
@@ -86,11 +70,9 @@ public class LightProbe
             }
         });
 
-        IrradianceBindlessHandle = GL.ARB.GetTextureHandleARB(_irradianceRenderTarget.Handle);
         PrefilterBindlessHandle = GL.ARB.GetTextureHandleARB(_prefilterRenderTarget.Handle);
 
         GL.ARB.MakeTextureHandleResidentARB(PrefilterBindlessHandle);
-        GL.ARB.MakeTextureHandleResidentARB(IrradianceBindlessHandle);
     }
 
     public void Render(Sky? sky)
@@ -100,7 +82,7 @@ public class LightProbe
         GL.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
 
         var envMap = RenderCubemap(sky);
-        RenderIrradience(envMap);
+        ComputeIrradianceHarmonics(envMap);
 
         if (ConVarStorage.Get<bool>("mat_ibl_prefilter"))
             RenderPrefilter(envMap);
@@ -125,6 +107,7 @@ public class LightProbe
                 Name = $"_rt_EnvironmentMap_{_index}",
                 Type = TextureTarget.TextureCubeMap,
                 WrapMode = TextureWrapMode.ClampToEdge,
+                MaxLevels = -1,
                 InternalFormat = SizedInternalFormat.Rgb16f,
             }
         });
@@ -168,55 +151,62 @@ public class LightProbe
         return cubemapRenderTarget;
     }
 
-    private void RenderIrradience(Texture envMap)
+    private void ComputeIrradianceHarmonics(Texture envMap)
     {
-        var irradianceShader = new Irradiance(envMap);
-        envMap.References++; // todo: this should be done automatically
+        // L2 SH only keeps very low frequencies, so a small mip gives the same result as the full-res faces
+        const int level = 3;
+        const int faceSize = size >> level;
+        var pixels = new float[faceSize * faceSize * 6 * 4];
+        GL.GetTextureImage(envMap.Handle, level, PixelFormat.Rgba, PixelType.Float, pixels.Length * sizeof(float), pixels);
 
-        using var irradianceBuffer = new FrameBuffer();
-        irradianceBuffer.Bind();
+        var sh = new Vector3[9];
+        var totalWeight = 0f;
 
-        var name = $"ibl_{_index}_irradiance_framebuffer";
-        GL.ObjectLabel(ObjectIdentifier.Framebuffer, irradianceBuffer.Handle, name.Length, name);
-
-        using var _ = new RenderBuffer(InternalFormat.DepthComponent, FramebufferAttachment.DepthAttachment, irradiance_size, irradiance_size);
-
-        GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
-
-        irradianceBuffer.Check();
-        irradianceBuffer.Unbind();
-
-        GL.Viewport(0, 0, irradiance_size, irradiance_size);
-
-        irradianceBuffer.Bind();
-        CommonShapes.CubeVertexArray?.Bind();
-
-        Engine.MainViewport.ProjectionMatrixOverride = Matrix4.CreatePerspectiveFieldOfView(float.DegreesToRadians(90f), 1.0f, 0.1f, 2f);
-
-        for (uint i = 0; i < 6; i++)
+        for (var face = 0; face < 6; face++)
+        for (var y = 0; y < faceSize; y++)
+        for (var x = 0; x < faceSize; x++)
         {
-            GL.NamedFramebufferTextureLayer(irradianceBuffer.Handle,
-                FramebufferAttachment.ColorAttachment0,
-                _irradianceRenderTarget.Handle,
-                level: 0,
-                layer: (int)i); // faceIndex = 0..5
+            var s = 2f * (x + 0.5f) / faceSize - 1f;
+            var t = 2f * (y + 0.5f) / faceSize - 1f;
 
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            // OpenGL cubemap face conventions, same as what texture() uses when sampling
+            var dir = face switch
+            {
+                0 => new Vector3(1, -t, -s),  // +X
+                1 => new Vector3(-1, -t, s),  // -X
+                2 => new Vector3(s, 1, t),    // +Y
+                3 => new Vector3(s, -1, -t),  // -Y
+                4 => new Vector3(s, -t, 1),   // +Z
+                _ => new Vector3(-s, -t, -1), // -Z
+            };
+            dir.Normalize();
 
-            irradianceShader.Bind();
+            // solid angle covered by this texel
+            var tmp = 1f + s * s + t * t;
+            var weight = 4f / (faceSize * faceSize * tmp * MathF.Sqrt(tmp));
+            totalWeight += weight;
 
-            Engine.MainViewport.ViewMatrixOverride = Matrix4.LookAt(Vector3.Zero, _cubemapUsageViews[i].target, _cubemapUsageViews[i].up);
+            var i = ((face * faceSize + y) * faceSize + x) * 4;
+            var color = new Vector3(pixels[i], pixels[i + 1], pixels[i + 2]) * weight;
 
-            GL.DrawArrays(PrimitiveType.Triangles, 0, CommonShapes.Cube.Length);
-            PerformanceMeasurement.Increment("DrawCalls");
-
-            irradianceShader.Unbind();
+            sh[0] += color * 0.282095f;
+            sh[1] += color * 0.488603f * dir.Y;
+            sh[2] += color * 0.488603f * dir.Z;
+            sh[3] += color * 0.488603f * dir.X;
+            sh[4] += color * 1.092548f * dir.X * dir.Y;
+            sh[5] += color * 1.092548f * dir.Y * dir.Z;
+            sh[6] += color * 0.315392f * (3f * dir.Z * dir.Z - 1f);
+            sh[7] += color * 1.092548f * dir.X * dir.Z;
+            sh[8] += color * 0.546274f * (dir.X * dir.X - dir.Y * dir.Y);
         }
 
-        CommonShapes.CubeVertexArray?.Unbind();
-        irradianceBuffer.Unbind();
+        // normalize to the full sphere and apply cosine lobe convolution per band (pi, 2pi/3, pi/4)
+        // divided by pi, to match the old irradiance map which stored irradiance / pi
+        var normalization = 4f * MathF.PI / totalWeight;
+        ReadOnlySpan<float> bandScale = [1f, 2f / 3f, 2f / 3f, 2f / 3f, 0.25f, 0.25f, 0.25f, 0.25f, 0.25f];
 
-        irradianceShader.Unload();
+        for (var k = 0; k < 9; k++)
+            IrradianceHarmonics[k] = new Vector4(sh[k] * normalization * bandScale[k], 0f);
     }
 
     private void RenderPrefilter(Texture envMap)
@@ -270,6 +260,7 @@ public class LightProbe
                 prefilterShader.Bind();
                 prefilterShader.SetFloat("roughness", roughness);
                 prefilterShader.SetInt("mip", mip);
+                prefilterShader.SetFloat("envMapResolution", size);
 
                 Engine.MainViewport.ViewMatrixOverride = Matrix4.LookAt(Vector3.Zero, _cubemapUsageViews[face].target, _cubemapUsageViews[face].up);
 
@@ -288,10 +279,8 @@ public class LightProbe
 
     public void Unload()
     {
-        GL.ARB.MakeTextureHandleNonResidentARB(IrradianceBindlessHandle);
         GL.ARB.MakeTextureHandleNonResidentARB(PrefilterBindlessHandle);
 
-        _irradianceRenderTarget.Unload();
         _prefilterRenderTarget.Unload();
     }
 }
@@ -332,17 +321,9 @@ public class ImageBasedLighting
 
     public void Render(Sky? sky)
     {
-        var gpuProbes = ArrayPool<Jellyfish.Render.Shaders.Structs.LightProbe>.Shared.Rent(max_probes);
-
         if (Probes.Count == 0)
         {
-            LightProbesSsbo.UpdateData(new LightProbes
-            {
-                Probes = gpuProbes,
-                ProbeCount = 0
-            });
-
-            ArrayPool<Jellyfish.Render.Shaders.Structs.LightProbe>.Shared.Return(gpuProbes);
+            UpdateProbeBuffer();
             return;
         }
 
@@ -351,6 +332,8 @@ public class ImageBasedLighting
 
         ConVarStorage.Set("mat_ibl_enabled", false);
         ConVarStorage.Set("mat_sslr_enabled", false);
+
+        UpdateProbeRadii();
 
         foreach (var lightProbe in Probes)
         {
@@ -363,11 +346,66 @@ public class ImageBasedLighting
         Engine.MainViewport.ViewMatrixOverride = null;
         Engine.MainViewport.ProjectionMatrixOverride = null;
 
+        UpdateProbeBuffer();
+
+        // second pass to simulate one bounce of lighting
+        foreach (var lightProbe in Probes)
+        {
+            lightProbe.Render(sky);
+        }
+
+        // SH lives in the buffer (unlike textures that got updated in place), so upload the bounced result too
+        UpdateProbeBuffer();
+
+        Engine.MainViewport.ViewMatrixOverride = null;
+        Engine.MainViewport.ProjectionMatrixOverride = null;
+    }
+
+    private void UpdateProbeRadii()
+    {
+        var distances = new List<float>(Probes.Count);
+
+        foreach (var probe in Probes)
+        {
+            distances.Clear();
+            foreach (var other in Probes)
+            {
+                if (other != probe)
+                    distances.Add((other.Position - probe.Position).Length);
+            }
+
+            if (distances.Count == 0)
+            {
+                probe.Radius = 100_000f; // lone probe should light everything
+                continue;
+            }
+
+            distances.Sort();
+
+            var neighbourDistance = distances[Math.Min(4, distances.Count) - 1];
+            probe.Radius = Math.Max(neighbourDistance, 0.1f);
+        }
+    }
+
+    private void UpdateProbeBuffer()
+    {
+        var gpuProbes = ArrayPool<Jellyfish.Render.Shaders.Structs.LightProbe>.Shared.Rent(max_probes);
+
         for (var i = 0; i < Probes.Count; i++)
         {
-            gpuProbes[i].Position = new Vector4(Probes[i].Position);
-            gpuProbes[i].IrradianceTexture = Probes[i].IrradianceBindlessHandle;
-            gpuProbes[i].PrefilterTexture = Probes[i].PrefilterBindlessHandle;
+            var probe = Probes[i];
+
+            gpuProbes[i].Position = new Vector4(probe.Position, probe.Radius);
+            gpuProbes[i].PrefilterTexture = probe.PrefilterBindlessHandle;
+            gpuProbes[i].Sh0 = probe.IrradianceHarmonics[0];
+            gpuProbes[i].Sh1 = probe.IrradianceHarmonics[1];
+            gpuProbes[i].Sh2 = probe.IrradianceHarmonics[2];
+            gpuProbes[i].Sh3 = probe.IrradianceHarmonics[3];
+            gpuProbes[i].Sh4 = probe.IrradianceHarmonics[4];
+            gpuProbes[i].Sh5 = probe.IrradianceHarmonics[5];
+            gpuProbes[i].Sh6 = probe.IrradianceHarmonics[6];
+            gpuProbes[i].Sh7 = probe.IrradianceHarmonics[7];
+            gpuProbes[i].Sh8 = probe.IrradianceHarmonics[8];
         }
 
         LightProbesSsbo.UpdateData(new LightProbes
@@ -377,15 +415,6 @@ public class ImageBasedLighting
         });
 
         ArrayPool<Jellyfish.Render.Shaders.Structs.LightProbe>.Shared.Return(gpuProbes);
-        
-        // second pass to simulate one bounce of lighting
-        foreach (var lightProbe in Probes)
-        {
-            lightProbe.Render(sky);
-        }
-
-        Engine.MainViewport.ViewMatrixOverride = null;
-        Engine.MainViewport.ProjectionMatrixOverride = null;
     }
 
     public void Reset()
