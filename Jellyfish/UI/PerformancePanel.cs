@@ -83,7 +83,7 @@ public class PerformancePanel : IUiPanel
                     ImGui.TableNextColumn();
                     ImGui.Text(measurement.Key);
                     ImGui.TableNextColumn();
-                    ImGui.Text($"{measurement.Value:N4} ({1000.0 / measurement.Value:N1} fps)");
+                    ImGui.Text($"{measurement.Value:N2} ms ({1000.0 / measurement.Value:N1} fps)");
                 }
 
                 ImGui.Separator();
