@@ -2,11 +2,14 @@
 using System.Collections.ObjectModel;
 using System.Linq;
 using Jellyfish.Debug;
+using Jellyfish.Render.Buffers;
 using Jellyfish.Utils;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 
 namespace Jellyfish.Render;
+
+public record MeshBuffers(VertexBuffer Vbo, IndexBuffer? Ibo, VertexArray Vao);
 
 public class MeshManager
 {
@@ -16,6 +19,8 @@ public class MeshManager
     private readonly List<Mesh> _singleFrameMeshes = new();
     private readonly List<(Mesh, List<Vertex>)> _updateQueue = new();
 
+    private readonly Dictionary<string, (MeshBuffers Buffers, int References)> _buffers = new();
+
     public IReadOnlyList<Mesh> Meshes => new ReadOnlyCollection<Mesh>([.._opaqueMeshes, .._translucentMeshes]);
     public BoundingBox SceneBoundingBox { get; private set; }
 
@@ -23,7 +28,18 @@ public class MeshManager
 
     public void AddMesh(Mesh mesh, bool singleFrame = false)
     {
-        mesh.Load();
+        var sharedBuffersKey = mesh.Model?.SourcePath != null ? $"{mesh.Model.SourcePath}_{mesh.Name}" : null;
+        if (sharedBuffersKey != null && _buffers.TryGetValue(sharedBuffersKey, out var shared))
+        {
+            mesh.Load(shared.Buffers);
+            _buffers[sharedBuffersKey] = (shared.Buffers, shared.References + 1);
+        }
+        else
+        {
+            var buffers = mesh.Load();
+            if (sharedBuffersKey != null)
+                _buffers[sharedBuffersKey] = (buffers, 1);
+        }
 
         if (mesh.Material?.GetParam<bool>("AlphaTest") ?? false)
         {
@@ -53,7 +69,24 @@ public class MeshManager
         else
             _opaqueMeshes.Remove(mesh);
 
-        mesh.Unload();
+        var disposeBuffers = true;
+
+        var sharedBuffersKey = mesh.Model?.SourcePath != null ? $"{mesh.Model.SourcePath}_{mesh.Name}" : null;
+        if (sharedBuffersKey != null && _buffers.TryGetValue(sharedBuffersKey, out var shared))
+        {
+            if (shared.References <= 1)
+            {
+                _buffers.Remove(sharedBuffersKey);
+                disposeBuffers = true;
+            }
+            else
+            {
+                _buffers[sharedBuffersKey] = (shared.Buffers, shared.References - 1);
+                disposeBuffers = false;
+            }
+        }
+
+        mesh.Unload(disposeBuffers);
 
         // sounds expensive?
         UpdateSceneBoundingBox();
@@ -176,10 +209,19 @@ public class MeshManager
     public void Unload()
     {
         foreach (var mesh in _opaqueMeshes)
-            mesh.Unload();
+            mesh.Unload(!mesh.UsesShaderBuffers);
 
         foreach (var mesh in _translucentMeshes)
-            mesh.Unload();
+            mesh.Unload(!mesh.UsesShaderBuffers);
+
+        foreach (var (buffers, _) in _buffers.Values)
+        {
+            buffers.Vbo.Dispose();
+            buffers.Ibo?.Dispose();
+            buffers.Vao.Dispose();
+        }
+
+        _buffers.Clear();
     }
 
     public void UpdateSceneBoundingBox()

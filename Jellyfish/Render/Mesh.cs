@@ -1,4 +1,5 @@
-﻿using Jellyfish.Debug;
+﻿using Jellyfish.Console;
+using Jellyfish.Debug;
 using Jellyfish.Render.Buffers;
 using Jellyfish.Utils;
 using OpenTK.Graphics.OpenGL;
@@ -51,6 +52,7 @@ public class Mesh
     public Material? Material { get; private set; }
     public List<Vertex> Vertices { get; private set; }
     public List<uint>? Indices { get; private set; }
+    public bool UsesShaderBuffers { get; private set; }
     public override string ToString() => Name;
 
     private BoundingBox? _boundingBox;
@@ -74,10 +76,19 @@ public class Mesh
         Indices = indices;
     }
 
-    public void Load()
+    public MeshBuffers Load(MeshBuffers? sharedBuffers = null)
     {
         AddMaterial(_texture);
+
+        if (sharedBuffers != null)
+        {
+            (_vbo, _ibo, _vao) = sharedBuffers;
+            UsesShaderBuffers = true;
+            return sharedBuffers;
+        }
+
         CreateBuffers();
+        return new MeshBuffers(_vbo, _ibo, _vao);
     }
 
     public virtual PrimitiveType PrimitiveType { get; set; } = PrimitiveType.Triangles;
@@ -187,6 +198,12 @@ public class Mesh
 
     public void Update(List<Vertex> vertices, List<uint>? indices = null)
     {
+        if (UsesShaderBuffers)
+        {
+            Log.Context(this).Error("Can't update mesh {Name} since it's using shared buffers", Name);
+            return;
+        }
+
         Vertices = vertices;
         _vbo.UpdateData(VerticesToArray());
         if (indices != null) 
@@ -211,11 +228,15 @@ public class Mesh
                                                 Matrix4.CreateScale(Scale) *
                                                 Matrix4.CreateTranslation(Position);
 
-    public void Unload()
+    public void Unload(bool disposeBuffers = true)
     {
-        _vbo.Dispose();
-        _ibo?.Dispose();
-        _vao.Dispose();
+        if (disposeBuffers)
+        {
+            _vbo.Dispose();
+            _ibo?.Dispose();
+            _vao.Dispose();
+        }
+
         _gBufferShader.Unload();
 
         Material?.Unload();
