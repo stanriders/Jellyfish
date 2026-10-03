@@ -16,17 +16,35 @@ public class PointLight : LightEntity
         AddProperty("FarPlane", 500f);
     }
 
+    private const int projections = 6;
+
+    private Matrix4?[] _projectionsCache = new Matrix4?[projections];
+
     public override float NearPlane => 0.1f;
     public override float FarPlane => GetPropertyValue<float>("FarPlane");
     public override int ShadowResolution => 1024;
-    public override int ProjectionCount => 6;
+    public override int ProjectionCount => projections;
 
     public override Matrix4 Projection(int index)
     {
+        if (_projectionsCache[index] != null)
+        {
+            return _projectionsCache[index]!.Value;
+        }
+
         var (dir, up) = CommonShapes.CubeFaces[index];
         var lightProjection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(90f), 1.0f, NearPlane, FarPlane);
         var lightView = Matrix4.LookAt(Position, Position + dir, up);
 
-        return lightView * lightProjection;
+        var finalProjection = lightView * lightProjection;
+
+        _projectionsCache[index] = finalProjection;
+
+        return finalProjection;
+    }
+
+    public override void ClearProjectionCache()
+    {
+        _projectionsCache = new Matrix4?[projections];
     }
 }

@@ -24,11 +24,26 @@ public class Spotlight : LightEntity, IHaveFrustum
     public override float FarPlane => GetPropertyValue<float>("FarPlane");
     public override int ProjectionCount => 1;
 
+    private Matrix4? _projection;
     public override Matrix4 Projection(int index)
     {
+        if (_projection != null)
+        {
+            return _projection.Value;
+        }
+
         var lightProjection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(Math.Min(89.9f, GetPropertyValue<float>("OuterCone"))) * 2.0f, 1.0f, NearPlane, FarPlane);
         var lightView = Matrix4.LookAt(Position, Position + Vector3.Transform(-Vector3.UnitY, Rotation), Vector3.UnitZ);
-        return lightView * lightProjection;
+
+        var finalProjection = lightView * lightProjection;
+        _projection = finalProjection;
+
+        return finalProjection;
+    }
+
+    public override void ClearProjectionCache()
+    {
+        _projection = null;
     }
 
     public Frustum GetFrustum()

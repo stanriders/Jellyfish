@@ -2,6 +2,7 @@
 using Jellyfish.Utils;
 using OpenTK.Mathematics;
 using System;
+using System.Collections.Generic;
 using Jellyfish.Render;
 
 namespace Jellyfish.Entities;
@@ -34,6 +35,7 @@ public class Sun : BaseEntity, ILightSource
         base.Unload();
     }
 
+    private Matrix4?[] _projectionsCache = new Matrix4?[cascades];
     public Vector3 Position => Vector3.Zero;
     public Quaternion Rotation => GetPropertyValue<Quaternion>("Rotation");
 
@@ -53,6 +55,11 @@ public class Sun : BaseEntity, ILightSource
     public bool UseShadows => GetPropertyValue<bool>("Shadows");
     public float NearPlane => 0;
     public float FarPlane => 0;
+    public void ClearProjectionCache()
+    {
+        _projectionsCache = new Matrix4?[cascades];
+    }
+
     public bool UsePcss => GetPropertyValue<bool>("PCSS");
     public bool UseBackCulling => GetPropertyValue<bool>("BackCulling");
     public int ShadowResolution => 2048;
@@ -74,6 +81,11 @@ public class Sun : BaseEntity, ILightSource
 
     public Matrix4 Projection(int index)
     {
+        if (_projectionsCache[index] != null)
+        {
+            return _projectionsCache[index]!.Value;
+        }
+
         var near = MathF.Max(CascadeRanges[index].Near, Engine.MainViewport.NearPlane);
         var far = MathF.Min(CascadeRanges[index].Far, Engine.MainViewport.FarPlane);
 
@@ -112,10 +124,14 @@ public class Sun : BaseEntity, ILightSource
         var x = MathF.Floor(centerLs.X / texel) * texel;
         var y = MathF.Floor(centerLs.Y / texel) * texel;
 
-        return lightView * Matrix4.CreateOrthographicOffCenter(
+        var finalProjection = lightView * Matrix4.CreateOrthographicOffCenter(
             x - radius, x + radius,
             y - radius, y + radius,
-            -centerLs.Z - radius - casterPadding,   // near
-            -centerLs.Z + radius);                  // far
+            -centerLs.Z - radius - casterPadding, // near
+            -centerLs.Z + radius); // far
+
+        _projectionsCache[index] = finalProjection;
+
+        return finalProjection;
     }
 }

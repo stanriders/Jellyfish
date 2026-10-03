@@ -19,6 +19,7 @@ public interface ILightSource
 
     int ProjectionCount { get; }
     Matrix4 Projection(int index);
+    void ClearProjectionCache();
 
     bool UsePcss { get; }
     bool UseBackCulling { get; }

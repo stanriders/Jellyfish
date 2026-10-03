@@ -85,6 +85,18 @@ public class LightManager
         }
     }
 
+    public void PreFrame()
+    {
+        foreach (var light in Lights)
+        {
+            light.Source.ClearProjectionCache();
+        }
+
+        Sun?.Source.ClearProjectionCache();
+
+        UpdateShaderBuffer();
+    }
+
     public void DrawShadows()
     {
         using var _ = new PerformanceMeasure("LightManager.DrawShadows");
@@ -118,7 +130,7 @@ public class LightManager
 
                 GL.Viewport(0, 0, Sun.Source.ShadowResolution, Sun.Source.ShadowResolution);
                 GL.Clear(ClearBufferMask.DepthBufferBit);
-                Engine.MeshManager.Draw(false, shadow.Shader, new Frustum(Sun.Source.Projection(i)));
+                Engine.MeshManager.DrawShadows(new Frustum(Sun.Source.Projection(i)), shadow.Shader);
 
                 shadow.FrameBuffer.Unbind();
             }
@@ -181,7 +193,7 @@ public class LightManager
                 GL.ClearDepth(1.0);
                 GL.Clear(ClearBufferMask.DepthBufferBit);
 
-                Engine.MeshManager.Draw(false, shadow.Shader, frustum);
+                Engine.MeshManager.DrawShadows(frustum, shadow.Shader);
 
                 shadow.FrameBuffer.Unbind();
             }

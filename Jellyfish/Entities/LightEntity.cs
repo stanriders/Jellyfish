@@ -32,6 +32,7 @@ namespace Jellyfish.Entities
         public float Brightness => GetPropertyValue<float>("Brightness");
         public bool Enabled => GetPropertyValue<bool>("Enabled");
         public bool UseShadows => GetPropertyValue<bool>("Shadows");
+        public abstract void ClearProjectionCache();
         public bool UsePcss => GetPropertyValue<bool>("PCSS");
         public bool UseBackCulling => false;
         public abstract float NearPlane { get; }

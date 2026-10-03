@@ -118,6 +118,18 @@ public class MeshManager
         PostDraw(drawDev);
     }
 
+    public void DrawShadows(Frustum? frustum, Shaders.Shadow shader)
+    {
+        using var _ = new PerformanceMeasure("MeshManager.DrawShadows");
+
+        _drawing = true;
+
+        DrawOpaque(false, shader, frustum);
+        // don't draw translucent since shadows need depth testing
+
+        _drawing = false;
+    }
+
     public void DrawGBuffer(bool drawDev = true)
     {
         using var _ = new PerformanceMeasure("MeshManager.DrawGBuffer");
