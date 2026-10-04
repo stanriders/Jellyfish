@@ -309,4 +309,25 @@ public class WorldMesh : BaseModelEntity, IPhysicsEntity
 
         return grid;
     }
+
+    public static List<float> GetBevelSamples(float halfSize, float radius, int segments)
+    {
+        if (radius <= 0)
+            return [-halfSize, halfSize];
+
+        var innerHalfSize = halfSize - radius;
+        var samples = new List<float>();
+
+        for (var k = segments; k >= 1; k--)
+            samples.Add(-innerHalfSize - radius * MathF.Tan(MathF.PI / 4 * k / segments));
+
+        samples.Add(-innerHalfSize);
+        if (innerHalfSize > 0.0001f)
+            samples.Add(innerHalfSize);
+
+        for (var k = 1; k <= segments; k++)
+            samples.Add(innerHalfSize + radius * MathF.Tan(MathF.PI / 4 * k / segments));
+
+        return samples;
+    }
 }

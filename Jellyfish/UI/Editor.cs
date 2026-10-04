@@ -653,8 +653,8 @@ public class Editor : IUiPanel, IInputHandler
                 var uAxis = sign > 0 ? (axis + 1) % 3 : (axis + 2) % 3;
                 var vAxis = sign > 0 ? (axis + 2) % 3 : (axis + 1) % 3;
 
-                var uSamples = Box.GetBevelSamples(halfSize[uAxis], radius, segments);
-                var vSamples = Box.GetBevelSamples(halfSize[vAxis], radius, segments);
+                var uSamples = WorldMesh.GetBevelSamples(halfSize[uAxis], radius, segments);
+                var vSamples = WorldMesh.GetBevelSamples(halfSize[vAxis], radius, segments);
 
                 var grid = new int[uSamples.Count, vSamples.Count];
                 for (var u = 0; u < uSamples.Count; u++)
