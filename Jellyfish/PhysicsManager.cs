@@ -344,8 +344,7 @@ public class PhysicsManager
             };
             _physicsSystem.DrawBodies(drawSettings, _debugRenderer, _debugDrawFilter);
 
-            if (ConVarStorage.Get<bool>("edt_enable") && ConVarStorage.Get<bool>("phys_debug"))
-                _debugRenderer.Render();
+            _debugRenderer.Render();
 
             if (!ShouldSimulate)
             {
@@ -442,10 +441,13 @@ public class PhysicsManager
 
         public void Render()
         {
-            if (_mesh != null)
-                Engine.MeshManager.UpdateMesh(_mesh, _vertices.ToList());
+            if (ConVarStorage.Get<bool>("edt_enable") && ConVarStorage.Get<bool>("phys_debug") || _mesh?.Vertices.Count > 0)
+            {
+                if (_mesh != null)
+                    Engine.MeshManager.UpdateMesh(_mesh, _vertices.ToList());
 
-            _vertices.Clear();
+                _vertices.Clear();
+            }
         }
     }
 
