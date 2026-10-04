@@ -9,7 +9,6 @@ using OpenTK.Mathematics;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Sun = Jellyfish.Entities.Sun;
 
@@ -26,8 +25,7 @@ public class LightManager
         {
             public required Texture RenderTarget { get; set; }
             public required FrameBuffer FrameBuffer { get; set; }
-            public required Shaders.Shadow Shader { get; set; }
-            public ulong BindlessHandle { get; set; }
+            public required ulong BindlessHandle { get; set; }
         }
     }
 
@@ -39,6 +37,7 @@ public class LightManager
     public readonly List<Light> Lights = new(max_lights);
 
     public readonly ShaderStorageBuffer<LightSources> LightSourcesSsbo = new("lightSourcesSSBO", new LightSources());
+    private readonly Shadow _shadowShader = new();
 
     public void AddLight(ILightSource source)
     {
@@ -69,7 +68,6 @@ public class LightManager
             {
                 shadow.FrameBuffer.Dispose();
                 shadow.RenderTarget.Unload();
-                shadow.Shader.Unload();
                 GL.ARB.MakeTextureHandleNonResidentARB(shadow.BindlessHandle);
             }
 
@@ -130,7 +128,9 @@ public class LightManager
 
                 GL.Viewport(0, 0, Sun.Source.ShadowResolution, Sun.Source.ShadowResolution);
                 GL.Clear(ClearBufferMask.DepthBufferBit);
-                Engine.MeshManager.DrawShadows(new Frustum(Sun.Source.Projection(i)), shadow.Shader);
+
+                _shadowShader.SetMatrix4("lightSpaceMatrix", Sun.Source.Projection(i));
+                Engine.MeshManager.DrawShadows(new Frustum(Sun.Source.Projection(i)), _shadowShader);
 
                 shadow.FrameBuffer.Unbind();
             }
@@ -193,7 +193,8 @@ public class LightManager
                 GL.ClearDepth(1.0);
                 GL.Clear(ClearBufferMask.DepthBufferBit);
 
-                Engine.MeshManager.DrawShadows(frustum, shadow.Shader);
+                _shadowShader.SetMatrix4("lightSpaceMatrix", light.Source.Projection(i));
+                Engine.MeshManager.DrawShadows(frustum, _shadowShader);
 
                 shadow.FrameBuffer.Unbind();
             }
@@ -349,7 +350,6 @@ public class LightManager
         var index = Lights.IndexOf(light);
 
         var framebuffer = new FrameBuffer($"lighting_{index}{subname}_shadow_framebuffer");
-        var shader = new Shadow(light.Source, light.Shadows.Count);
 
         var rt = Engine.TextureManager.CreateTexture(new RenderTargetParams
         {
@@ -377,7 +377,6 @@ public class LightManager
         light.Shadows.Add(new Light.Shadow
         {
             FrameBuffer = framebuffer,
-            Shader = shader,
             RenderTarget = rt,
             BindlessHandle = bindlessHandle
         });
@@ -392,10 +391,10 @@ public class LightManager
         {
             shadow.RenderTarget.Unload();
             shadow.FrameBuffer.Dispose();
-            shadow.Shader.Unload();
             GL.ARB.MakeTextureHandleNonResidentARB(shadow.BindlessHandle);
         }
 
         light.Shadows.Clear();
+        _shadowShader.Unload();
     }
 }
