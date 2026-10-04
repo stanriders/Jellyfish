@@ -395,6 +395,19 @@ public class LightManager
         }
 
         light.Shadows.Clear();
+    }
+
+    public void Unload()
+    {
+        foreach (var light in Lights)
+        {
+            RemoveLight(light.Source);
+        }
+
+        if (Sun != null)
+            RemoveLight(Sun.Source);
+
         _shadowShader.Unload();
+        LightSourcesSsbo.Dispose();
     }
 }
