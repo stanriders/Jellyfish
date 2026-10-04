@@ -1,4 +1,5 @@
-﻿using Jellyfish.Console;
+﻿using System;
+using Jellyfish.Console;
 using Jellyfish.Input;
 using Jellyfish.Utils;
 using JoltPhysicsSharp;
@@ -165,7 +166,7 @@ public class Player : BaseEntity, IInputHandler, IHaveFrustum
                 if (_physCharacter.GroundState == GroundState.InAir)
                     airStrafeMultiplier = 0.05f;
 
-                desiredVelocity += direction * velocity * airStrafeMultiplier;
+                desiredVelocity += direction * Math.Min(velocity * airStrafeMultiplier, velocity - directionVelocity);
             }
 
             if (_jumping && _physCharacter!.IsSupported && _physCharacter!.GroundState == GroundState.OnGround)
