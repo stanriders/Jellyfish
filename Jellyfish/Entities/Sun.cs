@@ -62,7 +62,7 @@ public class Sun : BaseEntity, ILightSource
 
     public bool UsePcss => GetPropertyValue<bool>("PCSS");
     public bool UseBackCulling => GetPropertyValue<bool>("BackCulling");
-    public int ShadowResolution => 2048;
+    public int ShadowResolution => 1024;
 
     public float Albedo => GetPropertyValue<float>("Albedo");
     public float Turbidity => GetPropertyValue<float>("Turbidity");
