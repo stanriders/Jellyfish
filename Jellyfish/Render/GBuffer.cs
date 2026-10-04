@@ -21,11 +21,11 @@ public class GBuffer
                 ? SizedInternalFormat.Rgba16f
                 : SizedInternalFormat.Rgb16f;
             */
-            _renderTargets.Add(Engine.TextureManager.CreateTexture(new RenderTargetParams
+
+            var texture = Engine.TextureManager.CreateTexture(new RenderTargetParams
             {
                 Width = Engine.MainViewport.Size.X,
                 Heigth = Engine.MainViewport.Size.Y,
-                Attachment = FramebufferAttachment.ColorAttachment0 + i,
                 TextureParams = new TextureParams
                 {
                     Name = $"_rt_{(GBufferType)i}",
@@ -34,12 +34,15 @@ public class GBuffer
                     MagFiltering = TextureMagFilter.Nearest,
                     InternalFormat = SizedInternalFormat.Rgb16f
                 }
-            }));
+            });
+
+            _buffer.AttachTexture(texture.Handle, attachment: FramebufferAttachment.ColorAttachment0 + i);
+            _buffer.DrawInto(ColorBuffer.ColorAttachment0 + i);
+
+            _renderTargets.Add(texture);
         }
 
-        GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, depthRenderTarget.Handle, 0);
-
-        GL.DrawBuffers((int)GBufferType.Count, new[] { DrawBufferMode.ColorAttachment0/*, DrawBufferMode.ColorAttachment1, DrawBufferMode.ColorAttachment2, DrawBufferMode.ColorAttachment3*/ });
+        _buffer.AttachTexture(depthRenderTarget.Handle, attachment: FramebufferAttachment.DepthAttachment);
 
         _buffer.Check();
         _buffer.Unbind();
@@ -63,7 +66,7 @@ public class GBuffer
 
     public void SetReadBuffer(GBufferType type)
     {
-        GL.ReadBuffer(ReadBufferMode.ColorAttachment0 + (uint)type);
+        _buffer.ReadFrom(ColorBuffer.ColorAttachment0 + (uint)type);
     }
 
     public void Unbind()

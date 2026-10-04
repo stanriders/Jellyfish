@@ -80,7 +80,6 @@ public class OpenGLRender : IRender
         {
             Width = Engine.MainViewport.Size.X,
             Heigth = Engine.MainViewport.Size.Y,
-            Attachment = FramebufferAttachment.ColorAttachment0,
             TextureParams = new TextureParams
             {
                 Name = "_rt_Color",
@@ -96,7 +95,6 @@ public class OpenGLRender : IRender
         {
             Width = Engine.MainViewport.Size.X,
             Heigth = Engine.MainViewport.Size.Y,
-            Attachment = FramebufferAttachment.DepthAttachment,
             TextureParams = new TextureParams
             {
                 Name = "_rt_Depth",
@@ -106,6 +104,9 @@ public class OpenGLRender : IRender
                 InternalFormat = SizedInternalFormat.DepthComponent32f
             }
         });
+
+        _mainFramebuffer.AttachTexture(_colorRenderTarget.Handle, attachment: FramebufferAttachment.ColorAttachment0);
+        _mainFramebuffer.AttachTexture(_depthRenderTarget.Handle, attachment: FramebufferAttachment.DepthAttachment);
 
         if (!_mainFramebuffer.Check())
         {

@@ -10,7 +10,7 @@ public class FrameBuffer : IDisposable
 
     public FrameBuffer()
     {
-        Handle = GL.GenFramebuffer();
+        Handle = GL.CreateFramebuffer();
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, Handle);
 
         GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
@@ -26,9 +26,31 @@ public class FrameBuffer : IDisposable
         GL.BindFramebuffer(target, 0);
     }
 
+    public void AttachTexture(int textureHandle, FramebufferAttachment attachment = FramebufferAttachment.ColorAttachment0, int level = 0, int? layer = null)
+    {
+        if (layer == null)
+        {
+            GL.NamedFramebufferTexture(Handle, attachment, textureHandle, level);
+        }
+        else
+        {
+            GL.NamedFramebufferTextureLayer(Handle, attachment, textureHandle, level, layer.Value);
+        }
+    }
+
+    public void DrawInto(ColorBuffer buffer)
+    {
+        GL.NamedFramebufferDrawBuffer(Handle, buffer);
+    }
+
+    public void ReadFrom(ColorBuffer buffer)
+    {
+        GL.NamedFramebufferReadBuffer(Handle, buffer);
+    }
+
     public bool Check()
     {
-        var code = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
+        var code = GL.CheckNamedFramebufferStatus(Handle, FramebufferTarget.Framebuffer);
         if (code != FramebufferStatus.FramebufferComplete)
         {
             Log.Context(this).Error("Framebuffer {Id} status check failed with code {Code}", Handle, code);

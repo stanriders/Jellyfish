@@ -12,7 +12,6 @@ public class RenderTargetParams
 {
     public required int Width { get; set; }
     public required int Heigth { get; set; }
-    public required FramebufferAttachment? Attachment { get; set; }
     public bool EnableCompare { get; set; } = false;
     public required TextureParams TextureParams { get; set; }
 }
@@ -167,12 +166,6 @@ public class Texture
         GL.TextureStorage2D(Handle, Levels, Params.InternalFormat!.Value, RenderTargetParams.Width, RenderTargetParams.Heigth);
 
         _memoryTracker = NativeMemoryMeasurement.AddMemory(this, RenderTargetParams.Width * RenderTargetParams.Heigth * 4);
-
-        // other types should bind manually
-        if (Params.Type == TextureTarget.Texture2D && RenderTargetParams.Attachment != null)
-        {
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, RenderTargetParams.Attachment.Value, Params.Type, Handle, 0);
-        }
 
         Format = Params.InternalFormat.ToString()!;
         Size = new Vector2(RenderTargetParams.Width, RenderTargetParams.Heigth);

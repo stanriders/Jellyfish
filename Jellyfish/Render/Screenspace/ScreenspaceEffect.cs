@@ -25,7 +25,6 @@ public abstract class ScreenspaceEffect
         {
             Width = Engine.MainViewport.Size.X,
             Heigth = Engine.MainViewport.Size.Y,
-            Attachment = FramebufferAttachment.ColorAttachment0,
             TextureParams = new TextureParams
             {
                 Name = $"_rt_{rtName}",
@@ -36,8 +35,8 @@ public abstract class ScreenspaceEffect
             }
         });
 
-        GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
-
+        Buffer.AttachTexture(RenderTarget.Handle, attachment: FramebufferAttachment.ColorAttachment0);
+        Buffer.DrawInto(ColorBuffer.ColorAttachment0);
         Buffer.Check();
         Buffer.Unbind();
     }
@@ -51,8 +50,8 @@ public abstract class ScreenspaceEffect
 
         RenderTarget = Engine.TextureManager.CreateTexture(rtParams);
 
-        GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
-
+        Buffer.AttachTexture(RenderTarget.Handle, attachment: FramebufferAttachment.ColorAttachment0);
+        Buffer.DrawInto(ColorBuffer.ColorAttachment0);
         Buffer.Check();
         Buffer.Unbind();
     }

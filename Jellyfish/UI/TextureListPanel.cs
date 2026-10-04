@@ -153,8 +153,6 @@ public class TextureListPanel : IUiPanel
 
                     if (_expandedTexture.RenderTargetParams != null)
                     {
-                        ImGui.Text($"Attachment: {_expandedTexture.RenderTargetParams.Attachment}");
-
                         if (_expandedTexture.Params.Type == TextureTarget.TextureCubeMap)
                         {
                             var name = _expandedTexture.Params.Name!;

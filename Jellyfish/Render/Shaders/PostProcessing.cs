@@ -71,7 +71,6 @@ public class PostProcessing : Shader
         {
             Width = 1,
             Heigth = 1,
-            Attachment = null,
             TextureParams = new TextureParams
             {
                 Name = "_rt_Exposure",

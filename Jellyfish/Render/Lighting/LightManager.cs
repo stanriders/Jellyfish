@@ -355,7 +355,6 @@ public class LightManager
         {
             Width = light.Source.ShadowResolution,
             Heigth = light.Source.ShadowResolution,
-            Attachment = FramebufferAttachment.DepthAttachment,
             TextureParams = new TextureParams
             {
                 Name = $"_rt_Shadow{Lights.IndexOf(light)}{subname}",
@@ -367,10 +366,9 @@ public class LightManager
             }
         });
 
-        GL.BindTexture(TextureTarget.Texture2D, rt.Handle);
-
-        GL.DrawBuffer(DrawBufferMode.None);
-        GL.ReadBuffer(ReadBufferMode.None);
+        framebuffer.AttachTexture(rt.Handle, FramebufferAttachment.DepthAttachment);
+        framebuffer.DrawInto(ColorBuffer.None);
+        framebuffer.ReadFrom(ColorBuffer.None);
         framebuffer.Check();
         framebuffer.Unbind();
 

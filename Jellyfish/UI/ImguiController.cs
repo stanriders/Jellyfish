@@ -185,7 +185,6 @@ public sealed class ImguiController : IDisposable, IInputHandler
                     {
                         Width = imTexture.Width,
                         Heigth = imTexture.Height,
-                        Attachment = null,
                         TextureParams = new TextureParams
                         {
                             Name = id,

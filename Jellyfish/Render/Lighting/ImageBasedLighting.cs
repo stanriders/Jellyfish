@@ -59,7 +59,6 @@ public class LightProbe
         {
             Width = size,
             Heigth = size,
-            Attachment = FramebufferAttachment.ColorAttachment0,
             TextureParams = new TextureParams
             {
                 Name = $"_rt_Prefilter_{index}",
@@ -101,7 +100,6 @@ public class LightProbe
         {
             Width = size,
             Heigth = size,
-            Attachment = FramebufferAttachment.ColorAttachment0,
             TextureParams = new TextureParams
             {
                 Name = $"_rt_EnvironmentMap_{_index}",
@@ -111,8 +109,8 @@ public class LightProbe
                 InternalFormat = SizedInternalFormat.Rgb16f,
             }
         });
-        GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
 
+        cubemapBuffer.DrawInto(ColorBuffer.ColorAttachment0);
         cubemapBuffer.Check();
         cubemapBuffer.Unbind();
 
@@ -129,11 +127,7 @@ public class LightProbe
 
             GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-            GL.NamedFramebufferTextureLayer(cubemapBuffer.Handle,
-                FramebufferAttachment.ColorAttachment0,
-                cubemapRenderTarget.Handle,
-                level: 0,
-                layer: (int)i); // faceIndex = 0..5
+            cubemapBuffer.AttachTexture(cubemapRenderTarget.Handle, layer: (int)i);
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
@@ -222,8 +216,7 @@ public class LightProbe
 
         var prefilterRenderbuffer = new RenderBuffer(InternalFormat.DepthComponent, FramebufferAttachment.DepthAttachment, size, size);
 
-        GL.DrawBuffer(DrawBufferMode.ColorAttachment0);
-
+        prefilterBuffer.DrawInto(ColorBuffer.ColorAttachment0);
         prefilterBuffer.Check();
         prefilterBuffer.Unbind();
 
@@ -248,12 +241,7 @@ public class LightProbe
 
             for (uint face = 0; face < 6; face++)
             {
-                GL.NamedFramebufferTextureLayer(prefilterBuffer.Handle,
-                    FramebufferAttachment.ColorAttachment0,
-                    _prefilterRenderTarget.Handle,
-                    level: mip,
-                    layer: (int)face
-                );
+                prefilterBuffer.AttachTexture(_prefilterRenderTarget.Handle, level: mip, layer: (int)face);
 
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 

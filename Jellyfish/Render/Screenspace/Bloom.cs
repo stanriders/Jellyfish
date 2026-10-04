@@ -13,7 +13,6 @@ public class Upsample4 : ScreenspaceEffect
     {
         Width = Engine.MainViewport.Size.X / 4,
         Heigth = Engine.MainViewport.Size.Y / 4,
-        Attachment = FramebufferAttachment.ColorAttachment0,
         TextureParams = new TextureParams
         {
             Name = "_rt_Upsample4",
@@ -39,7 +38,6 @@ public class Upsample2 : ScreenspaceEffect
     {
         Width = Engine.MainViewport.Size.X / 2,
         Heigth = Engine.MainViewport.Size.Y / 2,
-        Attachment = FramebufferAttachment.ColorAttachment0,
         TextureParams = new TextureParams
         {
             Name = "_rt_Upsample2",
@@ -65,7 +63,6 @@ public class Bloom : ScreenspaceEffect
     {
         Width = Engine.MainViewport.Size.X,
         Heigth = Engine.MainViewport.Size.Y,
-        Attachment = FramebufferAttachment.ColorAttachment0,
         TextureParams = new TextureParams
         {
             Name = "_rt_Bloom",

@@ -9,7 +9,6 @@ public class Combine : ScreenspaceEffect
     {
         Width = Engine.MainViewport.Size.X,
         Heigth = Engine.MainViewport.Size.Y,
-        Attachment = FramebufferAttachment.ColorAttachment0,
         TextureParams = new TextureParams
         {
             Name = "_rt_Combined",

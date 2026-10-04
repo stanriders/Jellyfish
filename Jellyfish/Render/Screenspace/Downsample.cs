@@ -8,7 +8,6 @@ public class Downsample : ScreenspaceEffect
     {
         Width = Engine.MainViewport.Size.X / 2,
         Heigth = Engine.MainViewport.Size.Y / 2,
-        Attachment = FramebufferAttachment.ColorAttachment0,
         TextureParams = new TextureParams
         {
             Name = "_rt_Downsample",
@@ -35,7 +34,6 @@ public class Downsample4 : ScreenspaceEffect
     {
         Width = Engine.MainViewport.Size.X / 4,
         Heigth = Engine.MainViewport.Size.Y / 4,
-        Attachment = FramebufferAttachment.ColorAttachment0,
         TextureParams = new TextureParams
         {
             Name = "_rt_Downsample4",
@@ -62,7 +60,6 @@ public class Downsample8 : ScreenspaceEffect
     {
         Width = Engine.MainViewport.Size.X / 8,
         Heigth = Engine.MainViewport.Size.Y / 8,
-        Attachment = FramebufferAttachment.ColorAttachment0,
         TextureParams = new TextureParams
         {
             Name = "_rt_Downsample8",
