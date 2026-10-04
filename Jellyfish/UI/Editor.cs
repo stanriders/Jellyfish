@@ -392,7 +392,7 @@ public class Editor : IUiPanel, IInputHandler
             if (NoclipMove(keyboardState, mouseState, frameTime))
                 return true;
 
-            if (mouseState.IsButtonDown(MouseButton.Left))
+            if (mouseState.IsButtonPressed(MouseButton.Left))
             {
                 var screenspacePosition = new OpenTK.Mathematics.Vector2(mouseState.Position.X / Engine.MainViewport.Size.X, mouseState.Y / Engine.MainViewport.Size.Y);
                 var ray = Engine.MainViewport.GetCameraToViewportRay(screenspacePosition);
