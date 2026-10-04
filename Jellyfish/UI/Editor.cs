@@ -144,7 +144,7 @@ public class Editor : IUiPanel, IInputHandler
                     {
                         if (ImGui.MenuItem($"{entity.Name} ({entity.ClassName})", "", _selectedEntity?.Name == entity.Name))
                         {
-                            _selectedEntity = Engine.EntityManager.FindEntityByName(entity.Name);
+                            _selectedEntity = entity;
                         }
                     }
 
@@ -367,8 +367,7 @@ public class Editor : IUiPanel, IInputHandler
                                     snap))
                             {
                                 _usingGizmo = true;
-                                arr[Array.IndexOf(arr, point)] =
-                                    Vector3.TransformPosition(propertyTransform.ToMatrix().ExtractTranslation(),
+                                arr[i] = Vector3.TransformPosition(propertyTransform.ToMatrix().ExtractTranslation(),
                                         entityTransform.Inverted());
 
                                 _selectedEntity.SetPropertyValue(gizmoProperty.Name, arr.ToArray());
@@ -402,6 +401,15 @@ public class Editor : IUiPanel, IInputHandler
                     _selectedEntity = null;
                 else
                     _selectedEntity = entity;
+            }
+
+            if (_selectedEntity != null)
+            {
+                if (keyboardState.IsKeyPressed(Keys.Delete))
+                {
+                    Engine.EntityManager.KillEntity(_selectedEntity);
+                    _selectedEntity = null;
+                }
             }
         }
 
@@ -549,7 +557,7 @@ public class Editor : IUiPanel, IInputHandler
                 if (possibleValues.Length > 0)
                 {
                     var currentItem = Array.IndexOf(possibleValues, possibleValues.FirstOrDefault(x => x == val));
-                    if (ImGui.ListBox(elementLabel, ref currentItem, possibleValues, possibleValues.Length))
+                    if (ImGui.Combo(elementLabel, ref currentItem, possibleValues, possibleValues.Length))
                     {
                         entity.SetPropertyValue(propertyName, possibleValues[currentItem]);
                     }
