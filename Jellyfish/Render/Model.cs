@@ -135,6 +135,8 @@ public class Model
             {
                 foreach (var mesh in _meshes)
                     mesh.Rotation = value;
+
+                _bindPoseBoundingBox = null;
             }
         }
     }
@@ -154,6 +156,8 @@ public class Model
             {
                 foreach (var mesh in _meshes)
                     mesh.Scale = value;
+
+                _bindPoseBoundingBox = null;
             }
         }
     }
