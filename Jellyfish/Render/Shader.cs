@@ -302,7 +302,7 @@ public abstract class Shader
         return (uint)attrib;
     }
 
-    private Uniform? SetUniform<T>(string name, T data, bool bind = false)
+    private Uniform? SetUniform<T>(string name, T data)
     {
         if (!_uniforms.TryGetValue(name, out var uniform))
         {
@@ -324,9 +324,6 @@ public abstract class Shader
 
         uniform.ValueHash = dataHash;
 
-        if (bind)
-            Bind();
-
         _uniforms[name] = uniform;
 
         return uniform;
@@ -337,12 +334,11 @@ public abstract class Shader
     /// </summary>
     /// <param name="name">The name of the uniform</param>
     /// <param name="data">The data to set</param>
-    /// <param name="bind"></param>
-    public void SetBool(string name, bool data, bool bind = false)
+    public void SetBool(string name, bool data)
     {
-        var uniform = SetUniform(name, data, bind);
+        var uniform = SetUniform(name, data);
         if (uniform != null)
-            GL.Uniform1i(uniform.Value.Location, data ? 1 : 0);
+            GL.ProgramUniform1i(_shaderHandle, uniform.Value.Location, data ? 1 : 0);
     }
 
     /// <summary>
@@ -350,12 +346,11 @@ public abstract class Shader
     /// </summary>
     /// <param name="name">The name of the uniform</param>
     /// <param name="data">The data to set</param>
-    /// <param name="bind"></param>
-    public void SetInt(string name, int data, bool bind = false)
+    public void SetInt(string name, int data)
     {
-        var uniform = SetUniform(name, data, bind);
+        var uniform = SetUniform(name, data);
         if (uniform != null)
-            GL.Uniform1i(uniform.Value.Location, data);
+            GL.ProgramUniform1i(_shaderHandle, uniform.Value.Location, data);
     }
 
     /// <summary>
@@ -363,12 +358,11 @@ public abstract class Shader
     /// </summary>
     /// <param name="name">The name of the uniform</param>
     /// <param name="data">The data to set</param>
-    /// <param name="bind"></param>
-    public void SetFloat(string name, float data, bool bind = false)
+    public void SetFloat(string name, float data)
     {
-        var uniform = SetUniform(name, data, bind);
+        var uniform = SetUniform(name, data);
         if (uniform != null)
-            GL.Uniform1f(uniform.Value.Location, data);
+            GL.ProgramUniform1f(_shaderHandle, uniform.Value.Location, data);
     }
 
     /// <summary>
@@ -377,19 +371,18 @@ public abstract class Shader
     /// <param name="name">The name of the uniform</param>
     /// <param name="data">The data to set</param>
     /// <param name="transpose"></param>
-    /// <param name="bind"></param>
-    public void SetMatrix4(string name, Matrix4 data, bool transpose = false, bool bind = false)
+    public void SetMatrix4(string name, Matrix4 data, bool transpose = false)
     {
-        var uniform = SetUniform(name, data, bind);
+        var uniform = SetUniform(name, data);
         if (uniform != null)
-            GL.UniformMatrix4f(uniform.Value.Location, 1, transpose, ref data);
+            GL.ProgramUniformMatrix4f(_shaderHandle, uniform.Value.Location, 1, transpose, ref data);
     }
 
     public void SetMatrix4(string name, Matrix4[] data, bool transpose = false)
     {
         if (_uniforms.TryGetValue($"{name}[0]", out var uniform))
         {
-            GL.UniformMatrix4f(uniform.Location, data.Length, transpose, data);
+            GL.ProgramUniformMatrix4f(_shaderHandle, uniform.Location, data.Length, transpose, data);
         }
     }
 
@@ -398,12 +391,11 @@ public abstract class Shader
     /// </summary>
     /// <param name="name">The name of the uniform</param>
     /// <param name="data">The data to set</param>
-    /// <param name="bind"></param>
-    public void SetVector2(string name, Vector2 data, bool bind = false)
+    public void SetVector2(string name, Vector2 data)
     {
-        var uniform = SetUniform(name, data, bind);
+        var uniform = SetUniform(name, data);
         if (uniform != null)
-            GL.Uniform2f(uniform.Value.Location, data.X, data.Y);
+            GL.ProgramUniform2f(_shaderHandle, uniform.Value.Location, data.X, data.Y);
     }
 
     /// <summary>
@@ -411,12 +403,11 @@ public abstract class Shader
     /// </summary>
     /// <param name="name">The name of the uniform</param>
     /// <param name="data">The data to set</param>
-    /// <param name="bind"></param>
-    public void SetVector3(string name, Vector3 data, bool bind = false)
+    public void SetVector3(string name, Vector3 data)
     {
-        var uniform = SetUniform(name, data, bind);
+        var uniform = SetUniform(name, data);
         if (uniform != null)
-            GL.Uniform3f(uniform.Value.Location, data.X, data.Y, data.Z);
+            GL.ProgramUniform3f(_shaderHandle, uniform.Value.Location, data.X, data.Y, data.Z);
     }
 
     /// <summary>
@@ -424,31 +415,29 @@ public abstract class Shader
     /// </summary>
     /// <param name="name">The name of the uniform</param>
     /// <param name="data">The data to set</param>
-    /// <param name="bind"></param>
-    public void SetVector3(string name, float[] data, bool bind = false)
+    public void SetVector3(string name, float[] data)
     {
-        var uniform = SetUniform(name, data, bind);
+        var uniform = SetUniform(name, data);
         if (uniform != null)
-            GL.Uniform3f(uniform.Value.Location, data[0], data[1], data[2]);
+            GL.ProgramUniform3f(_shaderHandle, uniform.Value.Location, data[0], data[1], data[2]);
     }
 
-    public void SetVector3(string name, double[] data, bool bind = false)
+    public void SetVector3(string name, double[] data)
     {
-        var uniform = SetUniform(name, data, bind);
+        var uniform = SetUniform(name, data);
         if (uniform != null)
-            GL.Uniform3d(uniform.Value.Location, data[0], data[1], data[2]);
+            GL.ProgramUniform3d(_shaderHandle, uniform.Value.Location, data[0], data[1], data[2]);
     }
     /// <summary>
     ///     Set a uniform Vector3 on this shader.
     /// </summary>
     /// <param name="name">The name of the uniform</param>
     /// <param name="data">The data to set</param>
-    /// <param name="bind"></param>
-    public void SetVector4(string name, Vector4 data, bool bind = false)
+    public void SetVector4(string name, Vector4 data)
     {
-        var uniform = SetUniform(name, data, bind);
+        var uniform = SetUniform(name, data);
         if (uniform != null)
-            GL.Uniform4f(uniform.Value.Location, data.X, data.Y, data.Z, data.W);
+            GL.ProgramUniform4f(_shaderHandle, uniform.Value.Location, data.X, data.Y, data.Z, data.W);
     }
 
     /// <summary>
@@ -456,12 +445,11 @@ public abstract class Shader
     /// </summary>
     /// <param name="name">The name of the uniform</param>
     /// <param name="data">The data to set</param>
-    /// <param name="bind"></param>
-    public void SetVector4(string name, float[] data, bool bind = false)
+    public void SetVector4(string name, float[] data)
     {
-        var uniform = SetUniform(name, data, bind);
+        var uniform = SetUniform(name, data);
         if (uniform != null)
-            GL.Uniform4f(uniform.Value.Location, data[0], data[1], data[2], data[3]);
+            GL.ProgramUniform4f(_shaderHandle, uniform.Value.Location, data[0], data[1], data[2], data[3]);
     }
 
     public void BindTexture(uint sampler, Texture? texture)
