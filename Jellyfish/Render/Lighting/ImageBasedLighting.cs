@@ -92,8 +92,6 @@ public class LightProbe
     private Texture RenderCubemap(Sky? sky)
     {
         using var cubemapBuffer = new FrameBuffer();
-        cubemapBuffer.Bind();
-
         using var renderBuffer = new RenderBuffer(InternalFormat.DepthComponent, size, size);
 
         var cubemapRenderTarget = Engine.TextureManager.CreateTexture(new RenderTargetParams
@@ -113,7 +111,6 @@ public class LightProbe
         cubemapBuffer.AttachRenderbuffer(renderBuffer.Handle, FramebufferAttachment.DepthAttachment);
         cubemapBuffer.DrawInto(ColorBuffer.ColorAttachment0);
         cubemapBuffer.Check();
-        cubemapBuffer.Unbind();
 
         Engine.MainViewport.ProjectionMatrixOverride = Matrix4.CreatePerspectiveFieldOfView(float.DegreesToRadians(90f), 1.0f, 0.1f, 2000f);
 
@@ -209,18 +206,12 @@ public class LightProbe
         var prefilterShader = new Prefiltering(envMap);
         envMap.References++; // todo: this should be done automatically
 
-        using var prefilterBuffer = new FrameBuffer();
-        prefilterBuffer.Bind();
-
-        var name = $"ibl_{_index}_prefilter_framebuffer";
-        GL.ObjectLabel(ObjectIdentifier.Framebuffer, prefilterBuffer.Handle, name.Length, name);
-
+        using var prefilterBuffer = new FrameBuffer($"ibl_{_index}_prefilter_framebuffer");
         var prefilterRenderbuffer = new RenderBuffer(InternalFormat.DepthComponent, size, size);
 
         prefilterBuffer.AttachRenderbuffer(prefilterRenderbuffer.Handle, FramebufferAttachment.DepthAttachment);
         prefilterBuffer.DrawInto(ColorBuffer.ColorAttachment0);
         prefilterBuffer.Check();
-        prefilterBuffer.Unbind();
 
         GL.Viewport(0, 0, size, size);
 
@@ -236,7 +227,6 @@ public class LightProbe
             var mipHeight = size >> mip;
 
             GL.Viewport(0, 0, mipWidth, mipHeight);
-            prefilterRenderbuffer.Bind();
             prefilterRenderbuffer.UpdateSize(mipWidth, mipHeight);
 
             var roughness = mip / (float)(maxMipLevels - 1);

@@ -346,9 +346,9 @@ public class LightManager
 
     private void CreateShadow(Light light, string subname = "")
     {
-        var framebuffer = new FrameBuffer();
-        framebuffer.Bind();
+        var index = Lights.IndexOf(light);
 
+        var framebuffer = new FrameBuffer($"lighting_{index}{subname}_shadow_framebuffer");
         var shader = new Shadow(light.Source, light.Shadows.Count);
 
         var rt = Engine.TextureManager.CreateTexture(new RenderTargetParams
@@ -357,7 +357,7 @@ public class LightManager
             Heigth = light.Source.ShadowResolution,
             TextureParams = new TextureParams
             {
-                Name = $"_rt_Shadow{Lights.IndexOf(light)}{subname}",
+                Name = $"_rt_Shadow{index}{subname}",
                 BorderColor = [1f, 1f, 1f, 1f],
                 WrapMode = TextureWrapMode.ClampToBorder,
                 MinFiltering = TextureMinFilter.Linear,
@@ -370,7 +370,6 @@ public class LightManager
         framebuffer.DrawInto(ColorBuffer.None);
         framebuffer.ReadFrom(ColorBuffer.None);
         framebuffer.Check();
-        framebuffer.Unbind();
 
         var bindlessHandle = GL.ARB.GetTextureHandleARB(rt.Handle);
         GL.ARB.MakeTextureHandleResidentARB(bindlessHandle);

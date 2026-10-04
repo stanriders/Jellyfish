@@ -73,9 +73,7 @@ public class OpenGLRender : IRender
         GL.Enable(EnableCap.FramebufferSrgb); 
         GL.Enable(EnableCap.TextureCubeMapSeamless);
 
-        _mainFramebuffer = new FrameBuffer();
-        _mainFramebuffer.Bind();
-
+        _mainFramebuffer = new FrameBuffer("framebuffer_main");
         _colorRenderTarget = Engine.TextureManager.CreateTexture(new RenderTargetParams
         {
             Width = Engine.MainViewport.Size.X,
@@ -112,8 +110,6 @@ public class OpenGLRender : IRender
         {
             throw new Exception("Couldn't create main framebuffer!");
         }
-
-        _mainFramebuffer.Unbind();
 
         GL.Disable(EnableCap.FramebufferSrgb);
 

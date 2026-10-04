@@ -15,11 +15,6 @@ public class RenderBuffer : IDisposable
         GL.NamedRenderbufferStorage(Handle, type, width, height);
     }
 
-    public void Bind()
-    {
-        GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, Handle);
-    }
-
     public void UpdateSize(int width, int heigth)
     {
         GL.NamedRenderbufferStorage(Handle, Type, width, heigth);

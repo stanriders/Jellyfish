@@ -18,9 +18,6 @@ public abstract class ScreenspaceEffect
     {
         Shader = shader;
 
-        Buffer = new FrameBuffer();
-        Buffer.Bind();
-
         RenderTarget = Engine.TextureManager.CreateTexture(new RenderTargetParams
         {
             Width = Engine.MainViewport.Size.X,
@@ -35,25 +32,22 @@ public abstract class ScreenspaceEffect
             }
         });
 
+        Buffer = new FrameBuffer();
         Buffer.AttachTexture(RenderTarget.Handle, attachment: FramebufferAttachment.ColorAttachment0);
         Buffer.DrawInto(ColorBuffer.ColorAttachment0);
         Buffer.Check();
-        Buffer.Unbind();
     }
 
     protected ScreenspaceEffect(RenderTargetParams rtParams, Shader shader)
     {
         Shader = shader;
 
-        Buffer = new FrameBuffer();
-        Buffer.Bind();
-
         RenderTarget = Engine.TextureManager.CreateTexture(rtParams);
 
+        Buffer = new FrameBuffer();
         Buffer.AttachTexture(RenderTarget.Handle, attachment: FramebufferAttachment.ColorAttachment0);
         Buffer.DrawInto(ColorBuffer.ColorAttachment0);
         Buffer.Check();
-        Buffer.Unbind();
     }
 
     public virtual void Draw()

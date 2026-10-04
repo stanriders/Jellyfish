@@ -12,7 +12,6 @@ public class GBuffer
     public GBuffer(Texture depthRenderTarget)
     {
         _buffer = new FrameBuffer();
-        _buffer.Bind();
 
         for (uint i = 0; i < (uint)GBufferType.Count; i++)
         {
@@ -45,7 +44,6 @@ public class GBuffer
         _buffer.AttachTexture(depthRenderTarget.Handle, attachment: FramebufferAttachment.DepthAttachment);
 
         _buffer.Check();
-        _buffer.Unbind();
     }
 
     public void GeometryPass()
