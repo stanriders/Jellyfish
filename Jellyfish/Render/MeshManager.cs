@@ -146,7 +146,7 @@ public class MeshManager
 
     private void DrawOpaque(bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null, bool gBuffer = false)
     {
-        using var _ = new PerformanceMeasure("MeshManager.Draw.Opaque");
+        using var _ = new PerformanceMeasure($"MeshManager.Draw.Opaque{(gBuffer ? ".GBuffer" : "")}");
 
         foreach (var mesh in _opaqueMeshes)
             DrawMesh(mesh, drawDev, shaderToUse, frustum, gBuffer);
@@ -154,7 +154,7 @@ public class MeshManager
 
     private void DrawTranslucent(bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null, bool gBuffer = false)
     {
-        using var _ = new PerformanceMeasure("MeshManager.Draw.Translucent");
+        using var _ = new PerformanceMeasure($"MeshManager.Draw.Translucent{(gBuffer ? ".GBuffer" : "")}");
         if (_translucentMeshes.Count == 0)
             return;
 
