@@ -6,15 +6,7 @@ namespace Jellyfish.Render.Buffers;
 
 public class FrameBuffer : IDisposable
 {
-    public readonly int Handle;
-
-    public FrameBuffer()
-    {
-        Handle = GL.CreateFramebuffer();
-        GL.BindFramebuffer(FramebufferTarget.Framebuffer, Handle);
-
-        GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
-    }
+    public readonly int Handle = GL.CreateFramebuffer();
 
     public void Bind(FramebufferTarget target = FramebufferTarget.Framebuffer)
     {

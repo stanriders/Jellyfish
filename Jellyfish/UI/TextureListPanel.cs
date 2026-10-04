@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Jellyfish.Render.Buffers;
 
 namespace Jellyfish.UI;
 
@@ -206,26 +207,23 @@ public class TextureListPanel : IUiPanel
         GL.TextureParameteri(atlasTex, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
         GL.TextureParameteri(atlasTex, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
 
-        int fbo = GL.GenFramebuffer();
-        GL.BindFramebuffer(FramebufferTarget.ReadFramebuffer, fbo);
+        using var fbo = new FrameBuffer();
+        fbo.Bind(FramebufferTarget.ReadFramebuffer);
 
         // Define placement of each face
-        var placements = new (TextureTarget Face, int X, int Y)[]
+        var placements = new (int Face, int X, int Y)[]
         {
-            (TextureTarget.TextureCubeMapPositiveX, 2, 1), // +X
-            (TextureTarget.TextureCubeMapNegativeX, 0, 1), // -X
-            (TextureTarget.TextureCubeMapPositiveY, 1, 0), // +Y
-            (TextureTarget.TextureCubeMapNegativeY, 1, 2), // -Y
-            (TextureTarget.TextureCubeMapPositiveZ, 1, 1), // +Z
-            (TextureTarget.TextureCubeMapNegativeZ, 3, 1), // -Z
+            (0, 2, 1), // +X
+            (1, 0, 1), // -X
+            (2, 1, 0), // +Y
+            (3, 1, 2), // -Y
+            (4, 1, 1), // +Z
+            (5, 3, 1), // -Z
         };
 
         foreach (var (face, gridX, gridY) in placements)
         {
-            GL.FramebufferTexture2D(FramebufferTarget.ReadFramebuffer,
-                FramebufferAttachment.ColorAttachment0,
-                face,
-                cubemapHandle, 0);
+            fbo.AttachTexture(cubemapHandle, layer: face);
 
             int xOffset = gridX * faceSize;
             int yOffset = gridY * faceSize;
@@ -235,9 +233,6 @@ public class TextureListPanel : IUiPanel
                 0, 0,              // source from cubemap face
                 faceSize, faceSize);
         }
-
-        GL.BindFramebuffer(FramebufferTarget.ReadFramebuffer, 0);
-        GL.DeleteFramebuffer(fbo);
 
         return atlasTex;
     }
