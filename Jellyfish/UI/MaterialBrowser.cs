@@ -16,7 +16,7 @@ public class EnableMaterialBrowser() : ConVar<bool>("edt_materialbrowser", true)
 public class MaterialBrowser : IUiPanel
 {
     // material path relative to the materials folder, used by the editor for new blocks and when applying materials to faces
-    public static string SelectedMaterial { get; set; }
+    public static string SelectedMaterial { get; set; } = string.Empty;
 
     private const string materials_directory = "materials";
     private const float preview_size = 128.0f;

@@ -11,7 +11,7 @@ namespace Jellyfish.Entities;
 public record EditableFace
 {
     public int[] Indices { get; init; } = [];
-    public string Material { get; init; }
+    public string Material { get; init; } = string.Empty;
     public Vector2 TextureOffset { get; init; }
     public Vector2 TextureScale { get; init; } = Vector2.One;
     public float TextureRotation { get; init; }
