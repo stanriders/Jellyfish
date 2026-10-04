@@ -30,6 +30,12 @@ public class FrameBuffer : IDisposable
         }
     }
 
+    public void AttachRenderbuffer(int renderbufferHandle,
+        FramebufferAttachment attachment = FramebufferAttachment.ColorAttachment0, RenderbufferTarget renderbufferTarget = RenderbufferTarget.Renderbuffer)
+    {
+        GL.NamedFramebufferRenderbuffer(Handle, attachment, renderbufferTarget, renderbufferHandle);
+    }
+
     public void DrawInto(ColorBuffer buffer)
     {
         GL.NamedFramebufferDrawBuffer(Handle, buffer);
