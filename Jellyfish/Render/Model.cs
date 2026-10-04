@@ -176,9 +176,8 @@ public class Model
                 var modelBoundingBox = new BoundingBox(Bones, Animator?.UnoffsetBoneMatrices ?? BoneMatrices);
                 if (modelBoundingBox.Size.Length > 0)
                 {
-                    return modelBoundingBox.Translate(Matrix4.Identity * 
-                                                      Matrix4.CreateScale(Scale) *
-                                                      Matrix4.CreateFromQuaternion(Rotation));
+                    return modelBoundingBox.Translate(Matrix4.CreateFromQuaternion(Rotation) *
+                                                      Matrix4.CreateScale(Scale));
                 }
             }
 

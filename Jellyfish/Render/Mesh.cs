@@ -62,8 +62,7 @@ public class Mesh
         {
             _boundingBox ??= new BoundingBox(Vertices.ToArray());
 
-            return _boundingBox.Value.Translate(Matrix4.Identity * Matrix4.CreateScale(Scale) *
-                                                Matrix4.CreateFromQuaternion(Rotation));
+            return _boundingBox.Value.Translate(Matrix4.CreateFromQuaternion(Rotation) * Matrix4.CreateScale(Scale));
         }
     }
 
