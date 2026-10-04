@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -73,7 +74,7 @@ public class PhysicsManager
     private readonly Dictionary<BodyID, IPhysicsEntity> _bodies = new();
     private CharacterVirtual? _character;
 
-    private readonly Queue<BodyID> _deletionQueue = new();
+    private readonly ConcurrentQueue<BodyID> _deletionQueue = new();
 
     private Sound? _impactSound;
 
@@ -346,12 +347,7 @@ public class PhysicsManager
 
             _debugRenderer.Render();
 
-            if (!ShouldSimulate)
-            {
-                lastUpdate = Stopwatch.GetTimestamp();
-                continue;
-            }
-
+            // run these even when paused so bodies removed in the editor don't stick around
             Scheduler.PhysicsRun();
 
             while (_deletionQueue.TryDequeue(out var bodyId))
@@ -359,6 +355,12 @@ public class PhysicsManager
                 _bodyInterface.DeactivateBody(bodyId);
                 _bodyInterface.RemoveAndDestroyBody(bodyId);
                 _bodies.Remove(bodyId);
+            }
+
+            if (!ShouldSimulate)
+            {
+                lastUpdate = Stopwatch.GetTimestamp();
+                continue;
             }
 
             foreach (var (bodyId, entity) in _bodies)
