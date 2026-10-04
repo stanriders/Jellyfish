@@ -145,7 +145,7 @@ public class Box : BaseModelEntity, IPhysicsEntity
         return vertices;
     }
 
-    private static List<float> GetBevelSamples(float halfSize, float radius, int segments)
+    public static List<float> GetBevelSamples(float halfSize, float radius, int segments)
     {
         if (radius <= 0)
             return [-halfSize, halfSize];

@@ -31,6 +31,75 @@ public static class Trace
         return bestEntity;
     }
 
+    public static WorldMesh? IntersectsWorldMesh(Ray ray, out int faceIndex, out Vector3 hitPosition, out Vector3 hitNormal)
+    {
+        faceIndex = -1;
+        hitPosition = Vector3.Zero;
+        hitNormal = Vector3.Zero;
+
+        var minDistance = float.MaxValue;
+        WorldMesh? bestEntity = null;
+
+        foreach (var entity in Engine.EntityManager.Entities.OfType<WorldMesh>())
+        {
+            var mesh = entity.GetPropertyValue<EditableMesh>("Mesh");
+            if (mesh == null)
+                continue;
+
+            var transform = entity.Transform;
+            var vertices = mesh.Vertices.Select(x => Vector3.TransformPosition(x, transform)).ToArray();
+
+            for (var i = 0; i < mesh.Faces.Length; i++)
+            {
+                var indices = mesh.Faces[i].Indices;
+                for (var j = 1; j < indices.Length - 1; j++)
+                {
+                    var a = vertices[indices[0]];
+                    var b = vertices[indices[j]];
+                    var c = vertices[indices[j + 1]];
+
+                    if (RayIntersectsTriangle(ray, a, b, c, out var distance) && distance < minDistance)
+                    {
+                        minDistance = distance;
+                        bestEntity = entity;
+                        faceIndex = i;
+                        hitPosition = ray.Origin + ray.Direction * distance;
+                        hitNormal = MathUtils.CalculateNormal(a, b, c);
+                    }
+                }
+            }
+        }
+
+        return bestEntity;
+    }
+
+    // Möller–Trumbore, only hits front faces (counter-clockwise winding)
+    public static bool RayIntersectsTriangle(Ray ray, Vector3 a, Vector3 b, Vector3 c, out float distance)
+    {
+        distance = 0.0f;
+
+        var edge1 = b - a;
+        var edge2 = c - a;
+        var p = Vector3.Cross(ray.Direction, edge2);
+        var determinant = Vector3.Dot(edge1, p);
+        if (determinant < 1e-6f)
+            return false;
+
+        var inverseDeterminant = 1.0f / determinant;
+        var s = ray.Origin - a;
+        var u = Vector3.Dot(s, p) * inverseDeterminant;
+        if (u < 0 || u > 1)
+            return false;
+
+        var q = Vector3.Cross(s, edge1);
+        var v = Vector3.Dot(ray.Direction, q) * inverseDeterminant;
+        if (v < 0 || u + v > 1)
+            return false;
+
+        distance = Vector3.Dot(edge2, q) * inverseDeterminant;
+        return distance > 0;
+    }
+
     public static bool RayIntersectsAABB(Ray ray, BoundingBox box, out float tmin)
     {
         tmin = 0.0f;
