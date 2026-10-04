@@ -10,7 +10,9 @@ namespace Jellyfish.Entities;
 // Editable meshes are treated as immutable
 public record EditableFace
 {
+    // counter-clockwise polygon, or 4x4 bezier control points (row by row) when Subdivisions is above 0
     public int[] Indices { get; init; } = [];
+    public int Subdivisions { get; init; }
     public string Material { get; init; } = string.Empty;
     public Vector2 TextureOffset { get; init; }
     public Vector2 TextureScale { get; init; } = Vector2.One;
@@ -112,14 +114,21 @@ public class WorldMesh : BaseModelEntity, IPhysicsEntity
         var mesh = GetPropertyValue<EditableMesh>("Mesh")!;
         var materials = mesh.Faces.Where(x => x.Indices.Length >= 3).Select(x => x.Material).Distinct().ToArray();
         var geometryChanged = _builtMesh == null || _builtMesh.Vertices != mesh.Vertices ||
-                              !_builtMesh.Faces.Select(x => x.Indices).SequenceEqual(mesh.Faces.Select(x => x.Indices));
+                              !_builtMesh.Faces.Select(x => (x.Indices, x.Subdivisions)).SequenceEqual(mesh.Faces.Select(x => (x.Indices, x.Subdivisions)));
 
         _builtMesh = mesh;
 
-        // only texture mapping has changed, existing meshes can be reused
-        if (Model != null && !geometryChanged && materials.SequenceEqual(_builtMaterials))
+        // same materials, existing meshes can be reused
+        if (Model != null && materials.SequenceEqual(_builtMaterials))
         {
             UpdateVertices();
+
+            if (geometryChanged)
+            {
+                Model.InvalidateBoundingBox();
+                UpdatePhysics();
+            }
+
             return;
         }
 
@@ -170,6 +179,12 @@ public class WorldMesh : BaseModelEntity, IPhysicsEntity
 
         foreach (var face in mesh.Faces.Where(x => x.Material == material && x.Indices.Length >= 3))
         {
+            if (face.Subdivisions > 0)
+            {
+                vertices.AddRange(GeneratePatchVertices(mesh, face, transform));
+                continue;
+            }
+
             // Newell's method, works for any polygon even if some of the points are collinear
             var normal = Vector3.Zero;
             for (var i = 0; i < face.Indices.Length; i++)
@@ -211,5 +226,87 @@ public class WorldMesh : BaseModelEntity, IPhysicsEntity
         }
 
         return vertices;
+    }
+
+    private static List<Vertex> GeneratePatchVertices(EditableMesh mesh, EditableFace face, Matrix4 transform)
+    {
+        var grid = TessellatePatch(mesh, face);
+        var size = face.Subdivisions;
+
+        // textures follow the surface instead of being projected so curves don't get seams,
+        // the edge lengths keep texture density similar to flat faces
+        var lengthU = 0.0f;
+        var lengthV = 0.0f;
+        for (var i = 0; i < size; i++)
+        {
+            lengthU += (Vector3.TransformPosition(grid[i + 1, 0], transform) - Vector3.TransformPosition(grid[i, 0], transform)).Length;
+            lengthV += (Vector3.TransformPosition(grid[0, i + 1], transform) - Vector3.TransformPosition(grid[0, i], transform)).Length;
+        }
+
+        var (sin, cos) = MathF.SinCos(MathHelper.DegreesToRadians(face.TextureRotation));
+
+        var gridVertices = new Vertex[size + 1, size + 1];
+        for (var i = 0; i <= size; i++)
+        {
+            for (var j = 0; j <= size; j++)
+            {
+                // smooth normals from the neighbouring grid points
+                var du = grid[Math.Min(i + 1, size), j] - grid[Math.Max(i - 1, 0), j];
+                var dv = grid[i, Math.Min(j + 1, size)] - grid[i, Math.Max(j - 1, 0)];
+
+                var uv = new Vector2(i / (float)size * lengthU, j / (float)size * lengthV);
+                uv = new Vector2(uv.X * cos - uv.Y * sin, uv.X * sin + uv.Y * cos);
+
+                gridVertices[i, j] = new Vertex
+                {
+                    Coordinates = grid[i, j],
+                    Normal = Vector3.Cross(du, dv).Normalized(),
+                    UV = uv / (texture_world_size * face.TextureScale) + face.TextureOffset
+                };
+            }
+        }
+
+        var vertices = new List<Vertex>();
+        for (var i = 0; i < size; i++)
+        {
+            for (var j = 0; j < size; j++)
+            {
+                vertices.AddRange([
+                    gridVertices[i, j], gridVertices[i + 1, j], gridVertices[i + 1, j + 1],
+                    gridVertices[i, j], gridVertices[i + 1, j + 1], gridVertices[i, j + 1]
+                ]);
+            }
+        }
+
+        return vertices;
+    }
+
+    // evaluates a bezier patch face into a (Subdivisions + 1)^2 grid of local positions, [u, v]
+    // u goes along the control point rows, v across them, the front of the patch is u x v
+    public static Vector3[,] TessellatePatch(EditableMesh mesh, EditableFace face)
+    {
+        var size = face.Subdivisions;
+        var grid = new Vector3[size + 1, size + 1];
+
+        for (var i = 0; i <= size; i++)
+        {
+            var u = i / (float)size;
+            float[] uWeights = [(1 - u) * (1 - u) * (1 - u), 3 * u * (1 - u) * (1 - u), 3 * u * u * (1 - u), u * u * u];
+
+            for (var j = 0; j <= size; j++)
+            {
+                var v = j / (float)size;
+                float[] vWeights = [(1 - v) * (1 - v) * (1 - v), 3 * v * (1 - v) * (1 - v), 3 * v * v * (1 - v), v * v * v];
+
+                var point = Vector3.Zero;
+                for (var row = 0; row < 4; row++)
+                    for (var column = 0; column < 4; column++)
+                        point += mesh.Vertices[face.Indices[row * 4 + column]] * vWeights[row] * uWeights[column];
+
+                grid[i, j] = point;
+            }
+        }
+
+        return grid;
     }
 }

@@ -164,6 +164,12 @@ public class Model
 
     private BoundingBox? _bindPoseBoundingBox;
 
+    // needs to be called when mesh vertices change
+    public void InvalidateBoundingBox()
+    {
+        _bindPoseBoundingBox = null;
+    }
+
     public BoundingBox BoundingBox
     {
         get

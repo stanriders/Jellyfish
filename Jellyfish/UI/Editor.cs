@@ -209,7 +209,7 @@ public class Editor : IUiPanel, IInputHandler
             {
                 if (ImGui.BeginListBox("##Entity list", new Vector2(-1, 10 * ImGui.GetTextLineHeightWithSpacing())))
                 {
-                    foreach (var entity in Engine.EntityManager.Entities.OrderBy(x => x.Name))
+                    foreach (var entity in Engine.EntityManager.Entities.OrderBy(x => x.Name).Where(x => x is not WorldMesh))
                     {
                         if (ImGui.MenuItem($"{entity.Name} ({entity.ClassName})", "", _selectedEntity?.Name == entity.Name))
                         {
@@ -312,7 +312,10 @@ public class Editor : IUiPanel, IInputHandler
             DrawBlockTool();
 
         if (_tool == Tool.Faces)
+        {
             DrawFaceSelection();
+            DrawPatchControls();
+        }
 
         _mouseRay = null;
     }
@@ -871,11 +874,77 @@ public class Editor : IUiPanel, IInputHandler
             DrawFaceOutline(worldMesh, face, face_selected_color);
     }
 
+    private unsafe void DrawPatchControls()
+    {
+        if (_selectedEntity is not WorldMesh worldMesh || _selectedFaces.Count != 1)
+            return;
+
+        var mesh = worldMesh.GetPropertyValue<EditableMesh>("Mesh")!;
+        var face = mesh.Faces[_selectedFaces[0]];
+        if (face.Subdivisions == 0)
+            return;
+
+        var transform = worldMesh.Transform;
+        var gridSize = (float)ConVarStorage.Get<int>("edt_gridsize");
+        var snapping = ConVarStorage.Get<bool>("edt_snap");
+
+        fixed (float* view = Engine.MainViewport.GetViewMatrix().ToFloatArray())
+        fixed (float* proj = Engine.MainViewport.GetProjectionMatrix().ToFloatArray())
+        fixed (float* snap = new[] { gridSize, gridSize, gridSize })
+        {
+            for (var i = 0; i < face.Indices.Length; i++)
+            {
+                var index = face.Indices[i];
+                var pointTransform = Matrix4.CreateTranslation(Vector3.TransformPosition(mesh.Vertices[index], transform)).ToFloatArray();
+
+                fixed (float* pointTransformPinned = pointTransform)
+                {
+                    ImGuizmo.SetID(i);
+
+                    ImGuizmo.DrawCubes(ref Unsafe.AsRef<float>(view), ref Unsafe.AsRef<float>(proj),
+                        ref Unsafe.AsRef<float>(pointTransformPinned), 1);
+
+                    if (ImGuizmo.Manipulate(ref Unsafe.AsRef<float>(view), ref Unsafe.AsRef<float>(proj),
+                            ImGuizmoOperation.Translate, ImGuizmoMode.World,
+                            ref Unsafe.AsRef<float>(pointTransformPinned),
+                            null,
+                            snapping ? snap : null))
+                    {
+                        _usingGizmo = true;
+
+                        var vertices = mesh.Vertices.ToArray();
+                        vertices[index] = Vector3.TransformPosition(pointTransform.ToMatrix().ExtractTranslation(), transform.Inverted());
+
+                        mesh = mesh with { Vertices = vertices };
+                        worldMesh.SetPropertyValue("Mesh", mesh);
+                    }
+                }
+            }
+        }
+    }
+
     private static void DrawFaceOutline(WorldMesh entity, int faceIndex, uint color)
     {
         var mesh = entity.GetPropertyValue<EditableMesh>("Mesh")!;
         var transform = entity.Transform;
-        var indices = mesh.Faces[faceIndex].Indices;
+        var face = mesh.Faces[faceIndex];
+        var indices = face.Indices;
+
+        if (face.Subdivisions > 0)
+        {
+            // outline the curved edges of the patch
+            var grid = WorldMesh.TessellatePatch(mesh, face);
+            var size = face.Subdivisions;
+            for (var i = 0; i < size; i++)
+            {
+                DebugRender.DrawLine(Vector3.TransformPosition(grid[i, 0], transform), Vector3.TransformPosition(grid[i + 1, 0], transform), color);
+                DebugRender.DrawLine(Vector3.TransformPosition(grid[i, size], transform), Vector3.TransformPosition(grid[i + 1, size], transform), color);
+                DebugRender.DrawLine(Vector3.TransformPosition(grid[0, i], transform), Vector3.TransformPosition(grid[0, i + 1], transform), color);
+                DebugRender.DrawLine(Vector3.TransformPosition(grid[size, i], transform), Vector3.TransformPosition(grid[size, i + 1], transform), color);
+            }
+
+            return;
+        }
 
         for (var i = 0; i < indices.Length; i++)
         {
@@ -893,7 +962,7 @@ public class Editor : IUiPanel, IInputHandler
 
         if (_selectedFaces.Count == 0)
         {
-            ImGui.TextWrapped("Click to select faces, Ctrl+click to select multiple, Alt+click to pick a material, Delete to remove selected faces");
+            ImGui.TextWrapped("Click to select faces, Ctrl+click to select multiple, Alt+click to pick a material, Delete to remove selected faces. Select a single curved face to move its control points");
             return;
         }
 
@@ -921,9 +990,73 @@ public class Editor : IUiPanel, IInputHandler
         if (ImGui.Button("Reset mapping"))
             ModifySelectedFaces(x => x with { TextureOffset = OpenTK.Mathematics.Vector2.Zero, TextureScale = OpenTK.Mathematics.Vector2.One, TextureRotation = 0 });
 
+        // flipping a patch swaps its u and v directions, reversing the control points would scramble the rows
         ImGui.SameLine();
         if (ImGui.Button("Flip"))
-            ModifySelectedFaces(x => x with { Indices = x.Indices.Reverse().ToArray() });
+            ModifySelectedFaces(x => x with
+            {
+                Indices = x.Subdivisions > 0
+                    ? Enumerable.Range(0, 16).Select(i => x.Indices[i % 4 * 4 + i / 4]).ToArray()
+                    : x.Indices.Reverse().ToArray()
+            });
+
+        var firstPatch = _selectedFaces.Select(x => mesh.Faces[x]).FirstOrDefault(x => x.Subdivisions > 0);
+        if (firstPatch != null)
+        {
+            var subdivisions = firstPatch.Subdivisions;
+            if (ImGui.DragInt("Subdivisions", ref subdivisions, 0.1f, 1, 64))
+                ModifySelectedFaces(x => x.Subdivisions > 0 ? x with { Subdivisions = subdivisions } : x);
+
+            if (ImGui.Button("Flatten"))
+                ModifySelectedFaces(x => x.Subdivisions > 0 ? x with { Indices = [x.Indices[0], x.Indices[3], x.Indices[15], x.Indices[12]], Subdivisions = 0 } : x);
+        }
+
+        if (_selectedFaces.Any(x => mesh.Faces[x].Subdivisions == 0 && mesh.Faces[x].Indices.Length == 4))
+        {
+            if (firstPatch != null)
+                ImGui.SameLine();
+
+            if (ImGui.Button("Make curved"))
+            {
+                var vertices = mesh.Vertices.ToList();
+                var faces = mesh.Faces.ToArray();
+
+                foreach (var i in _selectedFaces.Where(x => faces[x].Subdivisions == 0 && faces[x].Indices.Length == 4))
+                {
+                    // 4x4 control points spread over the quad, corners stay shared with the neighbouring faces
+                    var corners = faces[i].Indices;
+                    var controlPoints = new int[16];
+                    for (var row = 0; row < 4; row++)
+                    {
+                        for (var column = 0; column < 4; column++)
+                        {
+                            var index = (row, column) switch
+                            {
+                                (0, 0) => corners[0],
+                                (0, 3) => corners[1],
+                                (3, 3) => corners[2],
+                                (3, 0) => corners[3],
+                                _ => -1
+                            };
+
+                            if (index == -1)
+                            {
+                                var top = Vector3.Lerp(vertices[corners[0]], vertices[corners[1]], column / 3.0f);
+                                var bottom = Vector3.Lerp(vertices[corners[3]], vertices[corners[2]], column / 3.0f);
+                                vertices.Add(Vector3.Lerp(top, bottom, row / 3.0f));
+                                index = vertices.Count - 1;
+                            }
+
+                            controlPoints[row * 4 + column] = index;
+                        }
+                    }
+
+                    faces[i] = faces[i] with { Indices = controlPoints, Subdivisions = 8 };
+                }
+
+                entity.SetPropertyValue("Mesh", mesh with { Vertices = vertices.ToArray(), Faces = faces });
+            }
+        }
 
         return;
 

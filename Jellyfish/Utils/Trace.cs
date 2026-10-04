@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Jellyfish.Entities;
 using OpenTK.Mathematics;
@@ -51,13 +52,33 @@ public static class Trace
 
             for (var i = 0; i < mesh.Faces.Length; i++)
             {
-                var indices = mesh.Faces[i].Indices;
-                for (var j = 1; j < indices.Length - 1; j++)
-                {
-                    var a = vertices[indices[0]];
-                    var b = vertices[indices[j]];
-                    var c = vertices[indices[j + 1]];
+                var face = mesh.Faces[i];
+                var triangles = new List<(Vector3 A, Vector3 B, Vector3 C)>();
 
+                if (face.Subdivisions > 0)
+                {
+                    var grid = WorldMesh.TessellatePatch(mesh, face);
+                    for (var u = 0; u < face.Subdivisions; u++)
+                    {
+                        for (var v = 0; v < face.Subdivisions; v++)
+                        {
+                            var a = Vector3.TransformPosition(grid[u, v], transform);
+                            var b = Vector3.TransformPosition(grid[u + 1, v], transform);
+                            var c = Vector3.TransformPosition(grid[u + 1, v + 1], transform);
+                            var d = Vector3.TransformPosition(grid[u, v + 1], transform);
+                            triangles.Add((a, b, c));
+                            triangles.Add((a, c, d));
+                        }
+                    }
+                }
+                else
+                {
+                    for (var j = 1; j < face.Indices.Length - 1; j++)
+                        triangles.Add((vertices[face.Indices[0]], vertices[face.Indices[j]], vertices[face.Indices[j + 1]]));
+                }
+
+                foreach (var (a, b, c) in triangles)
+                {
                     if (RayIntersectsTriangle(ray, a, b, c, out var distance) && distance < minDistance)
                     {
                         minDistance = distance;
