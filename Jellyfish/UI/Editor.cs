@@ -397,7 +397,11 @@ public class Editor : IUiPanel, IInputHandler
                 var screenspacePosition = new OpenTK.Mathematics.Vector2(mouseState.Position.X / Engine.MainViewport.Size.X, mouseState.Y / Engine.MainViewport.Size.Y);
                 var ray = Engine.MainViewport.GetCameraToViewportRay(screenspacePosition);
 
-                _selectedEntity = Trace.IntersectsEntity(ray);
+                var entity = Trace.IntersectsEntity(ray);
+                if (entity == _selectedEntity)
+                    _selectedEntity = null;
+                else
+                    _selectedEntity = entity;
             }
         }
 
