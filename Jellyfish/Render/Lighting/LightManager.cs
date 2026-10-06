@@ -66,9 +66,9 @@ public class LightManager
         {
             foreach (var shadow in Sun.Shadows)
             {
-                shadow.FrameBuffer.Dispose();
-                shadow.RenderTarget.Unload();
                 GL.ARB.MakeTextureHandleNonResidentARB(shadow.BindlessHandle);
+                shadow.RenderTarget.Unload();
+                shadow.FrameBuffer.Dispose();
             }
 
             Sun = null;
@@ -237,14 +237,17 @@ public class LightManager
         var currentLight = 0;
         for (var i = 0; i < totalLights; i++)
         {
+            // rent for every light to match returns later
+            borrowedLightProjectionArrays[i] = ArrayPool<Matrix4>.Shared.Rent(max_shadows_per_lights);
+            borrowedLightShadowTextureArrays[i] = ArrayPool<ulong>.Shared.Rent(max_shadows_per_lights);
+
+            Array.Clear(borrowedLightShadowTextureArrays[i]);
+
             var source = Lights[i].Source;
             if (!source.Enabled)
             {
                 continue;
             }
-
-            borrowedLightProjectionArrays[i] = ArrayPool<Matrix4>.Shared.Rent(max_shadows_per_lights);
-            borrowedLightShadowTextureArrays[i] = ArrayPool<ulong>.Shared.Rent(max_shadows_per_lights);
 
             lightSourcesStruct.Lights[currentLight].Position = new Vector4(source.Position);
 
@@ -389,9 +392,9 @@ public class LightManager
 
         foreach (var shadow in light.Shadows)
         {
-            shadow.RenderTarget.Unload();
-            shadow.FrameBuffer.Dispose();
             GL.ARB.MakeTextureHandleNonResidentARB(shadow.BindlessHandle);
+            shadow.FrameBuffer.Dispose();
+            shadow.RenderTarget.Unload();
         }
 
         light.Shadows.Clear();
