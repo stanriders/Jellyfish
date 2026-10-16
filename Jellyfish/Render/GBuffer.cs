@@ -52,7 +52,7 @@ public class GBuffer
 
         GL.Viewport(0, 0, Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-        Engine.MeshManager.DrawGBuffer();
+        Engine.MeshManager.DrawOpaque(gBuffer: true);
 
         _buffer.Unbind();
     }

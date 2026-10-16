@@ -133,7 +133,7 @@ public class LightProbe
             sky?.Draw();
 
             Engine.MainViewport.ViewMatrixOverride = Matrix4.LookAt(Position, Position + _cubemapViews[i].target, _cubemapViews[i].up);
-            Engine.MeshManager.Draw(false, frustum: Engine.MainViewport.GetFrustum());
+            Engine.MeshManager.DrawOpaque(false, frustum: Engine.MainViewport.GetFrustum());
 
             cubemapBuffer.Unbind();
         }

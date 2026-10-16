@@ -166,7 +166,8 @@ public class OpenGLRender : IRender
         _sky?.Draw();
 
         GL.DepthFunc(DepthFunction.Lequal);
-        Engine.MeshManager.Draw(frustum: Engine.MainViewport.GetFrustum());
+        Engine.MeshManager.DrawOpaque(frustum: Engine.MainViewport.GetFrustum());
+        Engine.MeshManager.DrawTranslucent(frustum: Engine.MainViewport.GetFrustum());
         GL.DepthFunc(DepthFunction.Less);
 
         _mainFramebuffer?.Unbind();
@@ -178,6 +179,8 @@ public class OpenGLRender : IRender
         }
 
         _outRender?.Draw();
+
+        Engine.MeshManager.PostDraw();
     }
 
     public void Unload()

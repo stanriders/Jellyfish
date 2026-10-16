@@ -24,8 +24,6 @@ public class MeshManager
     public IReadOnlyList<Mesh> Meshes => new ReadOnlyCollection<Mesh>([.._opaqueMeshes, .._translucentMeshes]);
     public BoundingBox SceneBoundingBox { get; private set; }
 
-    private bool _drawing;
-
     public void AddMesh(Mesh mesh, bool singleFrame = false)
     {
         var sharedBuffersKey = mesh.Model?.SourcePath != null ? $"{mesh.Model.SourcePath}_{mesh.Name}" : null;
@@ -59,92 +57,47 @@ public class MeshManager
 
     public void RemoveMesh(Mesh mesh)
     {
-        while (_drawing)
+        Scheduler.RenderSchedule(() =>
         {
-            // never remove meshes mid-drawing
-        }
-
-        if (_translucentMeshes.Contains(mesh))
-            _translucentMeshes.Remove(mesh);
-        else
-            _opaqueMeshes.Remove(mesh);
-
-        var disposeBuffers = true;
-
-        var sharedBuffersKey = mesh.Model?.SourcePath != null ? $"{mesh.Model.SourcePath}_{mesh.Name}" : null;
-        if (sharedBuffersKey != null && _buffers.TryGetValue(sharedBuffersKey, out var shared))
-        {
-            if (shared.References <= 1)
-            {
-                _buffers.Remove(sharedBuffersKey);
-                disposeBuffers = true;
-            }
+            if (_translucentMeshes.Contains(mesh))
+                _translucentMeshes.Remove(mesh);
             else
+                _opaqueMeshes.Remove(mesh);
+
+            var disposeBuffers = true;
+
+            var sharedBuffersKey = mesh.Model?.SourcePath != null ? $"{mesh.Model.SourcePath}_{mesh.Name}" : null;
+            if (sharedBuffersKey != null && _buffers.TryGetValue(sharedBuffersKey, out var shared))
             {
-                _buffers[sharedBuffersKey] = (shared.Buffers, shared.References - 1);
-                disposeBuffers = false;
+                if (shared.References <= 1)
+                {
+                    _buffers.Remove(sharedBuffersKey);
+                    disposeBuffers = true;
+                }
+                else
+                {
+                    _buffers[sharedBuffersKey] = (shared.Buffers, shared.References - 1);
+                    disposeBuffers = false;
+                }
             }
-        }
 
-        mesh.Unload(disposeBuffers);
+            mesh.Unload(disposeBuffers);
 
-        // sounds expensive?
-        UpdateSceneBoundingBox();
+            // sounds expensive?
+            UpdateSceneBoundingBox();
+        });
     }
 
     public void UpdateMesh(Mesh mesh, List<Vertex> vertices)
     {
-        if (!_drawing)
+        Scheduler.RenderSchedule(() =>
         {
             if (!_updateQueue.Any(x=> x.Item1 == mesh))
                 _updateQueue.Add((mesh, vertices));
-        }
+        });
     }
 
-    public void Draw(bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null)
-    {
-        using var _ = new PerformanceMeasure("MeshManager.Draw");
-
-        _drawing = true;
-
-        DrawOpaque(drawDev, shaderToUse, frustum);
-        DrawTranslucent(drawDev, shaderToUse, frustum);
-
-        // ensure that all VBO updates happen post-rendering
-        UpdateMeshes();
-
-        _drawing = false;
-
-        PostDraw(drawDev);
-    }
-
-    public void DrawShadows(Frustum frustum, Shaders.Shadow shader)
-    {
-        using var _ = new PerformanceMeasure("MeshManager.DrawShadows");
-
-        _drawing = true;
-
-        DrawOpaque(false, shader, frustum);
-        // don't draw translucent since shadows need depth testing
-
-        _drawing = false;
-    }
-
-    public void DrawGBuffer(bool drawDev = true)
-    {
-        using var _ = new PerformanceMeasure("MeshManager.DrawGBuffer");
-
-        _drawing = true;
-
-        var playerFrustum = Engine.MainViewport.GetFrustum();
-
-        DrawOpaque(drawDev, null, playerFrustum, true);
-        DrawTranslucent(drawDev, null, playerFrustum, true);
-
-        _drawing = false;
-    }
-
-    private void DrawOpaque(bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null, bool gBuffer = false)
+    public void DrawOpaque(bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null, bool gBuffer = false)
     {
         using var _ = new PerformanceMeasure($"MeshManager.Draw.Opaque{(gBuffer ? ".GBuffer" : "")}");
 
@@ -152,9 +105,9 @@ public class MeshManager
             DrawMesh(mesh, drawDev, shaderToUse, frustum, gBuffer);
     }
 
-    private void DrawTranslucent(bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null, bool gBuffer = false)
+    public void DrawTranslucent(bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null)
     {
-        using var _ = new PerformanceMeasure($"MeshManager.Draw.Translucent{(gBuffer ? ".GBuffer" : "")}");
+        using var _ = new PerformanceMeasure("MeshManager.Draw.Translucent");
         if (_translucentMeshes.Count == 0)
             return;
 
@@ -170,7 +123,7 @@ public class MeshManager
         GL.BlendEquation(BlendEquationMode.FuncAdd);
 
         foreach (var mesh in transluscentObjects)
-            DrawMesh(mesh, drawDev, shaderToUse, frustum, gBuffer);
+            DrawMesh(mesh, drawDev, shaderToUse, frustum);
 
         GL.Disable(EnableCap.Blend);
         GL.DepthMask(true);
@@ -205,8 +158,11 @@ public class MeshManager
         _updateQueue.Clear();
     }
 
-    private void PostDraw(bool drawDev = true)
+    public void PostDraw(bool drawDev = true)
     {
+        // ensure that all VBO updates happen post-rendering
+        UpdateMeshes();
+
         if (drawDev) // kinda a hack: we need single frame meshes to actually survive to the end of the frame so we assume they're all dev meshes
         {
             foreach (var singleFrameMesh in _singleFrameMeshes)
