@@ -469,6 +469,18 @@ public abstract class Shader
         _boundTextures.Add(sampler);
     }
 
+    public void BindTexture(uint sampler, TextureRef? texture)
+    {
+        if (texture == null)
+            return;
+
+        if (_boundTextures.Contains(sampler))
+            throw new Exception("Trying to bind to a sampler that wasn't unbound");
+
+        texture.Texture.Bind(sampler);
+        _boundTextures.Add(sampler);
+    }
+
     public void BindMaterial(Material? material)
     {
         BoundMaterial = material;

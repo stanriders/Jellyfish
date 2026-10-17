@@ -4,7 +4,7 @@ public class Bloom : Shader
 {
     private readonly string _rtColorName;
     private readonly float _filterSize;
-    private Texture? _rtColor;
+    private TextureRef? _rtColor;
 
     public Bloom(string rtColorName, float filterSize) :
         base("shaders/Screenspace.vert", null, "shaders/Bloom.frag")
@@ -27,7 +27,7 @@ public class Bloom : Shader
 
     public override void Unload()
     {
-        _rtColor?.Unload();
+        _rtColor?.Dispose();
         base.Unload();
     }
 }

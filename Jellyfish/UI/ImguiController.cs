@@ -197,34 +197,34 @@ public sealed class ImguiController : IDisposable, IInputHandler
                         }
                     });
 
-                    GL.TextureSubImage2D(newTexture.Handle, 0, 0, 0, imTexture.Width, imTexture.Height,
+                    GL.TextureSubImage2D(newTexture.Texture.Handle, 0, 0, 0, imTexture.Width, imTexture.Height,
                         PixelFormat.Bgra, PixelType.UnsignedByte,
                         imTexture.GetPixels());
 
-                    GL.GenerateTextureMipmap(newTexture.Handle);
+                    GL.GenerateTextureMipmap(newTexture.Texture.Handle);
 
-                    GL.TextureParameteri(newTexture.Handle, TextureParameterName.TextureMaxLevel, mips);
+                    GL.TextureParameteri(newTexture.Texture.Handle, TextureParameterName.TextureMaxLevel, mips);
 
-                    imTexture.SetTexID(newTexture.Handle);
+                    imTexture.SetTexID(newTexture.Texture.Handle);
                     imTexture.SetStatus(ImTextureStatus.Ok);
                 }
 
-                var texture = Engine.TextureManager.GetTexture(id);
+                using var texture = Engine.TextureManager.GetTexture(id);
 
                 if (imTexture.Status == ImTextureStatus.WantUpdates && texture != null)
                 {
                     // TODO: update rects instead of the full texture
-                    GL.TextureSubImage2D(texture.Handle, 0, 0, 0, imTexture.Width, imTexture.Height, PixelFormat.Bgra, PixelType.UnsignedByte,
+                    GL.TextureSubImage2D(texture.Texture.Handle, 0, 0, 0, imTexture.Width, imTexture.Height, PixelFormat.Bgra, PixelType.UnsignedByte,
                         imTexture.GetPixels());
 
-                    GL.GenerateTextureMipmap(texture.Handle);
+                    GL.GenerateTextureMipmap(texture.Texture.Handle);
 
                     imTexture.SetStatus(ImTextureStatus.Ok);
                 }
 
                 if (imTexture.Status == ImTextureStatus.WantDestroy && imTexture.UnusedFrames > 0 && texture != null)
                 {
-                    Engine.TextureManager.RemoveTexture(texture);
+                    Engine.TextureManager.RemoveTexture(texture.Texture);
                     imTexture.SetTexID(ImTextureID.Null);
                     imTexture.SetStatus(ImTextureStatus.Destroyed);
                 }

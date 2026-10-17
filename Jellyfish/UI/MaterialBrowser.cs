@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using Hexa.NET.ImGui;
 using Jellyfish.Console;
-using Jellyfish.Entities;
 using Jellyfish.Render;
 using Newtonsoft.Json;
 using Vector2 = System.Numerics.Vector2;
@@ -25,7 +24,7 @@ public class MaterialBrowser : IUiPanel
     private string _filter = string.Empty;
 
     private string? _previewMaterial;
-    private Texture? _previewTexture;
+    private TextureRef? _previewTexture;
 
     public unsafe void Frame(double timeElapsed)
     {
@@ -45,7 +44,7 @@ public class MaterialBrowser : IUiPanel
         {
             if (_previewTexture != null)
             {
-                ImGui.Image(new ImTextureRef(texId: _previewTexture.Handle), new Vector2(preview_size));
+                ImGui.Image(new ImTextureRef(texId: _previewTexture.Texture.Handle), new Vector2(preview_size));
                 ImGui.SameLine();
             }
 
@@ -73,8 +72,7 @@ public class MaterialBrowser : IUiPanel
 
     public void Unload()
     {
-        if (_previewTexture != null)
-            Engine.TextureManager.RemoveTexture(_previewTexture);
+        _previewTexture?.Dispose();
 
         _previewTexture = null;
     }

@@ -5,9 +5,9 @@ namespace Jellyfish.Render.Shaders.SMAA;
 
 public class BlendingWeightCalculation : Shader
 {
-    private readonly Texture _rtEdges;
-    private readonly Texture _areaTexture;
-    private readonly Texture _searchTexture;
+    private readonly TextureRef _rtEdges;
+    private readonly TextureRef _areaTexture;
+    private readonly TextureRef _searchTexture;
     public BlendingWeightCalculation() 
         : base("shaders/BlendingWeightCalculation.vert", null, "shaders/BlendingWeightCalculation.frag")
     {
@@ -53,9 +53,9 @@ public class BlendingWeightCalculation : Shader
 
     public override void Unload()
     {
-        _rtEdges.Unload();
-        _areaTexture.Unload();
-        _searchTexture.Unload();
+        _rtEdges.Dispose();
+        _areaTexture.Dispose();
+        _searchTexture.Dispose();
 
         base.Unload();
     }

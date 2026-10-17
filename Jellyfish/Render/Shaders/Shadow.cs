@@ -14,9 +14,7 @@ public class Shadow() : Shader("shaders/Shadow.vert", null, "shaders/Shadow.frag
 
         SetBool("hasAlphaTest", BoundMaterial.GetParam<bool>("Cutout")); // todo: rename
 
-        var diffuse = BoundMaterial.GetParamTexture("Diffuse", true);
+        using var diffuse = BoundMaterial.GetParamTexture("Diffuse", true);
         BindTexture(0, diffuse);
-
-        diffuse?.Unload(); // todo: textureref class
     }
 }

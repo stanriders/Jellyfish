@@ -3,7 +3,7 @@
 public class Downsample : Shader
 {
 
-    private readonly Texture _rtColor;
+    private readonly TextureRef _rtColor;
 
     public Downsample(string rtColor) :
         base("shaders/Screenspace.vert", null, "shaders/Downsample.frag")
@@ -19,7 +19,7 @@ public class Downsample : Shader
 
     public override void Unload()
     {
-        _rtColor.Unload();
+        _rtColor.Dispose();
         base.Unload();
     }
 }

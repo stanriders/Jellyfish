@@ -5,8 +5,8 @@ namespace Jellyfish.Render.Shaders.SMAA;
 
 public class NeighborhoodBlending : Shader
 {
-    private readonly Texture _rtColor;
-    private readonly Texture _rtBlend;
+    private readonly TextureRef _rtColor;
+    private readonly TextureRef _rtBlend;
     public NeighborhoodBlending() 
         : base("shaders/NeighborhoodBlending.vert", null, "shaders/NeighborhoodBlending.frag")
     {
@@ -25,8 +25,8 @@ public class NeighborhoodBlending : Shader
 
     public override void Unload()
     {
-        _rtColor.Unload();
-        _rtBlend.Unload();
+        _rtColor.Dispose();
+        _rtBlend.Dispose();
 
         base.Unload();
     }

@@ -23,7 +23,7 @@ public class LightManager
 
         public class Shadow
         {
-            public required Texture RenderTarget { get; set; }
+            public required TextureRef RenderTarget { get; set; }
             public required FrameBuffer FrameBuffer { get; set; }
             public required ulong BindlessHandle { get; set; }
         }
@@ -67,7 +67,7 @@ public class LightManager
             foreach (var shadow in Sun.Shadows)
             {
                 GL.ARB.MakeTextureHandleNonResidentARB(shadow.BindlessHandle);
-                shadow.RenderTarget.Unload();
+                shadow.RenderTarget.Dispose();
                 shadow.FrameBuffer.Dispose();
             }
 
@@ -369,12 +369,12 @@ public class LightManager
             }
         });
 
-        framebuffer.AttachTexture(rt.Handle, FramebufferAttachment.DepthAttachment);
+        framebuffer.AttachTexture(rt.Texture.Handle, FramebufferAttachment.DepthAttachment);
         framebuffer.DrawInto(ColorBuffer.None);
         framebuffer.ReadFrom(ColorBuffer.None);
         framebuffer.Check();
 
-        var bindlessHandle = GL.ARB.GetTextureHandleARB(rt.Handle);
+        var bindlessHandle = GL.ARB.GetTextureHandleARB(rt.Texture.Handle);
         GL.ARB.MakeTextureHandleResidentARB(bindlessHandle);
 
         light.Shadows.Add(new Light.Shadow
@@ -394,7 +394,7 @@ public class LightManager
         {
             GL.ARB.MakeTextureHandleNonResidentARB(shadow.BindlessHandle);
             shadow.FrameBuffer.Dispose();
-            shadow.RenderTarget.Unload();
+            shadow.RenderTarget.Dispose();
         }
 
         light.Shadows.Clear();

@@ -38,7 +38,7 @@ public class Texture
     public RenderTargetParams? RenderTargetParams { get; }
     public TextureParams Params { get; }
     public int Handle { get; }
-    public int References { get; set; } = 1;
+    public int References { get; set; }
     public int Levels { get; private set; }
     public string Format { get; private set; }
     public bool HasAlpha { get; private set; }
@@ -180,12 +180,6 @@ public class Texture
         {
             GL.BindTextureUnit(unit, Handle);
         }
-    }
-
-    public void Unload()
-    {
-        if (Handle != 0)
-            Engine.TextureManager.RemoveTexture(this);
     }
 
     public override string ToString() => Params.Name ?? Params.Path ?? "Unknown ???";

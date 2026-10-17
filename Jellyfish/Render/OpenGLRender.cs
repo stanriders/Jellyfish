@@ -18,8 +18,8 @@ public class OpenGLRender : IRender
 {
     private FinalOut? _outRender;
     private FrameBuffer? _mainFramebuffer;
-    private Texture? _colorRenderTarget;
-    private Texture? _depthRenderTarget;
+    private TextureRef? _colorRenderTarget;
+    private TextureRef? _depthRenderTarget;
     private Sky? _sky;
     private GBuffer? _gBuffer;
     public ImageBasedLighting? ImageBasedLighting { get; private set; }
@@ -103,8 +103,8 @@ public class OpenGLRender : IRender
             }
         });
 
-        _mainFramebuffer.AttachTexture(_colorRenderTarget.Handle, attachment: FramebufferAttachment.ColorAttachment0);
-        _mainFramebuffer.AttachTexture(_depthRenderTarget.Handle, attachment: FramebufferAttachment.DepthAttachment);
+        _mainFramebuffer.AttachTexture(_colorRenderTarget.Texture.Handle, attachment: FramebufferAttachment.ColorAttachment0);
+        _mainFramebuffer.AttachTexture(_depthRenderTarget.Texture.Handle, attachment: FramebufferAttachment.DepthAttachment);
 
         if (!_mainFramebuffer.Check())
         {
@@ -113,7 +113,7 @@ public class OpenGLRender : IRender
 
         GL.Disable(EnableCap.FramebufferSrgb);
 
-        _gBuffer = new GBuffer(_depthRenderTarget);
+        _gBuffer = new GBuffer(_depthRenderTarget.Texture);
         _sky = new Sky();
         ImageBasedLighting = new ImageBasedLighting();
 
@@ -194,8 +194,8 @@ public class OpenGLRender : IRender
 
         ImageBasedLighting?.Unload();
         _gBuffer?.Unload();
-        _colorRenderTarget?.Unload();
-        _depthRenderTarget?.Unload();
+        _colorRenderTarget?.Dispose();
+        _depthRenderTarget?.Dispose();
         _mainFramebuffer?.Dispose();
     }
 
@@ -239,8 +239,8 @@ public class OpenGLRender : IRender
 
         ImageBasedLighting?.Reset();
         _gBuffer?.Unload();
-        _colorRenderTarget?.Unload();
-        _depthRenderTarget?.Unload();
+        _colorRenderTarget?.Dispose();
+        _depthRenderTarget?.Dispose();
         _mainFramebuffer?.Dispose();
 
         CreateBuffers();

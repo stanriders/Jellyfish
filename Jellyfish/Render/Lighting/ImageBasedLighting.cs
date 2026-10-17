@@ -24,7 +24,7 @@ public class LightProbe
     public ulong PrefilterBindlessHandle { get; }
     public Vector4[] IrradianceHarmonics { get; } = new Vector4[9];
 
-    private readonly Texture _prefilterRenderTarget;
+    private readonly TextureRef _prefilterRenderTarget;
 
     public const int PrefilterMips = 6;
 
@@ -69,7 +69,7 @@ public class LightProbe
             }
         });
 
-        PrefilterBindlessHandle = GL.ARB.GetTextureHandleARB(_prefilterRenderTarget.Handle);
+        PrefilterBindlessHandle = GL.ARB.GetTextureHandleARB(_prefilterRenderTarget.Texture.Handle);
 
         GL.ARB.MakeTextureHandleResidentARB(PrefilterBindlessHandle);
     }
@@ -81,15 +81,15 @@ public class LightProbe
         GL.PolygonMode(TriangleFace.FrontAndBack, PolygonMode.Fill);
 
         var envMap = RenderCubemap(sky);
-        ComputeIrradianceHarmonics(envMap);
+        ComputeIrradianceHarmonics(envMap.Texture);
 
         if (ConVarStorage.Get<bool>("mat_ibl_prefilter"))
             RenderPrefilter(envMap);
 
-        envMap.Unload();
+        envMap.Dispose();
     }
 
-    private Texture RenderCubemap(Sky? sky)
+    private TextureRef RenderCubemap(Sky? sky)
     {
         using var cubemapBuffer = new FrameBuffer();
         using var renderBuffer = new RenderBuffer(InternalFormat.DepthComponent, size, size);
@@ -125,7 +125,7 @@ public class LightProbe
 
             GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-            cubemapBuffer.AttachTexture(cubemapRenderTarget.Handle, layer: (int)i);
+            cubemapBuffer.AttachTexture(cubemapRenderTarget.Texture.Handle, layer: (int)i);
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
@@ -138,7 +138,7 @@ public class LightProbe
             cubemapBuffer.Unbind();
         }
 
-        GL.GenerateTextureMipmap(cubemapRenderTarget.Handle);
+        GL.GenerateTextureMipmap(cubemapRenderTarget.Texture.Handle);
 
         return cubemapRenderTarget;
     }
@@ -201,10 +201,9 @@ public class LightProbe
             IrradianceHarmonics[k] = new Vector4(sh[k] * normalization * bandScale[k], 0f);
     }
 
-    private void RenderPrefilter(Texture envMap)
+    private void RenderPrefilter(TextureRef envMap)
     {
         var prefilterShader = new Prefiltering(envMap);
-        envMap.References++; // todo: this should be done automatically
 
         using var prefilterBuffer = new FrameBuffer($"ibl_{_index}_prefilter_framebuffer");
         var prefilterRenderbuffer = new RenderBuffer(InternalFormat.DepthComponent, size, size);
@@ -220,7 +219,7 @@ public class LightProbe
 
         Engine.MainViewport.ProjectionMatrixOverride = Matrix4.CreatePerspectiveFieldOfView(float.DegreesToRadians(90f), 1.0f, 0.1f, 2f);
 
-        var maxMipLevels = _prefilterRenderTarget.Levels;
+        var maxMipLevels = _prefilterRenderTarget.Texture.Levels;
         for (var mip = 0; mip < maxMipLevels; mip++)
         {
             var mipWidth = size >> mip;
@@ -233,7 +232,7 @@ public class LightProbe
 
             for (uint face = 0; face < 6; face++)
             {
-                prefilterBuffer.AttachTexture(_prefilterRenderTarget.Handle, level: mip, layer: (int)face);
+                prefilterBuffer.AttachTexture(_prefilterRenderTarget.Texture.Handle, level: mip, layer: (int)face);
 
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
@@ -261,7 +260,7 @@ public class LightProbe
     {
         GL.ARB.MakeTextureHandleNonResidentARB(PrefilterBindlessHandle);
 
-        _prefilterRenderTarget.Unload();
+        _prefilterRenderTarget.Dispose();
     }
 }
 

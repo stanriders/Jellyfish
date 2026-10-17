@@ -5,6 +5,24 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.Render;
 
+public sealed class TextureRef : IDisposable
+{
+    public Texture Texture { get; }
+
+    public TextureRef(Texture texture)
+    {
+        Texture = texture;
+        Texture.References++;
+    }
+
+    public void Dispose()
+    {
+        Texture.References--;
+        if (Texture.References <= 0)
+            Engine.TextureManager.RemoveTexture(Texture);
+    }
+}
+
 public class TextureManager
 {
     private readonly List<Texture> _textures = new();
@@ -23,7 +41,7 @@ public class TextureManager
         });
     }
 
-    public Texture CreateTexture(TextureParams textureParams)
+    public TextureRef CreateTexture(TextureParams textureParams)
     {
         var existingTexture = _textures.FirstOrDefault(x => x.Params.Path == (textureParams.Path ?? textureParams.Name) || 
                                                             x.Params.Name == (textureParams.Name ?? textureParams.Path));
@@ -35,7 +53,7 @@ public class TextureManager
             var texture = new Texture(textureParams);
             _textures.Add(texture);
 
-            return texture;
+            return new TextureRef(texture);
         }
         catch (InvalidTextureException)
         {
@@ -43,7 +61,7 @@ public class TextureManager
         }
     }
 
-    public Texture CreateTexture(RenderTargetParams rtParams)
+    public TextureRef CreateTexture(RenderTargetParams rtParams)
     {
         var existingTexture = _textures.FirstOrDefault(x => x.Params.Name == rtParams.TextureParams.Name);
         if (existingTexture != null)
@@ -54,7 +72,7 @@ public class TextureManager
             var texture = new Texture(rtParams);
             _textures.Add(texture);
 
-            return texture;
+            return new TextureRef(texture);
         }
         catch (InvalidTextureException)
         {
@@ -62,36 +80,24 @@ public class TextureManager
         }
     }
 
-    public (Texture Texture, bool AlreadyExists) GetTexture(TextureParams textureParams)
+    public (TextureRef Texture, bool AlreadyExists) GetTexture(TextureParams textureParams)
     {
         var existingTexture = _textures.FirstOrDefault(x => x.Params.Path == (textureParams.Path ?? textureParams.Name) ||
                                                             x.Params.Name == (textureParams.Name ?? textureParams.Path));
         if (existingTexture != null)
         {
-            existingTexture.References++;
-            return (existingTexture, true);
+            return (new TextureRef(existingTexture), true);
         }
 
-        try
-        {
-            var texture = new Texture(textureParams);
-            _textures.Add(texture);
-
-            return (texture, false);
-        }
-        catch (InvalidTextureException)
-        {
-            return (GetTexture(error_texture)!, false);
-        }
+        return (CreateTexture(textureParams), false);
     }
 
-    public Texture? GetTexture(string name)
+    public TextureRef? GetTexture(string name)
     {
         var existingTexture = _textures.FirstOrDefault(x => x.Params.Name == name);
         if (existingTexture != null)
         {
-            existingTexture.References++;
-            return existingTexture;
+            return new TextureRef(existingTexture);
         }
 
         return null;
@@ -99,12 +105,7 @@ public class TextureManager
 
     public void RemoveTexture(Texture texture)
     {
-        texture.References--;
-
-        if (texture.References <= 0)
-        {
-            _textures.Remove(texture);
-            texture.Delete();
-        }
+        _textures.Remove(texture);
+        texture.Delete();
     }
 }

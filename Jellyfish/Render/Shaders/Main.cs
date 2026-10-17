@@ -7,10 +7,10 @@ public class Main : Shader
 {
     private readonly bool _hasTransparency;
     private readonly bool _hasAlphaTest;
-    private readonly Texture? _diffuse;
-    private readonly Texture? _normal;
-    private readonly Texture? _metRought;
-    private readonly Texture? _reflectionMap;
+    private readonly TextureRef? _diffuse;
+    private readonly TextureRef? _normal;
+    private readonly TextureRef? _metRought;
+    private readonly TextureRef? _reflectionMap;
 
     public Main(Material material) : base("shaders/Main.vert", null, "shaders/Main.frag")
     {
@@ -34,7 +34,7 @@ public class Main : Shader
             _hasAlphaTest = alphaTest;
     }
 
-    public Main(Texture diffuse) : base("shaders/Main.vert", null, "shaders/Main.frag")
+    public Main(TextureRef diffuse) : base("shaders/Main.vert", null, "shaders/Main.frag")
     {
         _diffuse = diffuse;
     }
@@ -59,18 +59,18 @@ public class Main : Shader
         Engine.LightManager.LightSourcesSsbo.Bind(0);
         Engine.Renderer.ImageBasedLighting?.LightProbesSsbo.Bind(1);
 
-        BindTexture(0, _diffuse);
-        BindTexture(1, _normal);
-        BindTexture(2, _metRought);
-        BindTexture(3, _reflectionMap);
+        BindTexture(0, _diffuse?.Texture);
+        BindTexture(1, _normal?.Texture);
+        BindTexture(2, _metRought?.Texture);
+        BindTexture(3, _reflectionMap?.Texture);
     }
 
     public override void Unload()
     {
-        _diffuse?.Unload();
-        _normal?.Unload();
-        _metRought?.Unload();
-        _reflectionMap?.Unload();
+        _diffuse?.Dispose();
+        _normal?.Dispose();
+        _metRought?.Dispose();
+        _reflectionMap?.Dispose();
 
         base.Unload();
     }

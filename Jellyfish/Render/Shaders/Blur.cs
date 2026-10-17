@@ -22,7 +22,7 @@ public class Blur : Shader
 
     private readonly Direction _direction;
     private readonly Size _size;
-    private readonly Texture _rtSource;
+    private readonly TextureRef _rtSource;
 
     public Blur(string source, Direction direction, Size size) : base("shaders/Screenspace.vert", null, "shaders/Blur.frag")
     {
@@ -35,14 +35,14 @@ public class Blur : Shader
         base.Bind();
         BindTexture(0, _rtSource);
 
-        SetVector2("screenSize", _rtSource.Size);
+        SetVector2("screenSize", _rtSource.Texture.Size);
         SetInt("direction", (int)_direction);
         SetInt("size", (int)_size); 
     }
 
     public override void Unload()
     {
-        _rtSource.Unload();
+        _rtSource.Dispose();
         base.Unload();
     }
 }

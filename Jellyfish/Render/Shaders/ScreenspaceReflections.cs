@@ -4,9 +4,9 @@ namespace Jellyfish.Render.Shaders;
 
 public class ScreenspaceReflections : Shader
 {
-    private readonly Texture _rtColor;
-    private readonly Texture _rtDepth;
-    private readonly Texture _rtNormals;
+    private readonly TextureRef _rtColor;
+    private readonly TextureRef _rtDepth;
+    private readonly TextureRef _rtNormals;
 
     public ScreenspaceReflections() : 
         base("shaders/Screenspace.vert", null, "shaders/ScreenspaceReflections.frag")
@@ -30,9 +30,9 @@ public class ScreenspaceReflections : Shader
 
     public override void Unload()
     {
-        _rtColor.Unload();
-        _rtDepth.Unload();
-        _rtNormals.Unload();
+        _rtColor.Dispose();
+        _rtDepth.Dispose();
+        _rtNormals.Dispose();
 
         base.Unload();
     }

@@ -2,9 +2,9 @@
 
 public class Prefiltering : Shader
 {
-    private readonly Texture _rtEnvMap;
+    private readonly TextureRef _rtEnvMap;
 
-    public Prefiltering(Texture envMap) :
+    public Prefiltering(TextureRef envMap) :
         base("shaders/Prefiltering.vert", null, "shaders/Prefiltering.frag")
     {
         _rtEnvMap = envMap;
@@ -17,11 +17,5 @@ public class Prefiltering : Shader
 
         SetMatrix4("view", Engine.MainViewport.GetViewMatrix().ClearTranslation());
         SetMatrix4("projection", Engine.MainViewport.GetProjectionMatrix());
-    }
-
-    public override void Unload()
-    {
-        _rtEnvMap.Unload();
-        base.Unload();
     }
 }

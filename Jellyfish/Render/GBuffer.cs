@@ -6,7 +6,7 @@ namespace Jellyfish.Render;
 
 public class GBuffer
 {
-    private readonly List<Texture> _renderTargets = new();
+    private readonly List<TextureRef> _renderTargets = new();
     private readonly FrameBuffer _buffer = new();
     private readonly Shaders.GBuffer _shader = new();
 
@@ -34,7 +34,7 @@ public class GBuffer
                 }
             });
 
-            _buffer.AttachTexture(texture.Handle, attachment: FramebufferAttachment.ColorAttachment0 + i);
+            _buffer.AttachTexture(texture.Texture.Handle, attachment: FramebufferAttachment.ColorAttachment0 + i);
             _buffer.DrawInto(ColorBuffer.ColorAttachment0 + i);
 
             _renderTargets.Add(texture);
@@ -75,7 +75,7 @@ public class GBuffer
     {
         foreach (var renderTarget in _renderTargets)
         {
-            renderTarget.Unload();
+            renderTarget.Dispose();
         }
 
         _buffer.Dispose();

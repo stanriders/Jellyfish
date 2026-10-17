@@ -2,7 +2,7 @@
 
 public class EdgeDetection : Shader
 {
-    private readonly Texture _rtColor;
+    private readonly TextureRef _rtColor;
     public EdgeDetection() 
         : base("shaders/EdgeDetection.vert", null, "shaders/EdgeDetection.frag")
     {
@@ -17,7 +17,7 @@ public class EdgeDetection : Shader
 
     public override void Unload()
     {
-        _rtColor.Unload();
+        _rtColor.Dispose();
 
         base.Unload();
     }

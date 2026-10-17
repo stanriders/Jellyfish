@@ -14,20 +14,20 @@ public class PostProcessing : Shader
         private const int histogram_bins = 128;
 
         private readonly ShaderStorageBuffer _histogram = new("histogramSSBO", (histogram_bins + 1) * sizeof(uint));
-        private readonly Texture _rtColor = Engine.TextureManager.GetTexture("_rt_Color")!;
-        private readonly Texture _rtExposure = Engine.TextureManager.GetTexture("_rt_Exposure")!;
+        private readonly TextureRef _rtColor = Engine.TextureManager.GetTexture("_rt_Color")!;
+        private readonly TextureRef _rtExposure = Engine.TextureManager.GetTexture("_rt_Exposure")!;
 
         public override void Bind()
         {
             base.Bind();
 
             BindTexture(0, _rtColor);
-            GL.BindImageTexture(2, _rtExposure.Handle, 0, false, 0, BufferAccess.ReadWrite, InternalFormat.R32f);
+            GL.BindImageTexture(2, _rtExposure.Texture.Handle, 0, false, 0, BufferAccess.ReadWrite, InternalFormat.R32f);
 
             _histogram.Clear();
             _histogram.Bind(0);
 
-            SetVector2("screenSize", _rtColor.Size);
+            SetVector2("screenSize", _rtColor.Texture.Size);
             SetFloat("minLogLum", -8.0f);
             SetFloat("maxLogLum", 8.0f);
             SetFloat("key", ConVarStorage.Get<float>("mat_postprocess_exposure_key"));
@@ -37,25 +37,25 @@ public class PostProcessing : Shader
 
         public void Dispatch()
         {
-            DispatchCompute(((uint)_rtColor.Size.X + 15) / 16, ((uint)_rtColor.Size.Y + 15) / 16, 1,
+            DispatchCompute(((uint)_rtColor.Texture.Size.X + 15) / 16, ((uint)_rtColor.Texture.Size.Y + 15) / 16, 1,
                 MemoryBarrierMask.TextureFetchBarrierBit | MemoryBarrierMask.ShaderImageAccessBarrierBit);
         }
 
         public override void Unload()
         {
-            _rtColor.Unload();
-            _rtExposure.Unload();
+            _rtColor.Dispose();
+            _rtExposure.Dispose();
             _histogram.Dispose();
 
             base.Unload();
         }
     }
 
-    private readonly Texture _rtColor;
-    private readonly Texture _rtDepth;
-    private readonly Texture _rtAmbientOcclusion;
-    private readonly Texture _rtBloom;
-    private readonly Texture _rtExposure;
+    private readonly TextureRef _rtColor;
+    private readonly TextureRef _rtDepth;
+    private readonly TextureRef _rtAmbientOcclusion;
+    private readonly TextureRef _rtBloom;
+    private readonly TextureRef _rtExposure;
 
     private readonly Compute _computeShader;
 
@@ -80,7 +80,7 @@ public class PostProcessing : Shader
                 InternalFormat = SizedInternalFormat.R32f
             }
         });
-        GL.ClearTexImage(_rtExposure.Handle, 0, PixelFormat.Red, PixelType.Float, 1f);
+        GL.ClearTexImage(_rtExposure.Texture.Handle, 0, PixelFormat.Red, PixelType.Float, 1f);
 
         _computeShader = new Compute();
     }
@@ -109,11 +109,11 @@ public class PostProcessing : Shader
 
     public override void Unload()
     {
-        _rtColor.Unload();
-        _rtAmbientOcclusion.Unload();
-        _rtBloom.Unload();
-        _rtDepth.Unload();
-        _rtExposure.Unload();
+        _rtColor.Dispose();
+        _rtAmbientOcclusion.Dispose();
+        _rtBloom.Dispose();
+        _rtDepth.Dispose();
+        _rtExposure.Dispose();
         _computeShader.Unload();
 
         base.Unload();

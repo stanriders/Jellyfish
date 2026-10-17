@@ -143,7 +143,7 @@ public class Material
         return false;
     }
 
-    public Texture? GetParamTexture(string name, bool srgb = false)
+    public TextureRef? GetParamTexture(string name, bool srgb = false)
     {
         var value = _params.GetValueOrDefault(name);
         if (value == null)
@@ -155,7 +155,7 @@ public class Material
         return Engine.TextureManager.GetTexture(new TextureParams { Path = $"{Directory}/{valueCasted}", Srgb = srgb}).Texture;
     }
 
-    public bool TryGetParamTexture(string name, out Texture? value)
+    public bool TryGetParamTexture(string name, out TextureRef? value)
     {
         if (_params.TryGetValue(name, out var valueObject))
         {

@@ -27,7 +27,7 @@ public class TextureListPanel : IUiPanel
     private Texture? _expandedTexture;
     private readonly Dictionary<string, int> _cubemapAtlases = new();
     private Tabs _currentTab = Tabs.All;
-    private readonly Texture _cubeTexture = Engine.TextureManager.GetTexture(new TextureParams
+    private readonly TextureRef _cubeTexture = Engine.TextureManager.GetTexture(new TextureParams
     {
         Srgb = false, 
         Name = "_engine_Cube",
@@ -90,7 +90,7 @@ public class TextureListPanel : IUiPanel
                     {
                         if (texture.Params.Type == TextureTarget.TextureCubeMap)
                         {
-                            pressed = ImGui.ImageButton(texture.Params.Name, new ImTextureRef(texId: _cubeTexture.Handle), new Vector2(size, size));
+                            pressed = ImGui.ImageButton(texture.Params.Name, new ImTextureRef(texId: _cubeTexture.Texture.Handle), new Vector2(size, size));
                         }
                         else
                         {
@@ -192,7 +192,7 @@ public class TextureListPanel : IUiPanel
             GL.DeleteTexture(cubemapAtlas.Value);
         }
 
-        Engine.TextureManager.RemoveTexture(_cubeTexture);
+        _cubeTexture.Dispose();
     }
 
     private int CreateCubemapCross(int cubemapHandle, int faceSize)

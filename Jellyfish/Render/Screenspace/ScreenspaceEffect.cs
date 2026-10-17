@@ -8,7 +8,7 @@ namespace Jellyfish.Render.Screenspace;
 public abstract class ScreenspaceEffect
 {
     protected readonly FrameBuffer Buffer;
-    protected readonly Texture RenderTarget;
+    protected readonly TextureRef RenderTarget;
     protected readonly Shader Shader;
 
     protected Color4<Rgba> ClearColor { get; set; } = new Color4<Rgba>(1.0f, 1.0f, 1.0f, 1.0f);
@@ -33,7 +33,7 @@ public abstract class ScreenspaceEffect
         });
 
         Buffer = new FrameBuffer();
-        Buffer.AttachTexture(RenderTarget.Handle, attachment: FramebufferAttachment.ColorAttachment0);
+        Buffer.AttachTexture(RenderTarget.Texture.Handle, attachment: FramebufferAttachment.ColorAttachment0);
         Buffer.DrawInto(ColorBuffer.ColorAttachment0);
         Buffer.Check();
     }
@@ -45,7 +45,7 @@ public abstract class ScreenspaceEffect
         RenderTarget = Engine.TextureManager.CreateTexture(rtParams);
 
         Buffer = new FrameBuffer();
-        Buffer.AttachTexture(RenderTarget.Handle, attachment: FramebufferAttachment.ColorAttachment0);
+        Buffer.AttachTexture(RenderTarget.Texture.Handle, attachment: FramebufferAttachment.ColorAttachment0);
         Buffer.DrawInto(ColorBuffer.ColorAttachment0);
         Buffer.Check();
     }
@@ -69,7 +69,7 @@ public abstract class ScreenspaceEffect
     public virtual void Unload()
     {
         Buffer.Dispose();
-        RenderTarget.Unload();
+        RenderTarget.Dispose();
         Shader.Unload();
     }
 }
