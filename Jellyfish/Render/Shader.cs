@@ -31,6 +31,9 @@ public abstract class Shader
 
     private readonly List<FileSystemWatcher> _watchers = new();
     private readonly List<uint> _boundTextures = new();
+
+    protected Material? BoundMaterial;
+
     private bool _reloading;
     private readonly bool _initialized;
 
@@ -284,6 +287,8 @@ public abstract class Shader
         }
         _boundTextures.Clear();
 
+        BoundMaterial = null;
+
         //GL.UseProgram(0);
     }
 
@@ -462,6 +467,11 @@ public abstract class Shader
 
         texture.Bind(sampler);
         _boundTextures.Add(sampler);
+    }
+
+    public void BindMaterial(Material? material)
+    {
+        BoundMaterial = material;
     }
 
     private void CompileShader(string? path, int shader)
