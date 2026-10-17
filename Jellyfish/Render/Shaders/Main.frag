@@ -20,6 +20,7 @@ uniform vec3 cameraPos;
 uniform bool useNormals;
 uniform bool usePbr;
 uniform bool useTransparency;
+uniform bool useAlphaTest;
 uniform int prefilterMips;
 uniform bool iblEnabled;
 uniform bool iblPrefilterEnabled;
@@ -44,8 +45,8 @@ vec3 ApplyLight(vec3 light, vec3 diffuseColor, vec3 L, vec3 N, vec3 V, vec3 F0, 
 void main()
 {
     vec4 diffuseTex = texture(diffuseSampler, frag_texCoord * vec2(1.0, -1.0));
-    //if (alphaTest && diffuseTex.a < 0.5)
-    //    discard;
+    if (useAlphaTest && diffuseTex.a < 0.5)
+        discard;
 
     vec3 normal = normalize(frag_normal);
     if (useNormals)

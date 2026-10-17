@@ -6,6 +6,7 @@ namespace Jellyfish.Render.Shaders;
 public class Main : Shader
 {
     private readonly bool _hasTransparency;
+    private readonly bool _hasAlphaTest;
     private readonly Texture? _diffuse;
     private readonly Texture? _normal;
     private readonly Texture? _metRought;
@@ -24,8 +25,11 @@ public class Main : Shader
 
         _reflectionMap = Engine.TextureManager.GetTexture("_rt_ReflectionsBlurY");
 
-        if (material.TryGetParam<bool>("AlphaTest", out var hasTransparency))
+        if (material.TryGetParam<bool>("AlphaTest", out var hasTransparency)) // todo: rename
             _hasTransparency = hasTransparency;
+
+        if (material.TryGetParam<bool>("Cutout", out var alphaTest)) // todo: rename
+            _hasAlphaTest = alphaTest;
     }
 
     public Main(Texture diffuse) : base("shaders/Main.vert", null, "shaders/Main.frag")
@@ -43,6 +47,7 @@ public class Main : Shader
         SetBool("useNormals", _normal != null);
         SetBool("usePbr", _metRought != null);
         SetBool("useTransparency", _hasTransparency);
+        SetBool("useAlphaTest", _hasAlphaTest);
         SetInt("prefilterMips", LightProbe.PrefilterMips);
         SetBool("iblEnabled", ConVarStorage.Get<bool>("mat_ibl_enabled"));
         SetBool("iblPrefilterEnabled", ConVarStorage.Get<bool>("mat_ibl_prefilter"));

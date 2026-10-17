@@ -10,17 +10,19 @@ in vec3 frag_position;
 layout (location = 0) out vec3 NormalOut;
 //layout (location = 3) out vec3 TexCoordOut;
 
-//layout (binding = 0) uniform sampler2D diffuseSampler;
+layout (binding = 0) uniform sampler2D diffuseSampler;
 layout (binding = 1) uniform sampler2D normalSampler;
 
 uniform mat4 view;
 uniform bool hasNormalMap;
+uniform bool hasAlphaTest;
 
 #define VIEWSPACE_NORMALS 1
 
 void main()
 {
-    //vec4 diffuseTex = texture(diffuseSampler, frag_texCoord * vec2(1.0, -1.0));
+    if (hasAlphaTest && texture(diffuseSampler, frag_texCoord * vec2(1.0, -1.0)).a < 0.5)
+        discard;
 
     vec3 normal;
     if (hasNormalMap) {
