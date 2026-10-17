@@ -1,41 +1,54 @@
 ﻿namespace Jellyfish.Render.Shaders;
 
-public class GBuffer : Shader
+public class GBuffer() : Shader("shaders/Main.vert", null, "shaders/GBuffer.frag")
 {
-    private readonly Texture? _diffuse;
-    private readonly Texture? _normal;
-    private readonly bool _alphaTest;
-
-    public GBuffer(Material material) : base("shaders/Main.vert", null, "shaders/GBuffer.frag")
-    {
-        if (material.TryGetParam<string>("Diffuse", out var diffusePath))
-            _diffuse = Engine.TextureManager.GetTexture(new TextureParams { Path = $"{material.Directory}/{diffusePath}", Srgb = true}).Texture;
-
-        if (material.TryGetParam<string>("Normal", out var normalPath))
-            _normal = Engine.TextureManager.GetTexture(new TextureParams { Path = $"{material.Directory}/{normalPath}"}).Texture;
-
-        if (material.TryGetParam<bool>("Cutout", out var alphaTest)) // todo: rename
-            _alphaTest = alphaTest;
-    }
-
     public override void Bind()
     {
         base.Bind();
 
         SetMatrix4("view", Engine.MainViewport.GetViewMatrix());
         SetMatrix4("projection", Engine.MainViewport.GetProjectionMatrix());
-        SetBool("hasNormalMap", _normal != null);
-        SetBool("hasAlphaTest", _alphaTest);
 
-        BindTexture(0, _diffuse);
-        BindTexture(1, _normal);
-    }
+        if (BoundMaterial != null)
+        {
+            Texture? diffuse = null;
+            Texture? normal = null;
 
-    public override void Unload()
-    {
-        _diffuse?.Unload();
-        _normal?.Unload();
+            if (BoundMaterial.TryGetParam<string>("Normal", out var normalPath))
+            {
+                normal = Engine.TextureManager.GetTexture(new TextureParams
+                    { Path = $"{BoundMaterial.Directory}/{normalPath}" }).Texture;
+            }
 
-        base.Unload();
+            if (BoundMaterial.TryGetParam<string>("Diffuse", out var diffusePath))
+            {
+                diffuse = Engine.TextureManager.GetTexture(new TextureParams
+                    { Path = $"{BoundMaterial.Directory}/{diffusePath}", Srgb = true }).Texture;
+            }
+
+            var hasDiffuse = diffuse != null;
+            var hasNormal = normal != null;
+
+            SetBool("hasAlphaTest", BoundMaterial.GetParam<bool>("Cutout")); // todo: rename
+
+            if (hasDiffuse)
+            {
+                BindTexture(0, diffuse);
+            }
+
+            SetBool("hasNormalMap", hasNormal);
+            if (hasNormal)
+            {
+                BindTexture(1, normal);
+            }
+
+            diffuse?.Unload();
+            normal?.Unload();
+        }
+        else
+        {
+            SetBool("hasNormalMap", false);
+            SetBool("hasAlphaTest", false);
+        }
     }
 }

@@ -39,7 +39,6 @@ public class Mesh
     private VertexBuffer _vbo = null!;
 
     private Shader? _shader;
-    private Shaders.GBuffer _gBufferShader = null!;
 
     public Vector3 Position = Vector3.Zero;
     public Quaternion Rotation = Quaternion.Identity;
@@ -97,7 +96,6 @@ public class Mesh
     {
         Material = new Material(path, Model != null ? Model.Name : Name);
         _shader = Material.Shader;
-        _gBufferShader = new Shaders.GBuffer(Material);
     }
 
     protected void CreateBuffers()
@@ -152,17 +150,13 @@ public class Mesh
         _vao.Unbind();
     }
 
-    public void DrawGBuffer()
-    {
-        Draw(_gBufferShader);
-    }
-
     public void Draw(Shader? shaderToUse = null)
     {
         var drawShader = shaderToUse ?? _shader;
         if (drawShader == null)
             return;
 
+        drawShader.BindMaterial(Material);
         drawShader.Bind();
         _vao.Bind();
 
@@ -216,7 +210,6 @@ public class Mesh
 
     public void UpdateMaterial(string path)
     {
-        _gBufferShader.Unload();
         Material?.Unload();
 
         AddMaterial(path);
@@ -235,8 +228,6 @@ public class Mesh
             _ibo?.Dispose();
             _vao.Dispose();
         }
-
-        _gBufferShader.Unload();
 
         Material?.Unload();
     }

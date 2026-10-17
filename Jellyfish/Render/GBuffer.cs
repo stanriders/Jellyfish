@@ -7,12 +7,11 @@ namespace Jellyfish.Render;
 public class GBuffer
 {
     private readonly List<Texture> _renderTargets = new();
-    private readonly FrameBuffer _buffer;
+    private readonly FrameBuffer _buffer = new();
+    private readonly Shaders.GBuffer _shader = new();
 
     public GBuffer(Texture depthRenderTarget)
     {
-        _buffer = new FrameBuffer();
-
         for (uint i = 0; i < (uint)GBufferType.Count; i++)
         {
             // diffuse is special because we want to pass alpha too
@@ -52,7 +51,7 @@ public class GBuffer
 
         GL.Viewport(0, 0, Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-        Engine.MeshManager.DrawOpaque(gBuffer: true);
+        Engine.MeshManager.DrawOpaque(shaderToUse: _shader);
 
         _buffer.Unbind();
     }

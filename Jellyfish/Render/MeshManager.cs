@@ -97,12 +97,12 @@ public class MeshManager
         });
     }
 
-    public void DrawOpaque(bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null, bool gBuffer = false)
+    public void DrawOpaque(bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null)
     {
-        using var _ = new PerformanceMeasure($"MeshManager.Draw.Opaque{(gBuffer ? ".GBuffer" : "")}");
+        using var _ = new PerformanceMeasure("MeshManager.Draw.Opaque");
 
         foreach (var mesh in _opaqueMeshes)
-            DrawMesh(mesh, drawDev, shaderToUse, frustum, gBuffer);
+            DrawMesh(mesh, drawDev, shaderToUse, frustum);
     }
 
     public void DrawTranslucent(bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null)
@@ -129,7 +129,7 @@ public class MeshManager
         GL.DepthMask(true);
     }
 
-    private void DrawMesh(Mesh mesh, bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null, bool gBuffer = false)
+    private void DrawMesh(Mesh mesh, bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null)
     {
         if (mesh.IsDev && !drawDev)
             return;
@@ -140,11 +140,7 @@ public class MeshManager
             if (frustum != null && !frustum.Value.IsInside(boundingBox))
                 return;
 
-            // todo: this is UGLY and needs to be completely remade
-            if (gBuffer)
-                mesh.DrawGBuffer();
-            else
-                mesh.Draw(shaderToUse);
+            mesh.Draw(shaderToUse);
         }
     }
 
