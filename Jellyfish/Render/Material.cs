@@ -142,6 +142,35 @@ public class Material
         value = default;
         return false;
     }
+
+    public Texture? GetParamTexture(string name, bool srgb = false)
+    {
+        var value = _params.GetValueOrDefault(name);
+        if (value == null)
+            return null;
+
+        if (value is not string valueCasted)
+            throw new Exception("Incorrect material param type");
+
+        return Engine.TextureManager.GetTexture(new TextureParams { Path = $"{Directory}/{valueCasted}", Srgb = srgb}).Texture;
+    }
+
+    public bool TryGetParamTexture(string name, out Texture? value)
+    {
+        if (_params.TryGetValue(name, out var valueObject))
+        {
+            if (valueObject is not string valueCasted)
+                throw new ArgumentOutOfRangeException(name, "Incorrect material param type");
+
+            value = Engine.TextureManager.GetTexture(new TextureParams { Path = $"{Directory}/{valueCasted}"}).Texture;
+
+            return true;
+        }
+
+        value = null;
+        return false;
+    }
+
     public void Unload()
     {
         Shader?.Unload();

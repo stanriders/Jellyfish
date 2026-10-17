@@ -11,38 +11,16 @@ public class GBuffer() : Shader("shaders/Main.vert", null, "shaders/GBuffer.frag
 
         if (BoundMaterial != null)
         {
-            Texture? diffuse = null;
-            Texture? normal = null;
-
-            if (BoundMaterial.TryGetParam<string>("Normal", out var normalPath))
-            {
-                normal = Engine.TextureManager.GetTexture(new TextureParams
-                    { Path = $"{BoundMaterial.Directory}/{normalPath}" }).Texture;
-            }
-
-            if (BoundMaterial.TryGetParam<string>("Diffuse", out var diffusePath))
-            {
-                diffuse = Engine.TextureManager.GetTexture(new TextureParams
-                    { Path = $"{BoundMaterial.Directory}/{diffusePath}", Srgb = true }).Texture;
-            }
-
-            var hasDiffuse = diffuse != null;
-            var hasNormal = normal != null;
+            var diffuse = BoundMaterial.GetParamTexture("Diffuse", true);
+            var normal = BoundMaterial.GetParamTexture("Normal");
 
             SetBool("hasAlphaTest", BoundMaterial.GetParam<bool>("Cutout")); // todo: rename
+            SetBool("hasNormalMap", normal != null);
 
-            if (hasDiffuse)
-            {
-                BindTexture(0, diffuse);
-            }
+            BindTexture(0, diffuse);
+            BindTexture(1, normal);
 
-            SetBool("hasNormalMap", hasNormal);
-            if (hasNormal)
-            {
-                BindTexture(1, normal);
-            }
-
-            diffuse?.Unload();
+            diffuse?.Unload(); // todo: textureref
             normal?.Unload();
         }
         else

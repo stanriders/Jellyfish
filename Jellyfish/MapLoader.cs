@@ -317,6 +317,11 @@ public static class MapLoader
         {
             public string Name { get; set; } = null!;
             public JToken Value { get; set; } = null!;
+
+            public override string ToString()
+            {
+                return $"{Name} - {Value}";
+            }
         }
 
         public class Entity
@@ -324,6 +329,11 @@ public static class MapLoader
             public required string ClassName { get; set; }
 
             public Property[]? Properties { get; set; }
+
+            public override string ToString()
+            {
+                return ClassName;
+            }
         }
     }
 }
