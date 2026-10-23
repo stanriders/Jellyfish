@@ -99,15 +99,14 @@ public class DynamicModel : BaseModelEntity, IPhysicsEntity
 
         var halfHeigth = boundingBox.Size.Y / 2f;
         var horizontalRadius = Math.Max(boundingBox.Size.X, boundingBox.Size.Z) / 2f;
-        var radius = Math.Max(Math.Max(boundingBox.Size.X, boundingBox.Size.Z), boundingBox.Size.Y) / 2f;
 
         var type = GetPropertyValue<BoundingBoxType>("BoundingBox");
 
         ConvexShapeSettings shape = type switch
         {
-            BoundingBoxType.Sphere => new SphereShapeSettings(radius),
+            BoundingBoxType.Sphere => new SphereShapeSettings(boundingBox.Radius),
             BoundingBoxType.Capsule => new CapsuleShapeSettings(halfHeigth, horizontalRadius),
-            BoundingBoxType.Box => new BoxShapeSettings(new System.Numerics.Vector3(boundingBox.Size.X / 2f, boundingBox.Size.Y / 2f, boundingBox.Size.Z / 2f)),
+            BoundingBoxType.Box => new BoxShapeSettings((System.Numerics.Vector3)boundingBox.Size / 2f),
             BoundingBoxType.Cylinder => new CylinderShapeSettings(halfHeigth, horizontalRadius),
             _ => throw new ArgumentException("Unknown bounding box type"),
         };
