@@ -42,11 +42,14 @@ void FindBlocker4x4
 (
     out float avgBlockerDepth,
     out float numBlockers,
-    sampler2D depthMap, vec2 uv, float zReceiver, float zNear, float zFar, float lightSizeUV
+    sampler2D depthMap, vec2 uv, float zReceiver, float zNear, float zFar, float lightSizeUV, bool sun
 )
 {
     //This uses similar triangles to compute what area of the shadow map we should search
-    float searchWidth = lightSizeUV * (zReceiver - zNear) / zReceiver;
+    float searchWidth = sun
+        ? lightSizeUV * 0.001
+        : lightSizeUV * (zReceiver - zNear) / zReceiver;
+
     searchWidth = clamp(searchWidth, 0.0, 0.05);
 
     float blockerSum = 0;
@@ -54,8 +57,11 @@ void FindBlocker4x4
 
     for (int i = 0; i < PCSS_FILTER_SIZE; i++)
     {
-        float shadowMapDepth = GetDepth(depthMap, uv + poissonDisk[i] * searchWidth, zNear, zFar);
-        if ( shadowMapDepth < zReceiver ) 
+        vec2 searchUv = uv + poissonDisk[i] * searchWidth;
+
+        // sample depth directly for sun
+        float shadowMapDepth = sun ? texture(depthMap, searchUv).r : GetDepth(depthMap, searchUv, zNear, zFar);
+        if ( shadowMapDepth < zReceiver )
         {
             blockerSum += shadowMapDepth;
             numBlockers++;
@@ -68,31 +74,34 @@ void FindBlocker4x4
         : 0.0;
 }
 
-float PenumbraSize( float zReceiver, float zBlocker ) //Parallel plane estimation
+float PenumbraSize( float zReceiver, float zBlocker, bool sun ) //Parallel plane estimation
 {
+    if (sun)
+        return zReceiver - zBlocker;
+
     zBlocker = max(zBlocker, 0.001);
     return (zReceiver - zBlocker) / zBlocker;
 }
 
 // shadowing options
-float PoissonPCSSShadow( sampler2D depthMap, vec3 uvw, float zNear, float zFar, float lightSizeUV )
+float PoissonPCSSShadow( sampler2D depthMap, vec3 uvw, float zNear, float zFar, float lightSizeUV, bool sun)
 {
     float avgBlockerDepth = 0;
     float numBlockers = 0;
 
-    float zReceiver = LinearizeDepth(uvw.z, zNear, zFar);
+    float zReceiver = sun ? uvw.z : LinearizeDepth(uvw.z, zNear, zFar);
 
-    FindBlocker4x4( avgBlockerDepth, numBlockers, depthMap, uvw.xy, zReceiver, zNear, zFar, lightSizeUV );
+    FindBlocker4x4( avgBlockerDepth, numBlockers, depthMap, uvw.xy, zReceiver, zNear, zFar, lightSizeUV, sun);
 
     float flOut = 1.0f;
-    
+
     if( numBlockers >= 1 )
     {
         // STEP 2: penumbra size
-        float penumbraRatio = PenumbraSize( zReceiver, avgBlockerDepth );
+        float penumbraRatio = PenumbraSize( zReceiver, avgBlockerDepth, sun );
         float filterRadiusUV = penumbraRatio * lightSizeUV;
         filterRadiusUV = min(filterRadiusUV, 0.01);
-        
+
         float texelSize = 1.0 / textureSize(depthMap, 0).x;
         filterRadiusUV = clamp(filterRadiusUV, texelSize, 0.1);
 
@@ -133,10 +142,10 @@ float SimpleShadow(sampler2D DepthSampler, vec3 projCoords)
 {
     float currentDepth = projCoords.z;
 
-    float shadow = texture(DepthSampler, projCoords.xy).r;  
+    float shadow = texture(DepthSampler, projCoords.xy).r;
 
     return step(currentDepth, shadow);
-}  
+}
 
 float ShadowCalculation(int lightIndex, int shadowIndex, vec3 lightDir, vec3 normal)
 {
@@ -157,12 +166,12 @@ float ShadowCalculation(int lightIndex, int shadowIndex, vec3 lightDir, vec3 nor
     sampler2D shadow = light.shadow[shadowIndex];
 
     if (light.usePcss)
-        return PoissonPCSSShadow(shadow, projCoords, light.near, light.far, 0.01f);
+        return PoissonPCSSShadow(shadow, projCoords, light.near, light.far, 0.01f, false);
 
     return PoissonPCFShadow(shadow, projCoords, 2.0f);
     //return SimplePCFShadow(shadow, projCoords, 4);
     //return SimpleShadow(shadow, projCoords);
-}  
+}
 
 // lights
 vec3 CalcPointLight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
@@ -176,14 +185,14 @@ vec3 CalcPointLight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
     vec3 outdiffuse = light.diffuse * light.brightness;
 
     float distanceToLight = length(light.position - fragPos);
-    float attenuation = 255.0 / (light.constant + 
-                        light.linear * distanceToLight + 
+    float attenuation = 255.0 / (light.constant +
+                        light.linear * distanceToLight +
                         light.quadratic * (distanceToLight * distanceToLight));
 
     outdiffuse *= attenuation;
 
     float shadow = 1.0f;
-    if (light.hasShadows) 
+    if (light.hasShadows)
     {
         shadow = ShadowCalculation(lightIndex, CubeFaceIndex(fragPos - light.position), lightDir, normal);
     }
@@ -202,8 +211,8 @@ vec3 CalcSpotlight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
     vec3 outdiffuse = light.diffuse * light.brightness;
 
     float distanceToLight = length(light.position - fragPos);
-    float attenuation = 255.0 / (light.constant + 
-                        light.linear * distanceToLight + 
+    float attenuation = 255.0 / (light.constant +
+                        light.linear * distanceToLight +
                         light.quadratic * (distanceToLight * distanceToLight));
 
     outdiffuse  *= attenuation;
@@ -218,7 +227,7 @@ vec3 CalcSpotlight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
         return vec3(0.0);
 
     float shadow = 1.0f;
-    if (light.hasShadows) 
+    if (light.hasShadows)
     {
         shadow = ShadowCalculation(lightIndex, 0, lightDir, normal);
     }
@@ -236,7 +245,7 @@ vec3 CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
     vec3 outdiffuse = sun.diffuse * sun.brightness;
 
     float shadow = 1.0f;
-    if (sun.hasShadows) 
+    if (sun.hasShadows)
     {
         vec4 fragPosViewSpace = view * vec4(frag_position, 1.0);
         float depthValue = frag_clipspaceZ;
@@ -268,7 +277,7 @@ vec3 CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
             sampler2D shadowSampler = sun.shadow[layer];
             if (sun.usePcss)
             {
-                shadow = PoissonPCSSShadow(shadowSampler, projCoords, sun.cascadeNear[layer], sun.cascadeFar[layer], 20.0f);
+                shadow = PoissonPCSSShadow(shadowSampler, projCoords, sun.cascadeNear[layer], sun.cascadeFar[layer], 20.0f, true);
             }
             else
             {
