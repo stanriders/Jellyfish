@@ -242,8 +242,11 @@ public class PhysicsManager
         if (_character == null)
             return;
 
-        _character?.Dispose();
-        _character = null;
+        Scheduler.PhysicsSchedule(() =>
+        {
+            _character?.Dispose();
+            _character = null;
+        });
     }
 
     public virtual void SetPosition(BodyID bodyId, Vector3 newPosition)

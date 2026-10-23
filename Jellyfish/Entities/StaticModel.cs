@@ -7,7 +7,7 @@ namespace Jellyfish.Entities;
 [Entity("model_static")]
 public class StaticModel : BaseModelEntity, IPhysicsEntity
 {
-    private BodyID _physicsBodyId;
+    private BodyID? _physicsBodyId;
 
     public StaticModel()
     {
@@ -31,12 +31,14 @@ public class StaticModel : BaseModelEntity, IPhysicsEntity
         if (Model == null)
             return;
 
-        _physicsBodyId = Engine.PhysicsManager.AddStaticObject(Model.Meshes.ToArray(), this) ?? 0;
+        _physicsBodyId = Engine.PhysicsManager.AddStaticObject(Model.Meshes.ToArray(), this);
     }
 
     public override void Unload()
     {
-        Engine.PhysicsManager.RemoveObject(_physicsBodyId);
+        if (_physicsBodyId != null)
+            Engine.PhysicsManager.RemoveObject(_physicsBodyId.Value);
+
         base.Unload();
     }
 

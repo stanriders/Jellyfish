@@ -62,6 +62,8 @@ public class Player : BaseEntity, IInputHandler, IHaveFrustum
     public override void Unload()
     {
         Engine.PhysicsManager.RemovePlayerController();
+        _physCharacter = null;
+
         Engine.InputManager.UnregisterInputHandler(this);
 
         base.Unload();

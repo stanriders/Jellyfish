@@ -95,7 +95,7 @@ public class DynamicModel : BaseModelEntity, IPhysicsEntity
 
     public virtual ShapeSettings CalculatePhysicsShape()
     {
-        var boundingBox = new BoundingBox(Model!.Meshes.Select(x => x.BoundingBox).ToArray());
+        var boundingBox = BoundingBox ?? new BoundingBox(new Vector3(10), new Vector3(-10));
 
         var halfHeigth = boundingBox.Size.Y / 2f;
         var horizontalRadius = Math.Max(boundingBox.Size.X, boundingBox.Size.Z) / 2f;
@@ -115,10 +115,7 @@ public class DynamicModel : BaseModelEntity, IPhysicsEntity
         const float density = 500f;
         shape.Density = density / (MathUtils.units_per_meter * MathUtils.units_per_meter * MathUtils.units_per_meter); // kg/m^3
 
-        var rotation = GetPropertyValue<Quaternion>("Rotation");
-        var scale = GetPropertyValue<Vector3>("Scale");
-
-        return new RotatedTranslatedShapeSettings(boundingBox.Center.ToNumericsVector(), System.Numerics.Quaternion.Identity, new ScaledShapeSettings(shape, scale.ToNumericsVector()));
+        return shape;
     }
 
     public void ResetVelocity()
