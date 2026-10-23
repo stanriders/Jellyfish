@@ -54,9 +54,10 @@ public class Player : BaseEntity, IInputHandler, IHaveFrustum
     public override void Load()
     {
         _physCharacter = Engine.PhysicsManager.AddPlayerController(this, new BoxShape((BoundingBox!.Value.Size / 2).ToNumericsVector()));
-        Engine.InputManager.RegisterInputHandler(this);
 
         base.Load();
+
+        Engine.InputManager.RegisterInputHandler(this);
     }
 
     public override void Unload()

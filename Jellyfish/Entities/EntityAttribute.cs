@@ -2,13 +2,8 @@
 
 namespace Jellyfish.Entities;
 
-public class EntityAttribute : Attribute
+public class EntityAttribute(string className) : Attribute
 {
-    public string ClassName { get; }
-
-    public EntityAttribute(string className)
-    {
-        ClassName = className;
-    }
+    public string ClassName { get; } = className;
 }
 

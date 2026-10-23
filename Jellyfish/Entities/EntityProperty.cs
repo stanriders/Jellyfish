@@ -12,15 +12,15 @@ public enum EntityPropertyFlags
 
 public abstract class EntityProperty
 {
-    public string Name { get; set; } = null!;
-    public Type Type { get; set; } = null!;
+    public string Name { get; protected init; } = null!;
+    public Type Type { get; protected init; } = null!;
     public object? Value { get; private set; }
-    public object? DefaultValue { get; set; }
+    public object? DefaultValue { get; protected init; }
     public object[]? PossibleValues { get; set; }
     public bool Editable { get; set; } = true;
-    public bool ShowGizmo { get; set; } = false;
-    public EntityPropertyFlags Flags { get; set; }
-    public Action<object>? OnChangeAction { get; set; }
+    public bool ShowGizmo { get; protected init; }
+    public EntityPropertyFlags Flags { get; protected init; }
+    public Action<object>? OnChangeAction { get; init; }
 
     public void SetValue(object? value)
     {

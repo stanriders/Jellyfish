@@ -11,7 +11,7 @@ public abstract class BaseModelEntity : BaseEntity
 
     protected string? ModelPath { get; set; }
 
-    protected BaseModelEntity() : base()
+    protected BaseModelEntity()
     {
         AddProperty("Animation", string.Empty, changeCallback: OnAnimationChange);
         AddProperty("Scale", Vector3.One, changeCallback: OnScaleChanged);

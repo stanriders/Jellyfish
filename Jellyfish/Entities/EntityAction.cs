@@ -2,18 +2,11 @@
 
 namespace Jellyfish.Entities;
 
-public class EntityAction
+public class EntityAction(string name, Action action, bool enabled)
 {
-    public string Name { get; set; } = null!;
-    private Action Action { get; set; } = null!;
-    public bool Enabled { get; set; }
-
-    public EntityAction(string name, Action action, bool enabled)
-    {
-        Name = name;
-        Action = action;
-        Enabled = enabled;
-    }
+    public string Name { get; } = name;
+    private Action Action { get; } = action;
+    public bool Enabled { get; } = enabled;
 
     public void Act()
     {
