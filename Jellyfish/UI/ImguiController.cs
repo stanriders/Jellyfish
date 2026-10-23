@@ -34,7 +34,6 @@ public sealed class ImguiController : IDisposable, IInputHandler
     private int _windowWidth;
     private int _windowHeight;
 
-    private readonly List<char> _pressedChars = new();
     private bool _usingGizmo;
 
     public unsafe ImguiController()
@@ -449,12 +448,6 @@ public sealed class ImguiController : IDisposable, IInputHandler
             io.AddKeyEvent(TranslateKeyToImgui(key), keyboardState.IsKeyDown(key));
         }
 
-        foreach (var c in _pressedChars)
-        {
-            io.AddInputCharacter(c);
-        }
-        _pressedChars.Clear();
-
         io.AddKeyEvent(ImGuiKey.ModCtrl, keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl));
         io.AddKeyEvent(ImGuiKey.ModShift, keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift));
         io.AddKeyEvent(ImGuiKey.ModAlt, keyboardState.IsKeyDown(Keys.LeftAlt) || keyboardState.IsKeyDown(Keys.RightAlt));
@@ -473,12 +466,18 @@ public sealed class ImguiController : IDisposable, IInputHandler
             Engine.InputManager.ReleaseInput(this);
         }
 
-        return io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput || ImGuizmo.IsOver();
+        return io.WantCaptureMouse || io.WantCaptureKeyboard || io.WantTextInput;
     }
 
-    public void PressChar(char keyChar)
+    public bool HandleText(char input)
     {
-        _pressedChars.Add(keyChar);
+        if (Engine.InputManager.IsControllingCursor)
+            return false;
+
+        var io = ImGui.GetIO();
+        io.AddInputCharacter(input);
+
+        return io.WantTextInput;
     }
 
     private static ImGuiKey TranslateKeyToImgui(Keys key)

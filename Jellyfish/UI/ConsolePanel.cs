@@ -10,6 +10,8 @@ using Vector2 = System.Numerics.Vector2;
 
 namespace Jellyfish.UI;
 
+public class EnableConsole() : ConVar<bool>("edt_console", defaultBind: Keys.GraveAccent);
+
 public class ConsolePanel : IUiPanel, IInputHandler
 {
     private bool _screllToBottom;
@@ -26,14 +28,20 @@ public class ConsolePanel : IUiPanel, IInputHandler
 
     public void Frame(double timeElapsed)
     {
+        _isEnabled = ConVarStorage.Get<bool>("edt_console");
+
         if (!_isEnabled)
             return;
+
+        // todo: pause toggle on console
+        //if (!Engine.Paused)
+        //    Engine.Paused = true;
 
         if (ImGui.Begin("Console"))
         {
             if (ImGui.Button("All ConVars"))
             {
-                Log.Context("Console").Information(string.Join('\n', ConVarStorage.ConVarNames));
+                Log.Context("Console").Information(string.Join('\n', Engine.ConVarStorage.ConVarNames));
             }
             var viewport = ImGui.GetMainViewport();
             ImGui.SetWindowSize(new Vector2(viewport.Size.X * 0.75f, viewport.Size.Y * 0.75f), ImGuiCond.FirstUseEver);
@@ -123,15 +131,6 @@ public class ConsolePanel : IUiPanel, IInputHandler
 
     public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
     {
-        if (keyboardState.IsKeyPressed(Keys.GraveAccent))
-        {
-            _isEnabled = !_isEnabled;
-            if (_isEnabled && !Engine.Paused)
-                Engine.Paused = true;
-
-            return true;
-        }
-
         if (!_isEnabled)
             return false;
         

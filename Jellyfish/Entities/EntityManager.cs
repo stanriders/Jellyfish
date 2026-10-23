@@ -17,7 +17,7 @@ public class EntityManager
     private readonly Queue<BaseEntity> _killQueue = new();
 
     public IReadOnlyList<BaseEntity> Entities => _entityList;
-    public IReadOnlyList<string> EntityClasses => _entityClassDictionary.Keys.ToList().AsReadOnly();
+    public IReadOnlyList<string> EntityClasses => _entityClassDictionary.Keys.ToList();
 
     private readonly List<EntityDevCone> _devCones = new();
 

@@ -5,4 +5,9 @@ namespace Jellyfish.Input;
 public interface IInputHandler
 {
     bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime);
+
+    bool HandleText(char input)
+    {
+        return false;
+    }
 }

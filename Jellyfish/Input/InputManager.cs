@@ -11,6 +11,8 @@ public class InputManager
     private bool _inputCaptured;
     private IInputHandler? _capturer;
 
+    private readonly List<char> _pressedChars = new();
+
     public bool IsControllingCursor { get; set; }
 
     public void RegisterInputHandler(IInputHandler inputHandler)
@@ -42,28 +44,50 @@ public class InputManager
     {
         using var _ = new PerformanceMeasure("InputManager.Frame");
 
-        // todo: figure out if it should run regardless or as one of the handlers
-        ConVarStorage.HandleInput(keyboardState, mouseState, frameTime);
-
         if (_inputCaptured)
         {
             _capturer?.HandleInput(keyboardState, mouseState, frameTime);
+            foreach (var pressedChar in _pressedChars)
+            {
+                _capturer?.HandleText(pressedChar);
+            }
         }
         else
         {
-            foreach (var inputHandler in _inputHandlers)
+            var handled = false;
+
+            foreach (var pressedChar in _pressedChars)
             {
-                if (inputHandler.HandleInput(keyboardState, mouseState, frameTime))
+                foreach (var inputHandler in _inputHandlers)
                 {
+                    if (inputHandler.HandleText(pressedChar))
+                    {
+                        handled = true;
+                        break;
+                    }
+                }
+
+                if (handled)
                     break;
+            }
+
+            if (!handled)
+            {
+                foreach (var inputHandler in _inputHandlers)
+                {
+                    if (inputHandler.HandleInput(keyboardState, mouseState, frameTime))
+                    {
+                        break;
+                    }
                 }
             }
         }
+
+        _pressedChars.Clear();
     }
 
     public void HandleTextInput(char input)
     {
-        // TODO?: maybe refactor this to work through the main loop?
-        Engine.ImguiController?.PressChar(input);
+        _pressedChars.Add(input);
     }
 }

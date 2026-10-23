@@ -17,6 +17,7 @@ namespace Jellyfish
 {
     public sealed class Engine : IInputHandler, IDisposable
     {
+        private readonly ConVarStorage _conVarStorage;
         private readonly MainWindow _mainWindow;
         private readonly OpenGLRender _render;
         private ShaderManager _shaderManager = null!;
@@ -47,6 +48,7 @@ namespace Jellyfish
         public static MainWindow MainWindow => instance._mainWindow;
         public static LightManager LightManager => instance._lightManager;
         public static OpenGLRender Renderer => instance._render;
+        public static ConVarStorage ConVarStorage => instance._conVarStorage;
 
         public static double ElapsedTime { get; set; }
         public static double Frametime { get; set; }
@@ -63,6 +65,7 @@ namespace Jellyfish
         {
             instance = this;
 
+            _conVarStorage = new ConVarStorage();
             _mainWindow = new MainWindow();
             _render = new OpenGLRender();
         }
@@ -77,6 +80,7 @@ namespace Jellyfish
             Log.Context(this).Information("Loading...");
 
             _inputHandler = new InputManager();
+            ConVarStorage.Load();
             _shaderManager = new ShaderManager();
             _textureManager = new TextureManager();
             _imguiController = new ImguiController();

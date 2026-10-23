@@ -3,16 +3,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Jellyfish.Input;
 
 namespace Jellyfish.Console;
 
-public static class ConVarStorage
+public class ConVarStorage : IInputHandler
 {
-    private static readonly Dictionary<string, IConVar> ConVars = new();
+    private readonly Dictionary<string, IConVar> _conVars = new();
 
-    public static IReadOnlyList<string> ConVarNames => ConVars.Keys.ToList();
+    public IReadOnlyList<string> ConVarNames => _conVars.Keys.ToList();
 
-    static ConVarStorage()
+    public void Load()
     {
         var panels = Assembly.GetExecutingAssembly()
             .GetTypes()
@@ -25,11 +26,13 @@ public static class ConVarStorage
                 Log.Context("ConVarStorage").Error("Can't create convar {Type}", panelType.Name);
             }
         }
+
+        Engine.InputManager.RegisterInputHandler(this);
     }
 
-    public static void Add(string name, IConVar convar)
+    public void Add(string name, IConVar convar)
     {
-        if (!ConVars.TryAdd(name, convar))
+        if (!_conVars.TryAdd(name, convar))
             throw new Exception("Convar already exists!");
     }
 
@@ -38,7 +41,7 @@ public static class ConVarStorage
         if (string.IsNullOrEmpty(name))
             return default;
 
-        if (!ConVars.TryGetValue(name, out var convar))
+        if (!Engine.ConVarStorage._conVars.TryGetValue(name, out var convar))
             return default;
 
         return (convar as ConVar<T>)!.Value;
@@ -49,7 +52,7 @@ public static class ConVarStorage
         if (string.IsNullOrEmpty(name))
             return null;
 
-        if (!ConVars.TryGetValue(name, out var convar))
+        if (!Engine.ConVarStorage._conVars.TryGetValue(name, out var convar))
             return null;
 
         return convar as ConVar<T>;
@@ -60,7 +63,7 @@ public static class ConVarStorage
         if (string.IsNullOrEmpty(name))
             return null;
 
-        return ConVars.GetValueOrDefault(name);
+        return Engine.ConVarStorage._conVars.GetValueOrDefault(name);
     }
 
     public static void Set<T>(string name, T value) where T : notnull
@@ -68,7 +71,7 @@ public static class ConVarStorage
         if (string.IsNullOrEmpty(name))
             return;
 
-        if (!ConVars.TryGetValue(name, out var convar))
+        if (!Engine.ConVarStorage._conVars.TryGetValue(name, out var convar))
             return;
 
         var convarTyped = convar as ConVar<T>;
@@ -85,7 +88,7 @@ public static class ConVarStorage
         if (string.IsNullOrEmpty(name))
             return;
 
-        if (!ConVars.TryGetValue(name, out var convar))
+        if (!Engine.ConVarStorage._conVars.TryGetValue(name, out var convar))
             return;
 
 #if DEBUG
@@ -96,9 +99,9 @@ public static class ConVarStorage
         convar.UntypedValue = value;
     }
 
-    public static bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
+    public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
     {
-        foreach (var conVar in ConVars)
+        foreach (var conVar in _conVars)
         {
             if (conVar.Value.Bind != null && keyboardState.IsKeyPressed(conVar.Value.Bind.Value))
             {

@@ -21,7 +21,7 @@ public abstract class ConVar<TValue> : IConVar where TValue : notnull
 
     protected ConVar(string name, TValue defaultValue = default!, Keys? defaultBind = null)
     {
-        ConVarStorage.Add(name, this);
+        Engine.ConVarStorage.Add(name, this);
         UntypedValue = defaultValue;
         Name = name;
         Bind = defaultBind;
