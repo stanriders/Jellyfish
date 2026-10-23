@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using Jellyfish.Utils;
 
@@ -38,6 +39,14 @@ public class OpenGLRender : IRender
         GL.Enable(EnableCap.DebugOutput);
         _debugProc = DebugMessage;
         GL.DebugMessageCallback(_debugProc, nint.Zero);
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            // mesa reports shader stats from its own native compile thread, and calling the managed callback there
+            // kills the process (SIGTRAP) when a debugger is attached, so don't let those messages through
+            GL.DebugMessageControl(DebugSource.DebugSourceShaderCompiler, DebugType.DontCare,
+                DebugSeverity.DebugSeverityNotification, 0, ReadOnlySpan<uint>.Empty, false);
+        }
 #endif
         GL.Viewport(0, 0, Engine.MainWindow.FramebufferSize.X, Engine.MainWindow.FramebufferSize.Y);
         GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
