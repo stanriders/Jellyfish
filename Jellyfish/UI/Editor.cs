@@ -36,7 +36,8 @@ public class Editor : IUiPanel, IInputHandler
     {
         Select,
         Block,
-        Faces
+        Faces,
+        EntityAdd
     }
 
     private enum BlockCreationStage
@@ -172,6 +173,22 @@ public class Editor : IUiPanel, IInputHandler
                 ConVarComponents.Checkbox("edt_snap", "Snap");
                 ImGui.Text($"Grid: {ConVarStorage.Get<int>("edt_gridsize")} ([ / ])");
 
+                ImGui.Separator();
+
+                if (ImGui.BeginMenu("Add Entity"))
+                {
+                    foreach (var entityClass in Engine.EntityManager.EntityClasses)
+                    {
+                        if (ImGui.MenuItem(entityClass, "", entityClass == _selectedEntityType))
+                        {
+                            _selectedEntityType = entityClass;
+                            SetTool(Tool.EntityAdd);
+                        }
+                    }
+
+                    ImGui.EndMenu();
+                }
+
                 ImGui.EndMainMenuBar();
             }
         }
@@ -259,32 +276,6 @@ public class Editor : IUiPanel, IInputHandler
             ImGui.End();
 
             ImGui.SetNextWindowBgAlpha(0.5f);
-            if (ImGui.Begin("Add entity"))
-            {
-                if (ImGui.BeginListBox("##Entity types", new Vector2(-1, 10 * ImGui.GetTextLineHeightWithSpacing())))
-                {
-                    foreach (var entityClass in Engine.EntityManager.EntityClasses)
-                    {
-                        if (ImGui.MenuItem(entityClass, "", entityClass == _selectedEntityType))
-                        {
-                            _selectedEntityType = entityClass;
-                        }
-                    }
-
-                    ImGui.EndListBox();
-                }
-
-                if (_selectedEntityType != null)
-                {
-                    if (ImGui.Button("Spawn"))
-                    {
-                        _selectedEntity = Engine.EntityManager.CreateEntity(_selectedEntityType);
-                        _selectedFaces.Clear();
-                    }
-                }
-            }
-
-            ImGui.End();
 
             if (setUpDocking)
             {
@@ -316,6 +307,9 @@ public class Editor : IUiPanel, IInputHandler
             DrawFaceSelection();
             DrawPatchControls();
         }
+
+        if (_tool == Tool.EntityAdd)
+            DrawEntityAddTool();
 
         _mouseRay = null;
     }
@@ -541,6 +535,10 @@ public class Editor : IUiPanel, IInputHandler
             else if (_tool == Tool.Faces)
             {
                 FaceToolInput(keyboardState, mouseState, ray, control, alt);
+            }
+            else if (_tool == Tool.EntityAdd)
+            {
+                AddEntityToolInput(mouseState, ray);
             }
         }
 
@@ -1068,6 +1066,68 @@ public class Editor : IUiPanel, IInputHandler
                 faces[i] = modify(faces[i]);
 
             entity.SetPropertyValue("Mesh", currentMesh with { Faces = faces });
+        }
+    }
+
+
+    private void DrawEntityAddTool()
+    {
+        Vector3 center;
+        int axis;
+
+        if (_mouseRay == null || !FindBlockSurface(_mouseRay.Value, out var point, out axis, out _)) return;
+
+        center = SnapToGrid(point, axis);
+
+        // grid around the cursor on the plane we're drawing on
+        const int cells = 10;
+        var gridSize = ConVarStorage.Get<int>("edt_gridsize");
+        var u = (axis + 1) % 3;
+        var v = (axis + 2) % 3;
+
+        for (var i = -cells; i <= cells; i++)
+        {
+            var uStart = center;
+            uStart[u] += i * gridSize;
+            uStart[v] -= cells * gridSize;
+            var uEnd = uStart;
+            uEnd[v] += cells * gridSize * 2;
+
+            var vStart = center;
+            vStart[v] += i * gridSize;
+            vStart[u] -= cells * gridSize;
+            var vEnd = vStart;
+            vEnd[u] += cells * gridSize * 2;
+
+            var majorLine = gridSize * 8;
+            DebugRender.DrawLine(uStart, uEnd,
+                MathF.Abs(uStart[u] % majorLine) < 0.01f ? grid_major_color : grid_color);
+            DebugRender.DrawLine(vStart, vEnd,
+                MathF.Abs(vStart[v] % majorLine) < 0.01f ? grid_major_color : grid_color);
+        }
+
+        var uOffset = Vector3.Zero;
+        uOffset[u] = gridSize / 2.0f;
+        var vOffset = Vector3.Zero;
+        vOffset[v] = gridSize / 2.0f;
+
+        DebugRender.DrawLine(center - uOffset, center + uOffset);
+        DebugRender.DrawLine(center - vOffset, center + vOffset);
+    }
+
+    public void AddEntityToolInput(MouseState mouseState, Ray ray)
+    {
+        if (_selectedEntityType == null)
+            return;
+
+        if (mouseState.IsButtonPressed(MouseButton.Left) && FindBlockSurface(ray, out var point, out _blockAxis, out _blockDirection))
+        {
+            var position = SnapToGrid(point, _blockAxis);
+            _selectedEntity = Engine.EntityManager.CreateEntity(_selectedEntityType);
+            _selectedEntity?.SetPropertyValue("Position", position);
+            _selectedFaces.Clear();
+            _selectedEntityType = null;
+            _tool = Tool.Select;
         }
     }
 
