@@ -2,6 +2,7 @@
 using Hexa.NET.ImGui;
 using Jellyfish.Console;
 using Jellyfish.Render;
+using Jellyfish.UI.Components;
 using Jellyfish.Utils;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
@@ -28,6 +29,7 @@ public class SelectTool : IEditorTool
 
     public void DrawSidebar()
     {
+        ConVarComponents.Checkbox("edt_tools_select_hover", "Enable select tool hover highlighting");
     }
 
     public void Draw()

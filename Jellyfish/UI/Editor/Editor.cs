@@ -172,7 +172,6 @@ public class Editor : IUiPanel, IInputHandler
                 ConVarComponents.Checkbox("edt_drawnames", "Show entity names");
                 ConVarComponents.Checkbox("phys_debug", "Enable physics debug overlay");
                 ConVarComponents.Checkbox("audio_debug", "Enable audio debug overlay");
-                ConVarComponents.Checkbox("edt_tools_select_hover", "Enable select tool hover highlighting");
             }
 
             ImGui.End();
