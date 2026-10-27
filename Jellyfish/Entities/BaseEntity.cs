@@ -76,7 +76,7 @@ public abstract class BaseEntity
                 return castedProperty;
             }
 
-            EntityLog().Warning("Found property {Name} but it has different type!", name);
+            EntityLog().Warning("Found property {Name} but it has different type ({Type} instead of {PropertyType})!", name, typeof(T), property.Type);
             return null;
         }
 

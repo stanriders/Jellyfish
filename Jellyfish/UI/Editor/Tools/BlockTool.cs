@@ -268,7 +268,5 @@ public class BlockTool : IEditorTool
             Faces = faces.ToArray()
         });
         entity.Load();
-
-        Editor.Instance.ResetTool();
     }
 }

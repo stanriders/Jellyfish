@@ -669,12 +669,22 @@ public class Editor : IUiPanel, IInputHandler
                 }
             }
         }
-        else if (entityProperty.Type.BaseType == typeof(Enum))
+        else if (entityProperty.Type.IsEnum)
         {
-            var val = (int)entityProperty.Value!;
-            if (ImGui.DragInt(elementLabel, ref val))
+            if (ImGui.BeginListBox(propertyName))
             {
-                entity.SetPropertyValue(propertyName, val);
+                var val = (Enum?)entityProperty.Value;
+                foreach (var enumOption in Enum.GetNames(entityProperty.Type))
+                {
+                    var parsedValue = Enum.Parse(entityProperty.Type, enumOption);
+                    if (ImGui.MenuItem(enumOption, "", Equals(val, parsedValue)))
+                    {
+                        // dynamic so T resolves to the concrete enum type instead of Enum
+                        entity.SetPropertyValue(propertyName, (dynamic)parsedValue);
+                    }
+                }
+
+                ImGui.EndListBox();
             }
         }
         else
