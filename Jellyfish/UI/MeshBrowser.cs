@@ -7,14 +7,16 @@ using Vector2 = System.Numerics.Vector2;
 
 namespace Jellyfish.UI;
 
-public class EnableMeshBrowser() : ConVar<bool>("edt_meshbrowser");
-public class MeshBrowser : IUiPanel
+public partial class MeshBrowser : IUiPanel
 {
+    [ConVar("edt_meshbrowser")]
+    private partial bool Enabled { get; set; }
+
     private Mesh? _selectedMesh;
 
     public void Frame(double timeElapsed)
     {
-        if (!ConVarStorage.Get<bool>("edt_meshbrowser"))
+        if (!Enabled)
             return;
 
         if (ImGui.Begin("Meshes"))

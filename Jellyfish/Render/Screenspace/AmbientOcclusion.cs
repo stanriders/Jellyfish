@@ -6,14 +6,16 @@ using Jellyfish.Render.Shaders;
 
 namespace Jellyfish.Render.Screenspace;
 
-public class GtaoEnabled() : ConVar<bool>("mat_gtao_enabled", true);
 public class GtaoQuality() : ConVar<int>("mat_gtao_quality", 1);
 public class GtaoRadius() : ConVar<float>("mat_gtao_radius", 1.0f);
 public class GtaoIntensity() : ConVar<float>("mat_gtao_intensity", 1.0f);
 public class GtaoThickness() : ConVar<float>("mat_gtao_thickness", 5.0f);
 
-public class AmbientOcclusion : ScreenspaceEffect
+public partial class AmbientOcclusion : ScreenspaceEffect
 {
+    [ConVar("mat_gtao_enabled", true)]
+    private partial bool Enabled { get; set; }
+
     public AmbientOcclusion() : base("Gtao", SizedInternalFormat.R8, new Shaders.AmbientOcclusion())
     {
         Priority = 0;
@@ -23,7 +25,7 @@ public class AmbientOcclusion : ScreenspaceEffect
     {
         using var _ = new PerformanceMeasure("AmbientOcclusion.Draw");
 
-        if (!ConVarStorage.Get<bool>("mat_gtao_enabled"))
+        if (!Enabled)
         {
             Buffer.Bind(FramebufferTarget.DrawFramebuffer);
 

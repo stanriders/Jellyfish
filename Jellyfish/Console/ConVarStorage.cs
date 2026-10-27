@@ -15,9 +15,11 @@ public class ConVarStorage : IInputHandler
 
     public void Load()
     {
+        Console.Generated.ConVarRegistration.RegisterAll();
+
         var panels = Assembly.GetExecutingAssembly()
             .GetTypes()
-            .Where(x => x is { IsPublic: true, IsAbstract: false } && typeof(IConVar).IsAssignableFrom(x));
+            .Where(x => x is { IsPublic: true, IsAbstract: false, ContainsGenericParameters: false } && typeof(IConVar).IsAssignableFrom(x));
 
         foreach (var panelType in panels)
         {

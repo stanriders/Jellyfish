@@ -9,9 +9,7 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace Jellyfish.UI.Editor.Tools;
 
-public class EditorEnableSelectToolHover() : ConVar<bool>("edt_tools_select_hover", true);
-
-public class SelectTool : IEditorTool
+public partial class SelectTool : IEditorTool
 {
     public EditorToolType Type => EditorToolType.Select;
     public string Name => "Select";
@@ -20,6 +18,9 @@ public class SelectTool : IEditorTool
     private Ray? _mouseRay;
 
     private const uint entity_hover_color = 0x77DDEEFF;
+
+    [ConVar("edt_tools_select_hover", true)]
+    private partial bool HighlightOnHover { get; set; }
 
     public void DrawToolbar(EditorToolType? selectedTool, Action selectToolAction)
     {
@@ -37,7 +38,7 @@ public class SelectTool : IEditorTool
         if (!Selected)
             return;
 
-        if (ConVarStorage.Get<bool>("edt_tools_select_hover") && _mouseRay != null)
+        if (HighlightOnHover && _mouseRay != null)
         {
             var entity = Trace.IntersectsEntity(_mouseRay.Value);
             if (entity != null && entity.BoundingBox != null)

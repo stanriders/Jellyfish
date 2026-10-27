@@ -10,7 +10,7 @@ public interface IConVar
     object UntypedValue { get; set; }
 }
 
-public abstract class ConVar<TValue> : IConVar where TValue : notnull
+public class ConVar<TValue> : IConVar where TValue : notnull
 {
     public string Name { get; set; }
     public TValue Value
@@ -19,7 +19,7 @@ public abstract class ConVar<TValue> : IConVar where TValue : notnull
         set => UntypedValue = value;
     }
 
-    protected ConVar(string name, TValue defaultValue = default!, Keys? defaultBind = null)
+    public ConVar(string name, TValue defaultValue = default!, Keys? defaultBind = null)
     {
         Engine.ConVarStorage.Add(name, this);
         UntypedValue = defaultValue;

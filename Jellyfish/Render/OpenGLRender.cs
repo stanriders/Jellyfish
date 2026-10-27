@@ -14,9 +14,11 @@ using Jellyfish.Utils;
 
 namespace Jellyfish.Render;
 
-public class WireframeEnabled() : ConVar<bool>("mat_wireframe", false, Keys.Q);
-public class OpenGLRender : IRender
+public partial class OpenGLRender : IRender
 {
+    [ConVar("mat_wireframe", false, Keys.Q)]
+    private partial bool Wireframe { get; set; }
+
     private FinalOut? _outRender;
     private FrameBuffer? _mainFramebuffer;
     private TextureRef? _colorRenderTarget;
@@ -165,12 +167,10 @@ public class OpenGLRender : IRender
         GL.Viewport(0, 0, Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y);
         GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
-        var wireframe = ConVarStorage.Get<bool>("mat_wireframe");
-
         // gbuffer pass already filled the depth buffer, reuse it as a depth prepass
-        GL.Clear(wireframe ? ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit : ClearBufferMask.ColorBufferBit);
+        GL.Clear(Wireframe ? ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit : ClearBufferMask.ColorBufferBit);
 
-        GL.PolygonMode(TriangleFace.FrontAndBack, wireframe ? PolygonMode.Line : PolygonMode.Fill);
+        GL.PolygonMode(TriangleFace.FrontAndBack, Wireframe ? PolygonMode.Line : PolygonMode.Fill);
 
         _sky?.Draw();
 

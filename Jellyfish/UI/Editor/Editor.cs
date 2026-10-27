@@ -21,18 +21,21 @@ using Vector3 = OpenTK.Mathematics.Vector3;
 
 namespace Jellyfish.UI.Editor;
 
-public class EnableEditor() : ConVar<bool>("edt_enable",
-#if DEBUG
-    true);
-#else
-    false);
-#endif
-
-public class EditorGridSize() : ConVar<int>("edt_gridsize", 16);
 public class EditorSnapToGrid() : ConVar<bool>("edt_snap", true);
 
-public class Editor : IUiPanel, IInputHandler
+public partial class Editor : IUiPanel, IInputHandler
 {
+    [ConVar("edt_enable",
+#if DEBUG
+    true)]
+#else
+    false)]
+#endif
+    private partial bool Enabled { get; set; }
+
+    [ConVar("edt_gridsize", 16)]
+    private partial int GridSize { get; set; }
+
     public BaseEntity? SelectedEntity { get; set; }
 
     private bool _usingGizmo = false;
@@ -71,7 +74,7 @@ public class Editor : IUiPanel, IInputHandler
 
     public unsafe void Frame(double timeElapsed)
     {
-        if (!ConVarStorage.Get<bool>("edt_enable"))
+        if (!Enabled)
             return;
 
         if (!Engine.Loaded)
@@ -141,7 +144,7 @@ public class Editor : IUiPanel, IInputHandler
                 }
 
                 ConVarComponents.Checkbox("edt_snap", "Snap");
-                ImGui.Text($"Grid: {ConVarStorage.Get<int>("edt_gridsize")} ([ / ])");
+                ImGui.Text($"Grid: {GridSize} ([ / ])");
 
                 ImGui.EndMainMenuBar();
             }
@@ -418,9 +421,7 @@ public class Editor : IUiPanel, IInputHandler
         if (_usingGizmo)
             return true;
 
-        var enabled = ConVarStorage.Get<bool>("edt_enable");
-
-        if (enabled)
+        if (Enabled)
         {
             if (NoclipMove(keyboardState, mouseState, frameTime))
                 return true;
@@ -437,27 +438,26 @@ public class Editor : IUiPanel, IInputHandler
                 return true;
             }
 
-            var gridSize = ConVarStorage.Get<int>("edt_gridsize");
             if (keyboardState.IsKeyPressed(Keys.LeftBracket))
-                ConVarStorage.Set("edt_gridsize", Math.Max(1, gridSize / 2));
+                GridSize = Math.Max(1, GridSize / 2);
             if (keyboardState.IsKeyPressed(Keys.RightBracket))
-                ConVarStorage.Set("edt_gridsize", Math.Min(1024, gridSize * 2));
+                GridSize = Math.Min(1024, GridSize * 2);
 
             _tool.Input(keyboardState, mouseState, ray, control, alt);
         }
 
         if (keyboardState.IsKeyPressed(Keys.V))
         {
-            ConVarStorage.Set("edt_enable", !enabled);
+            Enabled = !Enabled;
 
             // unpause if going from editor to game mode
-            if (enabled && Engine.Paused)
+            if (Enabled && Engine.Paused)
             {
                 Engine.Paused = false;
             }
 
             // pause if going from game to editor mode
-            if (!enabled && !Engine.Paused)
+            if (!Enabled && !Engine.Paused)
             {
                 Engine.Paused = true;
             }

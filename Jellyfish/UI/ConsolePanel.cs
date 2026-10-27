@@ -10,12 +10,12 @@ using Vector2 = System.Numerics.Vector2;
 
 namespace Jellyfish.UI;
 
-public class EnableConsole() : ConVar<bool>("edt_console", defaultBind: Keys.GraveAccent);
-
-public class ConsolePanel : IUiPanel, IInputHandler
+public partial class ConsolePanel : IUiPanel, IInputHandler
 {
+    [ConVar("edt_console", defaultBind: Keys.GraveAccent)]
+    private partial bool Enabled { get; set; }
+
     private bool _screllToBottom;
-    private bool _isEnabled;
 
     private readonly List<string> _history = new();
     private int _historyPosition = 0;
@@ -28,9 +28,9 @@ public class ConsolePanel : IUiPanel, IInputHandler
 
     public void Frame(double timeElapsed)
     {
-        _isEnabled = ConVarStorage.Get<bool>("edt_console");
+        Enabled = ConVarStorage.Get<bool>("edt_console");
 
-        if (!_isEnabled)
+        if (!Enabled)
             return;
 
         // todo: pause toggle on console
@@ -131,7 +131,7 @@ public class ConsolePanel : IUiPanel, IInputHandler
 
     public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)
     {
-        if (!_isEnabled)
+        if (!Enabled)
             return false;
         
         if (_history.Count <= 0) 

@@ -11,10 +11,11 @@ using Jellyfish.Render.Buffers;
 
 namespace Jellyfish.UI;
 
-public class EnableTextureList() : ConVar<bool>("edt_texturelist", defaultBind: Keys.T);
-
-public class TextureListPanel : IUiPanel
+public partial class TextureListPanel : IUiPanel
 {
+    [ConVar("edt_texturelist", defaultBind: Keys.T)]
+    private partial bool Enabled { get; set; }
+
     private enum Tabs
     {
         All,
@@ -37,7 +38,7 @@ public class TextureListPanel : IUiPanel
 
     public unsafe void Frame(double timeElapsed)
     {
-        if (!ConVarStorage.Get<bool>("edt_texturelist"))
+        if (!Enabled)
             return;
 
         var textureCount = Engine.TextureManager.Textures.Count;

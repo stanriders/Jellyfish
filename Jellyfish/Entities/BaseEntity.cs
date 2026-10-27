@@ -11,9 +11,6 @@ using Log = Jellyfish.Console.Log;
 
 namespace Jellyfish.Entities;
 
-public class EnableDebugCones() : ConVar<bool>("edt_drawcones", true);
-public class EnableEntityNames() : ConVar<bool>("edt_drawnames", false);
-
 public abstract class BaseEntity
 {
     private readonly Dictionary<string, EntityProperty> _entityProperties = new();

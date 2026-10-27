@@ -10,10 +10,11 @@ using Vector2 = System.Numerics.Vector2;
 
 namespace Jellyfish.UI.Editor;
 
-public class EnableMaterialBrowser() : ConVar<bool>("edt_materialbrowser", true);
-
-public class MaterialBrowser : IUiPanel
+public partial class MaterialBrowser : IUiPanel
 {
+    [ConVar("edt_materialbrowser", true)]
+    private partial bool Enabled { get; set; }
+
     // material path relative to the materials folder, used by the editor for new blocks and when applying materials to faces
     public static string SelectedMaterial { get; set; } = string.Empty;
 
@@ -28,7 +29,7 @@ public class MaterialBrowser : IUiPanel
 
     public unsafe void Frame(double timeElapsed)
     {
-        if (!ConVarStorage.Get<bool>("edt_enable") || !ConVarStorage.Get<bool>("edt_materialbrowser"))
+        if (!ConVarStorage.Get<bool>("edt_enable") || !Enabled)
             return;
 
         _materials ??= FindMaterials();

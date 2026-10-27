@@ -4,7 +4,6 @@ using OpenTK.Graphics.OpenGL;
 
 namespace Jellyfish.Render.Screenspace;
 
-public class BloomEnabled() : ConVar<bool>("mat_bloom_enabled", true);
 public class BloomStrength() : ConVar<float>("mat_bloom_strength", 0.04f);
 
 public class Upsample4 : ScreenspaceEffect
@@ -57,8 +56,11 @@ public class Upsample2 : ScreenspaceEffect
         GL.Viewport(0, 0, Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y);
     }
 }
-public class Bloom : ScreenspaceEffect
+public partial class Bloom : ScreenspaceEffect
 {
+    [ConVar("mat_bloom_enabled", true)]
+    private partial bool Enabled { get; set; }
+
     public Bloom() : base(new RenderTargetParams
     {
         Width = Engine.MainViewport.Size.X,
@@ -78,7 +80,7 @@ public class Bloom : ScreenspaceEffect
 
     public override void Draw()
     {
-        if (!ConVarStorage.Get<bool>("mat_bloom_enabled"))
+        if (!Enabled)
         {
             Buffer.Bind(FramebufferTarget.DrawFramebuffer);
 

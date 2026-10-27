@@ -5,9 +5,11 @@ using OpenTK.Mathematics;
 
 namespace Jellyfish.Render.Screenspace;
 
-public class SslrEnabled() : ConVar<bool>("mat_sslr_enabled", true);
-public class Reflections : ScreenspaceEffect
+public partial class Reflections : ScreenspaceEffect
 {
+    [ConVar("mat_sslr_enabled", true)]
+    private partial bool Enabled { get; set; }
+
     public Reflections() : base("Reflections", SizedInternalFormat.Rgba16f, new ScreenspaceReflections())
     {
         Priority = 0;
@@ -15,7 +17,7 @@ public class Reflections : ScreenspaceEffect
 
     public override void Draw()
     {
-        if (!ConVarStorage.Get<bool>("mat_sslr_enabled"))
+        if (!Enabled)
         {
             Buffer.Bind(FramebufferTarget.DrawFramebuffer);
 

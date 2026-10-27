@@ -12,10 +12,11 @@ using System.Runtime.CompilerServices;
 
 namespace Jellyfish.UI;
 
-public class EnablePerformancePanel() : ConVar<bool>("edt_perfpanel", defaultBind: Keys.M);
-
-public class PerformancePanel : IUiPanel
+public partial class PerformancePanel : IUiPanel
 {
+    [ConVar("edt_perfpanel", defaultBind: Keys.M)]
+    private partial bool Enabled { get; set; }
+
     private ImmutableSortedDictionary<string, double>? _timedMeasurements;
     private ImmutableSortedDictionary<string, double>? _incrementalMeasurements;
     private double _elapsedSinceLastUpdate;
@@ -25,7 +26,7 @@ public class PerformancePanel : IUiPanel
 
     public unsafe void Frame(double timeElapsed)
     {
-        if (!ConVarStorage.Get<bool>("edt_perfpanel"))
+        if (!Enabled)
             return;
 
         if (_elapsedSinceLastUpdate > 0.075)

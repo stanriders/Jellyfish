@@ -10,6 +10,9 @@ using OpenTK.Mathematics;
 
 namespace Jellyfish.Entities;
 
+public class EnableDebugCones() : ConVar<bool>("edt_drawcones", true);
+public class EnableEntityNames() : ConVar<bool>("edt_drawnames", false);
+
 public class EntityManager
 {
     private readonly Dictionary<string, Type> _entityClassDictionary = new();
