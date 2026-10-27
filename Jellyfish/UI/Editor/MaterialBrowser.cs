@@ -8,7 +8,7 @@ using Jellyfish.Render;
 using Newtonsoft.Json;
 using Vector2 = System.Numerics.Vector2;
 
-namespace Jellyfish.UI;
+namespace Jellyfish.UI.Editor;
 
 public class EnableMaterialBrowser() : ConVar<bool>("edt_materialbrowser", true);
 

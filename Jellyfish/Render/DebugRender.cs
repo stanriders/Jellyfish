@@ -8,7 +8,7 @@ namespace Jellyfish.Render;
 
 public static class DebugRender
 {
-    public static void DrawBoundingBox(Vector3 position, BoundingBox box)
+    public static void DrawBoundingBox(Vector3 position, BoundingBox box, uint color = uint.MaxValue)
     {
         var max = box.Max;
         var min = box.Min;
@@ -39,17 +39,17 @@ public static class DebugRender
         lines.Add([c4, c8]);
 
         foreach (var line in lines)
-            DrawLine(line[0] + position, line[1] + position);
+            DrawLine(line[0] + position, line[1] + position, color);
     }
 
-    public static void DrawText(Vector3 position, string text)
+    public static void DrawText(Vector3 position, string text, uint color = uint.MaxValue)
     {
         Scheduler.RenderSchedule(() =>
         {
             var drawList = ImGui.GetBackgroundDrawList();
             var screenspacePosition = position.ToNumericsVector().ToScreenspace();
 
-            drawList.AddText(screenspacePosition, uint.MaxValue, text);
+            drawList.AddText(screenspacePosition, color, text);
         });
     }
 
