@@ -20,4 +20,17 @@ public static class ConVarComponents
             ConVarStorage.Set(convar, val);
         }
     }
+
+    public static void MenuItemCommand(string command, string name, string? shortcut = null)
+    {
+        if (ImGui.MenuItem(name, shortcut ?? string.Empty))
+        {
+            ConVarStorage.Execute(command);
+        }
+    }
+    public static void Button(string command, string name)
+    {
+        if (ImGui.Button(name))
+            ConVarStorage.Execute(command);
+    }
 }

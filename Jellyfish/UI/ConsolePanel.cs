@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Hexa.NET.ImGui;
 using Jellyfish.Console;
 using Jellyfish.Input;
@@ -28,8 +29,6 @@ public partial class ConsolePanel : IUiPanel, IInputHandler
 
     public void Frame(double timeElapsed)
     {
-        Enabled = ConVarStorage.Get<bool>("edt_console");
-
         if (!Enabled)
             return;
 
@@ -41,7 +40,8 @@ public partial class ConsolePanel : IUiPanel, IInputHandler
         {
             if (ImGui.Button("All ConVars"))
             {
-                Log.Context("Console").Information(string.Join('\n', Engine.ConVarStorage.ConVarNames));
+                var rows = Engine.ConVarStorage.ConVarNames.Concat(Engine.ConVarStorage.ConCommandNames).Order();
+                Log.Context("Console").Information(string.Join('\n', rows));
             }
             var viewport = ImGui.GetMainViewport();
             ImGui.SetWindowSize(new Vector2(viewport.Size.X * 0.75f, viewport.Size.Y * 0.75f), ImGuiCond.FirstUseEver);
@@ -92,12 +92,14 @@ public partial class ConsolePanel : IUiPanel, IInputHandler
             if (ImGui.InputText("##Command", ref _currentCommandInput, 255,
                     ImGuiInputTextFlags.CtrlEnterForNewLine | ImGuiInputTextFlags.EnterReturnsTrue))
             {
+                _currentCommandInput = _currentCommandInput.Trim();
+
                 _history.Add(_currentCommandInput);
 
                 var commandSplit = _currentCommandInput.Split(' ');
                 if (commandSplit.Length < 2)
                 {
-                    Log.Context(this).Error("Invalid command");
+                    ConVarStorage.Execute(_currentCommandInput);
                 }
                 else
                 {

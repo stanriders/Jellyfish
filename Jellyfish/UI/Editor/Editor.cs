@@ -111,10 +111,9 @@ public partial class Editor : IUiPanel, IInputHandler
 
                         ImGui.EndMenu();
                     }
-                    if (ImGui.MenuItem("Save", "Ctrl+S"))
-                    {
-                        MapLoader.Save($"{Engine.CurrentMap}");
-                    }
+
+                    ConVarComponents.MenuItemCommand("map_save", "Save", "Ctrl+S");
+
                     if (ImGui.MenuItem("Close"))
                     {
                         Engine.ShouldQuit = true;
@@ -130,10 +129,7 @@ public partial class Editor : IUiPanel, IInputHandler
                     ImGui.EndMenu();
                 }
 
-                if (ImGui.Button("Update light probes"))
-                {
-                    Engine.Renderer.UpdateIBL();
-                }
+                ConVarComponents.Button("mat_ibl_render", "Update light probes");
 
                 ImGui.Separator();
 
@@ -434,7 +430,7 @@ public partial class Editor : IUiPanel, IInputHandler
 
             if (control && keyboardState.IsKeyPressed(Keys.S))
             {
-                MapLoader.Save($"{Engine.CurrentMap}");
+                ConVarStorage.Execute("map_save");
                 return true;
             }
 

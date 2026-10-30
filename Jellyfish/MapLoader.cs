@@ -92,9 +92,10 @@ public static class MapLoader
         Log.Context("MapLoader").Information("Finished parsing map");
     }
 
-    public static void Save(string mapName)
+    [ConCommand("map_save")]
+    public static void Save()
     {
-        var path = Path.Combine(maps_directory, $"{mapName}.json");
+        var path = Path.Combine(maps_directory, $"{Engine.CurrentMap}.json");
 
         var serializer = JsonSerializer.CreateDefault(new JsonSerializerSettings { Converters = Converters });
 

@@ -35,6 +35,9 @@ public partial class OpenGLRender : IRender
     public bool IsReady { get; set; }
     public bool NeedToRecreateBuffers { get; set; }
 
+    [ConCommand("mat_ibl_render")]
+    private static void RenderCommand() => Engine.Renderer.UpdateIBL();
+
     public OpenGLRender()
     {
 #if DEBUG
@@ -263,7 +266,7 @@ public partial class OpenGLRender : IRender
         ImageBasedLighting?.Render(_sky);
     }
 
-    public void UpdateIBL()
+    private void UpdateIBL()
     {
         ImageBasedLighting?.Render(_sky);
     }
