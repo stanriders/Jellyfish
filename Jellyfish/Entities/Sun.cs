@@ -62,19 +62,19 @@ public class Sun : BaseEntity, ILightSource
 
     public bool UsePcss => GetPropertyValue<bool>("PCSS");
     public bool UseBackCulling => GetPropertyValue<bool>("BackCulling");
-    public int ShadowResolution => 1024;
+    public int ShadowResolution => 2048;
 
     public float Albedo => GetPropertyValue<float>("Albedo");
     public float Turbidity => GetPropertyValue<float>("Turbidity");
 
     public const int cascades = 4;
 
-    public static (int Near, int Far)[] CascadeRanges =
+    public static readonly (int Near, int Far)[] CascadeRanges =
     [
         (0, 200),
-        (200, 1000),
-        (1000, 3000),
-        (3000, int.MaxValue)
+        (200, 750),
+        (750, 2500),
+        (2500, int.MaxValue)
     ];
 
     public int ProjectionCount => cascades;

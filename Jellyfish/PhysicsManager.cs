@@ -344,9 +344,18 @@ public class PhysicsManager
                 DrawMassAndInertia = true,
                 DrawVelocity = true,
                 DrawShape = true,
-                DrawShapeColor = ShapeColor.MotionTypeColor
+                DrawBoundingBox = true,
+                DrawCenterOfMassTransform = true,
+                DrawWorldTransform = true,
+                DrawSleepStats = true,
+                DrawShapeColor = ShapeColor.InstanceColor
             };
+            _debugRenderer.SetCameraPosition(Engine.MainViewport.Position.ToNumericsVector());
+
             _physicsSystem.DrawBodies(drawSettings, _debugRenderer, _debugDrawFilter);
+            _physicsSystem.DrawConstraints(_debugRenderer);
+            _physicsSystem.DrawConstraintLimits(_debugRenderer);
+            _physicsSystem.DrawConstraintReferenceFrame(_debugRenderer);
 
             _debugRenderer.Render();
 
@@ -425,12 +434,12 @@ public class PhysicsManager
 
         protected override void DrawLine(System.Numerics.Vector3 from, System.Numerics.Vector3 to, JoltColor color)
         {
-            DebugRender.DrawLine((Vector3)from, (Vector3)to);
+            DebugRender.DrawLine((Vector3)from, (Vector3)to, (uint)color.ToAbgr());
         }
 
         protected override void DrawText3D(System.Numerics.Vector3 position, string? text, JoltColor color, float height = 0.5f)
         {
-            DebugRender.DrawText((Vector3)position, text ?? "");
+            DebugRender.DrawText((Vector3)position, text ?? "", (uint)color.ToAbgr());
         }
         
         protected override void DrawTriangle(System.Numerics.Vector3 v1, System.Numerics.Vector3 v2, System.Numerics.Vector3 v3, JoltColor color, CastShadow castShadow = CastShadow.Off)

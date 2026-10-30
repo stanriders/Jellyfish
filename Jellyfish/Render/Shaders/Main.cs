@@ -15,6 +15,7 @@ public class Main : Shader
     public Main(Material material) : base("shaders/Main.vert", null, "shaders/Main.frag")
     {
         // todo?: use bound material
+        // todo: predefined shader params that can be edited in a material editor
 
         if (material.TryGetParam<string>("Diffuse", out var diffusePath))
             _diffuse = Engine.TextureManager.GetTexture(new TextureParams { Path = $"{material.Directory}/{diffusePath}", Srgb = true}).Texture;

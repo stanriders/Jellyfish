@@ -12,11 +12,6 @@ public class UiManager
 
     public UiManager()
     {
-        Load();
-    }
-
-    public void Load()
-    {
         var panels = Assembly.GetExecutingAssembly()
             .GetTypes()
             .Where(x => x is { IsPublic: true, IsAbstract: false } && typeof(IUiPanel).IsAssignableFrom(x));

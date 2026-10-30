@@ -277,7 +277,7 @@ vec3 CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
             sampler2D shadowSampler = sun.shadow[layer];
             if (sun.usePcss)
             {
-                shadow = PoissonPCSSShadow(shadowSampler, projCoords, sun.cascadeNear[layer], sun.cascadeFar[layer], 20.0f, true);
+                shadow = PoissonPCSSShadow(shadowSampler, projCoords, sun.cascadeNear[layer], sun.cascadeFar[layer], 2.0f, true);
             }
             else
             {
