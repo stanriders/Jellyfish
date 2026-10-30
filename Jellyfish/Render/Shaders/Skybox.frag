@@ -16,17 +16,17 @@ uniform vec3 A, B, C, D, E, F, G, H, I, Z;
 
 vec3 hosek_wilkie(float cos_theta, float gamma, float cos_gamma)
 {
-	vec3 chi = (1 + cos_gamma * cos_gamma) / pow(1 + H * H - 2 * cos_gamma * H, vec3(1.5));
+    vec3 chi = (1 + cos_gamma * cos_gamma) / pow(1 + H * H - 2 * cos_gamma * H, vec3(1.5));
     return (1 + A * exp(B / (cos_theta + 0.01))) * (C + D * exp(E * gamma) + F * (cos_gamma * cos_gamma) + G * chi + I * sqrt(cos_theta));
 }
 
 vec3 hosek_wilkie_sky_rgb(vec3 v, vec3 sun_dir)
 {
     float cos_theta = clamp(v.y, 0, 1);
-	float cos_gamma = clamp(dot(v, sun_dir), 0, 1);
-	float gamma_ = acos(cos_gamma);
+    float cos_gamma = clamp(dot(v, sun_dir), 0, 1);
+    float gamma_ = acos(cos_gamma);
 
-	vec3 R = Z * hosek_wilkie(cos_theta, gamma_, cos_gamma);
+    vec3 R = Z * hosek_wilkie(cos_theta, gamma_, cos_gamma);
     return R;
 }
 
@@ -62,7 +62,7 @@ float fbm(vec2 p)
     return sum;
 }
 
-vec4 clouds(vec3 dir, vec3 sunDir)
+vec4 clouds(vec3 dir, vec3 sunDir, vec3 skyAmbient, vec3 sunColor)
 {
     // only draw above the horizon, project the ray onto a flat plane
     if (dir.y < 0.01) return vec4(0.0);
@@ -82,10 +82,6 @@ vec4 clouds(vec3 dir, vec3 sunDir)
     float nSun = fbm(uv + wind + normalize(sunDir.xz + 1e-4) * 0.02);
     float lightTerm = clamp((nSun - n) * 4.0 + 0.6, 0.2, 1.0);
 
-    // sample the sky itself for lighting instead of hardcoded colors
-    vec3 skyAmbient = hosek_wilkie_sky_rgb(vec3(0.0, 1.0, 0.0), sunDir);       // zenith skylight, for shadowed side
-    vec3 sunColor   = hosek_wilkie_sky_rgb(normalize(sunDir), sunDir) + (uSunColor * vec3(uSunIntensity)); // sun-facing side
-
     vec3 cloudColor = mix(skyAmbient * 0.8, sunColor, lightTerm);
 
     // fade near horizon so it doesn't look like a hard flat plane
@@ -98,18 +94,28 @@ vec4 clouds(vec3 dir, vec3 sunDir)
 void main()
 {
     vec3 dir = normalize(TexCoords);
-    vec3 color = hosek_wilkie_sky_rgb(dir, uSunPos);
+    vec3 sunDir = normalize(uSunPos);
+    float daylight = clamp(sunDir.y * 4.0 + 0.6, 0.015, 1.0); // how light the sky is overall: full during the day, dark when the sun is well below the horizon
+
+    vec3 color = hosek_wilkie_sky_rgb(dir, uSunPos) * daylight;
 
     const float sunAngularRadius = 0.007;
-    float cosAngle = dot(dir, normalize(uSunPos));
-    float sun = smoothstep(cos(sunAngularRadius), cos(0.0), cosAngle);
+    float sun = smoothstep(cos(sunAngularRadius), cos(0.0), dot(dir, sunDir));
     color += uSunColor * vec3(uSunIntensity) * sun;
 
     //vec3 groundColor = vec3(0.3, 0.25, 0.2);
     //color = mix(groundColor, color, smoothstep(0.0, 0.1, TexCoords.y));
-    
-    vec4 cloud = clouds(dir, normalize(uSunPos));
-    color = mix(color, cloud.rgb, cloud.a);
+
+    if (dir.y > 0.01)
+    {
+        vec3 skyAmbient = hosek_wilkie_sky_rgb(vec3(0.0, 1.0, 0.0), sunDir) * daylight;
+        vec3 sunLight = (hosek_wilkie_sky_rgb(sunDir, sunDir) + uSunColor * uSunIntensity) * daylight;
+
+        float horizonFade = smoothstep(0.01, 0.15, dir.y);
+
+        vec4 cloud = clouds(dir, sunDir, skyAmbient, sunLight);
+        color = mix(color, cloud.rgb, cloud.a * horizonFade);
+    }
 
     FragColor = vec4(color, 1);
 }
