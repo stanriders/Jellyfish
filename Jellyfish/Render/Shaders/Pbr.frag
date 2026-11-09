@@ -81,6 +81,27 @@ vec3 EvaluateProbeSH(int probe, vec3 n)
     return max(result.rgb, 0.0);
 }
 
+vec3 ParallaxCorrect(vec3 worldPos, vec3 R, vec4 probe, float roughness)
+{
+    vec3 local = worldPos - probe.xyz;
+    float radius = probe.w;
+
+    float b = dot(local, R);
+    float c = dot(local, local) - radius * radius;
+    float discriminant = b * b - c;
+    if (discriminant < 0.0)
+    return R;
+
+    float t = -b + sqrt(discriminant);
+    if (t <= 0.0)
+    return R;
+
+    vec3 corrected = normalize(local + R * t);
+
+    // blurry reflections don't show the error, and the correction gets worse far from the center
+    return normalize(mix(corrected, R, roughness * roughness));
+}
+
 void GetBlendedLightProbe(vec3 worldPos, vec3 N, vec3 R, float roughness, out vec3 outDiffuse, out vec3 outSpecular)
 {
     float distSq[PROBE_BLEND_COUNT];
@@ -140,7 +161,8 @@ void GetBlendedLightProbe(vec3 worldPos, vec3 N, vec3 R, float roughness, out ve
 
         if (iblPrefilterEnabled)
         {
-            vec3 prefiltered = textureLod(lightProbes[idx[i]].prefilter, R, roughness * (prefilterMips - 1)).rgb;
+            vec3 direction = ParallaxCorrect(worldPos, R, lightProbes[idx[i]].position, roughness);
+            vec3 prefiltered = textureLod(lightProbes[idx[i]].prefilter, direction, roughness * (prefilterMips - 1)).rgb;
             outSpecular += prefiltered * w;
         }
     }
