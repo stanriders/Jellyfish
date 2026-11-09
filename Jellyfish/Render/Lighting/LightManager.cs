@@ -39,6 +39,8 @@ public class LightManager
     public readonly ShaderStorageBuffer<LightSources> LightSourcesSsbo = new("lightSourcesSSBO", new LightSources());
     private readonly Shadow _shadowShader = new();
 
+    public LightCulling LightCulling { get; } = new();
+
     public void AddLight(ILightSource source)
     {
         if (source is Sun)
@@ -93,6 +95,7 @@ public class LightManager
         Sun?.Source.ClearProjectionCache();
 
         UpdateShaderBuffer();
+        LightCulling.Update();
     }
 
     public void DrawShadows()
@@ -410,6 +413,7 @@ public class LightManager
         if (Sun != null)
             RemoveLight(Sun.Source);
 
+        LightCulling.Unload();
         _shadowShader.Unload();
         LightSourcesSsbo.Dispose();
     }

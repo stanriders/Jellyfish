@@ -56,9 +56,11 @@ public class Main : Shader
         SetBool("iblPrefilterEnabled", ConVarStorage.Get<bool>("mat_ibl_prefilter"));
         SetBool("sslrEnabled", ConVarStorage.Get<bool>("mat_sslr_enabled"));
         SetVector2("screenSize", Engine.MainViewport.Size);
+        SetVector2("nearFar",new OpenTK.Mathematics.Vector2(Engine.MainViewport.NearPlane, Engine.MainViewport.FarPlane));
 
         Engine.LightManager.LightSourcesSsbo.Bind(0);
         Engine.Renderer.ImageBasedLighting?.LightProbesSsbo.Bind(1);
+        Engine.LightManager.LightCulling.ClustersBuffer.Bind(2);
 
         BindTexture(0, _diffuse?.Texture);
         BindTexture(1, _normal?.Texture);

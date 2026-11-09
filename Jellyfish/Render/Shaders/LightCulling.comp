@@ -1,0 +1,83 @@
+#version 460
+#extension GL_ARB_bindless_texture : require
+#extension GL_ARB_gpu_shader_int64 : require
+#include LightingDefinitions.shared
+
+// one invocation per cluster
+layout(local_size_x = CLUSTER_X, local_size_y = CLUSTER_Y, local_size_z = 1) in;
+
+uniform mat4 view;
+uniform mat4 invProjection;
+uniform float near;
+uniform float far;
+
+// view space position on the near plane for an NDC xy
+vec3 NearPlanePoint(vec2 ndc)
+{
+    vec4 position = invProjection * vec4(ndc, -1.0, 1.0);
+    return position.xyz / position.w;
+}
+
+// point along the ray from the eye through a near plane point, at a view depth
+vec3 AtDepth(vec3 nearPoint, float depth)
+{
+    return nearPoint * (depth / -nearPoint.z);
+}
+
+void main()
+{
+    uvec3 id = gl_GlobalInvocationID;
+    uint cluster = id.x + id.y * CLUSTER_X + id.z * CLUSTER_X * CLUSTER_Y;
+
+    // cluster bounds in view space
+    vec2 ndcMin = vec2(id.xy) / vec2(CLUSTER_X, CLUSTER_Y) * 2.0 - 1.0;
+    vec2 ndcMax = vec2(id.xy + 1u) / vec2(CLUSTER_X, CLUSTER_Y) * 2.0 - 1.0;
+
+    float sliceNear = near * pow(far / near, float(id.z) / float(CLUSTER_Z));
+    float sliceFar = near * pow(far / near, float(id.z + 1u) / float(CLUSTER_Z));
+
+    vec3 nearMin = NearPlanePoint(ndcMin);
+    vec3 nearMax = NearPlanePoint(ndcMax);
+
+    vec3 a = AtDepth(nearMin, sliceNear);
+    vec3 b = AtDepth(nearMax, sliceNear);
+    vec3 c = AtDepth(nearMin, sliceFar);
+    vec3 d = AtDepth(nearMax, sliceFar);
+
+    vec3 boxMin = min(min(a, b), min(c, d));
+    vec3 boxMax = max(max(a, b), max(c, d));
+
+    uint count = 0u;
+    uint base = cluster * MAX_LIGHTS_PER_CLUSTER;
+
+    for (int i = 0; i < lightSourcesCount && count < MAX_LIGHTS_PER_CLUSTER; i++)
+    {
+        Light light = lightSources[i];
+        float radius = LightRadius(light);
+        if (radius <= 0.0)
+            continue;
+
+        vec3 center = (view * vec4(light.position, 1.0)).xyz;
+
+        // sphere against box
+        vec3 closest = clamp(center, boxMin, boxMax);
+        vec3 delta = closest - center;
+        if (dot(delta, delta) > radius * radius)
+            continue;
+
+        // spotlights: skip clusters fully behind the light's cone apex
+        if (light.type == 1)
+        {
+            vec3 direction = normalize(mat3(view) * light.direction);
+            vec3 boxCenter = (boxMin + boxMax) * 0.5;
+            float boxRadius = length(boxMax - boxMin) * 0.5;
+            if (dot(boxCenter - center, direction) < -boxRadius)
+                continue;
+        }
+
+        clusterLightIndices[base + count] = uint(i);
+        count++;
+    }
+
+    clusterLightCount[cluster] = count;
+}

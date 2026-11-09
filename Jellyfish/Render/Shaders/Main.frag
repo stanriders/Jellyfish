@@ -26,6 +26,7 @@ uniform bool iblEnabled;
 uniform bool iblPrefilterEnabled;
 uniform bool sslrEnabled;
 uniform vec2 screenSize;
+uniform vec2 nearFar;
 
 // late include to make sure we have all the uniforms
 #include Lighting.frag
@@ -71,8 +72,16 @@ void main()
     
     vec3 dielectricCoefficient = mix(vec3(0.04), diffuseTex.rgb, metalness); // F0
 
-    for(int i = 0; i < lightSourcesCount; i++)
+    uvec2 tile = min(uvec2(gl_FragCoord.xy / screenSize * vec2(CLUSTER_X, CLUSTER_Y)), uvec2(CLUSTER_X - 1, CLUSTER_Y - 1));
+    int slice = ClusterSlice(-(view * vec4(frag_position, 1.0)).z, nearFar.x, nearFar.y);
+    uint cluster = tile.x + tile.y * CLUSTER_X + uint(slice) * CLUSTER_X * CLUSTER_Y;
+
+    uint clusterBase = cluster * MAX_LIGHTS_PER_CLUSTER;
+    int lightCount = int(clusterLightCount[cluster]);
+
+    for(int lightIndex = 0; lightIndex < lightCount; lightIndex++)
     {
+        int i = int(clusterLightIndices[clusterBase + uint(lightIndex)]);
         Light light = lightSources[i];
         vec3 lightDir = normalize(light.position - frag_position);
 
