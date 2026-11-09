@@ -45,14 +45,16 @@ vec3 ApplyLight(vec3 light, vec3 diffuseColor, vec3 L, vec3 N, vec3 V, vec3 F0, 
 
 void main()
 {
-    vec4 diffuseTex = texture(diffuseSampler, frag_texCoord * vec2(1.0, -1.0));
+    vec2 uv = frag_texCoord * vec2(1.0, -1.0);
+
+    vec4 diffuseTex = texture(diffuseSampler, uv);
     if (useAlphaTest && diffuseTex.a < 0.5)
         discard;
 
     vec3 normal = normalize(frag_normal);
     if (useNormals)
     {
-        vec3 normalTex = texture(normalSampler, frag_texCoord * vec2(1.0, -1.0)).rgb;
+        vec3 normalTex = texture(normalSampler, uv).rgb;
 
         vec3 tangentSpaceNormal = normalize(normalTex * 2.0 - 1.0);
         mat3 tbn = GetTBN(frag_position, frag_texCoord, frag_normal);
@@ -63,16 +65,17 @@ void main()
     
     vec3 metroughTex = vec3(0, 0.9f, 0); // defaults for non-PBR textures
     if (usePbr)
-        metroughTex = texture(metroughSampler, frag_texCoord * vec2(1.0, -1.0)).rgb;
+        metroughTex = texture(metroughSampler, uv).rgb;
         
-    float roughness = metroughTex.g;
+    float roughness = SpecularAntiAliasing(normal, metroughTex.g);
     float metalness = metroughTex.b;
 
-    vec3 lighting = ComputeIBL(normal, viewDir, diffuseTex.rgb, roughness, metalness, gl_FragCoord.xy / screenSize);
-    
+    vec2 screenUv = gl_FragCoord.xy / screenSize;
+    vec3 lighting = ComputeIBL(normal, viewDir, diffuseTex.rgb, roughness, metalness, screenUv);
+
     vec3 dielectricCoefficient = mix(vec3(0.04), diffuseTex.rgb, metalness); // F0
 
-    uvec2 tile = min(uvec2(gl_FragCoord.xy / screenSize * vec2(CLUSTER_X, CLUSTER_Y)), uvec2(CLUSTER_X - 1, CLUSTER_Y - 1));
+    uvec2 tile = min(uvec2(screenUv * vec2(CLUSTER_X, CLUSTER_Y)), uvec2(CLUSTER_X - 1, CLUSTER_Y - 1));
     int slice = ClusterSlice(-(view * vec4(frag_position, 1.0)).z, nearFar.x, nearFar.y);
     uint cluster = tile.x + tile.y * CLUSTER_X + uint(slice) * CLUSTER_X * CLUSTER_Y;
 
