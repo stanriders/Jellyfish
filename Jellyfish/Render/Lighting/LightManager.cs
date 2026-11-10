@@ -29,17 +29,26 @@ public class LightManager
         }
     }
 
+    private class CullingShader() : Shader("shaders/LightCulling.comp");
+
     public Light? Sun { get; private set; }
 
     public const int max_lights = 256;
     public const int max_shadows_per_lights = 8;
+
+    private const int ClustersX = 16;
+    private const int ClustersY = 9;
+    private const int ClustersZ = 24;
+    private const int MaxLightsPerCluster = 64;
+    private const int ClusterCount = ClustersX * ClustersY * ClustersZ;
 
     public readonly List<Light> Lights = new(max_lights);
 
     public readonly ShaderStorageBuffer<LightSources> LightSourcesSsbo = new("lightSourcesSSBO", new LightSources());
     private readonly Shadow _shadowShader = new();
 
-    public LightCulling LightCulling { get; } = new();
+    public readonly ShaderStorageBuffer ClustersSsbo = new("lightClustersSSBO", (ClusterCount + ClusterCount * MaxLightsPerCluster) * sizeof(uint));
+    private readonly CullingShader _cullingShader = new();
 
     public void AddLight(ILightSource source)
     {
@@ -95,7 +104,7 @@ public class LightManager
         Sun?.Source.ClearProjectionCache();
 
         UpdateShaderBuffer();
-        LightCulling.Update();
+        UpdateClustersBuffer();
     }
 
     public void DrawShadows()
@@ -351,6 +360,24 @@ public class LightManager
         ArrayPool<int>.Shared.Return(cascadeRangesFar);
     }
 
+    private void UpdateClustersBuffer()
+    {
+        using var _ = new PerformanceMeasure("LightClusters.Update");
+
+        var viewport = Engine.MainViewport;
+
+        Engine.LightManager.LightSourcesSsbo.Bind(0);
+        ClustersSsbo.Bind(2);
+
+        _cullingShader.Bind();
+        _cullingShader.SetMatrix4("view", viewport.GetViewMatrix());
+        _cullingShader.SetMatrix4("invProjection", viewport.GetProjectionMatrix().Inverted());
+        _cullingShader.SetFloat("near", viewport.NearPlane);
+        _cullingShader.SetFloat("far", viewport.FarPlane);
+        _cullingShader.DispatchCompute(1, 1, ClustersZ, MemoryBarrierMask.ShaderStorageBarrierBit);
+        _cullingShader.Unbind();
+    }
+
     private void CreateShadow(Light light, string subname = "")
     {
         var index = Lights.IndexOf(light);
@@ -413,7 +440,9 @@ public class LightManager
         if (Sun != null)
             RemoveLight(Sun.Source);
 
-        LightCulling.Unload();
+        _cullingShader.Unload();
+        ClustersSsbo.Dispose();
+
         _shadowShader.Unload();
         LightSourcesSsbo.Dispose();
     }
