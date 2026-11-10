@@ -25,8 +25,8 @@ public sealed class TextureRef : IDisposable
 
 public class TextureManager
 {
-    private readonly List<Texture> _textures = new();
-    public IReadOnlyList<Texture> Textures => _textures.AsReadOnly();
+    private readonly Dictionary<int, Texture> _textures = new();
+    public IReadOnlyList<Texture> Textures => _textures.Values.ToList();
 
     private const string error_texture = "_engine_Error";
 
@@ -41,17 +41,25 @@ public class TextureManager
         });
     }
 
+    private int BuildHash(string? name, string? path)
+    {
+        var hash = new HashCode();
+        hash.Add(name);
+        hash.Add(path);
+        return hash.ToHashCode();
+    }
+
     public TextureRef CreateTexture(TextureParams textureParams)
     {
-        var existingTexture = _textures.FirstOrDefault(x => x.Params.Path == (textureParams.Path ?? textureParams.Name) || 
-                                                            x.Params.Name == (textureParams.Name ?? textureParams.Path));
-        if (existingTexture != null)
+        var nameHash = BuildHash(textureParams.Name, textureParams.Path);
+
+        if (_textures.ContainsKey(nameHash))
             throw new Exception($"Texture {textureParams.Name} already exists");
 
         try
         {
             var texture = new Texture(textureParams);
-            _textures.Add(texture);
+            _textures.Add(nameHash, texture);
 
             return new TextureRef(texture);
         }
@@ -63,14 +71,15 @@ public class TextureManager
 
     public TextureRef CreateTexture(RenderTargetParams rtParams)
     {
-        var existingTexture = _textures.FirstOrDefault(x => x.Params.Name == rtParams.TextureParams.Name);
-        if (existingTexture != null)
+        var nameHash = BuildHash(rtParams.TextureParams.Name, null);
+
+        if (_textures.ContainsKey(nameHash))
             throw new Exception($"Texture {rtParams.TextureParams.Name} already exists");
 
         try
         {
             var texture = new Texture(rtParams);
-            _textures.Add(texture);
+            _textures.Add(nameHash, texture);
 
             return new TextureRef(texture);
         }
@@ -82,11 +91,11 @@ public class TextureManager
 
     public (TextureRef Texture, bool AlreadyExists) GetTexture(TextureParams textureParams)
     {
-        var existingTexture = _textures.FirstOrDefault(x => x.Params.Path == (textureParams.Path ?? textureParams.Name) ||
-                                                            x.Params.Name == (textureParams.Name ?? textureParams.Path));
-        if (existingTexture != null)
+        var nameHash = BuildHash(textureParams.Name, textureParams.Path);
+
+        if (_textures.TryGetValue(nameHash, out var texture))
         {
-            return (new TextureRef(existingTexture), true);
+            return (new TextureRef(texture), true);
         }
 
         return (CreateTexture(textureParams), false);
@@ -94,10 +103,11 @@ public class TextureManager
 
     public TextureRef? GetTexture(string name)
     {
-        var existingTexture = _textures.FirstOrDefault(x => x.Params.Name == name);
-        if (existingTexture != null)
+        var nameHash = BuildHash(name, null);
+
+        if (_textures.TryGetValue(nameHash, out var texture))
         {
-            return new TextureRef(existingTexture);
+            return new TextureRef(texture);
         }
 
         return null;
@@ -105,7 +115,7 @@ public class TextureManager
 
     public void RemoveTexture(Texture texture)
     {
-        _textures.Remove(texture);
+        _textures.Remove(_textures.FirstOrDefault(x => x.Value == texture).Key);
         texture.Delete();
     }
 }
