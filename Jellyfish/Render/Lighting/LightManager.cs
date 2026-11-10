@@ -142,7 +142,7 @@ public class LightManager
                 GL.Clear(ClearBufferMask.DepthBufferBit);
 
                 _shadowShader.SetMatrix4("lightSpaceMatrix", Sun.Source.Projection(i));
-                Engine.MeshManager.DrawOpaque(false, _shadowShader, new Frustum(Sun.Source.Projection(i)));
+                Engine.MeshManager.DrawOpaque(new Frustum(Sun.Source.Projection(i)), false, _shadowShader);
 
                 shadow.FrameBuffer.Unbind();
             }
@@ -206,7 +206,7 @@ public class LightManager
                 GL.Clear(ClearBufferMask.DepthBufferBit);
 
                 _shadowShader.SetMatrix4("lightSpaceMatrix", light.Source.Projection(i));
-                Engine.MeshManager.DrawOpaque(false, _shadowShader, frustum);
+                Engine.MeshManager.DrawOpaque(frustum, false, _shadowShader);
 
                 shadow.FrameBuffer.Unbind();
             }

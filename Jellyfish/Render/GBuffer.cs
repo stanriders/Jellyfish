@@ -51,7 +51,7 @@ public class GBuffer
 
         GL.Viewport(0, 0, Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-        Engine.MeshManager.DrawOpaque(shaderToUse: _shader, frustum: Engine.MainViewport.GetFrustum());
+        Engine.MeshManager.DrawOpaque(Engine.MainViewport.GetFrustum(), shaderToUse: _shader);
 
         _buffer.Unbind();
     }

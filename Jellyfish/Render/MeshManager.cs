@@ -97,39 +97,35 @@ public class MeshManager
         });
     }
 
-    public void DrawOpaque(bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null)
+    public void DrawOpaque(Frustum frustum, bool drawDev = true, Shader? shaderToUse = null)
     {
         using var _ = new PerformanceMeasure("MeshManager.Draw.Opaque");
 
         foreach (var mesh in _opaqueMeshes)
-            DrawMesh(mesh, drawDev, shaderToUse, frustum);
+            DrawMesh(mesh, frustum, drawDev, shaderToUse);
     }
 
-    public void DrawTranslucent(bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null)
+    public void DrawTranslucent(Frustum frustum, bool drawDev = true, Shader? shaderToUse = null)
     {
         using var _ = new PerformanceMeasure("MeshManager.Draw.Translucent");
         if (_translucentMeshes.Count == 0)
             return;
 
-        var sortingPosition = frustum?.NearPlaneCenter ?? Engine.MainViewport.Position;
-
-        var transluscentObjects = _translucentMeshes
-            .OrderByDescending(x => ((x.Position + x.BoundingBox.Center) - sortingPosition).Length)
+        var translucentObjects = _translucentMeshes
+            .OrderByDescending(x => ((x.Position + x.BoundingBox.Center) - frustum.NearPlaneCenter).Length)
             .ToArray();
 
-        GL.DepthMask(false);
         GL.Enable(EnableCap.Blend);
         GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
         GL.BlendEquation(BlendEquationMode.FuncAdd);
 
-        foreach (var mesh in transluscentObjects)
-            DrawMesh(mesh, drawDev, shaderToUse, frustum);
+        foreach (var mesh in translucentObjects)
+            DrawMesh(mesh, frustum, drawDev, shaderToUse);
 
         GL.Disable(EnableCap.Blend);
-        GL.DepthMask(true);
     }
 
-    private void DrawMesh(Mesh mesh, bool drawDev = true, Shader? shaderToUse = null, Frustum? frustum = null)
+    private void DrawMesh(Mesh mesh, Frustum frustum, bool drawDev = true, Shader? shaderToUse = null)
     {
         if (mesh.IsDev && !drawDev)
             return;
@@ -137,7 +133,7 @@ public class MeshManager
         if (mesh.ShouldDraw)
         {
             var boundingBox = (mesh.Model?.BoundingBox ?? mesh.BoundingBox).Translate(Matrix4.CreateTranslation(mesh.Position));
-            if (frustum != null && !frustum.Value.IsInside(boundingBox))
+            if (!frustum.IsInside(boundingBox))
                 return;
 
             mesh.Draw(shaderToUse);

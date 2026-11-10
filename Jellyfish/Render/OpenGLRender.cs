@@ -162,8 +162,6 @@ public partial class OpenGLRender : IRender
         GL.Enable(EnableCap.DepthTest);
         GL.DepthFunc(DepthFunction.Less);
 
-        ImageBasedLighting?.Frame(_sky);
-
         PreFrame();
 
         _mainFramebuffer?.Bind();
@@ -172,16 +170,19 @@ public partial class OpenGLRender : IRender
         GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
         // gbuffer pass already filled the depth buffer, reuse it as a depth prepass
-        GL.Clear(Wireframe ? ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit : ClearBufferMask.ColorBufferBit);
+        if (!Wireframe)
+            GL.DepthMask(false);
+
+        GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
         GL.PolygonMode(TriangleFace.FrontAndBack, Wireframe ? PolygonMode.Line : PolygonMode.Fill);
 
         _sky?.Draw();
 
         GL.DepthFunc(DepthFunction.Lequal);
-        Engine.MeshManager.DrawOpaque(frustum: Engine.MainViewport.GetFrustum());
-        Engine.MeshManager.DrawTranslucent(frustum: Engine.MainViewport.GetFrustum());
-        GL.DepthFunc(DepthFunction.Less);
+        Engine.MeshManager.DrawOpaque(Engine.MainViewport.GetFrustum());
+        Engine.MeshManager.DrawTranslucent(Engine.MainViewport.GetFrustum());
+        GL.DepthMask(true);
 
         _mainFramebuffer?.Unbind();
 

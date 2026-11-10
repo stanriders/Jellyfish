@@ -134,7 +134,7 @@ public class LightProbe
             sky?.Draw();
 
             Engine.MainViewport.ViewMatrixOverride = Matrix4.LookAt(Position, Position + _cubemapViews[i].target, _cubemapViews[i].up);
-            Engine.MeshManager.DrawOpaque(false, frustum: Engine.MainViewport.GetFrustum());
+            Engine.MeshManager.DrawOpaque(Engine.MainViewport.GetFrustum(), false);
 
             cubemapBuffer.Unbind();
         }
@@ -308,11 +308,6 @@ public class ImageBasedLighting
     public void PreFrame()
     {
         UpdateClusterBuffer();
-    }
-
-    public void Frame(Sky? sky)
-    {
-        //Render(sky);
     }
 
     public void Render(Sky? sky)
