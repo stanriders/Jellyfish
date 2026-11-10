@@ -96,7 +96,6 @@ public partial class OpenGLRender : IRender
             {
                 Name = "_rt_Color",
                 WrapMode = TextureWrapMode.ClampToEdge,
-                MaxLevels = -1,
                 MinFiltering = TextureMinFilter.Nearest,
                 MagFiltering = TextureMagFilter.Nearest,
                 InternalFormat = SizedInternalFormat.Rgb16f
