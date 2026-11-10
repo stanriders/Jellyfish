@@ -11,6 +11,16 @@ public struct LightProbes : IGpuStruct
     public LightProbe[] Probes;
 
     public int ProbeCount;
+
+    // probe closest to the scene center, blended in everywhere with a tiny weight so points outside of every radius still get lit
+    public int FallbackProbe;
+
+    // written by ProbeCulling.comp
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = ImageBasedLighting.cluster_count)]
+    public uint[] ClusterProbeCount;
+
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = ImageBasedLighting.cluster_count * ImageBasedLighting.max_probes_per_cluster)]
+    public uint[] ClusterProbeIndices;
 }
 
 [StructLayout(LayoutKind.Sequential)]

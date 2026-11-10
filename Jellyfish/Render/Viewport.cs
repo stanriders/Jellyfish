@@ -26,12 +26,17 @@ namespace Jellyfish.Render
         }
         public Quaternion Rotation { get; set; }
         public float AspectRatio => Size.X / (float)Size.Y;
-        public Vector2i Size { get; set; }
+        public Vector2i Size
+        {
+            get => SizeOverride ?? field;
+            set;
+        }
 
         public Vector3 Front => _front;
         public Vector3 Up { get; set; } = Vector3.UnitY;
         public Vector3 Right { get; set; } = Vector3.UnitX;
 
+        public Vector2i? SizeOverride { get; set; }
         public Matrix4? ViewMatrixOverride { get; set; } = null;
         public Matrix4? ProjectionMatrixOverride { get; set; } = null;
 

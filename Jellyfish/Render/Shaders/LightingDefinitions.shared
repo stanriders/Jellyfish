@@ -73,8 +73,14 @@ const vec2 poissonDisk[PCSS_FILTER_SIZE] =
         vec2( 0.14383161, -0.14100790 )
 };
 
+#define CLUSTER_X 16
+#define CLUSTER_Y 9
+#define CLUSTER_Z 24
+#define CLUSTER_COUNT (CLUSTER_X * CLUSTER_Y * CLUSTER_Z)
+
 #define MAX_PROBES 512
-#define PROBE_BLEND_COUNT 12
+#define MAX_PROBES_PER_CLUSTER 32
+#define PROBE_CLUSTER_ALL 0xFFFFFFFFu // clusterProbeCount value for clusters that overlap more probes than fit
 struct LightProbe {
     samplerCube prefilter;
     vec4        position; // xyz = position, w = influence radius
@@ -84,12 +90,13 @@ struct LightProbe {
 layout(std430, binding = 1) buffer LightProbes {
     LightProbe lightProbes[MAX_PROBES];
     int probeCount;
+    int fallbackProbe; // probe closest to the scene center, see GetBlendedLightProbe
+
+    // written by ProbeCulling.comp every frame
+    uint clusterProbeCount[CLUSTER_COUNT];
+    uint clusterProbeIndices[CLUSTER_COUNT * MAX_PROBES_PER_CLUSTER];
 };
 
-#define CLUSTER_X 16
-#define CLUSTER_Y 9
-#define CLUSTER_Z 24
-#define CLUSTER_COUNT (CLUSTER_X * CLUSTER_Y * CLUSTER_Z)
 #define MAX_LIGHTS_PER_CLUSTER 64
 
 layout(std430, binding = 2) buffer LightClusters {
@@ -120,4 +127,38 @@ float LightRadius(Light light)
 int ClusterSlice(float viewDepth, float near, float far)
 {
     return clamp(int(log(max(viewDepth, near) / near) / log(far / near) * float(CLUSTER_Z)), 0, CLUSTER_Z - 1);
+}
+
+uint ClusterIndex(uvec3 id)
+{
+    return id.x + id.y * CLUSTER_X + id.z * CLUSTER_X * CLUSTER_Y;
+}
+
+// view space position on the near plane for an NDC xy
+vec3 ClusterNearPlanePoint(mat4 invProjection, vec2 ndc)
+{
+    vec4 position = invProjection * vec4(ndc, -1.0, 1.0);
+    return position.xyz / position.w;
+}
+
+// view space AABB of a cluster
+void ClusterBounds(uvec3 id, mat4 invProjection, float zNear, float zFar, out vec3 boxMin, out vec3 boxMax)
+{
+    vec2 ndcMin = vec2(id.xy) / vec2(CLUSTER_X, CLUSTER_Y) * 2.0 - 1.0;
+    vec2 ndcMax = vec2(id.xy + 1u) / vec2(CLUSTER_X, CLUSTER_Y) * 2.0 - 1.0;
+
+    float sliceNear = zNear * pow(zFar / zNear, float(id.z) / float(CLUSTER_Z));
+    float sliceFar = zNear * pow(zFar / zNear, float(id.z + 1u) / float(CLUSTER_Z));
+
+    vec3 nearMin = ClusterNearPlanePoint(invProjection, ndcMin);
+    vec3 nearMax = ClusterNearPlanePoint(invProjection, ndcMax);
+
+    // points along the rays from the eye through the near plane points, at the slice depths
+    vec3 a = nearMin * (sliceNear / -nearMin.z);
+    vec3 b = nearMax * (sliceNear / -nearMax.z);
+    vec3 c = nearMin * (sliceFar / -nearMin.z);
+    vec3 d = nearMax * (sliceFar / -nearMax.z);
+
+    boxMin = min(min(a, b), min(c, d));
+    boxMax = max(max(a, b), max(c, d));
 }

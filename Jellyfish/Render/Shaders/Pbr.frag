@@ -102,73 +102,61 @@ vec3 ParallaxCorrect(vec3 worldPos, vec3 R, vec4 probe, float roughness)
     return normalize(mix(corrected, R, roughness * roughness));
 }
 
-void GetBlendedLightProbe(vec3 worldPos, vec3 N, vec3 R, float roughness, out vec3 outDiffuse, out vec3 outSpecular)
+float ProbeWeightDistSq(float d2, float radius)
 {
-    float distSq[PROBE_BLEND_COUNT];
-    int idx[PROBE_BLEND_COUNT];
-    for (int i = 0; i < PROBE_BLEND_COUNT; i++) {
-        distSq[i] = 1e20;
-        idx[i] = -1;
-    }
+    float window = clamp(1.0 - d2 / (radius * radius), 0.0, 1.0);
+    return window * window / (d2 + 1e-4);
+}
 
-    for (int i = 0; i < probeCount; i++) {
-        vec3 probePos = lightProbes[i].position.xyz;
-        float d2 = dot(worldPos - probePos, worldPos - probePos);
-
-        // Insert sorted (smallest first)
-        for (int j = 0; j < PROBE_BLEND_COUNT; j++) {
-            if (d2 < distSq[j]) {
-                for (int k = PROBE_BLEND_COUNT - 1; k > j; k--) {
-                    distSq[k] = distSq[k - 1];
-                    idx[k] = idx[k - 1];
-                }
-                distSq[j] = d2;
-                idx[j] = i;
-                break;
-            }
-        }
-    }
-
-    float weights[PROBE_BLEND_COUNT];
-    float total = 0.0;
-    for (int i = 0; i < PROBE_BLEND_COUNT; i++) {
-        if (idx[i] < 0) { weights[i] = 0.0; continue; }
-
-        // window smoothly reaches zero at the probe's radius, so probes fade out instead of popping
-        // when they enter or leave the nearest set. inverse distance keeps the nearest probe dominant
-        float radius = lightProbes[idx[i]].position.w;
-        float window = clamp(1.0 - distSq[i] / (radius * radius), 0.0, 1.0);
-        float inverseDist = 1.0 / (distSq[i] + 1e-4);
-
-        // tiny unwindowed term so that points outside of every radius still get the nearest probes
-        // it's negligible inside any radius, so the transition stays smooth
-        float w = inverseDist * (window * window + 1e-6);
-        weights[i] = w;
-        total += w;
-    }
-
+void GetBlendedLightProbe(uint cluster, vec3 worldPos, vec3 N, vec3 R, float roughness, out vec3 outDiffuse, out vec3 outSpecular)
+{
     outDiffuse = vec3(0);
     outSpecular = vec3(0);
 
-    for (int i = 0; i < PROBE_BLEND_COUNT; i++) 
+    uint base = cluster * MAX_PROBES_PER_CLUSTER;
+    uint count = clusterProbeCount[cluster];
+
+    bool allProbes = count == PROBE_CLUSTER_ALL;
+    if (allProbes)
+        count = uint(probeCount);
+
+    vec4 fallbackPosition = lightProbes[fallbackProbe].position;
+    vec3 toFallback = worldPos - fallbackPosition.xyz;
+    float fallbackWeight = 1e-6 / (dot(toFallback, toFallback) + 1e-4);
+
+    float total = fallbackWeight;
+    for (uint i = 0u; i < count; i++)
     {
-        if (idx[i] < 0)
+        vec4 probe = lightProbes[allProbes ? i : clusterProbeIndices[base + i]].position;
+        vec3 toProbe = worldPos - probe.xyz;
+        total += ProbeWeightDistSq(dot(toProbe, toProbe), probe.w);
+    }
+
+    for (uint i = 0u; i <= count; i++)
+    {
+        // last iteration is the fallback probe
+        bool isFallback = i == count;
+        int probe = isFallback ? fallbackProbe : int(allProbes ? i : clusterProbeIndices[base + i]);
+        vec4 probePosition = lightProbes[probe].position;
+        vec3 toProbe = worldPos - probePosition.xyz;
+
+        float w = (isFallback ? fallbackWeight : ProbeWeightDistSq(dot(toProbe, toProbe), probePosition.w)) / total;
+
+        if (w <= 0.0)
             continue;
 
-        float w = weights[i] / total;
-        vec3 irradiance = EvaluateProbeSH(idx[i], N);
-        outDiffuse += irradiance * w;
+        outDiffuse += EvaluateProbeSH(probe, N) * w;
 
         if (iblPrefilterEnabled)
         {
-            vec3 direction = ParallaxCorrect(worldPos, R, lightProbes[idx[i]].position, roughness);
-            vec3 prefiltered = textureLod(lightProbes[idx[i]].prefilter, direction, roughness * (prefilterMips - 1)).rgb;
+            vec3 direction = isFallback ? R : ParallaxCorrect(worldPos, R, probePosition, roughness);
+            vec3 prefiltered = textureLod(lightProbes[probe].prefilter, direction, roughness * (prefilterMips - 1)).rgb;
             outSpecular += prefiltered * w;
         }
     }
 }
 
-vec3 ComputeIBL(vec3 N, vec3 V, vec3 diffuseColor, float roughness, float metalness, vec2 uv)
+vec3 ComputeIBL(uint cluster, vec3 N, vec3 V, vec3 diffuseColor, float roughness, float metalness, vec2 uv)
 {
     vec3 F0 = mix(vec3(0.04), diffuseColor, metalness);
     float NdotV = max(dot(N, V), 0.0);
@@ -185,7 +173,7 @@ vec3 ComputeIBL(vec3 N, vec3 V, vec3 diffuseColor, float roughness, float metaln
         vec3 blendedDiffuse;
         vec3 blendedSpecular;
 
-        GetBlendedLightProbe(frag_position, N, R, roughness, blendedDiffuse, blendedSpecular);
+        GetBlendedLightProbe(cluster, frag_position, N, R, roughness, blendedDiffuse, blendedSpecular);
 
         diffuseIBL = diffuseColor * blendedDiffuse;
 

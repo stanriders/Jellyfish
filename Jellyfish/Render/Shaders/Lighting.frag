@@ -174,6 +174,14 @@ float ShadowCalculation(int lightIndex, int shadowIndex, vec3 lightDir, vec3 nor
 }
 
 // lights
+
+float LightCutoff(Light light, float distanceToLight)
+{
+    float ratio = distanceToLight / LightRadius(light);
+    float window = clamp(1.0 - ratio * ratio * ratio * ratio, 0.0, 1.0);
+    return window * window;
+}
+
 vec3 CalcPointLight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
 {
     Light light = lightSources[lightIndex];
@@ -189,7 +197,7 @@ vec3 CalcPointLight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
                         light.linear * distanceToLight +
                         light.quadratic * (distanceToLight * distanceToLight));
 
-    outdiffuse *= attenuation;
+    outdiffuse *= attenuation * LightCutoff(light, distanceToLight);
 
     float shadow = 1.0f;
     if (light.hasShadows)
@@ -215,7 +223,7 @@ vec3 CalcSpotlight(int lightIndex, vec3 normal, vec3 fragPos, vec3 viewDir)
                         light.linear * distanceToLight +
                         light.quadratic * (distanceToLight * distanceToLight));
 
-    outdiffuse  *= attenuation;
+    outdiffuse  *= attenuation * LightCutoff(light, distanceToLight);
 
     float theta = dot(lightDir, normalize(-light.direction));
     float epsilon   = light.cone - light.outcone;

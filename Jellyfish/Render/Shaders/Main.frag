@@ -39,8 +39,7 @@ vec3 ApplyLight(vec3 light, vec3 diffuseColor, vec3 L, vec3 N, vec3 V, vec3 F0, 
     BRDFResult brdf = ComputeBRDF(N, V, L, F0, roughness, metalness);
 
     vec3 diffuse = brdf.kD * diffuseColor;
-    return max(vec3(0.0), (diffuse + brdf.specular) * light * NdotL) +
-           diffuse * vec3(0.001); // very slight ambient to make sure we never end up with pitch black textures
+    return max(vec3(0.0), (diffuse + brdf.specular) * light * NdotL);
 }
 
 void main()
@@ -71,13 +70,17 @@ void main()
     float metalness = metroughTex.b;
 
     vec2 screenUv = gl_FragCoord.xy / screenSize;
-    vec3 lighting = ComputeIBL(normal, viewDir, diffuseTex.rgb, roughness, metalness, screenUv);
-
-    vec3 dielectricCoefficient = mix(vec3(0.04), diffuseTex.rgb, metalness); // F0
 
     uvec2 tile = min(uvec2(screenUv * vec2(CLUSTER_X, CLUSTER_Y)), uvec2(CLUSTER_X - 1, CLUSTER_Y - 1));
     int slice = ClusterSlice(-(view * vec4(frag_position, 1.0)).z, nearFar.x, nearFar.y);
-    uint cluster = tile.x + tile.y * CLUSTER_X + uint(slice) * CLUSTER_X * CLUSTER_Y;
+    uint cluster = ClusterIndex(uvec3(tile, uint(slice)));
+
+    vec3 lighting = ComputeIBL(cluster, normal, viewDir, diffuseTex.rgb, roughness, metalness, screenUv);
+
+    // very slight ambient to make sure we never end up with pitch black textures
+    lighting += (1.0 - metalness) * diffuseTex.rgb * 0.001;
+
+    vec3 dielectricCoefficient = mix(vec3(0.04), diffuseTex.rgb, metalness); // F0
 
     uint clusterBase = cluster * MAX_LIGHTS_PER_CLUSTER;
     int lightCount = int(clusterLightCount[cluster]);

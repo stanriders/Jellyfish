@@ -1,0 +1,51 @@
+#version 460
+#extension GL_ARB_bindless_texture : require
+#extension GL_ARB_gpu_shader_int64 : require
+#include LightingDefinitions.shared
+
+// one invocation per cluster
+layout(local_size_x = CLUSTER_X, local_size_y = CLUSTER_Y, local_size_z = 1) in;
+
+uniform mat4 view;
+uniform mat4 invProjection;
+uniform float near;
+uniform float far;
+
+void main()
+{
+    uvec3 id = gl_GlobalInvocationID;
+    uint cluster = ClusterIndex(id);
+
+    vec3 boxMin, boxMax;
+    ClusterBounds(id, invProjection, near, far, boxMin, boxMax);
+
+    // every probe whose influence sphere touches the cluster. the list has to be complete: a dropped probe still has
+    // a nonzero weight somewhere in the cluster, so the blend jumps at the cluster's border.
+    // clusters with more than fit get PROBE_CLUSTER_ALL and blend every probe instead
+    uint base = cluster * MAX_PROBES_PER_CLUSTER;
+    uint count = 0u;
+
+    for (int i = 0; i < probeCount; i++)
+    {
+        vec4 probe = lightProbes[i].position;
+        vec3 center = (view * vec4(probe.xyz, 1.0)).xyz;
+        float radius = probe.w;
+
+        // sphere against box
+        vec3 delta = clamp(center, boxMin, boxMax) - center;
+        if (dot(delta, delta) > radius * radius)
+            continue;
+
+        if (count == MAX_PROBES_PER_CLUSTER)
+        {
+            count = PROBE_CLUSTER_ALL;
+            break;
+        }
+
+        clusterProbeIndices[base + count] = uint(i);
+        count++;
+    }
+
+    // clusters outside of every radius end up empty, the blend uses the scene-wide fallback probe there
+    clusterProbeCount[cluster] = count;
+}

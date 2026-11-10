@@ -113,6 +113,7 @@ public class LightProbe
         cubemapBuffer.Check();
 
         Engine.MainViewport.ProjectionMatrixOverride = Matrix4.CreatePerspectiveFieldOfView(float.DegreesToRadians(90f), 1.0f, 0.1f, 2000f);
+        Engine.MainViewport.SizeOverride = new Vector2i(size);
 
         for (uint i = 0; i < 6; i++)
         {
@@ -218,6 +219,7 @@ public class LightProbe
         CommonShapes.CubeVertexArray?.Bind();
 
         Engine.MainViewport.ProjectionMatrixOverride = Matrix4.CreatePerspectiveFieldOfView(float.DegreesToRadians(90f), 1.0f, 0.1f, 2f);
+        Engine.MainViewport.SizeOverride = new Vector2i(size);
 
         var maxMipLevels = _prefilterRenderTarget.Texture.Levels;
         for (var mip = 0; mip < maxMipLevels; mip++)
@@ -266,11 +268,21 @@ public class LightProbe
 
 public class ImageBasedLighting
 {
+    private class CullingShader() : Shader("shaders/ProbeCulling.comp");
+
     public List<LightProbe> Probes { get; } = new();
     private int _probesCount;
 
     public readonly ShaderStorageBuffer<LightProbes> LightProbesSsbo = new("lightProbesSSBO", new LightProbes());
     public const int max_probes = 512;
+
+    private const int ClustersX = 16;
+    private const int ClustersY = 9;
+    private const int ClustersZ = 24;
+    public const int cluster_count = ClustersX * ClustersY * ClustersZ;
+    public const int max_probes_per_cluster = 32; // must match LightingDefinitions.shared
+
+    private readonly CullingShader _cullingShader = new();
 
     public LightProbe? AddProbe(Vector3 position)
     {
@@ -291,6 +303,11 @@ public class ImageBasedLighting
     {
         probe.Unload();
         Probes.Remove(probe);
+    }
+
+    public void PreFrame()
+    {
+        UpdateClusterBuffer();
     }
 
     public void Frame(Sky? sky)
@@ -324,6 +341,7 @@ public class ImageBasedLighting
         
         Engine.MainViewport.ViewMatrixOverride = null;
         Engine.MainViewport.ProjectionMatrixOverride = null;
+        Engine.MainViewport.SizeOverride = null;
 
         UpdateProbeBuffer();
 
@@ -338,6 +356,7 @@ public class ImageBasedLighting
 
         Engine.MainViewport.ViewMatrixOverride = null;
         Engine.MainViewport.ProjectionMatrixOverride = null;
+        Engine.MainViewport.SizeOverride = null;
     }
 
     private void UpdateProbeRadii()
@@ -387,13 +406,39 @@ public class ImageBasedLighting
             gpuProbes[i].Sh8 = probe.IrradianceHarmonics[8];
         }
 
+        var sceneCenter = Engine.MeshManager.SceneBoundingBox.Center;
+        var fallbackProbe = 0;
+        for (var i = 1; i < Probes.Count; i++)
+        {
+            if ((Probes[i].Position - sceneCenter).LengthSquared < (Probes[fallbackProbe].Position - sceneCenter).LengthSquared)
+                fallbackProbe = i;
+        }
+
         LightProbesSsbo.UpdateData(new LightProbes
         {
             Probes = gpuProbes,
-            ProbeCount = Probes.Count
+            ProbeCount = Probes.Count,
+            FallbackProbe = fallbackProbe
         });
 
         ArrayPool<Jellyfish.Render.Shaders.Structs.LightProbe>.Shared.Return(gpuProbes);
+    }
+
+    public void UpdateClusterBuffer()
+    {
+        using var _ = new PerformanceMeasure("ProbeClusters.Update");
+
+        var viewport = Engine.MainViewport;
+
+        LightProbesSsbo.Bind(1);
+
+        _cullingShader.Bind();
+        _cullingShader.SetMatrix4("view", viewport.GetViewMatrix());
+        _cullingShader.SetMatrix4("invProjection", viewport.GetProjectionMatrix().Inverted());
+        _cullingShader.SetFloat("near", viewport.NearPlane);
+        _cullingShader.SetFloat("far", viewport.FarPlane);
+        _cullingShader.DispatchCompute(1, 1, ClustersZ, MemoryBarrierMask.ShaderStorageBarrierBit);
+        _cullingShader.Unbind();
     }
 
     public void Reset()
@@ -410,6 +455,7 @@ public class ImageBasedLighting
     public void Unload()
     {
         Reset();
+        _cullingShader.Unload();
     }
 
     public void GenerateProbeGrid()

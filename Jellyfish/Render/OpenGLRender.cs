@@ -137,6 +137,8 @@ public partial class OpenGLRender : IRender
     public void PreFrame()
     {
         Engine.LightManager.PreFrame();
+        ImageBasedLighting?.PreFrame();
+
         _gBuffer?.GeometryPass();
         Engine.LightManager.DrawShadows();
     }
