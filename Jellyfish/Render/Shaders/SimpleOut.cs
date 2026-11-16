@@ -14,7 +14,7 @@ namespace Jellyfish.Render.Shaders
         public override void Bind()
         {
             base.Bind();
-            BindTexture(0, _rtColor.Texture);
+            BindTexture(0, _rtColor);
         }
     }
 }

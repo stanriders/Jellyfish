@@ -80,7 +80,9 @@ public class PostProcessing : Shader
                 InternalFormat = SizedInternalFormat.R32f
             }
         });
-        GL.ClearTexImage(_rtExposure.Texture.Handle, 0, PixelFormat.Red, PixelType.Float, 1f);
+
+        var one = 1f;
+        GL.ClearTexImage(_rtExposure.Texture.Handle, 0, PixelFormat.Red, PixelType.Float, ref one);
 
         _computeShader = new Compute();
     }

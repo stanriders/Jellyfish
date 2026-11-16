@@ -62,10 +62,10 @@ public class Main : Shader
         Engine.Renderer.ImageBasedLighting?.LightProbesSsbo.Bind(1);
         Engine.LightManager.ClustersSsbo.Bind(2);
 
-        BindTexture(0, _diffuse?.Texture);
-        BindTexture(1, _normal?.Texture);
-        BindTexture(2, _metRought?.Texture);
-        BindTexture(3, _reflectionMap?.Texture);
+        BindTexture(0, _diffuse);
+        BindTexture(1, _normal);
+        BindTexture(2, _metRought);
+        BindTexture(3, _reflectionMap);
     }
 
     public override void Unload()
