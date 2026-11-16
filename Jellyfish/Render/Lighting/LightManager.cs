@@ -219,6 +219,10 @@ public class LightManager
         }
 
         GL.Disable(EnableCap.PolygonOffsetFill);
+        
+        // shadow maps are sampled later via bindless handles, which bypass the driver's normal
+        // bound-texture dependency tracking, so the fetch needs an explicit barrier
+        GL.MemoryBarrier(MemoryBarrierMask.TextureFetchBarrierBit);
     }
 
     public void UpdateShaderBuffer()
