@@ -14,6 +14,7 @@ public class Material
     public Shader? Shader { get; }
 
     private readonly Dictionary<string, object> _params = new();
+    private readonly Dictionary<(string Name, bool Srgb), TextureRef?> _textureCache = new();
 
     public Material(string? path, string? modelName = null)
     {
@@ -142,37 +143,41 @@ public class Material
         value = default;
         return false;
     }
-
-    public TextureRef? GetParamTexture(string name, bool srgb = false)
+    
+    public Texture? GetParamTexture(string name, bool srgb = false)
     {
-        var value = _params.GetValueOrDefault(name);
-        if (value == null)
-            return null;
-
-        if (value is not string valueCasted)
-            throw new Exception("Incorrect material param type");
-
-        return Engine.TextureManager.GetTexture(new TextureParams { Path = $"{Directory}/{valueCasted}", Srgb = srgb}).Texture;
+        TryGetParamTexture(name, out var texture, srgb);
+        return texture;
     }
 
-    public bool TryGetParamTexture(string name, out TextureRef? value)
+    /// <inheritdoc cref="GetParamTexture"/>
+    public bool TryGetParamTexture(string name, out Texture? value, bool srgb = false)
     {
-        if (_params.TryGetValue(name, out var valueObject))
+        if (!_textureCache.TryGetValue((name, srgb), out var textureRef))
         {
-            if (valueObject is not string valueCasted)
-                throw new ArgumentOutOfRangeException(name, "Incorrect material param type");
+            if (_params.TryGetValue(name, out var valueObject))
+            {
+                if (valueObject is not string valueCasted)
+                    throw new ArgumentOutOfRangeException(name, "Incorrect material param type");
 
-            value = Engine.TextureManager.GetTexture(new TextureParams { Path = $"{Directory}/{valueCasted}"}).Texture;
+                textureRef = Engine.TextureManager.GetTexture(new TextureParams
+                    { Path = $"{Directory}/{valueCasted}", Srgb = srgb }).Texture;
+            }
 
-            return true;
+            _textureCache[(name, srgb)] = textureRef;
         }
 
-        value = null;
-        return false;
+        value = textureRef?.Texture;
+        return value != null;
     }
 
     public void Unload()
     {
         Shader?.Unload();
+
+        foreach (var texture in _textureCache.Values)
+            texture?.Dispose();
+
+        _textureCache.Clear();
     }
 }

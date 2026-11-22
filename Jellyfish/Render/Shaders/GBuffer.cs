@@ -11,8 +11,8 @@ public class GBuffer() : Shader("shaders/Main.vert", null, "shaders/GBuffer.frag
 
         if (BoundMaterial != null)
         {
-            using var diffuse = BoundMaterial.GetParamTexture("Diffuse", true);
-            using var normal = BoundMaterial.GetParamTexture("Normal");
+            var diffuse = BoundMaterial.GetParamTexture("Diffuse", true);
+            var normal = BoundMaterial.GetParamTexture("Normal");
 
             SetBool("hasAlphaTest", BoundMaterial.GetParam<bool>("Cutout")); // todo: rename
             SetBool("hasNormalMap", normal != null);
