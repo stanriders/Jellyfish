@@ -1,4 +1,4 @@
-
+﻿
 #include LightingDefinitions.shared
 
 int CubeFaceIndex(vec3 d)
@@ -149,9 +149,8 @@ float SimpleShadow(sampler2D DepthSampler, vec3 projCoords)
 
 float ShadowCalculation(int lightIndex, int shadowIndex, vec3 lightDir, vec3 normal)
 {
-    Light light = lightSources[lightIndex];
-
-    vec4 fragPosLightSpace = light.lightSpaceMatrix[shadowIndex] * vec4(frag_position, 1.0);
+    // index directly to not copy the whole array every time
+    vec4 fragPosLightSpace = lightSources[lightIndex].lightSpaceMatrix[shadowIndex] * vec4(frag_position, 1.0);
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 
     projCoords = projCoords * 0.5 + 0.5;
@@ -163,10 +162,10 @@ float ShadowCalculation(int lightIndex, int shadowIndex, vec3 lightDir, vec3 nor
         return 0.0;
     }
 
-    sampler2D shadow = light.shadow[shadowIndex];
+    sampler2D shadow = lightSources[lightIndex].shadow[shadowIndex];
 
-    if (light.usePcss)
-        return PoissonPCSSShadow(shadow, projCoords, light.near, light.far, 0.01f, false);
+    if (lightSources[lightIndex].usePcss)
+        return PoissonPCSSShadow(shadow, projCoords, lightSources[lightIndex].near, lightSources[lightIndex].far, 0.01f, false);
 
     return PoissonPCFShadow(shadow, projCoords, 2.0f);
     //return SimplePCFShadow(shadow, projCoords, 4);
@@ -270,7 +269,7 @@ vec3 CalcSun(vec3 normal, vec3 fragPos, vec3 viewDir)
 
         if (layer == -1)
         {
-            layer = CSM_CASCADES;
+            layer = CSM_CASCADES - 1;
         }
 
         vec4 frag_position_sun = sun.lightSpaceMatrix[layer] * vec4(frag_position, 1.0);
