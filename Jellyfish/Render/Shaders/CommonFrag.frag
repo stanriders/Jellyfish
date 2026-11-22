@@ -40,6 +40,21 @@ mat3 GetTBN(vec3 pos, vec2 uv, vec3 normal)
     return mat3(tangent, bitangent, normalize(normal));
 }
 
+// geometric specular anti-aliasing (Kaplanyan 2016, Tokuyoshi 2019)
+float SpecularAntiAliasing(vec3 N, float roughness)
+{
+    const float varianceScale = 0.15;
+    const float threshold = 0.2;
+
+    vec3 du = dFdx(N);
+    vec3 dv = dFdy(N);
+    float variance = varianceScale * (dot(du, du) + dot(dv, dv));
+    float kernel = min(2.0 * variance, threshold);
+
+    float alpha = roughness * roughness;
+    return sqrt(sqrt(clamp(alpha * alpha + kernel, 0.0, 1.0)));
+}
+
 vec3 FresnelSchlick(float cosTheta, vec3 F0)
 {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);

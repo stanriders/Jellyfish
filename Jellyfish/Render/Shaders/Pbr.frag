@@ -203,17 +203,3 @@ vec3 ComputeIBL(uint cluster, vec3 N, vec3 V, vec3 diffuseColor, float roughness
     return kD * diffuseIBL + specularIBL;
 }
 
-// geometric specular anti-aliasing (Kaplanyan 2016, Tokuyoshi 2019)
-float SpecularAntiAliasing(vec3 N, float roughness)
-{
-    const float varianceScale = 0.15;
-    const float threshold = 0.2;
-
-    vec3 du = dFdx(N);
-    vec3 dv = dFdy(N);
-    float variance = varianceScale * (dot(du, du) + dot(dv, dv));
-    float kernel = min(2.0 * variance, threshold);
-
-    float alpha = roughness * roughness;
-    return sqrt(sqrt(clamp(alpha * alpha + kernel, 0.0, 1.0)));
-}

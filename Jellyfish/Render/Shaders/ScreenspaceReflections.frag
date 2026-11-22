@@ -4,6 +4,7 @@
 layout(binding=0) uniform sampler2D uSceneColor;  // scene color buffer
 layout(binding=1) uniform sampler2D uDepth;       // depth buffer
 layout(binding=2) uniform sampler2D uNormal;      // normal buffer
+layout(binding=3) uniform sampler2D uRoughness;   // roughness buffer
 
 uniform mat4 uProjection;
 uniform vec2 uCameraParams;
@@ -15,6 +16,8 @@ uniform int   uMaxSteps = 64;          // max ray-march steps
 uniform int   uBinarySearchSteps = 4;  // binary refine iterations after hit
 uniform float uStride = 5.0;           // initial stride multiplier (in view space units)
 uniform float uMaxDistance = 1000.0;     // max ray march distance in view-space
+
+#define MAX_ROUGHNESS 0.85
 
 in vec2 TexCoords;
 out vec4 FragColor;
@@ -103,7 +106,12 @@ bool screenIntersect(in vec3 originVS, in vec3 dirVS, out vec2 hitUV, out vec3 h
 
 void main() 
 {
-    vec3 baseColor = texture(uSceneColor, TexCoords).rgb;
+    if (textureLod(uRoughness, TexCoords, 0.0).r >= MAX_ROUGHNESS)
+    {
+        FragColor = vec4(0);
+        return;
+    }
+
     vec3 normalVS = GetNormal(uNormal, TexCoords);
 
     float d = GetDepthNormalized(uDepth, TexCoords, Near, Far);

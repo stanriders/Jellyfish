@@ -7,6 +7,7 @@ public class ScreenspaceReflections : Shader
     private readonly TextureRef _rtColor;
     private readonly TextureRef _rtDepth;
     private readonly TextureRef _rtNormals;
+    private readonly TextureRef _rtRoughness;
 
     public ScreenspaceReflections() : 
         base("shaders/Screenspace.vert", null, "shaders/ScreenspaceReflections.frag")
@@ -14,6 +15,7 @@ public class ScreenspaceReflections : Shader
         _rtColor = Engine.TextureManager.GetTexture("_rt_Color")!;
         _rtDepth = Engine.TextureManager.GetTexture("_rt_Depth")!;
         _rtNormals = Engine.TextureManager.GetTexture("_rt_Normal")!;
+        _rtRoughness = Engine.TextureManager.GetTexture("_rt_Roughness")!;
     }
 
     public override void Bind()
@@ -26,6 +28,7 @@ public class ScreenspaceReflections : Shader
         BindTexture(0, _rtColor);
         BindTexture(1, _rtDepth);
         BindTexture(2, _rtNormals);
+        BindTexture(3, _rtRoughness);
     }
 
     public override void Unload()
@@ -33,6 +36,7 @@ public class ScreenspaceReflections : Shader
         _rtColor.Dispose();
         _rtDepth.Dispose();
         _rtNormals.Dispose();
+        _rtRoughness.Dispose();
 
         base.Unload();
     }

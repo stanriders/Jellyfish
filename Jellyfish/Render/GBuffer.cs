@@ -12,13 +12,15 @@ public class GBuffer
 
     public GBuffer(Texture depthRenderTarget)
     {
+        var drawBuffers = new ColorBuffer[(int)GBufferType.Count];
+
         for (uint i = 0; i < (uint)GBufferType.Count; i++)
         {
-            // diffuse is special because we want to pass alpha too
-            /*var format = (GBufferType)i == GBufferType.Diffuse
-                ? SizedInternalFormat.Rgba16f
-                : SizedInternalFormat.Rgb16f;
-            */
+            var format = (GBufferType)i switch
+            {
+                GBufferType.Roughness => SizedInternalFormat.R8,
+                _ => SizedInternalFormat.Rgb16f
+            };
 
             var texture = Engine.TextureManager.CreateTexture(new RenderTargetParams
             {
@@ -30,15 +32,17 @@ public class GBuffer
                     WrapMode = TextureWrapMode.ClampToEdge,
                     MinFiltering = TextureMinFilter.Nearest,
                     MagFiltering = TextureMagFilter.Nearest,
-                    InternalFormat = SizedInternalFormat.Rgb16f
+                    InternalFormat = format
                 }
             });
 
             _buffer.AttachTexture(texture.Texture.Handle, attachment: FramebufferAttachment.ColorAttachment0 + i);
-            _buffer.DrawInto(ColorBuffer.ColorAttachment0 + i);
+            drawBuffers[i] = ColorBuffer.ColorAttachment0 + i;
 
             _renderTargets.Add(texture);
         }
+
+        _buffer.DrawInto(drawBuffers);
 
         _buffer.AttachTexture(depthRenderTarget.Handle, attachment: FramebufferAttachment.DepthAttachment);
 
@@ -88,6 +92,7 @@ public enum GBufferType
     //Diffuse,
     Normal,
     //Texcoord,
+    Roughness,
 
     Count
 }

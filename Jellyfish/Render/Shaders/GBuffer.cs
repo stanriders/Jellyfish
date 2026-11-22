@@ -13,17 +13,21 @@ public class GBuffer() : Shader("shaders/Main.vert", null, "shaders/GBuffer.frag
         {
             var diffuse = BoundMaterial.GetParamTexture("Diffuse", true);
             var normal = BoundMaterial.GetParamTexture("Normal");
+            var metRough = BoundMaterial.GetParamTexture("MetalRoughness");
 
             SetBool("hasAlphaTest", BoundMaterial.GetParam<bool>("Cutout")); // todo: rename
             SetBool("hasNormalMap", normal != null);
+            SetBool("hasMetRough", metRough != null);
 
             BindTexture(0, diffuse);
             BindTexture(1, normal);
+            BindTexture(2, metRough);
         }
         else
         {
             SetBool("hasNormalMap", false);
             SetBool("hasAlphaTest", false);
+            SetBool("hasMetRough", false);
         }
     }
 }

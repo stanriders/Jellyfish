@@ -50,6 +50,11 @@ public class FrameBuffer : IDisposable
         GL.NamedFramebufferDrawBuffer(Handle, buffer);
     }
 
+    public void DrawInto(ColorBuffer[] buffers)
+    {
+        GL.NamedFramebufferDrawBuffers(Handle, buffers.Length, buffers);
+    }
+
     public void ReadFrom(ColorBuffer buffer)
     {
         GL.NamedFramebufferReadBuffer(Handle, buffer);
