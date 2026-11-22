@@ -270,25 +270,44 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
         _vao.Bind();
 
+        // all command lists go into the buffers at once, each at its own offset. Uploading every list to offset 0
+        // overwrites data that earlier draws of this frame still use, which makes the driver wait for the GPU
+        var vertexSize = drawData.TotalVtxCount * Unsafe.SizeOf<ImDrawVert>();
+        if (vertexSize > _vbo.Size)
+        {
+            _vbo.Size = (int)Math.Max(_vbo.Size * 1.5f, vertexSize);
+            Log.Context(this).Debug($"Resized dear imgui vertex buffer to new size {_vbo.Size}");
+        }
+        else
+        {
+            // orphan last frame's storage so the driver can hand out a fresh one instead of waiting for the GPU
+            _vbo.Size = _vbo.Size;
+        }
+
+        var indexSize = drawData.TotalIdxCount * sizeof(ushort);
+        if (indexSize > _ibo.Size)
+        {
+            _ibo.Size = (int)Math.Max(_ibo.Size * 1.5f, indexSize);
+            Log.Context(this).Debug($"Resized dear imgui index buffer to new size {_ibo.Size}");
+        }
+        else
+        {
+            _ibo.Size = _ibo.Size;
+        }
+
+        var vertexOffset = 0;
+        var indexOffset = 0;
         for (var i = 0; i < drawData.CmdListsCount; i++)
         {
             var cmdList = drawData.CmdLists[i];
 
-            var vertexSize = cmdList.VtxBuffer.Size * Unsafe.SizeOf<ImDrawVert>();
-            if (vertexSize > _vbo.Size)
-            {
-                var newSize = (int)Math.Max(_vbo.Size * 1.5f, vertexSize);
-                _vbo.Size = newSize;
-                Log.Context(this).Debug($"Resized dear imgui vertex buffer to new size {_vbo.Size}");
-            }
+            GL.NamedBufferSubData(_vbo.Handle, vertexOffset * Unsafe.SizeOf<ImDrawVert>(),
+                cmdList.VtxBuffer.Size * Unsafe.SizeOf<ImDrawVert>(), cmdList.VtxBuffer.Data);
+            GL.NamedBufferSubData(_ibo.Handle, indexOffset * sizeof(ushort), cmdList.IdxBuffer.Size * sizeof(ushort),
+                cmdList.IdxBuffer.Data);
 
-            var indexSize = cmdList.IdxBuffer.Size * sizeof(ushort);
-            if (indexSize > _ibo.Size)
-            {
-                var newSize = (int)Math.Max(_ibo.Size * 1.5f, indexSize);
-                _ibo.Size = newSize;
-                Log.Context(this).Debug($"Resized dear imgui index buffer to new size {_ibo.Size}");
-            }
+            vertexOffset += cmdList.VtxBuffer.Size;
+            indexOffset += cmdList.IdxBuffer.Size;
         }
 
         // Setup orthographic projection matrix into our constant buffer
@@ -304,10 +323,6 @@ public sealed class ImguiController : IDisposable, IInputHandler
         _shader.Bind();
         _shader.SetMatrix4("projection_matrix", mvp);
         _shader.SetInt("in_fontTexture", 0);
-        CheckGlError("Projection");
-
-        _vao.Bind();
-        CheckGlError("VAO");
 
         drawData.ScaleClipRects(io.DisplayFramebufferScale);
 
@@ -319,18 +334,12 @@ public sealed class ImguiController : IDisposable, IInputHandler
         GL.Disable(EnableCap.DepthTest);
 
         // Render command lists
+        var listVertexOffset = 0;
+        var listIndexOffset = 0;
         for (var n = 0; n < drawData.CmdListsCount; n++)
         {
             var cmdList = drawData.CmdLists[n];
             ImGuizmo.SetDrawlist(cmdList);
-
-            GL.NamedBufferSubData(_vbo.Handle, nint.Zero,
-                cmdList.VtxBuffer.Size * Unsafe.SizeOf<ImDrawVert>(), cmdList.VtxBuffer.Data);
-            CheckGlError($"Data Vert {n}");
-
-            GL.NamedBufferSubData(_ibo.Handle, nint.Zero, cmdList.IdxBuffer.Size * sizeof(ushort),
-                cmdList.IdxBuffer.Data);
-            CheckGlError($"Data Idx {n}");
 
             for (var cmd_i = 0; cmd_i < cmdList.CmdBuffer.Size; cmd_i++)
             {
@@ -342,32 +351,25 @@ public sealed class ImguiController : IDisposable, IInputHandler
 
                 GL.ActiveTexture(TextureUnit.Texture0);
                 GL.BindTexture(TextureTarget.Texture2D, (int)pcmd.GetTexID());
-                CheckGlError("Texture");
 
                 // We do framebufferHeight - (int)clip.W instead of (int)clip.Y because gl has flipped Y when it comes to these coordinates
                 // clip is already in framebuffer pixel space here, since drawData.ScaleClipRects() above converted it from logical DisplaySize units
                 var clip = pcmd.ClipRect;
                 GL.Scissor((int)clip.X, Engine.MainWindow.FramebufferSize.Y - (int)clip.W, (int)(clip.Z - clip.X),
                     (int)(clip.W - clip.Y));
-                CheckGlError("Scissor");
 
-                if ((io.BackendFlags & ImGuiBackendFlags.RendererHasVtxOffset) != 0)
-                {
-                    GL.DrawElementsBaseVertex(PrimitiveType.Triangles, (int)pcmd.ElemCount,
-                        DrawElementsType.UnsignedShort, (nint)(pcmd.IdxOffset * sizeof(ushort)),
-                        unchecked((int)pcmd.VtxOffset));
-                }
-                else
-                {
-                    GL.DrawElements(PrimitiveType.Triangles, (int)pcmd.ElemCount, DrawElementsType.UnsignedShort,
-                        (int)pcmd.IdxOffset * sizeof(ushort));
-                }
+                GL.DrawElementsBaseVertex(PrimitiveType.Triangles, (int)pcmd.ElemCount,
+                    DrawElementsType.UnsignedShort, (nint)((listIndexOffset + pcmd.IdxOffset) * sizeof(ushort)),
+                    unchecked(listVertexOffset + (int)pcmd.VtxOffset));
 
                 PerformanceMeasurement.Increment("DrawCalls");
-
-                CheckGlError("Draw");
             }
+
+            listVertexOffset += cmdList.VtxBuffer.Size;
+            listIndexOffset += cmdList.IdxBuffer.Size;
         }
+
+        CheckGlError("Render");
 
         GL.Disable(EnableCap.Blend);
         GL.Disable(EnableCap.ScissorTest);
