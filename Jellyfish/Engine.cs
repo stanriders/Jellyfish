@@ -19,7 +19,7 @@ namespace Jellyfish
     {
         private readonly ConVarStorage _conVarStorage;
         private readonly MainWindow _mainWindow;
-        private readonly OpenGLRender _render;
+        private readonly IRender _render;
         private ShaderManager _shaderManager = null!;
         private InputManager _inputHandler = null!;
         private ImguiController? _imguiController;
@@ -47,7 +47,7 @@ namespace Jellyfish
         public static TextureManager TextureManager => instance._textureManager;
         public static MainWindow MainWindow => instance._mainWindow;
         public static LightManager LightManager => instance._lightManager;
-        public static OpenGLRender Renderer => instance._render;
+        public static IRender Renderer => instance._render;
         public static ConVarStorage ConVarStorage => instance._conVarStorage;
 
         public static double ElapsedTime { get; set; }
@@ -239,7 +239,7 @@ namespace Jellyfish
             UpdateLoadingScreen("Cleaning up entities...");
             _entityManager.Unload();
             _audioManager.ClearScene();
-            _render.ImageBasedLighting?.Reset();
+            ((OpenGLRender)_render).ImageBasedLighting?.Reset();
 
             UpdateLoadingScreen($"Loading map '{map}'...");
             MapLoader.Load(map);

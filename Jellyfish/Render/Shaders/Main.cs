@@ -59,7 +59,7 @@ public class Main : Shader
         SetVector2("nearFar",new OpenTK.Mathematics.Vector2(Engine.MainViewport.NearPlane, Engine.MainViewport.FarPlane));
 
         Engine.LightManager.LightSourcesSsbo.Bind(0);
-        Engine.Renderer.ImageBasedLighting?.LightProbesSsbo.Bind(1);
+        ((OpenGLRender)Engine.Renderer).ImageBasedLighting?.LightProbesSsbo.Bind(1);
         Engine.LightManager.ClustersSsbo.Bind(2);
 
         BindTexture(0, _diffuse);

@@ -36,7 +36,7 @@ public partial class OpenGLRender : IRender
     public bool NeedToRecreateBuffers { get; set; }
 
     [ConCommand("mat_ibl_render")]
-    private static void RenderCommand() => Engine.Renderer.UpdateIBL();
+    private static void RenderCommand() => ((OpenGLRender)Engine.Renderer).UpdateIBL();
 
     public OpenGLRender()
     {
@@ -60,7 +60,7 @@ public partial class OpenGLRender : IRender
         CommonShapes.Initialize();
     }
 
-    public void LoadScreenspaceEffects()
+    private void LoadScreenspaceEffects()
     {
         var effects = Assembly.GetExecutingAssembly()
             .GetTypes()
@@ -239,7 +239,7 @@ public partial class OpenGLRender : IRender
         }
     }
 
-    public void RecreateRenderTargets()
+    private void RecreateRenderTargets()
     {
         Log.Context(this).Warning("Recreating render buffers!");
 

@@ -1,4 +1,5 @@
-﻿using OpenTK.Mathematics;
+﻿using Jellyfish.Render;
+using OpenTK.Mathematics;
 
 namespace Jellyfish.Entities;
 
@@ -12,7 +13,7 @@ public class LightProbe : BaseEntity
     public override void Load()
     {
         base.Load();
-        _probe = Engine.Renderer.ImageBasedLighting?.AddProbe(GetPropertyValue<Vector3>("Position"));
+        _probe = ((OpenGLRender)Engine.Renderer).ImageBasedLighting?.AddProbe(GetPropertyValue<Vector3>("Position"));
     }
 
     protected override void OnPositionChanged(Vector3 position)
@@ -29,7 +30,7 @@ public class LightProbe : BaseEntity
     {
         if (_probe != null)
         {
-            Engine.Renderer.ImageBasedLighting?.RemoveProbe(_probe);
+            ((OpenGLRender)Engine.Renderer).ImageBasedLighting?.RemoveProbe(_probe);
         }
 
         base.Unload();
