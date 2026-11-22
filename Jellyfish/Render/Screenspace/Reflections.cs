@@ -33,7 +33,7 @@ public partial class Reflections : ScreenspaceEffect
 }
 public class ReflectionsBlurX : ScreenspaceEffect
 {
-    public ReflectionsBlurX() : base("ReflectionsBlurX", SizedInternalFormat.Rgba16f, new Blur("_rt_Reflections", Blur.Direction.Horizontal, Blur.Size.Blur9Slow))
+    public ReflectionsBlurX() : base("ReflectionsBlurX", SizedInternalFormat.Rgba16f, new Blur("_rt_Reflections", Blur.Direction.Horizontal, Blur.Size.Blur9))
     {
         Priority = 1;
     }
@@ -41,7 +41,7 @@ public class ReflectionsBlurX : ScreenspaceEffect
 
 public class ReflectionsBlurY : ScreenspaceEffect
 {
-    public ReflectionsBlurY() : base("ReflectionsBlurY", SizedInternalFormat.Rgba16f, new Blur("_rt_ReflectionsBlurX", Blur.Direction.Vertical, Blur.Size.Blur9Slow))
+    public ReflectionsBlurY() : base("ReflectionsBlurY", SizedInternalFormat.Rgba16f, new Blur("_rt_ReflectionsBlurX", Blur.Direction.Vertical, Blur.Size.Blur9))
     {
         Priority = 2;
     }
