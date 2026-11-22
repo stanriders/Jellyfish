@@ -62,10 +62,14 @@ public struct Sun : IGpuStruct
 [StructLayout(LayoutKind.Sequential)]
 public struct LightSources : IGpuStruct
 {
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = LightManager.max_lights)]
-    public Light[] Lights;
+    // header first, light array last - has to match the LightSources block in LightingDefinitions.shared
     public Sun Sun;
 
     public int LightsCount;
     public int SunEnabled;
+    private int _pad0;
+    private int _pad1;
+
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = LightManager.max_lights)]
+    public Light[] Lights;
 }
