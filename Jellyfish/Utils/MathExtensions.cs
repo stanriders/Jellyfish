@@ -63,8 +63,8 @@ public static class MathExtensions
             clipSpacePos.Z /= clipSpacePos.W;
         }
 
-        float x = (clipSpacePos.X * 0.5f + 0.5f) * Engine.MainViewport.Size.X;
-        float y = (1.0f - (clipSpacePos.Y * 0.5f + 0.5f)) * Engine.MainViewport.Size.Y;
+        float x = (clipSpacePos.X * 0.5f + 0.5f) * Engine.MainWindow.ClientSize.X;
+        float y = (1.0f - (clipSpacePos.Y * 0.5f + 0.5f)) * Engine.MainWindow.ClientSize.Y;
 
         return new Vector2(x, y);
     }
@@ -80,8 +80,8 @@ public static class MathExtensions
             clipSpacePos.Z /= clipSpacePos.W;
         }
 
-        float x = (clipSpacePos.X * 0.5f + 0.5f) * Engine.MainViewport.Size.X;
-        float y = (1.0f - (clipSpacePos.Y * 0.5f + 0.5f)) * Engine.MainViewport.Size.Y;
+        float x = (clipSpacePos.X * 0.5f + 0.5f) * Engine.MainWindow.ClientSize.X;
+        float y = (1.0f - (clipSpacePos.Y * 0.5f + 0.5f)) * Engine.MainWindow.ClientSize.Y;
 
         return new System.Numerics.Vector2(x, y);
     }

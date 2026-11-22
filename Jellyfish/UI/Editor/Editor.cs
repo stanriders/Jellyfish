@@ -422,7 +422,7 @@ public partial class Editor : IUiPanel, IInputHandler
             if (NoclipMove(keyboardState, mouseState, frameTime))
                 return true;
 
-            var screenspacePosition = new OpenTK.Mathematics.Vector2(mouseState.Position.X / Engine.MainViewport.Size.X, mouseState.Y / Engine.MainViewport.Size.Y);
+            var screenspacePosition = new OpenTK.Mathematics.Vector2(mouseState.Position.X / Engine.MainWindow.ClientSize.X, mouseState.Position.Y / Engine.MainWindow.ClientSize.Y);
             var ray = Engine.MainViewport.GetCameraToViewportRay(screenspacePosition);
 
             var control = keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl);
