@@ -165,6 +165,28 @@ public class Texture
 
         GL.TextureStorage2D(Handle, Levels, Params.InternalFormat!.Value, RenderTargetParams.Width, RenderTargetParams.Heigth);
 
+        var pixelFormat = Params.InternalFormat.Value switch
+        {
+            SizedInternalFormat.DepthComponent16 or 
+                SizedInternalFormat.DepthComponent24 or
+                SizedInternalFormat.DepthComponent32 or 
+                SizedInternalFormat.DepthComponent32f => PixelFormat.DepthComponent,
+            SizedInternalFormat.Depth24Stencil8 or 
+                SizedInternalFormat.Depth32fStencil8 => PixelFormat.DepthStencil,
+            _ => PixelFormat.Rgba
+        };
+        
+        var pixelType = Params.InternalFormat.Value switch
+        {
+            SizedInternalFormat.Depth24Stencil8 => PixelType.UnsignedInt248,
+            SizedInternalFormat.Depth32fStencil8 => PixelType.Float32UnsignedInt248Rev,
+            _ => PixelType.Float
+        };
+
+        // clear the texture to make sure bindless handles don't get garbled on amd
+        for (var level = 0; level < Levels; level++)
+            GL.ClearTexImage(Handle, level, pixelFormat, pixelType, IntPtr.Zero);
+
         _memoryTracker = NativeMemoryMeasurement.AddMemory(this, RenderTargetParams.Width * RenderTargetParams.Heigth * 4);
 
         Format = Params.InternalFormat.ToString()!;
