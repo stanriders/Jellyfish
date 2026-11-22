@@ -10,6 +10,7 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Sun = Jellyfish.Entities.Sun;
 
 namespace Jellyfish.Render.Lighting;
@@ -30,6 +31,9 @@ public class LightManager
     }
 
     private class CullingShader() : Shader("shaders/LightCulling.comp");
+
+    private static readonly int light_sources_header_size = (int)Marshal.OffsetOf<LightSources>(nameof(LightSources.Lights));
+    private static readonly int light_struct_size = Marshal.SizeOf<Shaders.Structs.Light>();
 
     public Light? Sun { get; private set; }
 
@@ -346,7 +350,7 @@ public class LightManager
             }
         }
 
-        LightSourcesSsbo.UpdateData(lightSourcesStruct);
+        LightSourcesSsbo.UpdateData(lightSourcesStruct, light_sources_header_size + lightSourcesStruct.LightsCount * light_struct_size);
 
         for (var i = 0; i < totalLights; i++)
         {

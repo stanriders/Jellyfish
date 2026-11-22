@@ -77,14 +77,14 @@ public class ShaderStorageBuffer<T> : IDisposable where T: struct, IGpuStruct
         GL.BindBufferBase(BufferTarget.ShaderStorageBuffer, binding, Handle);
     }
 
-    public void UpdateData(T data)
+    public void UpdateData(T data, int? size = null)
     {
         var bufferSize = Marshal.SizeOf<T>();
         var ptr = Marshal.AllocHGlobal(bufferSize);
         try
         {
             Marshal.StructureToPtr(data, ptr, false);
-            GL.NamedBufferSubData(Handle, IntPtr.Zero, bufferSize, ptr);
+            GL.NamedBufferSubData(Handle, IntPtr.Zero, Math.Min(size ?? bufferSize, bufferSize), ptr);
         }
         finally
         {
