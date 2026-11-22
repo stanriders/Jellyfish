@@ -23,6 +23,7 @@ uniform float adaptRate;   // 0.05 typical
 uniform float percentile;  // 0.8 (80% percentile)
 
 shared bool isLastGroup;
+shared uint localBins[NUM_BINS];
 
 void main() {
     ivec2 gid = ivec2(gl_GlobalInvocationID.xy);
@@ -31,6 +32,13 @@ void main() {
     uint idxGroupsDone = NUM_BINS;
 
     // --- histogram accumulation ---
+    // accumulate into a per-workgroup histogram in shared memory first: one global atomic per pixel makes every
+    // pixel on screen fight over the same 128 counters
+    if (gl_LocalInvocationIndex < NUM_BINS)
+        localBins[gl_LocalInvocationIndex] = 0u;
+
+    barrier();
+
     if (gid.x < size.x && gid.y < size.y) {
         vec3 rgb = texelFetch(screenTexture, gid, 0).rgb;
         float lum = dot(rgb, vec3(0.2126, 0.7152, 0.0722));
@@ -39,8 +47,13 @@ void main() {
         float norm = clamp((logLum - minLogLum) / (maxLogLum - minLogLum), 0.0, 1.0);
         uint bin = uint(floor(norm * float(NUM_BINS - 1u) + 0.5));
 
-        atomicAdd(bins[bin], 1u);
+        atomicAdd(localBins[bin], 1u);
     }
+
+    barrier();
+
+    if (gl_LocalInvocationIndex < NUM_BINS && localBins[gl_LocalInvocationIndex] > 0u)
+        atomicAdd(bins[gl_LocalInvocationIndex], localBins[gl_LocalInvocationIndex]);
 
     // --- last finished workgroup becomes the reducer ---
     memoryBarrierBuffer();
