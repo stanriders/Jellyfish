@@ -142,6 +142,10 @@ public partial class Editor : IUiPanel, IInputHandler
                 ConVarComponents.Checkbox("edt_snap", "Snap");
                 ImGui.Text($"Grid: {GridSize} ([ / ])");
 
+                float textWidth = ImGui.CalcTextSize(Engine.CurrentMap).X;
+                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + ImGui.GetContentRegionAvail().X - textWidth);
+                ImGui.Text(Engine.CurrentMap);
+
                 ImGui.EndMainMenuBar();
             }
         }
