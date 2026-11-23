@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Jellyfish.Console;
 using Jellyfish.Input;
 using Jellyfish.Utils;
@@ -188,5 +189,40 @@ public class Player : BaseEntity, IInputHandler, IHaveFrustum
         var cameraPosition = GetPropertyValue<Vector3>("Position") + new Vector3(0, height / (_crouching ? 4 : 2), 0);
         var view = Matrix4.LookAt(cameraPosition, cameraPosition - Vector3.UnitZ, Vector3.UnitY);
         return new Frustum(view * Engine.MainViewport.GetProjectionMatrix());
+    }
+
+    [ConCommand("setpos")]
+    public static void SetPos(string pos)
+    {
+        var coords = pos.Split(';').Select(float.Parse).ToArray();
+        var position = new Vector3(coords[0], coords[1], coords[2]);
+
+        if (ConVarStorage.Get<bool>("edt_enable"))
+        {
+            Engine.MainViewport.Position = position;
+        }
+        else
+        {
+            Engine.EntityManager.FindEntity("player")?.SetPropertyValue("Position", position);
+        }
+    }
+
+    [ConCommand("setrot")]
+    public static void SetRot(string rot)
+    {
+        var coords = rot.Split(';').Select(float.Parse).ToArray();
+
+        if (ConVarStorage.Get<bool>("edt_enable"))
+        {
+            Engine.MainViewport.Yaw = coords[1];
+            Engine.MainViewport.Pitch = coords[2];
+        }
+        else
+        {
+            var rotation = new Quaternion(new Vector3(float.DegreesToRadians(coords[0]),
+                float.DegreesToRadians(coords[1]),
+                float.DegreesToRadians(coords[2])));
+            Engine.EntityManager.FindEntity("player")?.SetPropertyValue("Rotation", rotation);
+        }
     }
 }

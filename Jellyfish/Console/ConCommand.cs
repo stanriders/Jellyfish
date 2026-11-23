@@ -11,5 +11,5 @@ public class ConCommandAttribute(string name) : Attribute
 public sealed class ConCommand
 {
     public required string Name { get; init; }
-    public required Action Callback { get; init; }
+    public required Action<string?> Callback { get; init; }
 }

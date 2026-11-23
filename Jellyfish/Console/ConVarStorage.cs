@@ -52,9 +52,11 @@ public class ConVarStorage : IInputHandler
 
                 var parameters = method.GetParameters();
 
-                Action? callback = null;
+                Action<string?>? callback = null;
                 if (parameters.Length == 0)
-                    callback = () => method.Invoke(null, null);
+                    callback = (_) => method.Invoke(null, null);
+                else
+                    callback = (param) => method.Invoke(null, [param]);
 
                 if (callback == null)
                 {
@@ -154,22 +156,23 @@ public class ConVarStorage : IInputHandler
         convar.UntypedValue = value;
     }
 
-    public static void Execute(string name)
+    public static bool Execute(string name, string? param = null)
     {
         if (string.IsNullOrEmpty(name))
-            return;
+            return false;
 
         if (!Engine.ConVarStorage._commands.TryGetValue(name, out var command))
         {
             Log.Context("Console").Error("Unknown command {Name}", name);
-            return;
+            return false;
         }
 
 #if DEBUG
         Log.Context("Console").Debug("{Name}", name);
 #endif
 
-        command.Callback();
+        command.Callback(param);
+        return true;
     }
 
     public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)

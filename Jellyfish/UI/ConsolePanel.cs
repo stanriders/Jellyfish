@@ -105,17 +105,21 @@ public partial class ConsolePanel : IUiPanel, IInputHandler
                 {
                     var commandConvar = commandSplit[0];
 
-                    var convar = ConVarStorage.GetConVar(commandConvar);
-                    if (convar == null)
+                    if (!ConVarStorage.CommandExists(commandConvar) ||
+                        !ConVarStorage.Execute(commandSplit[0], commandSplit[1]))
                     {
-                        Log.Context(this).Error("ConVar {S} is not found!", commandConvar);
-                    }
-                    else
-                    {
-                        var commandValue = JsonConvert.DeserializeObject(commandSplit[1], convar.Type);
-                        if (commandValue != null)
+                        var convar = ConVarStorage.GetConVar(commandConvar);
+                        if (convar == null)
                         {
-                            ConVarStorage.Set(commandConvar, commandValue);
+                            Log.Context(this).Error("ConVar {S} is not found!", commandConvar);
+                        }
+                        else
+                        {
+                            var commandValue = JsonConvert.DeserializeObject(commandSplit[1], convar.Type);
+                            if (commandValue != null)
+                            {
+                                ConVarStorage.Set(commandConvar, commandValue);
+                            }
                         }
                     }
                 }
