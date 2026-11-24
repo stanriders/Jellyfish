@@ -11,7 +11,6 @@ public class Material
 {
     public string? Name { get; }
     public string? Directory { get; }
-    public Shader? Shader { get; }
 
     private readonly Dictionary<string, object> _params = new();
     private readonly Dictionary<(string Name, bool Srgb), TextureRef?> _textureCache = new();
@@ -97,11 +96,7 @@ public class Material
         Directory = Path.GetDirectoryName(path);
 
         var shader = (string?)_params.GetValueOrDefault("Shader");
-        if (shader == "Main" || shader == "Simple") // todo: unlit shader
-        {
-            Shader = new Main();
-        }
-        else
+        if (shader == null)
         {
             Log.Context(this).Error("No shader defined for material {Path}!", path);
         }
@@ -163,8 +158,6 @@ public class Material
 
     public void Unload()
     {
-        Shader?.Unload();
-
         foreach (var texture in _textureCache.Values)
             texture?.Dispose();
 

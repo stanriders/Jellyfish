@@ -1,14 +1,14 @@
 ﻿namespace Jellyfish.Render.Shaders.IBL;
 
-public class Prefiltering : Shader
+public class Prefiltering() : Shader("shaders/Prefiltering.vert", null, "shaders/Prefiltering.frag")
 {
-    private readonly TextureRef _rtEnvMap;
+    private TextureRef? _rtEnvMap;
 
-    public Prefiltering(TextureRef envMap) :
-        base("shaders/Prefiltering.vert", null, "shaders/Prefiltering.frag")
+    public void SetEnvMap(TextureRef envMap)
     {
         _rtEnvMap = envMap;
     }
+
     public override void Bind()
     {
         base.Bind();

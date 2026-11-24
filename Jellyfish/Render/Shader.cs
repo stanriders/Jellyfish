@@ -94,8 +94,6 @@ public abstract class Shader
         {
             try
             {
-                Engine.ShaderManager.RemoveShader(e.FullPath.Replace(@"\", "/"));
-
                 var newHandle = LoadShader();
                 var oldHandle = _shaderHandle;
 
@@ -104,6 +102,7 @@ public abstract class Shader
                 if (oldHandle != 0)
                 {
                     GL.UseProgram(0);
+                    GL.DeleteShader(oldHandle);
                     GL.DeleteProgram(oldHandle);
                 }
             }
@@ -116,6 +115,18 @@ public abstract class Shader
                 _reloading = false;
             }
         });
+    }
+
+    private int? GetShader(string? name, ShaderType type)
+    {
+        if (string.IsNullOrEmpty(name))
+            return null;
+
+        Log.Context(this).Debug("Compiling shader {Path}...", name);
+
+        var handle = GL.CreateShader(type);
+
+        return handle;
     }
 
     public virtual void Unload()
@@ -146,12 +157,12 @@ public abstract class Shader
         GL.ObjectLabel(ObjectIdentifier.Program, handle, GetType().Name.Length, GetType().Name);
 
         // compile shaders
-        var vertexShader = Engine.ShaderManager.GetShader(_vertPath, ShaderType.VertexShader);
-        var geometryShader = Engine.ShaderManager.GetShader(_geomPath, ShaderType.GeometryShader);
-        var fragmentShader = Engine.ShaderManager.GetShader(_fragPath, ShaderType.FragmentShader);
-        var tesselationControlShader = Engine.ShaderManager.GetShader(_tessControlPath, ShaderType.TessControlShader);
-        var tesselationEvaluationShader = Engine.ShaderManager.GetShader(_tessEvalPath, ShaderType.TessEvaluationShader);
-        var computeShader = Engine.ShaderManager.GetShader(_compPath, ShaderType.ComputeShader);
+        var vertexShader = GetShader(_vertPath, ShaderType.VertexShader);
+        var geometryShader = GetShader(_geomPath, ShaderType.GeometryShader);
+        var fragmentShader = GetShader(_fragPath, ShaderType.FragmentShader);
+        var tesselationControlShader = GetShader(_tessControlPath, ShaderType.TessControlShader);
+        var tesselationEvaluationShader = GetShader(_tessEvalPath, ShaderType.TessEvaluationShader);
+        var computeShader = GetShader(_compPath, ShaderType.ComputeShader);
 
         if (vertexShader != null)
         {
@@ -296,15 +307,6 @@ public abstract class Shader
     {
         GL.DispatchCompute(groupsX, groupsY, groupsZ);
         GL.MemoryBarrier(barrier);
-    }
-
-    public uint? GetAttribLocation(string attribName)
-    {
-        var attrib = GL.GetAttribLocation(_shaderHandle, attribName);
-        if (attrib == -1)
-            return null;
-
-        return (uint)attrib;
     }
 
     private Uniform? SetUniform<T>(string name, T data)

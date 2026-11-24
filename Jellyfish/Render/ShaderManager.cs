@@ -1,43 +1,42 @@
-﻿using Jellyfish.Console;
-using OpenTK.Graphics.OpenGL;
-using System;
+﻿
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
+using Jellyfish.Render.Shaders;
+using Jellyfish.Render.Shaders.IBL;
 
 namespace Jellyfish.Render
 {
     public class ShaderManager
     {
-        private readonly Dictionary<string, int> _shaders = new();
-
-        public int? GetShader(string? name, ShaderType type)
+        // todo: automatic registration
+        private readonly Dictionary<string, Shader> _shaders = new()
         {
-            if (string.IsNullOrEmpty(name))
+            {"Imgui", new Imgui()},
+            {"Main", new Main()},
+            {"Simple", new Main()},
+            {"Shadow", new Shadow()},
+            {"GBuffer", new Shaders.GBuffer()},
+            {"Prefiltering", new Prefiltering()}
+        };
+
+        public Shader? GetShader(string? name)
+        {
+            if (name == null)
                 return null;
 
-            if (_shaders.TryGetValue(name, out var handle))
+            if (_shaders.TryGetValue(name, out var existingShader))
             {
-                return handle;
+                return existingShader;
             }
 
-            Log.Context(this).Debug("Compiling shader {Path}...", name);
-
-            handle = GL.CreateShader(type);
-
-            _shaders.Add(name, handle);
-
-            return handle;
+            throw new KeyNotFoundException($"Can't find shader {name}");
         }
 
-        public void RemoveShader(string name)
+        public void Unload()
         {
-            if (_shaders.TryGetValue(name, out var handle))
+            foreach (var shader in _shaders)
             {
-                GL.DeleteShader(handle);
-                _shaders.Remove(name);
+                shader.Value.Unload();
             }
         }
-
     }
 }

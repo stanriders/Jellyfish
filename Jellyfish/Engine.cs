@@ -81,8 +81,8 @@ namespace Jellyfish
 
             _inputHandler = new InputManager();
             ConVarStorage.Load();
-            _shaderManager = new ShaderManager();
             _textureManager = new TextureManager();
+            _shaderManager = new ShaderManager();
             _imguiController = new ImguiController();
 
             UpdateLoadingScreen("Loading systems...");
@@ -281,6 +281,7 @@ namespace Jellyfish
             _uiManager.Unload();
             _lightManager.Unload();
             _render.Unload();
+            _shaderManager.Unload();
             _imguiController?.Dispose();
             _audioManager.Unload();
             _physicsManager.Unload();

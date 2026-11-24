@@ -7,12 +7,10 @@ using Jellyfish.Debug;
 using Jellyfish.Input;
 using Jellyfish.Render;
 using Jellyfish.Render.Buffers;
-using Jellyfish.Render.Shaders;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -26,7 +24,6 @@ public sealed class ImguiController : IDisposable, IInputHandler
 {
     private bool _frameBegun;
 
-    private Imgui _shader = null!;
     private VertexArray _vao = null!;
     private VertexBuffer _vbo = null!;
     private IndexBuffer _ibo = null!;
@@ -114,20 +111,9 @@ public sealed class ImguiController : IDisposable, IInputHandler
         _ibo = new IndexBuffer(usage: BufferUsage.DynamicDraw);
         _vao = new VertexArray(_vbo, _ibo, Unsafe.SizeOf<ImDrawVert>());
 
-        _shader = new Imgui();
-
-        GL.EnableVertexArrayAttrib(_vao.Handle, 0);
-        GL.VertexArrayAttribFormat(_vao.Handle, 0, 2, VertexAttribType.Float, false, 0);
-
-        GL.EnableVertexArrayAttrib(_vao.Handle, 1);
-        GL.VertexArrayAttribFormat(_vao.Handle, 1, 2, VertexAttribType.Float, false, 8);
-
-        GL.EnableVertexArrayAttrib(_vao.Handle, 2);
-        GL.VertexArrayAttribFormat(_vao.Handle, 2, 4, VertexAttribType.UnsignedByte, true, 16);
-
-        GL.VertexArrayAttribBinding(_vao.Handle, 0, 0);
-        GL.VertexArrayAttribBinding(_vao.Handle, 1, 0);
-        GL.VertexArrayAttribBinding(_vao.Handle, 2, 0);
+        _vao.AddAttribute(0, 2, 0);
+        _vao.AddAttribute(1, 2, 8);
+        _vao.AddAttribute(2, 4, 16, VertexAttribType.UnsignedByte, true);
 
         CheckGlError("End of ImGui setup");
     }
@@ -320,9 +306,10 @@ public sealed class ImguiController : IDisposable, IInputHandler
             -1.0f,
             1.0f);
 
-        _shader.Bind();
-        _shader.SetMatrix4("projection_matrix", mvp);
-        _shader.SetInt("in_fontTexture", 0);
+        var shader = Engine.ShaderManager.GetShader("Imgui");
+        shader?.Bind();
+        shader?.SetMatrix4("projection_matrix", mvp);
+        shader?.SetInt("in_fontTexture", 0);
 
         drawData.ScaleClipRects(io.DisplayFramebufferScale);
 
@@ -424,7 +411,6 @@ public sealed class ImguiController : IDisposable, IInputHandler
         _vao.Dispose();
         _vbo.Dispose();
         _ibo.Dispose();
-        _shader.Unload();
     }
 
     public bool HandleInput(KeyboardState keyboardState, MouseState mouseState, float frameTime)

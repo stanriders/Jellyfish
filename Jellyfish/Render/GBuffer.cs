@@ -8,7 +8,6 @@ public class GBuffer
 {
     private readonly List<TextureRef> _renderTargets = new();
     private readonly FrameBuffer _buffer = new();
-    private readonly Shaders.GBuffer _shader = new();
 
     public GBuffer(Texture depthRenderTarget)
     {
@@ -55,7 +54,7 @@ public class GBuffer
 
         GL.Viewport(0, 0, Engine.MainViewport.Size.X, Engine.MainViewport.Size.Y);
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-        Engine.MeshManager.DrawOpaque(Engine.MainViewport.GetFrustum(), shaderToUse: _shader);
+        Engine.MeshManager.DrawOpaque(Engine.MainViewport.GetFrustum(), shaderToUse: "GBuffer");
 
         _buffer.Unbind();
     }

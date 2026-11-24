@@ -38,8 +38,6 @@ public class Mesh
     private VertexArray _vao = null!;
     private VertexBuffer _vbo = null!;
 
-    private Shader? _shader;
-
     public Vector3 Position = Vector3.Zero;
     public Quaternion Rotation = Quaternion.Identity;
     public Vector3 Scale = Vector3.One;
@@ -95,7 +93,6 @@ public class Mesh
     protected void AddMaterial(string? path)
     {
         Material = new Material(path, Model != null ? Model.Name : Name);
-        _shader = Material.Shader;
     }
 
     protected void CreateBuffers()
@@ -107,57 +104,25 @@ public class Mesh
 
         _vao = new VertexArray(_vbo, _ibo, 16 * sizeof(float));
 
-        var vertexLocation = _shader?.GetAttribLocation("aPosition");
-        if (vertexLocation != null)
-        {
-            GL.EnableVertexArrayAttrib(_vao.Handle, vertexLocation.Value);
-            GL.VertexArrayAttribFormat(_vao.Handle, vertexLocation.Value, 3, VertexAttribType.Float, false, 0);
-            GL.VertexArrayAttribBinding(_vao.Handle, vertexLocation.Value, 0);
-        }
-
-        var texCoordLocation = _shader?.GetAttribLocation("aTexCoord");
-        if (texCoordLocation != null)
-        {
-            GL.EnableVertexArrayAttrib(_vao.Handle, texCoordLocation.Value);
-            GL.VertexArrayAttribFormat(_vao.Handle, texCoordLocation.Value, 2, VertexAttribType.Float, false, 3 * sizeof(float));
-            GL.VertexArrayAttribBinding(_vao.Handle, texCoordLocation.Value, 0);
-        }
-
-        var normalLocation = _shader?.GetAttribLocation("aNormal");
-        if (normalLocation != null)
-        {
-            GL.EnableVertexArrayAttrib(_vao.Handle, normalLocation.Value);
-            GL.VertexArrayAttribFormat(_vao.Handle, normalLocation.Value, 3, VertexAttribType.Float, false, 5 * sizeof(float));
-            GL.VertexArrayAttribBinding(_vao.Handle, normalLocation.Value, 0);
-        }
-
-        var boneIdsLocation = _shader?.GetAttribLocation("aBoneIDs");
-        if (boneIdsLocation != null)
-        {
-            GL.EnableVertexArrayAttrib(_vao.Handle, boneIdsLocation.Value);
-            GL.VertexArrayAttribFormat(_vao.Handle, boneIdsLocation.Value, 4, VertexAttribType.Float, false, 8 * sizeof(float));
-            GL.VertexArrayAttribBinding(_vao.Handle, boneIdsLocation.Value, 0);
-        }
-
-        var weightsLocation = _shader?.GetAttribLocation("aWeights");
-        if (weightsLocation != null)
-        {
-            GL.EnableVertexArrayAttrib(_vao.Handle, weightsLocation.Value);
-            GL.VertexArrayAttribFormat(_vao.Handle, weightsLocation.Value, 4, VertexAttribType.Float, false, 12 * sizeof(float));
-            GL.VertexArrayAttribBinding(_vao.Handle, weightsLocation.Value, 0);
-        }
+        // must match CommonVertex.vert
+        _vao.AddAttribute(0, 3, 0);                  // aPosition
+        _vao.AddAttribute(1, 2, 3 * sizeof(float));  // aTexCoord
+        _vao.AddAttribute(2, 3, 5 * sizeof(float));  // aNormal
+        _vao.AddAttribute(3, 4, 8 * sizeof(float));  // aBoneIDs
+        _vao.AddAttribute(4, 4, 12 * sizeof(float)); // aWeights
 
         _vao.Unbind();
     }
 
-    public void Draw(Shader? shaderToUse = null)
+    public void Draw(string? shaderToUse = null)
     {
-        var drawShader = shaderToUse ?? _shader;
+        var drawShader = Engine.ShaderManager.GetShader(shaderToUse ?? Material?.GetParam<string>("Shader"));
         if (drawShader == null)
             return;
 
         drawShader.BindMaterial(Material);
         drawShader.Bind();
+
         _vao.Bind();
 
         var transform = Matrix4.Identity * Matrix4.CreateScale(Scale) * Matrix4.CreateTranslation(Position);
@@ -186,7 +151,6 @@ public class Mesh
         PerformanceMeasurement.Increment("DrawCalls");
 
         drawShader.Unbind();
-        //_vao.Unbind();
     }
 
     public void Update(List<Vertex> vertices, List<uint>? indices = null)

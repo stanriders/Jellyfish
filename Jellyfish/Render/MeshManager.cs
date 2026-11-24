@@ -97,7 +97,7 @@ public class MeshManager
         });
     }
 
-    public void DrawOpaque(Frustum frustum, bool drawDev = true, Shader? shaderToUse = null)
+    public void DrawOpaque(Frustum frustum, bool drawDev = true, string? shaderToUse = null)
     {
         using var _ = new PerformanceMeasure("MeshManager.Draw.Opaque");
 
@@ -105,7 +105,7 @@ public class MeshManager
             DrawMesh(mesh, frustum, drawDev, shaderToUse);
     }
 
-    public void DrawTranslucent(Frustum frustum, bool drawDev = true, Shader? shaderToUse = null)
+    public void DrawTranslucent(Frustum frustum, bool drawDev = true, string? shaderToUse = null)
     {
         using var _ = new PerformanceMeasure("MeshManager.Draw.Translucent");
         if (_translucentMeshes.Count == 0)
@@ -125,7 +125,7 @@ public class MeshManager
         GL.Disable(EnableCap.Blend);
     }
 
-    private void DrawMesh(Mesh mesh, Frustum frustum, bool drawDev = true, Shader? shaderToUse = null)
+    private void DrawMesh(Mesh mesh, Frustum frustum, bool drawDev = true, string? shaderToUse = null)
     {
         if (mesh.IsDev && !drawDev)
             return;

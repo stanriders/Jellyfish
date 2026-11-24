@@ -49,7 +49,6 @@ public class LightManager
     public readonly List<Light> Lights = new(max_lights);
 
     public readonly ShaderStorageBuffer<LightSources> LightSourcesSsbo = new("lightSourcesSSBO", new LightSources());
-    private readonly Shadow _shadowShader = new();
 
     public readonly ShaderStorageBuffer ClustersSsbo = new("lightClustersSSBO", (ClusterCount + ClusterCount * MaxLightsPerCluster) * sizeof(uint));
     private readonly CullingShader _cullingShader = new();
@@ -120,6 +119,8 @@ public class LightManager
 
         var cullState = true;
 
+        var shadowShader = Engine.ShaderManager.GetShader("Shadow")!;
+
         if (Sun != null && Sun.Source.Enabled && Sun.Source.UseShadows)
         {
             if (Sun.Source.UseBackCulling != cullState)
@@ -145,8 +146,8 @@ public class LightManager
                 GL.Viewport(0, 0, Sun.Source.ShadowResolution, Sun.Source.ShadowResolution);
                 GL.Clear(ClearBufferMask.DepthBufferBit);
 
-                _shadowShader.SetMatrix4("lightSpaceMatrix", Sun.Source.Projection(i));
-                Engine.MeshManager.DrawOpaque(new Frustum(Sun.Source.Projection(i)), false, _shadowShader);
+                shadowShader.SetMatrix4("lightSpaceMatrix", Sun.Source.Projection(i));
+                Engine.MeshManager.DrawOpaque(new Frustum(Sun.Source.Projection(i)), false, "Shadow");
 
                 shadow.FrameBuffer.Unbind();
             }
@@ -209,8 +210,8 @@ public class LightManager
                 GL.ClearDepth(1.0);
                 GL.Clear(ClearBufferMask.DepthBufferBit);
 
-                _shadowShader.SetMatrix4("lightSpaceMatrix", light.Source.Projection(i));
-                Engine.MeshManager.DrawOpaque(frustum, false, _shadowShader);
+                shadowShader.SetMatrix4("lightSpaceMatrix", light.Source.Projection(i));
+                Engine.MeshManager.DrawOpaque(frustum, false, "Shadow");
 
                 shadow.FrameBuffer.Unbind();
             }
@@ -451,7 +452,6 @@ public class LightManager
         _cullingShader.Unload();
         ClustersSsbo.Dispose();
 
-        _shadowShader.Unload();
         LightSourcesSsbo.Dispose();
     }
 }

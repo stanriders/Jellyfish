@@ -204,7 +204,7 @@ public class LightProbe
 
     private void RenderPrefilter(TextureRef envMap)
     {
-        var prefilterShader = new Prefiltering(envMap);
+        var prefilterShader = (Prefiltering)Engine.ShaderManager.GetShader("Prefiltering")!;
 
         using var prefilterBuffer = new FrameBuffer($"ibl_{_index}_prefilter_framebuffer");
         var prefilterRenderbuffer = new RenderBuffer(InternalFormat.DepthComponent, size, size);
@@ -222,6 +222,9 @@ public class LightProbe
         Engine.MainViewport.SizeOverride = new Vector2i(size);
 
         var maxMipLevels = _prefilterRenderTarget.Texture.Levels;
+
+        prefilterShader.SetEnvMap(envMap);
+        prefilterShader.Bind();
         for (var mip = 0; mip < maxMipLevels; mip++)
         {
             var mipWidth = size >> mip;
@@ -238,7 +241,6 @@ public class LightProbe
 
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-                prefilterShader.Bind();
                 prefilterShader.SetFloat("roughness", roughness);
                 prefilterShader.SetInt("mip", mip);
                 prefilterShader.SetFloat("envMapResolution", size);
@@ -247,15 +249,12 @@ public class LightProbe
 
                 GL.DrawArrays(PrimitiveType.Triangles, 0, CommonShapes.Cube.Length);
                 PerformanceMeasurement.Increment("DrawCalls");
-
-                prefilterShader.Unbind();
             }
         }
+        prefilterShader.Unbind();
 
         CommonShapes.CubeVertexArray?.Unbind();
         prefilterBuffer.Unbind();
-
-        prefilterShader.Unload();
     }
 
     public void Unload()

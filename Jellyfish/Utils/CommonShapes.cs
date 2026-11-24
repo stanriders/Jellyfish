@@ -128,20 +128,11 @@ public static class CommonShapes
     public static void Initialize()
     {
         CubeVertexArray = new VertexArray(new VertexBuffer("Cube", CubeFloat), null, 3 * sizeof(float));
-
-        GL.EnableVertexArrayAttrib(CubeVertexArray.Handle, 0);
-        GL.VertexArrayAttribFormat(CubeVertexArray.Handle, 0, 3, VertexAttribType.Float, false, 0);
-        GL.VertexArrayAttribBinding(CubeVertexArray.Handle, 0, 0);
+        CubeVertexArray.AddAttribute(0, 3, 0);
 
         QuadVertexArray = new VertexArray(new VertexBuffer("Quad", Quad), null, 4 * sizeof(float));
-
-        GL.EnableVertexArrayAttrib(QuadVertexArray.Handle, 0);
-        GL.VertexArrayAttribFormat(QuadVertexArray.Handle, 0, 2, VertexAttribType.Float, false, 0);
-        GL.VertexArrayAttribBinding(QuadVertexArray.Handle, 0, 0);
-        
-        GL.EnableVertexArrayAttrib(QuadVertexArray.Handle, 1);
-        GL.VertexArrayAttribFormat(QuadVertexArray.Handle, 1, 2, VertexAttribType.Float, false, 2 * sizeof(float));
-        GL.VertexArrayAttribBinding(QuadVertexArray.Handle, 1, 0);
+        QuadVertexArray.AddAttribute(0, 2, 0);
+        QuadVertexArray.AddAttribute(1, 2, 2 * sizeof(float));
     }
 
     public static void DrawQuad()

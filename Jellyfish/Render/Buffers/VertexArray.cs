@@ -28,6 +28,14 @@ public class VertexArray : IDisposable
         GL.BindVertexArray(0);
     }
 
+    public void AddAttribute(uint location, int size, uint offset,
+        VertexAttribType type = VertexAttribType.Float, bool normalized = false)
+    {
+        GL.EnableVertexArrayAttrib(Handle, location);
+        GL.VertexArrayAttribFormat(Handle, location, size, type, normalized, offset);
+        GL.VertexArrayAttribBinding(Handle, location, 0);
+    }
+
     public void Dispose()
     {
         Unbind();
