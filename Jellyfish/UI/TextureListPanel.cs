@@ -130,9 +130,9 @@ public partial class TextureListPanel : IUiPanel
                 {
                     var size = new Vector2(maxSize);
 
-                    var aspect = _expandedTexture.Size.X / _expandedTexture.Size.Y;
-                    var widthScale = _expandedTexture.Size.X / maxSize;
-                    var heightScale = _expandedTexture.Size.Y / maxSize;
+                    var aspect = _expandedTexture.Dimensions.X / _expandedTexture.Dimensions.Y;
+                    var widthScale = _expandedTexture.Dimensions.X / maxSize;
+                    var heightScale = _expandedTexture.Dimensions.Y / maxSize;
 
                     if (widthScale > heightScale)
                     {
@@ -149,7 +149,7 @@ public partial class TextureListPanel : IUiPanel
                     if (_expandedTexture.Params.Path != null && _expandedTexture.Params.Path != _expandedTexture.Params.Name)
                         ImGui.Text(_expandedTexture.Params.Path);
                     ImGui.Separator();
-                    ImGui.Text($"Size: {_expandedTexture.Size.X}x{_expandedTexture.Size.Y}\tLevels: {_expandedTexture.Levels}\tFormat: {_expandedTexture.Format}");
+                    ImGui.Text($"Size: {_expandedTexture.Dimensions.X}x{_expandedTexture.Dimensions.Y}, {FormatTextureSize(_expandedTexture.Size)}\tLevels: {_expandedTexture.Levels}\tFormat: {_expandedTexture.Format}");
                     ImGui.Text($"Type: {_expandedTexture.Params.Type}\tMin filter: {_expandedTexture.Params.MinFiltering}\tMag filter: {_expandedTexture.Params.MagFiltering}");
                     ImGui.Text($"Wrap mode: {_expandedTexture.Params.WrapMode}\tBorder color: [{string.Join(';', _expandedTexture.Params.BorderColor ?? [])}]");
 
@@ -236,5 +236,25 @@ public partial class TextureListPanel : IUiPanel
         }
 
         return atlasTex;
+    }
+
+    private string FormatTextureSize(long size)
+    {
+        if (size < 1024)
+        {
+            return size + "B";
+        }
+
+        if (size < 1024 * 1024)
+        {
+            return $"{size / 1024f:##.##}Kb";
+        }
+
+        if (size < 1024 * 1024 * 1024)
+        {
+            return $"{size / 1024f / 1024:##.##}Mb";
+        }
+
+        return $"{size / 1024f / 1024 / 1024:##.##}Gb";
     }
 }

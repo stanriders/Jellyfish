@@ -27,7 +27,7 @@ public class PostProcessing : Shader
             _histogram.Clear();
             _histogram.Bind(0);
 
-            SetVector2("screenSize", _rtColor.Texture.Size);
+            SetVector2("screenSize", _rtColor.Texture.Dimensions);
             SetFloat("minLogLum", -8.0f);
             SetFloat("maxLogLum", 8.0f);
             SetFloat("key", ConVarStorage.Get<float>("mat_postprocess_exposure_key"));
@@ -37,7 +37,7 @@ public class PostProcessing : Shader
 
         public void Dispatch()
         {
-            DispatchCompute(((uint)_rtColor.Texture.Size.X + 15) / 16, ((uint)_rtColor.Texture.Size.Y + 15) / 16, 1,
+            DispatchCompute(((uint)_rtColor.Texture.Dimensions.X + 15) / 16, ((uint)_rtColor.Texture.Dimensions.Y + 15) / 16, 1,
                 MemoryBarrierMask.TextureFetchBarrierBit | MemoryBarrierMask.ShaderImageAccessBarrierBit);
         }
 

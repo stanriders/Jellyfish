@@ -43,7 +43,8 @@ public class Texture
     public int Levels { get; private set; }
     public string Format { get; private set; }
     public bool HasAlpha { get; private set; }
-    public Vector2 Size { get; private set; }
+    public Vector2 Dimensions { get; private set; }
+    public long Size { get; private set; }
 
     private bool _isDeleted;
     private readonly NativeMemoryMeasurement.NativeMemoryTracker? _memoryTracker;
@@ -125,10 +126,11 @@ public class Texture
         if (Levels > 1)
             GL.GenerateTextureMipmap(Handle);
 
-        _memoryTracker = NativeMemoryMeasurement.AddMemory(this, GetGpuSize(Handle, Params.Type, Levels));
-
         Format = internalPixelFormat.ToString();
-        Size = new Vector2(image.Width, image.Height);
+        Dimensions = new Vector2(image.Width, image.Height);
+        Size = GetGpuSize();
+
+        _memoryTracker = NativeMemoryMeasurement.AddMemory(this, Size);
     }
 
     public Texture(RenderTargetParams rtParams)
@@ -193,10 +195,12 @@ public class Texture
         for (var level = 0; level < Levels; level++)
             GL.ClearTexImage(Handle, level, pixelFormat, pixelType, IntPtr.Zero);
 
-        _memoryTracker = NativeMemoryMeasurement.AddMemory(this, GetGpuSize(Handle, Params.Type, Levels));
 
         Format = Params.InternalFormat.ToString()!;
-        Size = new Vector2(RenderTargetParams.Width, RenderTargetParams.Heigth);
+        Dimensions = new Vector2(RenderTargetParams.Width, RenderTargetParams.Heigth);
+        Size = GetGpuSize();
+
+        _memoryTracker = NativeMemoryMeasurement.AddMemory(this, Size);
     }
 
     public void Bind(uint unit)
@@ -228,12 +232,12 @@ public class Texture
         _isDeleted = true;
     }
 
-    private static long GetGpuSize(int handle, TextureTarget target, int levels)
+    public long GetGpuSize()
     {
-        var faces = target == TextureTarget.TextureCubeMap ? 6 : 1;
+        var faces = Params.Type == TextureTarget.TextureCubeMap ? 6 : 1;
 
         long total = 0;
-        for (var level = 0; level < levels; level++)
+        for (var level = 0; level < Levels; level++)
         {
             if (Get(level, All.TextureCompressed) != 0)
             {
@@ -260,7 +264,7 @@ public class Texture
         int Get(int level, All parameter)
         {
             var value = 0;
-            GL.GetTextureLevelParameteri(handle, level, (GetTextureParameter)parameter, ref value);
+            GL.GetTextureLevelParameteri(Handle, level, (GetTextureParameter)parameter, ref value);
             return value;
         }
     }

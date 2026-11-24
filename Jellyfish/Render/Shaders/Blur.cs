@@ -35,7 +35,7 @@ public class Blur : Shader
         base.Bind();
         BindTexture(0, _rtSource);
 
-        SetVector2("screenSize", _rtSource.Texture.Size);
+        SetVector2("screenSize", _rtSource.Texture.Dimensions);
         SetInt("direction", (int)_direction);
         SetInt("size", (int)_size); 
     }
