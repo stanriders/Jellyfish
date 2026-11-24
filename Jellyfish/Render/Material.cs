@@ -97,19 +97,9 @@ public class Material
         Directory = Path.GetDirectoryName(path);
 
         var shader = (string?)_params.GetValueOrDefault("Shader");
-        if (shader == "Main")
+        if (shader == "Main" || shader == "Simple") // todo: unlit shader
         {
             Shader = new Main(this);
-        }
-        else if (shader == "Simple")
-        {
-            // todo: unlit shader
-            _params.TryGetValue("Diffuse", out var diffusePath);
-            Shader = new Main(Engine.TextureManager.GetTexture(new TextureParams
-            {
-                Name = $"{Directory}/{diffusePath}",
-                Srgb = true
-            }).Texture);
         }
         else
         {
