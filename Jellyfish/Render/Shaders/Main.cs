@@ -3,27 +3,19 @@ using LightProbe = Jellyfish.Render.Lighting.LightProbe;
 
 namespace Jellyfish.Render.Shaders;
 
-public class Main : Shader
+public class Main() : Shader("shaders/Main.vert", null, "shaders/Main.frag")
 {
-    private readonly Material _material;
-    private readonly TextureRef? _reflectionMap;
+    private readonly TextureRef? _reflectionMap = Engine.TextureManager.GetTexture("_rt_ReflectionsBlurY");
 
-    public Main(Material material) : base("shaders/Main.vert", null, "shaders/Main.frag")
-    {
-        // todo?: use bound material
-        // todo: predefined shader params that can be edited in a material editor
-
-        _material = material;
-        _reflectionMap = Engine.TextureManager.GetTexture("_rt_ReflectionsBlurY");
-    }
+    // todo: predefined shader params that can be edited in a material editor
 
     public override void Bind()
     {
         base.Bind();
 
-        var diffuse = _material.GetParamTexture("Diffuse", true);
-        var normal = _material.GetParamTexture("Normal");
-        var metRough = _material.GetParamTexture("MetalRoughness");
+        var diffuse = BoundMaterial?.GetParamTexture("Diffuse", true);
+        var normal = BoundMaterial?.GetParamTexture("Normal");
+        var metRough = BoundMaterial?.GetParamTexture("MetalRoughness");
 
         SetVector3("cameraPos", Engine.MainViewport.Position);
         SetMatrix4("view", Engine.MainViewport.GetViewMatrix());
@@ -31,8 +23,8 @@ public class Main : Shader
 
         SetBool("useNormals", normal != null);
         SetBool("usePbr", metRough != null);
-        SetBool("useTransparency", _material.GetParam<bool>("AlphaTest"));  // todo: rename
-        SetBool("useAlphaTest", _material.GetParam<bool>("Cutout"));  // todo: rename
+        SetBool("useTransparency", BoundMaterial?.GetParam<bool>("AlphaTest") ?? false);  // todo: rename
+        SetBool("useAlphaTest", BoundMaterial?.GetParam<bool>("Cutout") ?? false);  // todo: rename
 
         SetInt("prefilterMips", LightProbe.PrefilterMips);
         SetBool("iblEnabled", ConVarStorage.Get<bool>("mat_ibl_enabled"));

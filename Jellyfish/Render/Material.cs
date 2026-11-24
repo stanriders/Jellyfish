@@ -99,7 +99,7 @@ public class Material
         var shader = (string?)_params.GetValueOrDefault("Shader");
         if (shader == "Main" || shader == "Simple") // todo: unlit shader
         {
-            Shader = new Main(this);
+            Shader = new Main();
         }
         else
         {
