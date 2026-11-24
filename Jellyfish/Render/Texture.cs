@@ -22,6 +22,7 @@ public class TextureParams
     public string? Name { get; set; }
     public TextureTarget Type { get; set; } = TextureTarget.Texture2D;
     public bool Srgb { get; set; } = false;
+    public bool Compress { get; set; }
     public float[]? BorderColor { get; set; } = null;
     public int? MaxLevels { get; set; }
     public TextureMinFilter MinFiltering { get; set; } = TextureMinFilter.LinearMipmapLinear;
@@ -104,6 +105,11 @@ public class Texture
                                       ? Params.Srgb ? SizedInternalFormat.Srgb8Alpha8 : SizedInternalFormat.Rgba8
                                       : Params.Srgb ? SizedInternalFormat.Srgb8 : SizedInternalFormat.Rgb8);
 
+        if (Params.Compress)
+        {
+            internalPixelFormat = Params.Srgb ? SizedInternalFormat.CompressedSrgbAlphaBptcUnorm : SizedInternalFormat.CompressedRgbaBptcUnorm;
+        }
+
         if (image.Depth == 16)
         {
             internalPixelFormat = HasAlpha ? SizedInternalFormat.Rgba16 : SizedInternalFormat.Rgb16;
@@ -116,10 +122,10 @@ public class Texture
         GL.TextureSubImage2D(Handle, 0, 0, 0, (int)image.Width, (int)image.Height, pixelFormat, PixelType.UnsignedByte,
             data.GetAreaPointer(0, 0, image.Width, image.Height));
 
-        _memoryTracker = NativeMemoryMeasurement.AddMemory(this, image.Width * image.Height * image.ChannelCount);
-
         if (Levels > 1)
             GL.GenerateTextureMipmap(Handle);
+
+        _memoryTracker = NativeMemoryMeasurement.AddMemory(this, GetGpuSize(Handle, Params.Type, Levels));
 
         Format = internalPixelFormat.ToString();
         Size = new Vector2(image.Width, image.Height);
@@ -187,7 +193,7 @@ public class Texture
         for (var level = 0; level < Levels; level++)
             GL.ClearTexImage(Handle, level, pixelFormat, pixelType, IntPtr.Zero);
 
-        _memoryTracker = NativeMemoryMeasurement.AddMemory(this, RenderTargetParams.Width * RenderTargetParams.Heigth * 4);
+        _memoryTracker = NativeMemoryMeasurement.AddMemory(this, GetGpuSize(Handle, Params.Type, Levels));
 
         Format = Params.InternalFormat.ToString()!;
         Size = new Vector2(RenderTargetParams.Width, RenderTargetParams.Heigth);
@@ -220,5 +226,42 @@ public class Texture
         GL.DeleteTexture(Handle);
         _memoryTracker?.Dispose();
         _isDeleted = true;
+    }
+
+    private static long GetGpuSize(int handle, TextureTarget target, int levels)
+    {
+        var faces = target == TextureTarget.TextureCubeMap ? 6 : 1;
+
+        long total = 0;
+        for (var level = 0; level < levels; level++)
+        {
+            if (Get(level, All.TextureCompressed) != 0)
+            {
+                total += (long)Get(level, All.TextureCompressedImageSize) * faces;
+                continue;
+            }
+
+            var bits = Get(level, All.TextureRedSize) + Get(level, All.TextureGreenSize) +
+                       Get(level, All.TextureBlueSize) + Get(level, All.TextureAlphaSize) +
+                       Get(level, All.TextureDepthSize) + Get(level, All.TextureStencilSize) +
+                       Get(level, All.TextureSharedSize);
+
+            // rgb8, rgb16f, depth24 etc. are padded to the next power of two
+            var paddedBits = System.Numerics.BitOperations.RoundUpToPowerOf2((uint)bits);
+
+            total += (long)Get(level, All.TextureWidth) * 
+                Get(level, All.TextureHeight) * 
+                Get(level, All.TextureDepth) *
+                Math.Max(1, Get(level, All.TextureSamples)) * faces * paddedBits / 8;
+        }
+
+        return total;
+
+        int Get(int level, All parameter)
+        {
+            var value = 0;
+            GL.GetTextureLevelParameteri(handle, level, (GetTextureParameter)parameter, ref value);
+            return value;
+        }
     }
 }

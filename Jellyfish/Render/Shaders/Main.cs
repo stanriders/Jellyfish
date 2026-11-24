@@ -18,7 +18,7 @@ public class Main : Shader
         // todo: predefined shader params that can be edited in a material editor
 
         if (material.TryGetParam<string>("Diffuse", out var diffusePath))
-            _diffuse = Engine.TextureManager.GetTexture(new TextureParams { Path = $"{material.Directory}/{diffusePath}", Srgb = true}).Texture;
+            _diffuse = Engine.TextureManager.GetTexture(new TextureParams { Path = $"{material.Directory}/{diffusePath}", Srgb = true, Compress = true}).Texture;
 
         if (material.TryGetParam<string>("Normal", out var normalPath))
             _normal = Engine.TextureManager.GetTexture(new TextureParams { Path = $"{material.Directory}/{normalPath}"}).Texture;
