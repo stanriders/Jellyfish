@@ -8,7 +8,7 @@ namespace Jellyfish.Utils;
 
 public static class CommonShapes
 {
-    public static float[] Quad =
+    private static readonly float[] Quad =
     [
         // positions   // texCoords
         -1.0f, 1.0f, 0.0f, 1.0f,
@@ -20,7 +20,7 @@ public static class CommonShapes
         1.0f, 1.0f, 1.0f, 1.0f
     ];
 
-    public static float[] CubeFloat =
+    private static readonly float[] CubeFloat =
     [
         // positions          
         -1.0f,  1.0f, -1.0f,
@@ -66,7 +66,7 @@ public static class CommonShapes
         1.0f, -1.0f,  1.0f
     ];
 
-    public static Vector3[] Cube =
+    private static readonly Vector3[] Cube =
     [
         // positions
         new(-1.0f, 1.0f, -1.0f),
@@ -112,18 +112,18 @@ public static class CommonShapes
         new(-1.0f, -1.0f, -1.0f)
     ];
 
-    public static readonly (Vector3 Dir, Vector3 Up)[] CubeFaces =
+    private static readonly (Vector3 Dir, Vector3 Up)[] CubemapViews =
     [
-        (new Vector3( 1,  0,  0), new Vector3(0, 0, 1)),
-        (new Vector3(-1,  0,  0), new Vector3(0, 0, 1)),
-        (new Vector3( 0,  1,  0), new Vector3(0, 0, 1)),
-        (new Vector3( 0, -1,  0), new Vector3(0, 0, 1)),
-        (new Vector3( 0,  0,  1), new Vector3(0, 1, 0)),
-        (new Vector3( 0,  0, -1), new Vector3(0, 1, 0))
+        (new Vector3( 1,  0,  0), new Vector3(0, -1,  0)), // +X
+        (new Vector3(-1,  0,  0), new Vector3(0, -1,  0)), // -X
+        (new Vector3( 0,  1,  0), new Vector3(0,  0,  1)), // +Y
+        (new Vector3( 0, -1,  0), new Vector3(0,  0, -1)), // -Y
+        (new Vector3( 0,  0,  1), new Vector3(0, -1,  0)), // +Z
+        (new Vector3( 0,  0, -1), new Vector3(0, -1,  0)) // -Z
     ];
 
-    public static VertexArray? QuadVertexArray { get; private set; }
-    public static VertexArray? CubeVertexArray { get; private set; }
+    private static VertexArray? QuadVertexArray { get; set; }
+    private static VertexArray? CubeVertexArray { get; set; }
 
     public static void Initialize()
     {
@@ -139,9 +139,24 @@ public static class CommonShapes
     {
         QuadVertexArray?.Bind();
 
-        GL.DrawArrays(PrimitiveType.Triangles, 0, 6);
+        GL.DrawArrays(PrimitiveType.Triangles, 0, Quad.Length);
         PerformanceMeasurement.Increment("DrawCalls");
 
         QuadVertexArray?.Unbind();
+    }
+
+    public static void DrawCube()
+    {
+        CubeVertexArray?.Bind();
+
+        GL.DrawArrays(PrimitiveType.Triangles, 0, Cube.Length);
+        PerformanceMeasurement.Increment("DrawCalls");
+
+        CubeVertexArray?.Unbind();
+    }
+
+    public static Matrix4 GetCubemapViewMatrix(Vector3 position, int face)
+    {
+        return Matrix4.LookAt(position, position + CubemapViews[face].Dir, CubemapViews[face].Up);
     }
 }

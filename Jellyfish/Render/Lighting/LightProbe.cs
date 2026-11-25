@@ -22,16 +22,6 @@ public class LightProbe
     private const int size = 128;
     private const int mips = 5;
 
-    private readonly (Vector3 target, Vector3 up)[] _cubemapViews =
-    [
-        (new Vector3( 1,  0,  0), new Vector3(0, -1,  0)), // +X
-        (new Vector3(-1,  0,  0), new Vector3(0, -1,  0)), // -X
-        (new Vector3( 0,  1,  0), new Vector3(0,  0,  1)), // +Y
-        (new Vector3( 0, -1,  0), new Vector3(0,  0, -1)), // -Y
-        (new Vector3( 0,  0,  1), new Vector3(0, -1,  0)), // +Z
-        (new Vector3( 0,  0, -1), new Vector3(0, -1,  0)) // -Z
-    ];
-
     public LightProbe(int index)
     {
         _index = index;
@@ -96,9 +86,9 @@ public class LightProbe
         Engine.MainViewport.ProjectionMatrixOverride = Matrix4.CreatePerspectiveFieldOfView(float.DegreesToRadians(90f), 1.0f, 0.1f, 2000f);
         Engine.MainViewport.SizeOverride = new Vector2i(size);
 
-        for (uint i = 0; i < 6; i++)
+        for (int i = 0; i < 6; i++)
         {
-            Engine.MainViewport.ViewMatrixOverride = Matrix4.LookAt(Position, Position + _cubemapViews[i].target, _cubemapViews[i].up);
+            Engine.MainViewport.ViewMatrixOverride = CommonShapes.GetCubemapViewMatrix(Position, i);
             Engine.Renderer.PreFrame();
 
             GL.Viewport(0, 0, size, size);
@@ -107,14 +97,14 @@ public class LightProbe
 
             GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
-            cubemapBuffer.AttachTexture(cubemapRenderTarget.Texture.Handle, layer: (int)i);
+            cubemapBuffer.AttachTexture(cubemapRenderTarget.Texture.Handle, layer: i);
 
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            Engine.MainViewport.ViewMatrixOverride = Matrix4.LookAt(Vector3.Zero, _cubemapViews[i].target, _cubemapViews[i].up);
+            Engine.MainViewport.ViewMatrixOverride = CommonShapes.GetCubemapViewMatrix(Vector3.Zero, i);
             sky?.Draw();
 
-            Engine.MainViewport.ViewMatrixOverride = Matrix4.LookAt(Position, Position + _cubemapViews[i].target, _cubemapViews[i].up);
+            Engine.MainViewport.ViewMatrixOverride = CommonShapes.GetCubemapViewMatrix(Position, i);
             Engine.MeshManager.DrawOpaque(Engine.MainViewport.GetFrustum(), false);
 
             cubemapBuffer.Unbind();
@@ -197,7 +187,6 @@ public class LightProbe
         GL.Viewport(0, 0, size, size);
 
         prefilterBuffer.Bind();
-        CommonShapes.CubeVertexArray?.Bind();
 
         Engine.MainViewport.ProjectionMatrixOverride = Matrix4.CreatePerspectiveFieldOfView(float.DegreesToRadians(90f), 1.0f, 0.1f, 2f);
         Engine.MainViewport.SizeOverride = new Vector2i(size);
@@ -222,9 +211,9 @@ public class LightProbe
 
             var roughness = mip / (float)(maxMipLevels - 1);
 
-            for (uint face = 0; face < 6; face++)
+            for (int face = 0; face < 6; face++)
             {
-                prefilterBuffer.AttachTexture(_prefilterRenderTarget.Texture.Handle, level: mip, layer: (int)face);
+                prefilterBuffer.AttachTexture(_prefilterRenderTarget.Texture.Handle, level: mip, layer: face);
 
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
@@ -233,16 +222,14 @@ public class LightProbe
                 prefilterShader.SetFloat("envMapResolution", size);
 
                 // set viewport view too to make sslr bake correctly
-                Engine.MainViewport.ViewMatrixOverride = Matrix4.LookAt(Vector3.Zero, _cubemapViews[face].target, _cubemapViews[face].up);
+                Engine.MainViewport.ViewMatrixOverride = CommonShapes.GetCubemapViewMatrix(Vector3.Zero, face);
                 prefilterShader.SetMatrix4("view", Engine.MainViewport.GetViewMatrix());
 
-                GL.DrawArrays(PrimitiveType.Triangles, 0, CommonShapes.Cube.Length);
-                PerformanceMeasurement.Increment("DrawCalls");
+                CommonShapes.DrawCube();
             }
         }
         prefilterShader.Unbind();
 
-        CommonShapes.CubeVertexArray?.Unbind();
         prefilterBuffer.Unbind();
     }
 

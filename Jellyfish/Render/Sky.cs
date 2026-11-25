@@ -59,15 +59,12 @@ public class Sky
         }
 
         _shader.Bind();
-        CommonShapes.CubeVertexArray?.Bind();
 
         GL.DepthFunc(DepthFunction.Lequal);
-        GL.DrawArrays(PrimitiveType.Triangles, 0, CommonShapes.Cube.Length);
-        PerformanceMeasurement.Increment("DrawCalls");
+        CommonShapes.DrawCube();
         GL.DepthFunc(DepthFunction.Less);
 
         _shader.Unbind();
-        CommonShapes.CubeVertexArray?.Unbind();
     }
 
     public void Unload()

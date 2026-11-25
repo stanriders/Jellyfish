@@ -32,9 +32,8 @@ public class PointLight : LightEntity
             return _projectionsCache[index]!.Value;
         }
 
-        var (dir, up) = CommonShapes.CubeFaces[index];
         var lightProjection = Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(90f), 1.0f, NearPlane, FarPlane);
-        var lightView = Matrix4.LookAt(Position, Position + dir, up);
+        var lightView = CommonShapes.GetCubemapViewMatrix(Position, index);
 
         var finalProjection = lightView * lightProjection;
 
