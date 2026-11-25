@@ -5,7 +5,7 @@ namespace Jellyfish.Render.Shaders;
 
 public class Main() : Shader("shaders/Main.vert", null, "shaders/Main.frag")
 {
-    private readonly TextureRef? _reflectionMap = Engine.TextureManager.GetTexture("_rt_ReflectionsBlurY");
+    private TextureRef? _reflectionMap;
 
     // todo: predefined shader params that can be edited in a material editor
 
@@ -16,6 +16,7 @@ public class Main() : Shader("shaders/Main.vert", null, "shaders/Main.frag")
         var diffuse = BoundMaterial?.GetParamTexture("Diffuse", true);
         var normal = BoundMaterial?.GetParamTexture("Normal");
         var metRough = BoundMaterial?.GetParamTexture("MetalRoughness");
+        _reflectionMap ??= Engine.TextureManager.GetTexture("_rt_ReflectionsBlurY");
 
         SetVector3("cameraPos", Engine.MainViewport.Position);
         SetMatrix4("view", Engine.MainViewport.GetViewMatrix());
@@ -26,7 +27,6 @@ public class Main() : Shader("shaders/Main.vert", null, "shaders/Main.frag")
         SetBool("useTransparency", BoundMaterial?.GetParam<bool>("AlphaTest") ?? false);  // todo: rename
         SetBool("useAlphaTest", BoundMaterial?.GetParam<bool>("Cutout") ?? false);  // todo: rename
 
-        SetInt("prefilterMips", LightProbe.PrefilterMips);
         SetBool("iblEnabled", ConVarStorage.Get<bool>("mat_ibl_enabled"));
         SetBool("iblPrefilterEnabled", ConVarStorage.Get<bool>("mat_ibl_prefilter"));
         SetBool("sslrEnabled", ConVarStorage.Get<bool>("mat_sslr_enabled"));

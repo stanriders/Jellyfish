@@ -21,7 +21,6 @@ uniform bool useNormals;
 uniform bool usePbr;
 uniform bool useTransparency;
 uniform bool useAlphaTest;
-uniform int prefilterMips;
 uniform bool iblEnabled;
 uniform bool iblPrefilterEnabled;
 uniform bool sslrEnabled;

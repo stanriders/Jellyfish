@@ -19,9 +19,8 @@ public class LightProbe
 
     private readonly TextureRef _prefilterRenderTarget;
 
-    public const int PrefilterMips = 6;
-
     private const int size = 128;
+    private const int mips = 5;
 
     private readonly (Vector3 target, Vector3 up)[] _cubemapViews =
     [
@@ -31,17 +30,6 @@ public class LightProbe
         (new Vector3( 0, -1,  0), new Vector3(0,  0, -1)), // -Y
         (new Vector3( 0,  0,  1), new Vector3(0, -1,  0)), // +Z
         (new Vector3( 0,  0, -1), new Vector3(0, -1,  0)) // -Z
-    ];
-
-    // TODO: figure out why the hell can't we use one view array
-    private readonly (Vector3 target, Vector3 up)[] _cubemapUsageViews =
-    [
-        (new Vector3(-1,  0,  0), new Vector3(0, -1,  0)), // -X
-        (new Vector3( 0,  1,  0), new Vector3(0,  0,  1)), // +Y
-        (new Vector3( 0, -1,  0), new Vector3(0,  0, -1)), // -Y
-        (new Vector3( 0,  0,  1), new Vector3(0, -1,  0)), // +Z
-        (new Vector3( 0,  0, -1), new Vector3(0, -1,  0)), // -Z
-        (new Vector3( 1,  0,  0), new Vector3(0, -1,  0)), // +X
     ];
 
     public LightProbe(int index)
@@ -57,7 +45,7 @@ public class LightProbe
                 Name = $"_rt_Prefilter_{index}",
                 Type = TextureTarget.TextureCubeMap,
                 WrapMode = TextureWrapMode.ClampToEdge,
-                MaxLevels = PrefilterMips,
+                MaxLevels = mips,
                 InternalFormat = SizedInternalFormat.Rgb16f
             }
         });
@@ -96,7 +84,7 @@ public class LightProbe
                 Name = $"_rt_EnvironmentMap_{_index}",
                 Type = TextureTarget.TextureCubeMap,
                 WrapMode = TextureWrapMode.ClampToEdge,
-                MaxLevels = -1,
+                MaxLevels = mips,
                 InternalFormat = SizedInternalFormat.Rgb16f,
             }
         });
@@ -200,7 +188,7 @@ public class LightProbe
         var prefilterShader = (Prefiltering)Engine.ShaderManager.GetShader("Prefiltering")!;
 
         using var prefilterBuffer = new FrameBuffer($"ibl_{_index}_prefilter_framebuffer");
-        var prefilterRenderbuffer = new RenderBuffer(InternalFormat.DepthComponent, size, size);
+        using var prefilterRenderbuffer = new RenderBuffer(InternalFormat.DepthComponent, size, size);
 
         prefilterBuffer.AttachRenderbuffer(prefilterRenderbuffer.Handle, FramebufferAttachment.DepthAttachment);
         prefilterBuffer.DrawInto(ColorBuffer.ColorAttachment0);
@@ -216,9 +204,15 @@ public class LightProbe
 
         var maxMipLevels = _prefilterRenderTarget.Texture.Levels;
 
+        // copy mip 0 directly
+        GL.CopyImageSubData(
+            (uint)envMap.Texture.Handle, CopyImageSubDataTarget.TextureCubeMap, 0, 0, 0, 0,
+            (uint)_prefilterRenderTarget.Texture.Handle, CopyImageSubDataTarget.TextureCubeMap, 0, 0, 0, 0,
+            size, size, 6);
+
         prefilterShader.SetEnvMap(envMap);
         prefilterShader.Bind();
-        for (var mip = 0; mip < maxMipLevels; mip++)
+        for (var mip = 1; mip < maxMipLevels; mip++)
         {
             var mipWidth = size >> mip;
             var mipHeight = size >> mip;
@@ -238,7 +232,9 @@ public class LightProbe
                 prefilterShader.SetInt("mip", mip);
                 prefilterShader.SetFloat("envMapResolution", size);
 
-                Engine.MainViewport.ViewMatrixOverride = Matrix4.LookAt(Vector3.Zero, _cubemapUsageViews[face].target, _cubemapUsageViews[face].up);
+                // set viewport view too to make sslr bake correctly
+                Engine.MainViewport.ViewMatrixOverride = Matrix4.LookAt(Vector3.Zero, _cubemapViews[face].target, _cubemapViews[face].up);
+                prefilterShader.SetMatrix4("view", Engine.MainViewport.GetViewMatrix());
 
                 GL.DrawArrays(PrimitiveType.Triangles, 0, CommonShapes.Cube.Length);
                 PerformanceMeasurement.Increment("DrawCalls");

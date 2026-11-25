@@ -149,6 +149,7 @@ void GetBlendedLightProbe(uint cluster, vec3 worldPos, vec3 N, vec3 R, float rou
 
         if (iblPrefilterEnabled)
         {
+            int prefilterMips = textureQueryLevels(lightProbes[probe].prefilter);
             vec3 direction = isFallback ? R : ParallaxCorrect(worldPos, R, probePosition, roughness);
             vec3 prefiltered = textureLod(lightProbes[probe].prefilter, direction, roughness * (prefilterMips - 1)).rgb;
             outSpecular += prefiltered * w;
