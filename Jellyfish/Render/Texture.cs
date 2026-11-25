@@ -116,8 +116,7 @@ public class Texture
             internalPixelFormat = HasAlpha ? SizedInternalFormat.Rgba16 : SizedInternalFormat.Rgb16;
         }
 
-        var maxLevels = Params.MaxLevels ?? 8;
-        Levels = Math.Clamp(Math.Min((int)image.Width, (int)image.Height) / 16, 1, maxLevels);
+        Levels = CalculateLevels((int)image.Width, (int)image.Height, 8);
 
         GL.TextureStorage2D(Handle, Levels, internalPixelFormat, (int)image.Width, (int)image.Height);
         GL.TextureSubImage2D(Handle, 0, 0, 0, (int)image.Width, (int)image.Height, pixelFormat, PixelType.UnsignedByte,
@@ -164,12 +163,13 @@ public class Texture
             GL.TextureParameteri(Handle, TextureParameterName.TextureCompareFunc, (int)DepthFunction.Lequal);
         }
 
-        var maxLevels = Params.MaxLevels ?? 1;
+        if (Params.Type == TextureTarget.TextureCubeMap)
+        {
+            // the global seamless enable is ignored when sampling through bindless handles
+            GL.TextureParameteri(Handle, (TextureParameterName)All.TextureCubeMapSeamless, 1);
+        }
 
-        if (maxLevels != -1)
-            Levels = Math.Clamp(Math.Min(RenderTargetParams!.Width, RenderTargetParams.Heigth) / 64, 1, maxLevels);
-        else
-            Levels = MaxLevels(RenderTargetParams!.Width, RenderTargetParams.Heigth);
+        Levels = CalculateLevels(RenderTargetParams!.Width, RenderTargetParams.Heigth, 1);
 
         GL.TextureStorage2D(Handle, Levels, Params.InternalFormat!.Value, RenderTargetParams.Width, RenderTargetParams.Heigth);
 
@@ -195,7 +195,6 @@ public class Texture
         for (var level = 0; level < Levels; level++)
             GL.ClearTexImage(Handle, level, pixelFormat, pixelType, IntPtr.Zero);
 
-
         Format = Params.InternalFormat.ToString()!;
         Dimensions = new Vector2(RenderTargetParams.Width, RenderTargetParams.Heigth);
         Size = GetGpuSize();
@@ -216,10 +215,16 @@ public class Texture
 
     public override string ToString() => Params.Name ?? Params.Path ?? "Unknown ???";
 
-    private int MaxLevels(int width, int height)
+    private int CalculateLevels(int width, int height, int defaultLevels)
     {
         var maxDim = Math.Max(width, height);
-        return (int)Math.Floor(Math.Log(maxDim, 2)) + 1;
+        var maxPossibleLevels = (int)Math.Floor(Math.Log(maxDim, 2)) + 1;
+
+        return Params.MaxLevels switch
+        {
+            -1 => maxPossibleLevels,
+            var requested => Math.Clamp(requested ?? defaultLevels, 1, maxPossibleLevels)
+        };
     }
 
     public void Delete()
@@ -232,7 +237,7 @@ public class Texture
         _isDeleted = true;
     }
 
-    public long GetGpuSize()
+    private long GetGpuSize()
     {
         var faces = Params.Type == TextureTarget.TextureCubeMap ? 6 : 1;
 
