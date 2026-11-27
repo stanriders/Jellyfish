@@ -17,8 +17,6 @@ uniform int   uBinarySearchSteps = 4;  // binary refine iterations after hit
 uniform float uStride = 5.0;           // initial stride multiplier (in view space units)
 uniform float uMaxDistance = 1000.0;     // max ray march distance in view-space
 
-#define MAX_ROUGHNESS 0.85
-
 in vec2 TexCoords;
 out vec4 FragColor;
 
@@ -106,7 +104,11 @@ bool screenIntersect(in vec3 originVS, in vec3 dirVS, out vec2 hitUV, out vec3 h
 
 void main() 
 {
-    if (textureLod(uRoughness, TexCoords, 0.0).r >= MAX_ROUGHNESS)
+    // derivatives are only valid before any early outs
+    vec3 viewPos = GetViewPos(TexCoords, Near, Far);
+    vec3 geometricNormal = normalize(cross(dFdx(viewPos), dFdy(viewPos)));
+
+    if (textureLod(uRoughness, TexCoords, 0.0).r >= SSLR_MAX_ROUGHNESS)
     {
         FragColor = vec4(0);
         return;
@@ -121,7 +123,6 @@ void main()
         return; // sky / no geometry
     }
     
-    vec3 viewPos = GetViewPos(TexCoords, Near, Far);
     vec3 V = normalize(-viewPos); // view direction in view-space
 
     vec3 R = reflect(-V, normalVS); // reflect view vector around normal
@@ -142,12 +143,11 @@ void main()
     {
         reflColor = texture(uSceneColor, hitUV).rgb;
 
-        float NdotV = max(dot(normalVS, V), 0.0);
-        float fresnel = pow(1.0 - NdotV, 3.0);
-        confidence = fresnel;
-
+        float facingFade = 1.0 - smoothstep(0.25, 0.5, dot(R, V));
+        float horizonFade = smoothstep(0.0, 0.05, dot(R, geometricNormal));
         float edgeFade = clamp(min(min(hitUV.x, 1.0 - hitUV.x), min(hitUV.y, 1.0 - hitUV.y)) * 10.0, 0.0, 1.0);
-        confidence *= edgeFade;
+
+        confidence = facingFade * horizonFade * edgeFade;
     } 
 
     FragColor = vec4(reflColor, confidence);

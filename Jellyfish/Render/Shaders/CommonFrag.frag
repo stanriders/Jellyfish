@@ -1,3 +1,4 @@
+const float SSLR_MAX_ROUGHNESS = 0.85;
 
 float LinearizeDepth(float z01, float near, float far)
 {

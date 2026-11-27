@@ -180,7 +180,7 @@ vec3 ComputeIBL(uint cluster, vec3 N, vec3 V, vec3 diffuseColor, float roughness
 
         if (iblPrefilterEnabled)
         {
-            if (sslrEnabled && roughness < 0.99)
+            if (sslrEnabled && roughness < SSLR_MAX_ROUGHNESS)
             {
                 vec4 ssrSample = texture(reflectionMap, uv);
                 vec3 ssrColor = ssrSample.rgb;
@@ -189,7 +189,7 @@ vec3 ComputeIBL(uint cluster, vec3 N, vec3 V, vec3 diffuseColor, float roughness
                 float reflectionWeight = (1.0 - roughness);
                 reflectionWeight = clamp(reflectionWeight, 0.0, 1.0);
 
-                float roughFade = 1.0 - smoothstep(0.4, 1.0, roughness);
+                float roughFade = 1.0 - smoothstep(0.1, SSLR_MAX_ROUGHNESS, roughness);
                 reflectionWeight *= roughFade;
 
                 blendedSpecular = mix(blendedSpecular, ssrColor, ssrConfidence * reflectionWeight);
